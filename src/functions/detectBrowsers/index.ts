@@ -1,7 +1,7 @@
 'use strict';
 
-import { existsSync } from "fs";
 import browsers from "./browsers";
+import { existsSync } from "fs";
 
 function getInstalledBrowsers () {
     let hasBrowser = false;

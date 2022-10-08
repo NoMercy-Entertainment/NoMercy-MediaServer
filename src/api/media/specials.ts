@@ -1,10 +1,11 @@
-import { confDb } from '../../database/config';
-import { Request, Response } from 'express-serve-static-core';
+import { Request, Response } from 'express';
 import { sortBy, unique } from '../../functions/stringArray';
-import { Prisma } from '@prisma/client'
-import { tvPopular } from '../../providers/tmdb/tv/index';
-import { deviceId } from '../../functions/system';
+
 import Logger from '../../functions/logger';
+import { Prisma } from '@prisma/client'
+import { confDb } from '../../database/config';
+import { deviceId } from '../../functions/system';
+import { tvPopular } from '../../providers/tmdb/tv/index';
 
 // import { createTitleSort } from '../../functions/stringArray';
 

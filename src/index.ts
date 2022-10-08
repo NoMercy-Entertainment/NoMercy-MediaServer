@@ -1,8 +1,12 @@
-import path, { join } from "path";
-import { app, BrowserWindow, screen, Tray, Menu, ipcMain } from "electron";
+import { BrowserWindow, Menu, Tray, app, ipcMain, screen } from "electron";
+
 import boot from "./functions/boot";
-import { sleep } from "./functions/dateTime";
-// process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(__dirname, 'native_modules', 'client', 'query_engine-windows.dll.node');
+import env from 'dotenv';
+import { join } from "path";
+
+env.config({
+	path: `${__dirname}/../.env`,
+});
 
 if (require("electron-squirrel-startup")) {
 	app.quit();

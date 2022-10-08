@@ -1,7 +1,11 @@
 import chalk from "chalk";
-import { dateFormat } from "../dateTime";
 import winston from "winston";
 import { winstonLog } from "../../state";
+
+export const dateFormat = (date: Date | number, format: string) => {
+	// @ts-expect-error
+	return (new Date(date)).format(format);
+};
 
 const myCustomLevels = {
 	error: 0,

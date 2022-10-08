@@ -1,12 +1,13 @@
-import { confDb } from '../../../database/config';
-import { Request, Response } from 'express-serve-static-core';
-import { sortBy, unique } from '../../../functions/stringArray';
+import { Request, Response } from 'express';
 import collection, { Collection } from '../../../providers/tmdb/collection/index';
-import { deviceId } from '../../../functions/system';
+import { sortBy, unique } from '../../../functions/stringArray';
+
 import Logger from '../../../functions/logger';
-import { moviePopular } from '../../../providers/tmdb/movie/index';
-import {movie} from '../../../providers/tmdb/movie/index';
 import { Prisma } from '@prisma/client';
+import { confDb } from '../../../database/config';
+import { deviceId } from '../../../functions/system';
+import {movie} from '../../../providers/tmdb/movie/index';
+import { moviePopular } from '../../../providers/tmdb/movie/index';
 
 export default async function (req: Request, res: Response) {
 

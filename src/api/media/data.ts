@@ -1,17 +1,17 @@
 import {
-	GenreMovie,
-	GenreTv,
-	Media,
-	Prisma,
-	Translation,
-	UserData,
 	Episode,
 	Folder,
+	GenreMovie,
+	GenreTv,
 	Library,
 	LibraryFolder,
+	Media,
 	Movie,
+	Prisma,
 	Season,
+	Translation,
 	Tv,
+	UserData,
 	VideoFile,
 } from '@prisma/client';
 

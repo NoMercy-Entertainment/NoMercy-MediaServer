@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync } from 'fs';
 import https, { Server } from 'https';
 
-import { configFile, libraryDb, makeMkv, subtitleEdit } from '../..';
+import { libraryDb, makeMkv, subtitleEdit } from '../..';
 import { SocketIoServer } from '../../../loaders/socket';
 
 export interface InitialState {

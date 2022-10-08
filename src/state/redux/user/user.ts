@@ -1,6 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { readFileSync } from 'fs';
-import { tokenFile } from '../..';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+
 import { store } from '..';
 
 const user = createSlice({

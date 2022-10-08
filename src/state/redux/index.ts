@@ -1,4 +1,5 @@
-import { configureStore, combineReducers, getDefaultMiddleware } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+
 import config from './config';
 import system from './system';
 import user from './user';

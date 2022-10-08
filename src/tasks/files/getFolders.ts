@@ -58,14 +58,14 @@ export class FileList {
 		this.filter = filter;
 		this.foldersOnly = foldersOnly;
 		this.ignoreBaseFilter = ignoreBaseFilter;
-		this.folderFile = path.join(cachePath, 'temp', `${this.#folderToFileName(folder)}.json`);
+		this.folderFile = path.join(cachePath, 'temp', `${this.folderToFileName(folder)}.json`);
 	}
 
-	#folderToFileName (folder: string): string {
+	folderToFileName (folder: string): string {
 		return folder.replace(/[\/\\]/gu, '_').replace(':', '_');
 	}
 
-	#folderList (folder: string): Promise<void> {
+	folderList (folder: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 
 			const options: DirectoryTreeOptions = {
@@ -132,7 +132,7 @@ export class FileList {
 					}
 				}
 
-				this.#folderList(this.folder).then(() => {
+				this.folderList(this.folder).then(() => {
 					Logger.log({
 						level: 'info',
 						name: 'job',

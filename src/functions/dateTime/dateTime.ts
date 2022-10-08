@@ -1,7 +1,7 @@
-import { pad } from '../../functions/stringArray';
 import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '../../state';
+import fs, { existsSync } from 'fs';
 
-import fs from 'fs';
+import { pad } from '../../functions/stringArray';
 
 export const convertToHumanReact = (t: (arg: string) => string, time: number, zeroPad = false): string => {
 	if (!time) {
@@ -564,6 +564,10 @@ export const dateFormat = (date: Date | number, format: string) => {
 			break;
 		default:
 			return Number.MAX_SAFE_INTEGER;
+	}
+
+	if(!existsSync(file)){
+		return Number.MAX_SAFE_INTEGER;
 	}
 
 	return fileChangedAgo(file, 'days');

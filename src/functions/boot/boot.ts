@@ -1,22 +1,18 @@
-import env from 'dotenv';
-env.config({
-	path: `${__dirname}/../.env`,
-});
+import { get_externa_ip, get_internal_ip, portMap } from '../networking';
 
-import moderators from '../../functions/moderators';
 import cdn from '../../loaders/cdn/cdn';
-import server from '../../loaders/server';
 import certificate from '../certificate';
 import firstBoot from '../firstBoot';
-import refreshToken from '../refreshToken';
-import seed from '../seed';
-import { get_externa_ip, get_internal_ip, portMap } from '../networking';
-import { setupComplete } from '../../state/';
-import users from '../users';
-import queue from '../queue';
+import { getKeycloakKeys } from '../../functions/keycloak';
 import loadConfigs from '../loadConfigs';
 import logo from '../logo';
-import { getKeycloakKeys } from '../../functions/keycloak';
+import moderators from '../../functions/moderators';
+import queue from '../queue';
+import refreshToken from '../refreshToken';
+import seed from '../seed';
+import server from '../../loaders/server';
+import { setupComplete } from '../../state/';
+import users from '../users';
 
 export default async () => {
 

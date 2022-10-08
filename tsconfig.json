@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2019",
     "declaration": false,
     "outDir": "./dist",
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true,
     "allowJs": true,
     "module": "CommonJS",
     "skipLibCheck": true,
@@ -13,8 +14,18 @@
     "noImplicitAny": false,
     "sourceMap": false,
     "baseUrl": "./src",
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
+    "lib": [
+      "DOM",
+      "ES6",
+      "DOM.Iterable",
+      "ScriptHost",
+      "ES2016.Array.Include",
+      "ESNext",
+      "ES2015",
+      "ES5"
+    ],
     "paths": {
       "@/*": ["./src/*"]
     },

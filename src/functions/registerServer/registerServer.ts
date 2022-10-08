@@ -1,30 +1,32 @@
-import axios from 'axios';
+import { AppState, useSelector } from '../../state/redux';
+import { deviceId, deviceName } from '../system';
 import express, { Request, Response } from 'express';
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
+import { setAccessToken, setRefreshToken } from '../../state/redux/user';
+
 import DetectBrowsers from '../detectBrowsers';
+import { KeycloakToken } from 'types/keycloak';
+import Logger from '../../functions/logger';
+import { ServerRegisterResponse } from 'types/api';
+import axios from 'axios';
 import http from 'http';
 import inquirer from 'inquirer';
+import { keycloak_key } from '../keycloak/config';
 import open from 'open';
 import qs from 'qs';
-import { ServerRegisterResponse } from 'types/api';
-import { KeycloakToken } from 'types/keycloak';
-
-import { tokenFile } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
 import { setOwner } from '../../state/redux/system/actions';
-import { setAccessToken, setRefreshToken } from '../../state/redux/user';
-import { keycloak_key } from '../keycloak/config';
-import Logger from '../../functions/logger';;
-import { deviceId, deviceName } from '../system';
+import { tokenFile } from '../../state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
+
+;
 
 const registerServer = async () => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const external_ip = useSelector((state: AppState) => state.system.external_ip);
 	const server_version = useSelector((state: AppState) => state.system.server_version);
-	const internal_port: number = parseInt(process.env.DEFAULT_PORT as string, 10) ?? 7635;
-	const external_port: number = parseInt(process.env.DEFAULT_PORT as string, 10) ?? 7635;
+	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' ? parseInt(process.env.DEFAULT_PORT as string, 10) : 7635;
+	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' ? parseInt(process.env.DEFAULT_PORT as string, 10) : 7635;
 	let registerComplete = false;
 
 	const redirect_uri = `http://${internal_ip}:${internal_port}/sso-callback`;
@@ -64,14 +66,14 @@ const registerServer = async () => {
 			}
 		});
 		
+	if (success || !JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token) {
+		const detected =  DetectBrowsers();
 
-	const detected =  DetectBrowsers();
-
-	if (success) {
 		if (!detected) {
 			await loginPropmt().then(() => {
 				registerComplete = true;
 			});
+
 		} else {
 			await tempServer(redirect_uri, internal_port, registerComplete);
 
@@ -108,6 +110,7 @@ const tempServer = async (redirect_uri: string, internal_port: number, registerC
 	const httpsServer = http.createServer(app);
 
 	app.get('/sso-callback', async (req: Request, res: Response) => {
+
 		const keycloakData = qs.stringify({
 			client_id: 'nomercy-server',
 			grant_type: 'authorization_code',
@@ -137,7 +140,7 @@ const tempServer = async (redirect_uri: string, internal_port: number, registerC
 				setOwner(userId);
 				writeToConfigFile('user_id', userId);
 
-				writeFileSync(tokenFile, JSON.stringify(data));
+				writeFileSync(tokenFile, JSON.stringify(data, null, 2));
 
 				res.send(`<script>window.close();</script>`).end();
 
