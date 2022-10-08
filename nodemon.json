@@ -1,0 +1,14 @@
+{
+  "watch": [
+    "src"
+  ],
+  "ext": ".ts",
+  "ignore": [
+    "data",
+    "src/database/config/client",
+    "src/database/library/client",
+    "src/database/queue/client",
+    "src/functions/queue/QueueClass.ts"
+  ],
+  "exec": "ts-node --pretty ./src/index.ts"
+}
