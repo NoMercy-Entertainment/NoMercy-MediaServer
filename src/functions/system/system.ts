@@ -1,7 +1,13 @@
-import path, { join, resolve } from 'path';
-import { machineIdSync } from 'node-machine-id';
-import diskinfo from '../diskinfo';
 import { execFileSync, execSync } from 'child_process';
+import path, { join, resolve } from 'path';
+
+import diskinfo from '../diskinfo';
+import { machineIdSync } from 'node-machine-id';
+import { readFileSync } from 'fs';
+
+export const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
+
+export const appVersion = packageJson.version;
 
 export const convertPath = (path: string) => {
 	if (process.platform === 'win32') {
@@ -31,13 +37,13 @@ const getAppPath = (): string => {
 	let appPath: string;
 	switch (getPlatform()) {
 		case 'windows':
-			appPath = path.join(process.env.LOCALAPPDATA as string, 'NoMercyMediaServer');
+			appPath = path.join(process.env.LOCALAPPDATA as string, 'NoMercy');
 			break;
 		case 'mac':
-			appPath = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercyMediaServer');
+			appPath = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercy');
 			break;
 		case 'linux':
-			appPath = path.join(process.env.HOME as string, '.local', 'share', 'NoMercyMediaServer');
+			appPath = path.join(process.env.HOME as string, '.local', 'share', 'NoMercy');
 			break;
 		default:
 			throw new Error('Platform unknown');
@@ -46,7 +52,7 @@ const getAppPath = (): string => {
 };
 export const appPath = getAppPath();
 
-export const serviceName = 'NoMercyMediaServer';
+export const serviceName = 'NoMercy';
 export enum ServiceStatus {
 	'notInstalled',
 	'unknown',
@@ -88,10 +94,10 @@ const getServiceStatus = (): ServiceStatus => {
 			
 			break;
 		case 'mac':
-			// status = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercyMediaServer');
+			// status = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercy');
 			break;
 		case 'linux':
-			// status = path.join(process.env.HOME as string, '.local', 'share', 'NoMercyMediaServer');
+			// status = path.join(process.env.HOME as string, '.local', 'share', 'NoMercy');
 			break;
 		default:
 			throw new Error('Platform unknown');
@@ -121,13 +127,13 @@ const getInstallPath = (): string => {
 	let appPath: string;
 	switch (getPlatform()) {
 		case 'windows':
-			appPath = path.join(process.env.ProgramFiles as string, 'NoMercyMediaServer');
+			appPath = path.join(process.env.ProgramFiles as string, 'NoMercy');
 			break;
 		case 'mac':
-			appPath = path.join(process.env.HOME as string, 'Library', 'Application Support', 'NoMercyMediaServer');
+			appPath = path.join(process.env.HOME as string, 'Library', 'Application Support', 'NoMercy');
 			break;
 		case 'linux':
-			appPath = path.join(process.env.HOME as string, '.NoMercyMediaServer');
+			appPath = path.join(process.env.HOME as string, '.NoMercy');
 			break;
 		default:
 			throw new Error('Platform unknown');

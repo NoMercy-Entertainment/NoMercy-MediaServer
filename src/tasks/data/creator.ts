@@ -1,6 +1,6 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
 import { CompleteTvAggregate } from './fetchTvShow';
+import { Prisma } from '@prisma/client'
+import { confDb } from '../../database/config';
 
 export default async (
 	req: CompleteTvAggregate,
@@ -10,7 +10,7 @@ export default async (
 ) => {
 
 	for (const created_by of req.created_by) {
-		if(!people.includes(created_by.id)) return;
+		if(!people.includes(created_by.id)) continue;
 
 		const createdInsert = Prisma.validator<Prisma.CreatorUncheckedCreateInput>()({
 			creditId: created_by.credit_id,
@@ -20,15 +20,15 @@ export default async (
 			profilePath: created_by.profile_path,
 		});
 
-		// transaction.push(
-		await	confDb.creator.upsert({
+		transaction.push(
+			confDb.creator.upsert({
 				where: {
 					creditId: created_by.credit_id,
 				},
 				update: createdInsert,
 				create: createdInsert,
 			})
-		// );
+		);
 
 		createdByArray.push({
 			where: {

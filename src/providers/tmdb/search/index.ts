@@ -1,13 +1,13 @@
-import Logger from '../../../functions/logger';
-import tmdbApiClient from '../tmdbApiClient';
 import { Collection } from '../collection/collection';
 import { Company } from '../company/company';
-import { PaginatedResponse } from '../helpers';
 import { Keyword } from '../keywords/keyword';
+import Logger from '../../../functions/logger';
 import { Movie } from '../movie/movie';
+import { PaginatedResponse } from '../helpers';
 import { Person } from '../people/person';
 import { TvShow } from '../tv/tv';
 import { sortByMathPercentage } from '../../../functions/stringArray';
+import tmdbApiClient from '../tmdbApiClient';
 
 export * from './search';
 export * from './search-result';
@@ -15,7 +15,7 @@ export * from './search-result';
 export const searchCollection = async (query: string): Promise<Collection[]> => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Collection Search for: ${query}`,
 	});
@@ -35,7 +35,7 @@ export const searchCollection = async (query: string): Promise<Collection[]> => 
 export const searchCompany = async (query: string): Promise<Company[]> => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Company Search for: ${query}`,
 	});
@@ -54,7 +54,7 @@ export const searchCompany = async (query: string): Promise<Company[]> => {
 export const searchKeyword = async (query: string): Promise<Keyword[]> => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Keyword Search for: ${query}`,
 	});
@@ -71,11 +71,14 @@ export const searchKeyword = async (query: string): Promise<Keyword[]> => {
 };
 
 export const searchMovie = async (query: string, year: number | null = null): Promise<Movie[]> => {
-	query = query.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&').split('.(')[0].replace(/([a-z])\./g, '$1 ').replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+	query = query
+		.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
+		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
 
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Movie Search for: ${query} ${year}`,
 	});
@@ -99,17 +102,22 @@ export const searchMovie = async (query: string, year: number | null = null): Pr
 	);
 };
 
-export const searchMulti = async (query: string, year: number | null = null): Promise<(Person | Movie | TvShow)[]> => {
+export const searchMulti = async (query: string, year: number | string | null = null): Promise<(Person | Movie | TvShow)[]> => {
+
+	query = query
+		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
-		message: `Multi Search for: ${query.split('.(')[0].replace(/([a-z])\./g, '$1 ').replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2')} ${year}`,
+		message: `Multi Search for: ${query} ${year}`,
 	});
 
 	const params = {
 		params: {
-			query: query.split('.(')[0].replace(/([a-z])\./g, '$1 ').replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2'),
+			query: query,
 			primary_release_year: year,
 			include_adult: (process.env.ALLOW_ADULT as string) == 'true' ?? false,
 		},
@@ -117,20 +125,25 @@ export const searchMulti = async (query: string, year: number | null = null): Pr
 
 	const { data } = await tmdbApiClient.get<PaginatedResponse<Person | Movie | TvShow>>('search/multi', params);
 
-	return data.results || [];
+	return data.results ?? [];
 };
 
 export const searchPeople = async (query: string): Promise<Person[]> => {
+
+	query = query.
+		split('.(')[0].replace(/([a-z])\./g, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
-		message: `People Search for: ${query.replace(/\./gu, ' ')}`,
+		message: `People Search for: ${query}`,
 	});
 
 	const params = {
 		params: {
-			query: query.split('.(')[0].replace(/([a-z])\./g, '$1 ').replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2'),
+			query: query,
 			include_adult: (process.env.ALLOW_ADULT as string) == 'true' ?? false,
 		},
 	};
@@ -141,11 +154,14 @@ export const searchPeople = async (query: string): Promise<Person[]> => {
 };
 
 export const searchTv = async (query: string, year: number | null = null): Promise<TvShow[]> => {
-	query = query.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&').split('.(')[0].replace(/([a-z])\./g, '$1 ').replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+	query = query
+		.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
+		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
 
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `TV Show Search for: ${query} ${year}`,
 	});

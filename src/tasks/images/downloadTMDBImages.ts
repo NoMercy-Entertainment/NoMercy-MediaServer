@@ -1,18 +1,19 @@
-import { imagesPath } from '../../state';
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
-import downloadImage from '../../functions/downloadImage/downloadImage';
-import { TvAppend, TvImages } from '../../providers/tmdb/tv/index';
-import { MovieAppend, MovieImages } from '../../providers/tmdb/movie/index';
-import { SeasonAppend, SeasonImages } from '../../providers/tmdb/season/index';
 import { EpisodeAppend, EpisodeImages } from '../../providers/tmdb/episode/index';
-import { Image } from '../../providers/tmdb/shared/index';
+import { MovieAppend, MovieImages } from '../../providers/tmdb/movie/index';
 import { PersonAppend, PersonImages } from '../../providers/tmdb/people/index';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import { existsSync, Stats } from 'fs';
-import { commitConfigTransaction } from '../../database';
+import { SeasonAppend, SeasonImages } from '../../providers/tmdb/season/index';
+import { Stats, existsSync } from 'fs';
+import { TvAppend, TvImages } from '../../providers/tmdb/tv/index';
+
 import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
 import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { Image } from '../../providers/tmdb/shared/index';
+import { Prisma } from '@prisma/client'
+import { commitConfigTransaction } from '../../database';
+import { confDb } from '../../database/config';
+import downloadImage from '../../functions/downloadImage/downloadImage';
+import { imagesPath } from '../../state';
 
 export const downloadTMDBImages = async (dbType: string, data: TvAppend | MovieAppend | SeasonAppend | EpisodeAppend | PersonAppend | CompleteMovieAggregate | CompleteTvAggregate) => {
 	const imageSizes = [
@@ -64,6 +65,17 @@ export const downloadTMDBImages = async (dbType: string, data: TvAppend | MovieA
 
 						if (existsSync(`${imagesPath}/${size}${image.file_path}`)) continue;
 						await downloadImage(`https://image.tmdb.org/t/p/${size}${image.file_path}`, `${imagesPath}/${size}${image.file_path}`)
+							.then(async ({ dimensions, stats, colorPalette }) => {
+								transaction.push(
+									confDb.image.upsert({
+										where: {
+											filePath: image.file_path,
+										},
+										create: imageQuery(dbType, data, image, dimensions, stats),
+										update: imageQuery(dbType, data, image, dimensions, stats),
+									}).catch(error => console.log(error))
+								);
+							})
 							.catch(() => null);
 					}
 				}
@@ -100,19 +112,6 @@ const imageQuery = (
 		name: image.file_path,
 		voteAverage: image.vote_average,
 		voteCount: image.vote_count,
-		// Mediable: {
-		//     connectOrCreate: {
-		//         where: {
-		//             mediaAbleId_mediaAbleType_src: {
-		//                 mediaAbleType: dbType,
-		//                 mediaAbleId: data.id,
-		//                 src: image.file_path
-		//             }
-		//         },
-		//         create: {
-		//             mediaAbleType: dbType,
-		//             mediaAbleId: data.id,
-		//         },
-		//     }
-		// }
+		tvId: dbType == 'tv' ? data.id : undefined,
+		movieId: dbType == 'movie' ? data.id : undefined,
 	});

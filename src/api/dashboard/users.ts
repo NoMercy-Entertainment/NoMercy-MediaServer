@@ -1,10 +1,11 @@
-import { confDb } from '../../database/config';
-import { Request, Response } from 'express';
-import Logger from '../../functions/logger';
-import { setAllowedUsers, setUsers } from '../../state/redux/config/actions';
+import { AddUserParams, NotificationsParams, ResponseStatus, removeUserParams, userPermissionsParams } from 'types/server';
 import { AppState, useSelector } from '../../state/redux';
-import { defaultUserOptions, User } from '../../state/redux/config';
-import { AddUserParams, NotificationsParams, removeUserParams, ResponseStatus, userPermissionsParams } from 'types/server';
+import { Request, Response } from 'express';
+import { User, defaultUserOptions } from '../../state/redux/config';
+import { setAllowedUsers, setUsers } from '../../state/redux/config/actions';
+
+import Logger from '../../functions/logger';
+import { confDb } from '../../database/config';
 
 export const AddUser = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
@@ -30,7 +31,8 @@ export const AddUser = async (req: Request, res: Response): Promise<Response<any
 			},
 		})
 		.then((data) => {
-			setAllowedUsers([
+
+			const newAllowedUsers = [
 				...allowedUsers,
 				{
 					sub_id: sub_id,
@@ -38,13 +40,17 @@ export const AddUser = async (req: Request, res: Response): Promise<Response<any
 					name: name,
 					...defaultUserOptions,
 				},
-			]);
+			];
+
+			setAllowedUsers(newAllowedUsers);
+
 			Logger.log({
 				level: 'info',
 				name: 'access',
 				color: 'magentaBright',
 				message: `User ${data.name} added.`,
 			});
+			
 			return res.json({
 				status: 'ok',
 				message: `User ${data.name} added.`,
@@ -79,7 +85,10 @@ export const removeUser = async (req: Request, res: Response): Promise<Response<
 			},
 		})
 		.then((data) => {
-			setAllowedUsers([...allowedUsers.filter((u) => u.sub_id != sub_id)]);
+			const newAllowedUsers = [...allowedUsers.filter((u) => u.sub_id != sub_id)];
+
+			setAllowedUsers(newAllowedUsers);
+
 			Logger.log({
 				level: 'info',
 				name: 'access',
@@ -195,7 +204,8 @@ export const updateUserPermissions = async (req: Request, res: Response): Promis
 			},
 		})
 		.then((data: { name: string }) => {
-			setAllowedUsers([
+
+			const newAllowedUsers = [
 				...allowedUsers.filter((u) => u.sub_id != sub_id),
 				{
 					...allowedUsers.find((u) => u.sub_id == sub_id)!,
@@ -206,7 +216,9 @@ export const updateUserPermissions = async (req: Request, res: Response): Promis
 					videoTranscoding,
 					noTranscoding,
 				},
-			]);
+			];
+
+			setAllowedUsers(newAllowedUsers);
 
 			Logger.log({
 				level: 'info',

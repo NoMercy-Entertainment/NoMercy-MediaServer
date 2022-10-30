@@ -1,27 +1,35 @@
-import { confDb } from '../../database/config';
-import { Request, Response } from 'express';
-import Logger from '../../functions/logger';
-import { updateEncoderProfilesParams } from 'types/server';
-import { platform } from '../../functions/system';
-import path from 'path';
-import { scanLibrary } from '../../tasks/files/scanLibraries';
+import { Request, Response } from "express";
+import { searchMovie, searchTv } from "../../providers/tmdb/search";
+
+import Logger from "../../functions/logger";
+import { confDb } from "../../database/config";
+import { createMediaFolder } from "../../tasks/files/filenameParser";
+import i18n from "../../loaders/i18n";
+import { movie } from "../../providers/tmdb/movie";
+import path from "path";
+import { platform } from "../../functions/system";
+import { scanLibrary } from "../../tasks/files/scanLibraries";
+import storeMovie from "../../tasks/data/storeMovie";
+import storeTvShow from "../../tasks/data/storeTvShow";
+import { tv } from "../../providers/tmdb/tv";
+import { updateEncoderProfilesParams } from "types/server";
 
 export const libraries = async (req: Request, res: Response) => {
 	await confDb.library
 		.findMany({
 			include: {
-				folders: {
+				Folders: {
 					include: {
 						folder: true,
 					},
 				},
-				encoderProfiles: true,
-				subtitleLanguages: {
+				EncoderProfiles: true,
+				SubtitleLanguages: {
 					include: {
 						language: true,
 					},
 				},
-				metadata: true,
+				Metadata: true,
 				// user: true,
 			},
 		})
@@ -31,22 +39,22 @@ export const libraries = async (req: Request, res: Response) => {
 				extractChaptersDuring: d.extractChaptersDuring,
 				language: d.language,
 				country: d.country,
-				folders: d.folders.map((f) => f.folder?.path),
+				folders: d.Folders.map((f) => f.folder?.path),
 				subtitleLanguages: undefined,
-				encoderProfiles: d.encoderProfiles.map((e) => e.encoderProfileId),
-				subtitles: d.subtitleLanguages.map((s) => s.language.iso_639_1),
+				encoderProfiles: d.EncoderProfiles.map((e) => e.encoderProfileId),
+				subtitles: d.SubtitleLanguages.map((s) => s.language.iso_639_1),
 			}));
 			return res.json(lib);
 		})
 		.catch((error) => {
 			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
+				level: "info",
+				name: "access",
+				color: "magentaBright",
 				message: `Error getting encoder profiles: ${error}`,
 			});
 			return res.json({
-				status: 'error',
+				status: "error",
 				message: `Something went wrong getting encoder profiles: ${error}`,
 			});
 		});
@@ -79,7 +87,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 	const Folders = await confDb.folder.findMany({
 		where: {
 			path: {
-				in: folders.map((f) => (platform == 'windows' ? path.resolve(f).replace(/\/$/u, '') : f.replace(/\/$/u, ''))),
+				in: folders.map((f) => (platform == "windows" ? path.resolve(f).replace(/\/$/u, "") : f.replace(/\/$/u, ""))),
 			},
 		},
 	});
@@ -117,7 +125,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 				specialSeasonName: specialSeasonName,
 				title: title,
 				type: type,
-				folders: {
+				Folders: {
 					// set: [],
 					connectOrCreate: Folders.map((f) => ({
 						where: {
@@ -131,7 +139,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 						},
 					})),
 				},
-				encoderProfiles: {
+				EncoderProfiles: {
 					// set: [],
 					connectOrCreate: EncoderProfiles.map((f) => ({
 						where: {
@@ -145,7 +153,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 						},
 					})),
 				},
-				subtitleLanguages: {
+				SubtitleLanguages: {
 					// set: [],
 					connectOrCreate: Languages.map((f) => ({
 						where: {
@@ -170,109 +178,176 @@ export const updateLibrary = async (req: Request, res: Response) => {
 		})
 		.then((data) => {
 			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
+				level: "info",
+				name: "access",
+				color: "magentaBright",
 				message: `Updated ${data.title} library.`,
 			});
 
 			return res.json({
-				status: 'error',
+				status: "error",
 				message: `Successfully updated ${data.title} library.`,
 			});
 		})
 		.catch((error) => {
 			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error updating user permissions: ${error}`
+				level: "info",
+				name: "access",
+				color: "magentaBright",
+				message: `Error updating user permissions: ${error}`,
 			});
 			return res.json({
-				status: 'ok',
-				message: `Something went wrong updating permissions: ${error}`
-			})
+				status: "ok",
+				message: `Something went wrong updating permissions: ${error}`,
+			});
 		});
 };
 
 export const rescanLibrary = async (req: Request, res: Response) => {
-
 	const { id } = req.params;
 	const { forceUpdate, synchronous } = req.body;
 
-	await scanLibrary(id, forceUpdate, synchronous)
+	scanLibrary(id, forceUpdate, synchronous)
 		.then((data) => {
-			if(!data) {
+			if (!data) {
 				Logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Library does not exist`
+					level: "info",
+					name: "job",
+					color: "magentaBright",
+					message: `Library does not exist`,
 				});
 				return res.json({
-					status: 'ok',
-					message: `Library does not exist`
-				})
-			};
+					status: "ok",
+					message: `Library does not exist`,
+				});
+			}
 
 			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
+				level: "info",
+				name: "job",
+				color: "magentaBright",
 				message: `Updated ${data.title} library.`,
 			});
 
 			return res.json({
-				status: 'error',
+				status: "error",
 				message: `Successfully updated ${data.title} library.`,
 			});
 		})
 		.catch((error) => {
 			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error updating the library: ${error}`
+				level: "info",
+				name: "job",
+				color: "magentaBright",
+				message: `Error updating the library: ${error}`,
 			});
 			return res.json({
-				status: 'ok',
-				message: `Something went wrong updating the library: ${error}`
-			})
+				status: "ok",
+				message: `Something went wrong updating the library: ${error}`,
+			});
 		});
-}
+};
 
 export const deleteLibrary = async (req: Request, res: Response) => {
+	const { id } = req.params;
+
+	confDb.library
+		.delete({
+			where: {
+				id: id,
+			},
+		})
+		.then((data) => {
+			Logger.log({
+				level: "info",
+				name: "access",
+				color: "magentaBright",
+				message: `Deleted ${data.title} library.`,
+			});
+
+			return res.json({
+				status: "error",
+				message: `Successfully deleted ${data.title} library.`,
+			});
+		})
+		.catch((error) => {
+			Logger.log({
+				level: "info",
+				name: "access",
+				color: "magentaBright",
+				message: `Error deleting the library: ${error}`,
+			});
+			return res.json({
+				status: "ok",
+				message: `Something went wrong deleting the library: ${error}`,
+			});
+		});
+};
+
+export const addNewItem = async (req: Request, res: Response) => {
 
 	const { id } = req.params;
 
-	confDb.library.delete({
-		where: {
-			id: id
-		}
-	}).then((data) => {
-		Logger.log({
-			level: 'info',
-			name: 'access',
-			color: 'magentaBright',
-			message: `Deleted ${data.title} library.`,
-		});
+	const library = await confDb.library
+		.findFirst({
+			where: {
+				id: id,
+			},
+			include: {
+				Folders: {
+					include: {
+						folder: true,
+					},
+				},
+			},
+		}).catch(e => console.log(e));
 
-		return res.json({
-			status: 'error',
-			message: `Successfully deleted ${data.title} library.`,
-		});
-	})
-	.catch((error) => {
+	if(!library?.id) {
 		Logger.log({
-			level: 'info',
-			name: 'access',
-			color: 'magentaBright',
-			message: `Error deleting the library: ${error}`
+			level: "info",
+			name: "access",
+			color: "magentaBright",
+			message: `Library not found`,
 		});
 		return res.json({
-			status: 'ok',
-			message: `Something went wrong deleting the library: ${error}`
-		})
-	});
-}
+			status: "error",
+			message: `Library not found`,
+		});
+	};
 
+	const { type, id: itemId } = req.body;
+	
+	await i18n.changeLanguage('en');
+
+	switch (type) {
+		case "movie":
+			const movieData = await movie(itemId);
+
+			await storeMovie({
+				id: movieData.id,
+				folder: createMediaFolder(library, movieData),
+				libraryId: library.id,
+			}).then(data => {
+				return res.json(data);
+			});
+
+			break;
+		case "tv":
+			const tvData = await tv(itemId);
+		
+			await storeTvShow({
+				id: tvData.id,
+				folder: createMediaFolder(library, tvData),
+				libraryId: library.id,
+			}).then(data => {
+				return res.json(data);
+			});
+
+			break;
+		case "music":
+			break;
+		default:
+			break;
+	}
+	
+};

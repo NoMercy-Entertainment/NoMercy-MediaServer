@@ -1,11 +1,12 @@
-import { createWriteStream, existsSync, mkdirSync, PathLike, Stats } from 'fs';
+import { PathLike, Stats, createWriteStream, existsSync, mkdirSync } from 'fs';
+
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { PaletteColors } from 'types/server';
 import axios from 'axios';
+import colorPalette from '../../functions/colorPalette/colorPalette';
 import { resolve as pathResolve } from 'path';
 import sizeOf from 'image-size';
 import { statSync } from "fs";
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import colorPalette from '../../functions/colorPalette/colorPalette';
-import { PaletteColors } from 'types/server';
 
 export interface DownloadImage {
     dimensions: ISizeCalculationResult;

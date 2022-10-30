@@ -1,11 +1,12 @@
-import { confDb } from '../../database/config';
 import { Request, Response } from 'express';
-import Logger from '../../functions/logger';
-import { KAuthRequest } from 'types/keycloak';
-import { isOwner } from '../middlewares/permissions';
-import { deviceId } from '../../functions/system';
 import { getContent, ownerQuery, userQuery } from './data';
+
+import { KAuthRequest } from 'types/keycloak';
+import Logger from '../../functions/logger';
 import { Translation } from '@prisma/client'
+import { confDb } from '../../database/config';
+import { deviceId } from '../../functions/system';
+import { isOwner } from '../middlewares/permissions';
 
 export default async function (req: Request, res: Response) {
 	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';

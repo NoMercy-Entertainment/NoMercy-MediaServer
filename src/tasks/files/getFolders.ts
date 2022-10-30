@@ -44,7 +44,7 @@ export class FileList {
 	ignoreBaseFilter: boolean;
 	hasCache = false;
 	folderFile: string;
-	ignoreRegex = /video_.*|audio_.*|subtitles|scans|cds.*|ost|album|music|original|fonts|thumbs|metadata|NCED|NCOP/iu;
+	ignoreRegex = /video_.*|audio_.*|subtitles|scans|cds.*|ost|album|music|original|fonts|thumbs|metadata|NCED|NCOP|~/iu;
 
 	constructor ({
 		folder,
@@ -70,7 +70,7 @@ export class FileList {
 
 			const options: DirectoryTreeOptions = {
 				extensions: new RegExp(`\\.(${this.filter.join('|')})$`, 'u'),
-				exclude: this.ignoreRegex,
+				exclude: this.ignoreBaseFilter ? undefined : this.ignoreRegex,
 				normalizePath: true,
 				depth: this.recursive ? undefined : 1,
 				followSymlinks: true,
@@ -116,13 +116,6 @@ export class FileList {
 	start (): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			try {
-				Logger.log({
-					level: 'info',
-					name: 'job',
-					color: 'magentaBright',
-					message: `Starting file listing folder: ${this.folder}`,
-				});
-
 				if (existsSync(this.folderFile) && fileChangedAgo(this.folderFile, 'days') < 50) {
 					try {
 						this.tree = JSON.parse(readFileSync(this.folderFile, 'utf-8'));
@@ -131,6 +124,13 @@ export class FileList {
 						return reject(error);
 					}
 				}
+
+				Logger.log({
+					level: 'info',
+					name: 'job',
+					color: 'magentaBright',
+					message: `Starting file listing folder: ${this.folder}`,
+				});
 
 				this.folderList(this.folder).then(() => {
 					Logger.log({
@@ -165,7 +165,7 @@ export class FileList {
 		if (!this?.tree?.children) return [];
 		return sortBy<DirectoryTree<IObj>>(this.tree.children ?? [], 'name')
 			?.map(f => parseFolderName(f))
-			.filter(f => f.title != null);
+			.filter(f => f.title != null || f.name != null);
 	}
 
 	mapFiles (tree: DirectoryTree<IObj>): void {
@@ -178,7 +178,7 @@ export class FileList {
 		});
 	}
 
-	getFiles (): any[] {
+	getFiles (): FolderList[] {
 		this.mapFiles(this.tree);
 		return this.array;
 	}
@@ -208,12 +208,12 @@ export class FileList {
 				// rmSync(path, { recursive: true});
 			}
 			else if(faultyFile.extension == '.mp4'){
-				const path = faultyFile.path.replace(/(W.+[\\\/])/, '$1');
+				const path = faultyFile.path.replace(/(\w.+[\\\/])/, '$1');
 				console.log(path);
 				// rmSync(path, { recursive: true});
 			}
 		}
 
-		return newArray.filter(f => f.title != null && f.ffprobe);
+		return newArray.filter(f => (f.title != null || f.name != null) && f.ffprobe);
 	}
 }

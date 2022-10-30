@@ -1,18 +1,33 @@
-import { writeFileSync } from "fs";
 import { FolderInfo } from "../files/scanLibraries";
+import { confDb } from "../../database/config";
 import storeMovie from "./storeMovie";
+import { storeMusic } from "./storeMusic";
 import storeTvShow from "./storeTvShow";
+import { writeFileSync } from "fs";
 
 export const fullUpdate = async (data: FolderInfo) => {
 	let fullUpdate: any = null;
+	
+	await confDb.runningTask.update({
+		where: {
+			id: data.task.id
+		},
+		data: {
+			title: `Scanning ${data.lib.title} library`,
+			type: 'library',
+			value: Math.floor((data.index / data.jobsCount) * 100),
+		}
+	}).catch(e => console.log(e));
+	
 	switch (data.type) {
 		case 'tv':
-				fullUpdate = await storeTvShow({ id: data.id, folder: data.folder, libraryId: data.libraryId });
+				fullUpdate = await storeTvShow({ id: data.id as number, folder: data.folder, libraryId: data.libraryId });
 			break;
 		case 'movie':
-				fullUpdate = await storeMovie({ id: data.id, folder: data.folder, libraryId: data.libraryId });
+				fullUpdate = await storeMovie({ id: data.id as number, folder: data.folder, libraryId: data.libraryId });
 			break;
-		case 'music':			
+		case 'music':
+				fullUpdate = await storeMusic({ id: data.id as string, folder: data.folder, libraryId: data.libraryId });
 			break;	
 		default:
 			break;
@@ -21,5 +36,5 @@ export const fullUpdate = async (data: FolderInfo) => {
     data.lastUpdate = Date.now();
     writeFileSync(data.jsonFile, JSON.stringify(data, null, 4));
 	
-	return fullUpdate;
+	return data;
 };

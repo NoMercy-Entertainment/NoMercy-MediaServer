@@ -1,9 +1,11 @@
-import fffmpeg from 'fluent-ffmpeg';
-import fs from 'fs';
-import Logger from '../../functions/logger';
 import { errorLog, ffprobe } from '../../state';
 
-export default (file: string): Promise<any> => {
+import { AudioFFprobe } from './ffprobe';
+import Logger from '../../functions/logger';
+import fffmpeg from 'fluent-ffmpeg';
+import fs from 'fs';
+
+export default (file: string): Promise<AudioFFprobe> => {
 	return new Promise(async (resolve, reject) => {
 
 		fffmpeg.setFfprobePath(ffprobe);

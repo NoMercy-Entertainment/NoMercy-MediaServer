@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+
 import Logger from '../../functions/logger';
 import i18next from 'i18next';
 
@@ -16,7 +17,7 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 const onRequestError = (error: AxiosError): Promise<AxiosError> => {
 	Logger.log({
 		level: 'error',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'red',
 		message: JSON.stringify(error, null,2 ),
 	});
@@ -33,12 +34,12 @@ const onResponse = (response: AxiosResponse<any>): AxiosResponse => {
 const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 	Logger.log({
 		level: 'error',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'red',
-		message: JSON.stringify(error.response?.data),
+		message: JSON.stringify(error, null,2),
 	});
 
-	return Promise.reject(error.response);
+	return Promise.reject(error);
 };
 
 export const setupInterceptorsTo = (axiosInstance: AxiosInstance): AxiosInstance => {

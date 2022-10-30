@@ -1,19 +1,21 @@
-import { confDb } from '../../database/config';
 import { Request, Response } from 'express';
-import { ResponseStatus } from 'types/server';
+import { arch, deviceName, platform } from '../../functions/system';
 import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '../../state';
+
 import Logger from '../../functions/logger';
+import { ResponseStatus } from 'types/server';
+import { confDb } from '../../database/config';
 import osu from 'os-utils';
-import { readFileSync } from 'fs';
 import path from 'path';
+import { readFileSync } from 'fs';
 
 export const serverInfo = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
 	const json = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
 
 	return res.json({
-		server: 'Eagle',
-		os: 'Windows',
-		arch: 'X64',
+		server: deviceName,
+		os: platform.toTitleCase(),
+		arch: arch,
 		version: json.version,
 		bootTime: Math.round(new Date().getTime() - osu.processUptime() * 1000),
 	});
@@ -98,30 +100,6 @@ export const devices = async (req: Request, res: Response): Promise<Response<any
 			return res.json({
 				status: 'ok',
 				message: `Something went wrong getting devices: ${error}`,
-			});
-		});
-};
-
-export const serverTasks = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	confDb.runningTask
-		.findMany({})
-		.then((data) => {
-			return res.json(
-				data.map((d) => ({
-					...d,
-				}))
-			);
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting server tasks: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong getting server tasks: ${error}`,
 			});
 		});
 };

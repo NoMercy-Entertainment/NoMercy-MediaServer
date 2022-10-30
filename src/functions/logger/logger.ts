@@ -26,7 +26,7 @@ winston.addColors({
 
 export const fileLogger = new winston.transports.File({ 
 	filename: winstonLog,
-	maxsize: 1024 * 100,
+	maxsize: 1024 * 1024 * 1024,
 	tailable: true,
 	maxFiles: 20,
 	format: winston.format.combine(

@@ -1,6 +1,7 @@
 import { configDb, queueDb } from '../state';
-import { PrismaClient as queueDbModel } from './queue/client';
+
 import { PrismaClient } from '@prisma/client';
+import { PrismaClient as queueDbModel } from './queue/client';
 
 export const confDb: PrismaClient = new PrismaClient({
 	datasources: {
@@ -8,13 +9,13 @@ export const confDb: PrismaClient = new PrismaClient({
 			url: `file:${configDb.replace(/\\/gu, '/')}?socket_timeout=99999&connection_limit=1&timeout=99999&busy_timeout=99999`,
 		},
 	},
-	// errorFormat: 'pretty',
-	// log: [
-	// 	{
-	// 		emit: 'stdout',
-	// 		level: 'error',
-	// 	},
-	// ],
+	errorFormat: 'pretty',
+	log: [
+		{
+			emit: 'stdout',
+			level: 'error',
+		},
+	],
 });
 
 export const queDb: queueDbModel = new queueDbModel({

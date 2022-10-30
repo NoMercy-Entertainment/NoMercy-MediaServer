@@ -1,8 +1,11 @@
+import { FolderList, ParsedFileList } from '../../tasks/files/filenameParser';
 import { searchMovie, searchTv } from '../../providers/tmdb/search/index';
-import { mathPercentage } from '../../functions/stringArray';
-import { FolderList } from '../../tasks/files/filenameParser';
 
-export const fallbackSearch = async (type: string, title: FolderList) => {
+import {MusicBrainzApi} from 'musicbrainz-api';
+import { appVersion } from '../../functions/system';
+import { mathPercentage } from '../../functions/stringArray';
+
+export const fallbackSearch = async (type: string, title: FolderList | ParsedFileList) => {
 	switch (type) {
 		case 'tv':
 			return await searchTv(title.title, title.year)
@@ -38,7 +41,22 @@ export const fallbackSearch = async (type: string, title: FolderList) => {
 				})
 				.catch(() => null);
 		case 'music':
-			return null;
+
+			// const mbApi = new MusicBrainzApi({
+			// 	appName: 'NoMercy Mediaserver',
+			// 	appVersion: appVersion,
+			// 	appContactInfo: 'nomercy.tv'
+			// });
+
+			// const artist = await mbApi.searchArtist({
+			// 	query: title.name,
+			// 	limit: 1,
+			// });
+
+			// return artist.artists[0];
+
+			return {};
+
 		default:
 			return null;
 	}

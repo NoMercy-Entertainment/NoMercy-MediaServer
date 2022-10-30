@@ -1,10 +1,10 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
-import { Movie } from '../../providers/tmdb/movie/index';
-import { TvShow } from '../../providers/tmdb/tv/index';
-import { createTitleSort } from '../../tasks/files/filenameParser';
-import { CompleteTvAggregate } from './fetchTvShow';
 import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
+import { Movie } from '../../providers/tmdb/movie/index';
+import { Prisma } from '@prisma/client'
+import { TvShow } from '../../providers/tmdb/tv/index';
+import { confDb } from '../../database/config';
+import { createTitleSort } from '../../tasks/files/filenameParser';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[], table: 'movie' | 'tv') => {
 	for (const recommendation of req.recommendations.results as Array<Movie | TvShow>) {
@@ -21,8 +21,8 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			titleSort: createTitleSort((recommendation as TvShow).name ?? (recommendation as Movie).title),
 		});
 
-		// transaction.push(
-		await	confDb.recommendation.upsert({
+		transaction.push(
+			confDb.recommendation.upsert({
 				where: {
 					recommendationableId_recommendationableType_mediaId_mediaType: {
 						mediaId: recommendation.id,
@@ -34,6 +34,6 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 				update: recommendationInsert,
 				create: recommendationInsert,
 			})
-		// );
+		);
 	}
 };

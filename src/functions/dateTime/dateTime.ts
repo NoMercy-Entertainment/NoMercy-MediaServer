@@ -88,6 +88,11 @@ export const humanTime = function (time: any) {
 	} else {
 		minutes = `${minutes}:`;
 	}
+	
+	if(hours == '00:') {
+		hours = '';
+	}
+
 	const current = hours + minutes + seconds;
 	return current.replace('NaN:NaN:NaN', '00:00');
 };
@@ -164,7 +169,7 @@ export const convertToSeconds = (hms: string | null) => {
 
 export const parseYear = function (date: string | undefined) {
 	if (!date) {
-		return '';
+		return undefined;
 	}
 	return new Date(date).getFullYear();
 };

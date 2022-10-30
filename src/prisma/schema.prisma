@@ -1,7 +1,7 @@
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
-  // url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
+  // url      = env("DATABASE_URL")
+  url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
   // url      = "file:/home/stoney/.local/share/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
 }
 
@@ -34,12 +34,12 @@ model Library {
   country               String
   language              String
 
-  folders           LibraryFolder[]
-  metadata          Metadata[]
-  subtitleLanguages SubtitleLanguage[]
-  encoderProfiles   EncoderProfileLibrary[]
-  user              LibraryUser[]
-  file              File[]
+  Folders           LibraryFolder[]
+  Metadata          Metadata[]
+  SubtitleLanguages SubtitleLanguage[]
+  EncoderProfiles   EncoderProfileLibrary[]
+  User              LibraryUser[]
+  File              File[]
 
   Tv    Tv[]
   Movie Movie[]
@@ -49,6 +49,8 @@ model Library {
 
   Collection Collection[]
   Special    Special[]
+  Artist     Artist[]
+  Album      Album[]
 }
 
 model EncoderProfileLibrary {
@@ -235,7 +237,7 @@ model File {
   folder          String
   episodeNumber   Int?
   seasonNumber    Int?
-  ep_folder       String
+  episodeFolder   String
   name            String
   extension       String
   year            Int?
@@ -276,6 +278,8 @@ model File {
 
   libraryId String
   Library   Library  @relation(fields: [libraryId], references: [id])
+  albumId   String?
+  Album     Album?   @relation(fields: [albumId], references: [id])
   episodeId Int?
   Episode   Episode? @relation(fields: [episodeId], references: [id])
   movieId   Int?
@@ -854,7 +858,7 @@ model Genre {
   id   Int
   name String @unique()
 
-  // track MusicGenreTrack[]
+  // Track MusicGenreTrack[]
   Movie GenreMovie[]
   Tv    GenreTv[]
 
@@ -1138,4 +1142,119 @@ model Media {
   VideoFile   VideoFile? @relation(fields: [videoFileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([src], name: "media_unique_id")
+}
+
+model Artist {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  artistId    String?
+  cover       String?
+  folder      String?
+  colorPalette String?
+
+  Album Album[]
+
+  libraryId String
+  Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Track     Track[]
+  trackId   String?
+
+  @@unique([artistId], name: "artist_name_unique")
+  @@index([id], name: "artist_id_index")
+}
+
+model Album {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  albumId     String
+  folder      String?
+  cover       String?
+  country     String?
+  year        Int?
+  tracks      Int?
+  colorPalette String?
+
+  Track  Track[]
+  Artist Artist[]
+  File   File[]
+
+  libraryId String
+  Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([albumId], name: "album_unique")
+  @@index([id], name: "album_track_id_index")
+}
+
+model MusicGenre {
+  id    String  @id @default(cuid())
+  name  String?
+  Track Track[]
+
+  @@unique([name], name: "genre_track_name_unique")
+  @@index([id], name: "genre_track_id_index")
+}
+
+model Track {
+  id       String   @id @default(cuid())
+  name     String
+  track    Int?
+  disc     Int?
+  cover    String?
+  date     DateTime
+  folder   String
+  filename String
+  duration String?
+  quality  Int?
+  path     String
+  lyrics   String?
+  colorPalette String?
+
+  MusicGenre    MusicGenre[]
+  Album         Album[]
+  Artist        Artist[]
+  PlaylistTrack PlaylistTrack[]
+  FavoriteTrack FavoriteTrack[]
+
+  // @@unique([filename, path], name: "track_unique")
+}
+
+model Playlist {
+  id            String          @id @default(cuid())
+  userId        String
+  name          String
+  description   String?
+  cover         String?
+  colorPalette String?
+
+  PlaylistTrack PlaylistTrack[]
+
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+
+  @@unique([id, userId], name: "playlist_unique")
+}
+
+model PlaylistTrack {
+  playlistId String
+  trackId    String
+  Playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@id([playlistId, trackId])
+  @@unique([playlistId, trackId], name: "playlist_track_unique")
+  @@index([trackId], name: "playlist_track_index")
+}
+
+model FavoriteTrack {
+  trackId    String
+  userId     String
+  Track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([trackId, userId], name: "favorite_track_unique")
 }

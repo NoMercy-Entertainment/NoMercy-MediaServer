@@ -20,7 +20,7 @@ import { createTitleSort } from '../../tasks/files/filenameParser';
 import { parseYear } from '../../functions/dateTime';
 
 export type LibraryWithTvAndMovie = Library & {
-	folders: (LibraryFolder & {
+	Folders: (LibraryFolder & {
 		folder: Folder | null;
 	})[];
 	Tv: (Tv & {
@@ -64,7 +64,7 @@ export const getContent = async (data: LibraryWithTvAndMovie, translations: Tran
 			backdrop: tv.backdrop,
 			favorite: userData?.isFavorite ?? false,
 			watched: userData?.played ?? false,
-			files: servers?.length > 0 ? undefined : files,
+			// files: servers?.length > 0 ? undefined : files,
 			logo: logo,
 			mediaType: data.type,
 			numberOfEpisodes: tv.numberOfEpisodes ?? 1,
@@ -121,7 +121,7 @@ export const ownerQuery = (id?: string) => {
 			id: id ? id : undefined,
 		},
 		include: {
-			folders: {
+			Folders: {
 				include: {
 					folder: true,
 				},
@@ -174,7 +174,7 @@ export const ownerQuery = (id?: string) => {
 						not: null,
 					},
 					VideoFile: {
-						some: {
+						every: {
 							duration: {
 								not: null,
 							},
@@ -212,7 +212,7 @@ export const userQuery = (userId: string, id?: string) => {
 				include: {
 					library: {
 						include: {
-							folders: {
+							Folders: {
 								include: {
 									folder: true,
 								},

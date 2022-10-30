@@ -1,12 +1,12 @@
 import { AxiosResponse } from 'axios';
-import tmdbApiClient from '../tmdbApiClient';
-import { Person } from '../people/person';
-import { PersonWithAppends } from '../people/details';
 import Logger from '../../../functions/logger';
-import { PersonImages } from './images';
-import i18next from 'i18next';
-import { PersonTranslations } from './translations';
 import { PaginatedResponse } from '../helpers';
+import { Person } from '../people/person';
+import { PersonImages } from './images';
+import { PersonTranslations } from './translations';
+import { PersonWithAppends } from '../people/details';
+import i18next from 'i18next';
+import tmdbApiClient from '../tmdbApiClient';
 
 export * from './changes';
 export * from './combined_credits';
@@ -70,7 +70,7 @@ export const peoplePopular = async (limit = 10) => {
 export const peopleImages = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: 'Fetching People Images',
 	});
@@ -89,7 +89,7 @@ export const peopleImages = async (id: number) => {
 export const peopleTranslations = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: 'Fetching People Translations',
 	});

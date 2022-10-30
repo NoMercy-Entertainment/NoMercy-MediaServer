@@ -91,6 +91,7 @@ function makeEnum(x) { return x; }
 exports.Prisma.QueueJobScalarFieldEnum = makeEnum({
   id: 'id',
   queue: 'queue',
+  taskId: 'taskId',
   runAt: 'runAt',
   payload: 'payload',
   result: 'result',

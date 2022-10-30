@@ -70,6 +70,10 @@ export const sslKey = path.resolve(certPath, 'key.pem');
 export const ffmpeg = path.resolve(binariesPath, 'ffmpeg' + executableSuffix);
 export const ffprobe = path.resolve(binariesPath, 'ffprobe' + executableSuffix);
 
+export const fpcalc = path.resolve(binariesPath, 'fpcalc' + executableSuffix);
+
+export const languagesFile = path.resolve(dataPath, 'languages.json');
+
 export const makeMkv = path
 	.resolve(process.platform == 'win32' ? execSync('powershell ${env:ProgramFiles(x86)}').toString() : '', 'MakeMKV', `makemkvcon64${executableSuffix}`)
 	.replace(/[\n\r]/gu, '');

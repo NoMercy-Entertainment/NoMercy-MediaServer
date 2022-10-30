@@ -2,11 +2,12 @@ import { get_externa_ip, get_internal_ip, portMap } from '../networking';
 
 import cdn from '../../loaders/cdn/cdn';
 import certificate from '../certificate';
+import dev from './dev';
 import firstBoot from '../firstBoot';
-import { getKeycloakKeys } from '../../functions/keycloak';
+import { getKeycloakKeys } from '../keycloak';
 import loadConfigs from '../loadConfigs';
 import logo from '../logo';
-import moderators from '../../functions/moderators';
+import moderators from '../moderators';
 import queue from '../queue';
 import refreshToken from '../refreshToken';
 import seed from '../seed';
@@ -42,4 +43,8 @@ export default async () => {
 	await server();
 
 	queue();
+
+	await dev();
+
+	return;
 };

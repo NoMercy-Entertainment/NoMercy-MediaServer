@@ -1,8 +1,8 @@
-import { writeFileSync } from 'fs';
+import { FolderInfo } from '../files/scanLibraries';
+import Logger from '../../functions/logger';
 import { movieChanges } from '../../providers/tmdb/movie/index';
 import { tvChanges } from '../../providers/tmdb/tv/index';
-import Logger from '../../functions/logger';
-import { FolderInfo } from '../files/scanLibraries';
+import { writeFileSync } from 'fs';
 
 export const needsUpdate = async (data: FolderInfo) => {
 	let daysCount = Math.round((Date.now() - data.lastUpdate) / 24 / 60 / 60 / 1000);
@@ -18,10 +18,10 @@ export const needsUpdate = async (data: FolderInfo) => {
 	} else {
 		switch (data.type) {
 			case 'tv':
-				needsUpdate = (await tvChanges(data.id, daysCount)).length > 0;
+				needsUpdate = (await tvChanges(data.id as number, daysCount)).length > 0;
 				break;
 			case 'movie':
-				needsUpdate = (await movieChanges(data.id, daysCount)).length > 0;
+				needsUpdate = (await movieChanges(data.id as number, daysCount)).length > 0;
 				break;
 			case 'music':
 				needsUpdate = false;

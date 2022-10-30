@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
-import Logger from '../../functions/logger';
-import { confDb } from '../../database/config';
 import { Keyword, KeywordMovie, KeywordTv, Media, Movie, Tv } from '@prisma/client'
+import { Request, Response } from 'express';
 import { shuffle, unique } from '../../functions/stringArray';
+
+import Logger from '../../functions/logger';
 import { LogoResponse } from 'types/server';
+import { confDb } from '../../database/config';
 
 export default async function (req: Request, res: Response) {
 	let backdrops: (Media & {
@@ -64,7 +65,7 @@ export default async function (req: Request, res: Response) {
 		.catch((error) => {
 			Logger.log({
 				level: 'error',
-				name: 'MovieDB',
+				name: 'moviedb',
 				color: 'redBright',
 				message: 'Error fetching backdrops ' + error,
 			});
@@ -137,7 +138,7 @@ export default async function (req: Request, res: Response) {
 		.catch((error) => {
 			Logger.log({
 				level: 'error',
-				name: 'MovieDB',
+				name: 'moviedb',
 				color: 'redBright',
 				message: 'Error fetching logos ' + error,
 			});

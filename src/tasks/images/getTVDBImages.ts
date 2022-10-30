@@ -1,24 +1,28 @@
-import { PersonCast } from '../../providers/tmdb/people/credits';
+import { Cast } from '../../providers/tmdb/shared';
+import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
+import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
+import axios from 'axios';
+import { imageCrawler } from '../../providers/tvdb';
 import { person } from '../../providers/tmdb/people/index';
 import { searchPeople } from '../../providers/tmdb/search/index';
-import { imageCrawler } from '../../providers/tvdb';
-import axios from 'axios';
 
-export interface ImageResult extends PersonCast {
+export interface ImageResult extends Cast {
 	href: string;
 	img: string;
 }
 
-export default async (type: string, title: string, date: string) => {
+export default async (type: string, req: CompleteTvAggregate | CompleteMovieAggregate) => {
 	return new Promise<ImageResult[]>(async (resolve, reject) => {
 		const imageResult: ImageResult[] = [];
+		let title = (req as CompleteMovieAggregate).title ?? (req as CompleteTvAggregate).name;
+		let date = (req as CompleteTvAggregate).first_air_date ?? (req as CompleteMovieAggregate).release_date;
 
 		const year = new Date(Date.parse(date)).getFullYear();
 
 		title = title.replace(/\s/gu, '-').toLowerCase().match(/[^!*'();:@&=+$,/?%#\[\]]+/)![0];
 
 		let url:string = `https://thetvdb.com/${type}/${title}/people`;
-		await axios.head(`https://thetvdb.com/${type}/${title}-${year}/people`)
+		await axios.get(`https://thetvdb.com/${type}/${title}-${year}/people`)
 			.then(() => {
 				url = `https://thetvdb.com/${type}/${title}-${year}/people`
 			}).catch(() => {
@@ -28,32 +32,59 @@ export default async (type: string, title: string, date: string) => {
 		try {
 			const people = await imageCrawler(url);
 
+			const promises: any[] = [];
+
 			for (let i = 0; i < people!.length; i++) {
 				const p = people![i];
 
-				await searchPeople(p.actor).then(async (personData) => {
-					for (let j = 0; j < personData.length; j++) {
-						await person(personData[j].id).then((personDetails) => {
-							const characterResult: PersonCast = 
-								personDetails.credits.cast.find((c) =>
-									c.character?.includes(p.character) &&
-										c.title?.replace(/-/g, ' ')?.replace(/:/g, '')?.toLowerCase() == p.title?.toLowerCase()
-									) 
-									?? personDetails.credits.cast.find((c) =>
-										c.character?.includes(p.character))
-									?? personDetails.credits.cast.find((c) =>
-										p.character?.includes(c.character))!;
+				const credit = req.credits.cast
+					.find((c) => c.character.toLowerCase().includes(p.character.toLowerCase()));
 
-							if (characterResult) {
-								imageResult.push({
-									...p,
-									...characterResult,
-								});
-							}
-						});
-					}
+				if (credit) {
+					imageResult.push({
+						...p,
+						...credit,
+					});
+					
+					continue;
+				}
+
+				await searchPeople(p.actor)
+					.then(async (personData) => {
+						for (let j = 0; j < personData.length; j++) {
+
+							promises.push(
+								person(personData[j].id)
+									.then((personDetails) => {
+									
+										let characterResult: Cast | undefined = personDetails.tv_credits.cast
+											.find((c) => c.character.toLowerCase().includes(p.character.toLowerCase()));
+										
+										if(!characterResult) {
+											characterResult = personDetails.movie_credits.cast
+												.find((c) => c.character.toLowerCase().includes(p.character.toLowerCase()));
+										}
+
+										if(!characterResult) {
+											characterResult = personDetails.credits.cast
+												.find((c) => c.name == p.actor) as unknown as Cast;
+										}
+										
+										if (characterResult) {
+											imageResult.push({
+												...p,
+												...characterResult,
+											});
+										}
+										return;
+									})
+							);
+						}
 				});
+
 			}
+			
+			await Promise.all(promises);
 
 			resolve(imageResult);
 		} catch (error) {

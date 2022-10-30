@@ -1,15 +1,16 @@
-import downloadImage from '../../functions/downloadImage/downloadImage';
-import path from 'path';
-import { imagesPath } from '../../state';
+import { Stats, existsSync } from 'fs';
 import getTVDBImages, { ImageResult } from './getTVDBImages';
-import { confDb } from '../../database/config';
+
+import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
+import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { PaletteColors } from 'types/server';
 import { Prisma } from '@prisma/client'
 import { commitConfigTransaction } from '../../database';
-import { Stats } from 'fs';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
-import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
-import { PaletteColors } from 'types/server';
+import { confDb } from '../../database/config';
+import downloadImage from '../../functions/downloadImage/downloadImage';
+import { imagesPath } from '../../state';
+import path from 'path';
 
 export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregate | CompleteMovieAggregate) => {
 	return new Promise<void>(async (resolve, reject) => {
@@ -18,19 +19,16 @@ export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregat
 
 			let type = dbType == 'tv' ? 'series' : 'movies';
 			const data = await getTVDBImages(
-				type,
-				(req as CompleteMovieAggregate).title ?? (req as CompleteTvAggregate).name,
-				(req as CompleteTvAggregate).first_air_date ?? (req as CompleteMovieAggregate).release_date
+				type,req
 			);
 
 			for (let i = 0; i < data.length; i++) {
 				const image = data[i];
 
-				// if (existsSync(`${imagesPath}/${image.credit_id}.jpg`)) continue;
+				if (existsSync(`${imagesPath}/cast/${image.credit_id}.jpg`)) continue;
 
-				await downloadImage(image.img, path.resolve(`${imagesPath}/${image.credit_id}.jpg`))
-					.then(({ dimensions, stats, colorPalette }) => {
-						// console.log({dbType, image, dimensions, stats, req})
+				await downloadImage(image.img, path.resolve(`${imagesPath}/cast/${image.credit_id}.jpg`))
+					.then(async ({ dimensions, stats, colorPalette }) => {
 						transaction.push(
 							confDb.image.upsert({
 								where: {
@@ -38,7 +36,7 @@ export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregat
 								},
 								create: imageQuery(dbType, image, dimensions, stats, colorPalette, req),
 								update: imageQuery(dbType, image, dimensions, stats, colorPalette, req),
-							})
+							}).catch(error => console.log(error))
 						);
 					})
 					.catch(() => null);
@@ -66,7 +64,7 @@ const imageQuery = (
 	Prisma.validator<Prisma.ImageUncheckedUpdateInput>()({
 		id: image.credit_id,
 		filePath: `/${image.credit_id}.jpg`,
-		aspectRatio: dimensions.width! / dimensions.height! ?? 0.6666666666666667,
+		aspectRatio: dimensions.width && dimensions.height ? (dimensions.width / dimensions.height) : 0.6666666666666666,
 		site: 'thetvdb.com',
 		iso6391: 'xx',
 		height: dimensions.height,

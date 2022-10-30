@@ -1,11 +1,11 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
+import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
 import { MovieTranslation } from '../../providers/tmdb/movie/index';
+import { Prisma } from '@prisma/client'
 import { SeasonAppend } from '../../providers/tmdb/season/index';
 import { TvShowTranslation } from '../../providers/tmdb/tv/index';
-import { CompleteTvAggregate } from './fetchTvShow';
-import { CompleteMovieAggregate } from './fetchMovie';
+import { confDb } from '../../database/config';
 
 export default async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate,

@@ -1,20 +1,20 @@
 import { AxiosResponse } from 'axios';
 import { DiscoverTvShowParams } from '../discover/discover_tv';
+import Logger from '../../../functions/logger';
 import { PaginatedResponse } from '../helpers';
 import { TrendingTvShows } from './trending';
+import { TvChange } from './changes';
+import { TvChanges } from '.';
 import { TvGenre } from '../genres/tv_genres';
 import { TvImages } from './images';
 import { TvLatest } from './latest';
 import { TvShow } from './tv';
+import { TvShowTranslations } from './translations';
 import { TvVideos } from './videos';
 import { TvWithAppends } from './details';
-import moment from 'moment';
-import { TvChanges } from '.';
-import Logger from '../../../functions/logger';
 import i18next from 'i18next';
+import moment from 'moment';
 import tmdbApiClient from '../tmdbApiClient';
-import { TvShowTranslations } from './translations';
-import { TvChange } from './changes';
 
 export * from './account_states';
 export * from './aggregate_credits';
@@ -60,7 +60,7 @@ export const tvAppend = [
 export const tv = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Show with id: ${id}`,
 	});
@@ -80,7 +80,7 @@ export const tv = async (id: number) => {
 export const tvChanges = async (id: number, daysBack = 1): Promise<TvChange[]> => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Show Changes with id: ${id}`,
 	});
@@ -104,7 +104,7 @@ export const tvChanges = async (id: number, daysBack = 1): Promise<TvChange[]> =
 export const tvDiscover = async (params?: DiscoverTvShowParams, limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Shows Discover`,
 	});
@@ -160,7 +160,7 @@ export const tvGenre = async () => {
 export const tvImages = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Show Images with id: ${id}`,
 	});
@@ -179,7 +179,7 @@ export const tvImages = async (id: number) => {
 export const tvLatest = async () => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Show Latest`,
 	});
@@ -194,7 +194,7 @@ export const tvLatest = async () => {
 export const tvOnTheAir = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `fetching TV Show Now Airing`,
 	});
@@ -233,7 +233,7 @@ export const tvOnTheAir = async (limit = 10) => {
 export const tvPopular = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `fetching TV Shows Popular`,
 	});
@@ -272,7 +272,7 @@ export const tvPopular = async (limit = 10) => {
 export const tvRecommendations = async (id: number, limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Show Recommendations with id: ${id}`,
 	});
@@ -309,7 +309,7 @@ export const tvRecommendations = async (id: number, limit = 10) => {
 export const tvSimilar = async (id: number, limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Shows Similar with id: ${id}`,
 	});
@@ -348,7 +348,7 @@ export const tvSimilar = async (id: number, limit = 10) => {
 export const tvTopRated = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Shows Top Rated`,
 	});
@@ -387,7 +387,7 @@ export const tvTopRated = async (limit = 10) => {
 export const tvTrending = async (window = 'day', limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Shows Trending`,
 	});
@@ -424,7 +424,7 @@ export const tvTrending = async (window = 'day', limit = 10) => {
 export const tvVideos = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Show Videos with id: ${id}`,
 	});
@@ -443,7 +443,7 @@ export const tvVideos = async (id: number) => {
 export const tvTranslations = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching TV Show Translations with id: ${id}`,
 	});

@@ -1,11 +1,11 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
-import { Movie } from '../../providers/tmdb/movie/index';
-import { TvShow } from '../../providers/tmdb/tv/index';
-import { unique } from '../../functions/stringArray';
-import { createTitleSort } from '../../tasks/files/filenameParser';
-import { CompleteTvAggregate } from './fetchTvShow';
 import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
+import { Movie } from '../../providers/tmdb/movie/index';
+import { Prisma } from '@prisma/client'
+import { TvShow } from '../../providers/tmdb/tv/index';
+import { confDb } from '../../database/config';
+import { createTitleSort } from '../../tasks/files/filenameParser';
+import { unique } from '../../functions/stringArray';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[], table: 'movie' | 'tv') => {
 
@@ -23,8 +23,8 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			titleSort: createTitleSort((similar as TvShow).name ?? (similar as Movie).title),
 		});
 
-		// transaction.push(
-		await	confDb.similar.upsert({
+		transaction.push(
+			confDb.similar.upsert({
 				where: {
 					similarableId_similarableType_mediaId: {
 						mediaId: similar.id,
@@ -35,6 +35,6 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 				update: similarInsert,
 				create: similarInsert,
 			})
-		// );
+		);
 	}
 }

@@ -1,15 +1,24 @@
-import { confDb } from '../../database/config';
+import { CombinedSeasons } from './fetchTvShow';
+import Logger from '../../functions/logger';
 import { Prisma } from '@prisma/client'
 import cast from './cast';
+import { confDb } from '../../database/config';
 import crew from './crew';
-import { CombinedSeasons } from './fetchTvShow';
+import downloadTMDBImages from '../images/downloadTMDBImages';
 import guest_star from './guest_star';
 import image from './image';
 import translation from './translation';
-import downloadTMDBImages from '../images/downloadTMDBImages';
 
 const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.PromiseReturnType<any>[],
 	people: number[]) => {
+
+	// Logger.log({
+	// 	level: 'info',
+	// 	name: 'App',
+	// 	color: 'magentaBright',
+	// 	message: `Adding episodes for season: ${season.season_number}`,
+	// });
+	
 	for (const episode of season.episodes) {
 		if(!episode.id) continue;
 		
@@ -17,9 +26,9 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 		const crewInsert: any[] = [];
 		const castInsert: any[] = [];
 
-		// await cast(episode, transaction, castInsert, people);
-		// await crew(episode, transaction, crewInsert, people);
-		// await guest_star(episode, transaction, guestStarInsert, people);
+		await cast(episode, transaction, castInsert, people);
+		await crew(episode, transaction, crewInsert, people);
+		await guest_star(episode, transaction, guestStarInsert, people);
 
 		if (episode?.still_path != '' && episode.still_path != null) {
 			const mediaInsert = Prisma.validator<Prisma.MediaCreateInput>()({
@@ -71,23 +80,29 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 			},
 		});
 
-		// transaction.push(
-		await	confDb.episode.upsert({
+		transaction.push(
+			confDb.episode.upsert({
 				where: {
 					id: episode.id,
 				},
 				update: episodesInsert,
 				create: episodesInsert,
 			})
-		// );
+		);
 		
 		await translation(episode, transaction, 'episode');
-
 
 		await downloadTMDBImages('episode', episode).catch(() => null);
 
 		await image(episode, transaction, 'still', 'episode');
 	}
+
+	// Logger.log({
+	// 	level: 'info',
+	// 	name: 'App',
+	// 	color: 'magentaBright',
+	// 	message: `Episodes for season: ${season.season_number} added successfully`,
+	// });
 };
 
 export default episode;

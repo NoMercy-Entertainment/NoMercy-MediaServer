@@ -1,12 +1,12 @@
-import tmdbApiClient from '../tmdbApiClient';
+import { AxiosResponse } from 'axios';
+import Logger from '../../../functions/logger';
 import { SeasonChanges } from './changes';
 import { SeasonImages } from './images';
-import { SeasonWithAppends } from './season-details';
-import { AxiosResponse } from 'axios';
-import moment from 'moment';
-import Logger from '../../../functions/logger';
-import i18next from 'i18next';
 import { SeasonTranslations } from './translations';
+import { SeasonWithAppends } from './season-details';
+import i18next from 'i18next';
+import moment from 'moment';
+import tmdbApiClient from '../tmdbApiClient';
 
 export * from './account_states';
 export * from './aggregate_credits';
@@ -25,7 +25,7 @@ export const seasonAppend = ['aggregate_credits', 'credits', 'external_ids', 'im
 export const season = async (id: number, season: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Season with TV id: ${id} and Season number ${season}`,
 	});
@@ -43,7 +43,7 @@ export const season = async (id: number, season: number) => {
 export const seasonChanges = async (id: number, season: number, daysback = 1) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Season Changes with TV id: ${id} and Season number ${season}`,
 	});
@@ -62,7 +62,7 @@ export const seasonChanges = async (id: number, season: number, daysback = 1) =>
 export const seasons = async (id: number, seasons: number[] = []) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Combined Seasons with TV id: ${id} and`,
 	});
@@ -95,7 +95,7 @@ export const seasons = async (id: number, seasons: number[] = []) => {
 export const seasonImages = async (id: number, season: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Season Images with TV id: ${id} and Season number ${season}`,
 	});
@@ -114,7 +114,7 @@ export const seasonImages = async (id: number, season: number) => {
 export const seasonTranslations = async (id: number, season: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Season translations with TV id: ${id} and Season number ${season}`,
 	});

@@ -1,22 +1,23 @@
-import { Channels, parseAudioChannels } from './audioChannels';
 import { AudioCodec, parseAudioCodec } from './audioCodec';
-import { isComplete } from './complete';
+import { Channels, parseAudioChannels } from './audioChannels';
 import { Edition, parseEdition } from './edition';
-import { parseGroup } from './group';
-import { isMulti, Language, parseLanguage } from './language';
-import { parseQuality, Revision } from './quality';
+import { Language, isMulti, parseLanguage } from './language';
+import { Revision, parseQuality } from './quality';
+import { Season, parseSeason } from './season';
+import { VideoCodec, parseVideoCodec } from './videoCodec';
+
 import { Resolution } from './resolution';
-import { parseSeason, Season } from './season';
 import { Source } from './source';
+import { isComplete } from './complete';
+import { parseGroup } from './group';
 import { parseTitleAndYear } from './title';
 import { removeEmpty } from './utils';
-import { parseVideoCodec, VideoCodec } from './videoCodec';
 
-type ParsedTvInfo = Omit<Season, 'releaseTitle' | 'seriesTitle'>;
+export type ParsedTvInfo = Omit<Season, 'releaseTitle' | 'seriesTitle'>;
 
 interface BaseParsed {
   title: string;
-  year: string | null;
+  year: number | null;
   edition: Edition;
   resolution?: Resolution;
   sources: Source[];
@@ -45,7 +46,7 @@ export function filenameParse(name: string, isTv = false): ParsedFilename {
   if (!isTv) {
     const titleAndYear = parseTitleAndYear(name);
     title = titleAndYear.title;
-    year = titleAndYear.year;
+    year = Number(titleAndYear.year);
   }
 
   const edition = parseEdition(name);

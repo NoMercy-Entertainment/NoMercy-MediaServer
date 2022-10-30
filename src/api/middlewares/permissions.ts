@@ -121,6 +121,21 @@ export const isAllowed = (req: KAuthRequest): boolean => {
 	const openServer = useSelector((state: AppState) => state.config.openServer);
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
+	// const allowedUsers = await confDb.user.findMany({
+	// 	where:{ 
+	// 		allowed: true,
+	// 	}
+	// });
+	
+	if(!allowedUsers.some((u) => u.email == token.content.email)){
+		Logger.log({
+			level: 'http',
+			name: 'http',
+			color: 'redBright',
+			message: `Unauthorized access attempt from ${token.content.email}`,
+		});
+	}
+
 	return isOwner(req) || isModerator(req) || allowedUsers.some((u) => u.email == token.content.email) || openServer;
 };
 export const allowedMiddleware = (req: Request, res: Response, next: NextFunction) => {

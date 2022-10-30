@@ -1,11 +1,13 @@
 import { AddUser, notificationSettings, removeUser, updateUserPermissions, userPermissions } from '../dashboard/users'
+import { addNewItem, createLibrary, deleteLibrary, libraries, rescanLibrary, updateLibrary } from '../dashboard/library'
 import { configuration, createConfiguration, updateConfiguration } from '../dashboard/configuration'
 import { countries, languages } from '../dashboard/general'
 import { createEncoderProfiles, encoderProfiles, updateEncoderProfiles } from '../dashboard/encoder'
-import { createLibrary, deleteLibrary, libraries, rescanLibrary, updateLibrary } from '../dashboard/library'
 import { deleteLogs, logOptions, logs } from '../dashboard/logs'
-import { devices, metadata, serverActivity, serverInfo, serverPaths, serverTasks } from '../dashboard/serverInfo'
+import { deleteTask, pauseTasks, resumeTasks, runningTaskWorkers, tasks } from '../dashboard/tasks'
+import { devices, metadata, serverActivity, serverInfo, serverPaths } from '../dashboard/serverInfo'
 import { editMiddleware, permissions } from '../middlewares/permissions'
+import { startServer, stopServer } from '../dashboard/server'
 
 import directorytree from '../dashboard/directorytree'
 import express from 'express'
@@ -45,6 +47,7 @@ router.use(
 		route.patch("/libraries", updateLibrary);
 		route.post("/libraries/:id/rescan", rescanLibrary);
 		route.post("/libraries/:id/delete", deleteLibrary);
+		route.post("/libraries/:id/add", addNewItem);
 
 		route.get("/directorytree", directorytree);
 
@@ -56,7 +59,15 @@ router.use(
 		route.get("/serverpaths", serverPaths);
 		route.get("/serveractivity", serverActivity);
 
-		route.get("/tasks", serverTasks);
+		route.get("/tasks", tasks);
+		route.post("/tasks", deleteTask);
+		route.post("/tasks/pause", pauseTasks);
+		route.post("/tasks/resume", resumeTasks);
+		route.get("/tasks/runners", runningTaskWorkers);
+
+		route.post("/server/start", startServer);
+		route.post("/server/stop", stopServer);
+
 		route.get("/devices", devices);
 		route.get("/metadata", metadata);
 		route.post("/logs", logs);

@@ -2,15 +2,11 @@ import { BrowserWindow, Menu, Tray, app, ipcMain, screen } from "electron";
 
 import boot from "./functions/boot";
 import env from 'dotenv';
+import { execSync } from "child_process";
 import { join } from "path";
 
-env.config({
-	path: `${__dirname}/../.env`,
-});
+env.config();
 
-if (require("electron-squirrel-startup")) {
-	app.quit();
-}
 let win: BrowserWindow, tray, splash: BrowserWindow;
 
 const trayIcon = join(__dirname, "/logo-white.png");
@@ -117,7 +113,7 @@ function trayMenu() {
 	});
 }
 
-async function createApp() {
+function createApp() {
 	splashWindow();
 
 	const gotTheLock = app.requestSingleInstanceLock();
@@ -137,7 +133,9 @@ async function createApp() {
 		});
 	}
 
-	await boot().then(() => {
+	execSync('yarn');
+	
+	boot().then(() => {
 		mainWindow();
 		trayMenu();
 	});
@@ -163,5 +161,7 @@ try {
 		}
 	});
 } catch (error) {
-	boot();
+	(async () => {
+		await boot();
+	})();
 }

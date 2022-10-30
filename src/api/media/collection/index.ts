@@ -38,7 +38,7 @@ export default async function (req: Request, res: Response) {
 								.catch((error) => {
 									Logger.log({
 										level: 'error',
-										name: 'MovieDB',
+										name: 'moviedb',
 										color: 'redBright',
 										message: 'Error fetching Collection ' + error,
 									});
@@ -48,7 +48,7 @@ export default async function (req: Request, res: Response) {
 						.catch((error) => {
 							Logger.log({
 								level: 'error',
-								name: 'MovieDB',
+								name: 'moviedb',
 								color: 'redBright',
 								message: 'Error fetching Movie ' + error,
 							});
@@ -58,7 +58,7 @@ export default async function (req: Request, res: Response) {
 			.catch((error) => {
 				Logger.log({
 					level: 'error',
-					name: 'MovieDB',
+					name: 'moviedb',
 					color: 'redBright',
 					message: 'Error fetching popular Movies ' + error,
 				});

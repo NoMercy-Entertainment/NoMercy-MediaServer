@@ -1,9 +1,10 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
-import { EpisodeAppend } from '../../providers/tmdb/episode/index';
-import { SeasonAppend } from '../../providers/tmdb/season/index';
-import { CompleteTvAggregate } from './fetchTvShow';
 import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
+import { EpisodeAppend } from '../../providers/tmdb/episode/index';
+import Logger from '../../functions/logger';
+import { Prisma } from '@prisma/client'
+import { SeasonAppend } from '../../providers/tmdb/season/index';
+import { confDb } from '../../database/config';
 
 export default async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate,
@@ -16,8 +17,14 @@ export default async (
 	>,
 	people: number[]
 ) => {
+	// Logger.log({
+	// 	level: 'info',
+	// 	name: 'App',
+	// 	color: 'magentaBright',
+	// 	message: `Adding cast for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
+	// });
 	for (const cast of req.credits.cast) {
-		if(!people.includes(cast.id)) return;
+		if(!people.includes(cast.id)) continue;
 
 		const castsInsert = Prisma.validator<Prisma.CastUncheckedCreateInput>()({
 			id: cast.credit_id,
@@ -34,15 +41,15 @@ export default async (
 			profilePath: cast.profile_path,
 		});
 
-		// transaction.push(
-		await	confDb.cast.upsert({
+		transaction.push(
+			confDb.cast.upsert({
 				where: {
 					creditId: cast.credit_id,
 				},
 				update: castsInsert,
 				create: castsInsert,
 			})
-		// );
+		);
 
 		castArray.push({
 			where: {
@@ -53,4 +60,11 @@ export default async (
 			},
 		});
 	}
+	
+	// Logger.log({
+	// 	level: 'info',
+	// 	name: 'App',
+	// 	color: 'magentaBright',
+	// 	message: `Cast for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title} added successfully`,
+	// });
 };

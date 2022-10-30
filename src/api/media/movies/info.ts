@@ -1,4 +1,3 @@
-import { confDb } from '../../../database/config';
 import {
 	AlternativeTitles,
 	Cast,
@@ -25,12 +24,14 @@ import {
 	VideoFile,
 } from '@prisma/client'
 import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
-import { isOwner } from '../../middlewares/permissions';
+
 import { InfoResponse } from 'types/server';
+import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../../functions/logger';
+import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
 import { groupBy } from '../../../functions/stringArray';
+import { isOwner } from '../../middlewares/permissions';
 
 export default async function (req: Request, res: Response) {
 	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';
@@ -214,6 +215,7 @@ const getContent = async (data: MovieWithInfo, language: string, similar: Simila
 			return {
 				gender: c.gender,
 				id: c.personId,
+				creditId: c.creditId,
 				character: c.character,
 				knownForDepartment: c.knownForDepartment,
 				name: c.name,
@@ -226,6 +228,7 @@ const getContent = async (data: MovieWithInfo, language: string, similar: Simila
 			return {
 				gender: c.gender,
 				id: c.personId,
+				creditId: c.creditId,
 				job: c.job,
 				department: c.department,
 				knownForDepartment: c.knownForDepartment,
@@ -331,7 +334,7 @@ const userQuery = (id: string, userId: string, language: string) => {
 		where: {
 			id: parseInt(id, 10),
 			Library: {
-				user: {
+				User: {
 					some: {
 						userId: userId,
 					},
@@ -389,7 +392,7 @@ const userQuery = (id: string, userId: string, language: string) => {
 						},
 						{
 							iso6391: 'en',
-							site: {
+							type: {
 								not: null,
 							},
 						}

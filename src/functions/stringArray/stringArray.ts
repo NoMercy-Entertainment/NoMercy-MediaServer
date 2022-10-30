@@ -422,25 +422,15 @@ export const sort_updated = (
 	return 0;
 };
 
-export const trackSort = (
-	a: { disc: any; track: string | number },
-	b: { disc: any; track: string | number }
-) => {
-	if (a.disc === b.disc) {
-		return parseInt(`${a.track}`, 10) - parseInt(`${b.track}`, 10);
-	}
-	return parseInt(`${a.track}`, 10) > parseInt(`${b.track}`, 10) ? 1 : -1;
+export const uniqBy = <T>(a: any, key: string): T => {
+	return ([...new Map(a.map((item: { [x: string]: any; }) => [item[key], item])).values()] as unknown) as T;
 };
 
-export const uniqBy = (
-	a: {
-    map: (arg0: (item: any) => any[]) => Iterable<readonly [unknown, unknown]>
-  },
-	key: string | number
-) => {
-	return Array.from(
-		new Map(a.map((item: { [x: string]: any }) => [item[key], item])).values()
-	);
+export const trackSort = function (a: any, b: any) {
+	if (a.disc === b.disc) {
+		return a.track - b.track;
+	}
+	return pad(a.track, 2) > pad(b.track, 2) ? 1 : -1;
 };
 
 export const sortByPosterAlfabetized = <T>(

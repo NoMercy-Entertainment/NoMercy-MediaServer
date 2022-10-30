@@ -1,19 +1,14 @@
+import collectionInfo from '../media/collection/info';
+import collections from '../media/collection';
 import express from 'express';
-
 import index from '../media';
-
+import libraries from '../media/libraries';
 import movieInfo from '../media/movies/info';
 import movieWatch from '../media/movies/watch';
-
+import screensaver from '../media/screensaver';
+import { search } from '../media/search';
 import tvInfo from '../media/tv/info';
 import tvWatch from '../media/tv/watch';
-
-import collections from '../media/collection';
-import collectionInfo from '../media/collection/info';
-
-import libraries from '../media/libraries';
-
-import screensaver from '../media/screensaver';
 
 const router = express.Router();
 
@@ -31,5 +26,7 @@ router.post('/libraries', libraries);
 router.post('/libraries/:id', libraries);
 
 router.post('/screensaver', screensaver);
+
+router.post('/search', search);
 
 export default router;

@@ -40,15 +40,16 @@ export const getUsers = async () => {
 			await commitConfigTransaction(transaction);
 
 			const users = await confDb.user.findMany();
-			setAllowedUsers(
-				[...users].map((d) => {
-					return {
-						...d,
-						created_at: new Date(d.created_at).getTime(),
-						updated_at: new Date(d.created_at).getTime(),
-					};
-				})
-			);
+
+			const newAllowedUsers = [...users].map((d) => {
+				return {
+					...d,
+					created_at: new Date(d.created_at).getTime(),
+					updated_at: new Date(d.created_at).getTime(),
+				};
+			});
+			
+			setAllowedUsers(newAllowedUsers);
 
 			Logger.log({
 				level: 'info',

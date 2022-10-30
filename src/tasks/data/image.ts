@@ -20,9 +20,9 @@ export default async (
 	if(!req.images[`${type}s`]) return;
 	for (const image of req.images[`${type}s`] as Array<Image>) {
 		
-		let pallete: PaletteColors | null = <PaletteColors>{};
+		let pallette: PaletteColors | null = <PaletteColors>{};
 		if(image.file_path){
-			pallete = await colorPalette(`https://image.tmdb.org/t/p/w185${image.file_path}`)
+			pallette = await colorPalette(`https://image.tmdb.org/t/p/w185${image.file_path}`)
 				.then((data) => data)
 				.catch(() => null);
 		}
@@ -36,7 +36,7 @@ export default async (
 			voteAverage: image.vote_average,
 			voteCount: image.vote_count,
 			width: image.width,
-			colorPalette: JSON.stringify(pallete),
+			colorPalette: JSON.stringify(pallette),
 			episodeId: table == 'episode' ? req.id : undefined,
 			movieId: table == 'movie' ? req.id : undefined,
 			personId: table == 'person' ? req.id : undefined,
@@ -45,14 +45,14 @@ export default async (
 			videoFileId: table == 'video' ? req.id : undefined,
 		});
 
-		// transaction.push(
-		await	confDb.media.upsert({
+		transaction.push(
+			confDb.media.upsert({
 				where: {
 					src: image.file_path,
 				},
 				update: mediaInsert,
 				create: mediaInsert,
 			})
-		// );
+		);
 	}
 }

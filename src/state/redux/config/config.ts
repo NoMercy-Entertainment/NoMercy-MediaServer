@@ -17,7 +17,7 @@ const initialState = {
 	quote: '',
 	keycloakCertificate: '',
 	deviceName: deviceName,
-	openServer: true,
+	openServer: false,
 	moderators: new Array<{ id: string; name: string }>(),
 	users: new Array<User>(),
 	allowedUsers: new Array<AllowedUser>(),

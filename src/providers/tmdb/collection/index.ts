@@ -1,8 +1,8 @@
-import i18next from 'i18next';
-import Logger from '../../../functions/logger';
-import tmdbApiClient from '../tmdbApiClient';
-import { CollectionWithAppends } from './collection-details';
 import { CollectionTranslations } from './collection_translations';
+import { CollectionWithAppends } from './collection-details';
+import Logger from '../../../functions/logger';
+import i18next from 'i18next';
+import tmdbApiClient from '../tmdbApiClient';
 
 export * from './collection';
 export * from './collection-details';
@@ -13,7 +13,7 @@ export const collectionAppend = ['content_ratings', 'credits', 'external_ids', '
 export default async function collection(id: number) {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Collection with id: ${id}`,
 	});
@@ -35,7 +35,7 @@ export default async function collection(id: number) {
 export const collectionTranslations = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Collection translations with id: ${id}`,
 	});

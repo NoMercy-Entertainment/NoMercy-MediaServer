@@ -1,23 +1,24 @@
 import { DiscoverMovie, DiscoverMovieParams } from '../discover';
+import { MovieChange, MovieChanges } from './changes';
+import { Recommendations, Similar } from '../shared';
+
 import { AxiosResponse } from 'axios';
 import Logger from '../../../functions/logger';
 import { Movie } from './movie';
-import { MovieChange, MovieChanges } from './changes';
 import { MovieGenre } from '../genres/movie_genre';
 import { MovieImages } from './images';
 import { MovieLatest } from './latest';
 import { MoviePopular } from './popular';
 import { MovieTopRated } from './top_rated';
+import { MovieTranslations } from './translations';
 import { MovieUpcomming } from './upcomming';
 import { MovieVideos } from './videos';
 import { MovieWithAppends } from './movie-details';
 import { MoviesNowPlaying } from './now_playing';
 import { PaginatedResponse } from '../helpers';
-import { Similar, Recommendations } from '../shared';
 import i18next from 'i18next';
 import moment from 'moment';
 import tmdbApiClient from '../tmdbApiClient';
-import { MovieTranslations } from './translations';
 
 export * from './account_states';
 export * from './alternative_titles';
@@ -61,7 +62,7 @@ export const movieAppend = [
 export const movie = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie with id: ${id}`,
 	});
@@ -81,7 +82,7 @@ export const movie = async (id: number) => {
 export const movieChanges = async (id: number, daysBack = 1): Promise<MovieChange[]> => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Changes with id: ${id}`,
 	});
@@ -105,7 +106,7 @@ export const movieChanges = async (id: number, daysBack = 1): Promise<MovieChang
 export const movieDiscover = async (params?: DiscoverMovieParams, limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Discover`,
 	});
@@ -160,7 +161,7 @@ export const movieGenre = async () => {
 export const movieImages = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Images with id: ${id}`,
 	});
@@ -179,7 +180,7 @@ export const movieImages = async (id: number) => {
 export const movieLatest = async () => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Lastest`,
 	});
@@ -192,7 +193,7 @@ export const movieLatest = async () => {
 export const movieNowPlaying = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Now Playing`,
 	});
@@ -231,7 +232,7 @@ export const movieNowPlaying = async (limit = 10) => {
 export const moviePopular = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `fetching Movie Popular`,
 	});
@@ -270,7 +271,7 @@ export const moviePopular = async (limit = 10) => {
 export const movieRecommendations = async (id: number, limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Recommendations with id: ${id}`,
 	});
@@ -308,7 +309,7 @@ export const movieRecommendations = async (id: number, limit = 10) => {
 export const movieSimilar = async (id: number, limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fething Movie Similar with id: ${id}`,
 	});
@@ -347,7 +348,7 @@ export const movieSimilar = async (id: number, limit = 10) => {
 export const movieTopRated = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Top Rated`,
 	});
@@ -375,7 +376,7 @@ export const movieTopRated = async (limit = 10) => {
 export const movieTrending = async (window = 'day', limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Trending id`,
 	});
@@ -412,7 +413,7 @@ export const movieTrending = async (window = 'day', limit = 10) => {
 export const movieUpcomming = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Upcomming`,
 	});
@@ -443,7 +444,7 @@ export const movieUpcomming = async (limit = 10) => {
 export const movieVideos = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Videos with id: ${id}`,
 	});
@@ -462,7 +463,7 @@ export const movieVideos = async (id: number) => {
 export const movieTranslations = async (id: number) => {
 	Logger.log({
 		level: 'info',
-		name: 'MovieDB',
+		name: 'moviedb',
 		color: 'blue',
 		message: `Fetching Movie Translations with id: ${id}`,
 	});

@@ -26,8 +26,10 @@ import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
 import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
 import collection from './collection';
 import alternative_title from './alternative_title';
+import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
 
 export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; folder: string, libraryId: string, job?:Jobs }) => {
+	console.log({ id, folder, libraryId, job });
 	await i18n.changeLanguage('en');
 
 	const movie = await fetchMovie(id);
@@ -52,7 +54,6 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 	const crewInsert: any[] = [];
 	const genresInsert: any[] = [];
 	const keywordsInsert: any[] = [];
-	const persons: Array<PersonDetails> = [];
 	const personPromise: Promise<any>[] = [];
 
 	await person(movie, transaction);
@@ -80,19 +81,6 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 	await recommendation(movie, transaction, 'movie');
 	await similar(movie, transaction, 'movie');
 	await translation(movie, transaction, 'movie');
-
-	const lib = await confDb.library.findFirst({
-		where: {
-			id: libraryId,
-		},
-		include: {
-			folders: {
-				include: {
-					folder: true,
-				},
-			},
-		},
-	})!;
 
 	const movieInsert = Prisma.validator<Prisma.MovieUncheckedCreateInput>()({
 		adult: movie.adult,
@@ -141,15 +129,15 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 
 	await Promise.all(personPromise);
 
-	// transaction.push(
-	await	confDb.movie.upsert({
+	transaction.push(
+		confDb.movie.upsert({
 			where: {
 				id: movie.id,
 			},
 			create: movieInsert,
 			update: movieInsert,
 		})
-	// );
+	);
 
 	for (const video of movie.videos.results) {
 		const mediaInsert: Prisma.MediaUncheckedCreateInput = {
@@ -162,15 +150,15 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 			movieId: movie.id,
 		};
 
-		// transaction.push(
-		await	confDb.media.upsert({
+		transaction.push(
+			confDb.media.upsert({
 				where: {
 					src: video.key,
 				},
 				update: mediaInsert,
 				create: mediaInsert,
 			})
-		// );
+		);
 	}
 
 	for (const rating of movie.release_dates?.results) {
@@ -194,8 +182,8 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 				certificationId: cert.id,
 			};
 	
-			// transaction.push(
-			await	confDb.certificationMovie.upsert({
+			transaction.push(
+				confDb.certificationMovie.upsert({
 					where: {
 						movieId_iso31661: {
 							iso31661: rating.iso_3166_1,
@@ -205,7 +193,7 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 					create: movieRatingsInsert,
 					update: movieRatingsInsert,
 				})
-			// );
+			);
 		}
 
 	}
@@ -265,10 +253,9 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 					folder: file.folder,
 				}
 			}));
-			// console.log(movieId);
 			
 			const newFile: Prisma.FileCreateWithoutEpisodeInput = Object.keys(file)
-				.filter(key => !['seasons','episodeNumbers'].includes(key))
+				.filter(key => !['seasons','episodeNumbers', 'ep_folder', 'artistFolder','musicFolder'].includes(key))
 				.reduce((obj, key) =>
 					{
 						obj[key] = file[key];
@@ -276,15 +263,17 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 					}, <Prisma.FileCreateWithoutEpisodeInput>{}
 				);
 
+			// @ts-ignore
 			const insertData = Prisma.validator<Prisma.FileCreateWithoutEpisodeInput>()({
 				...newFile,
-				year: file.year ? parseInt(file.year, 10) : null,
+				episodeFolder: file.episodeFolder ?? file.musicFolder ?? '',
+				year: file.year ? typeof file.year == 'string' ? parseInt(file.year, 10) : file.year : undefined,
 				sources: JSON.stringify(file.sources),
 				revision: JSON.stringify(file.revision),
 				languages: JSON.stringify(file.languages),
 				edition: JSON.stringify(file.edition),
 				ffprobe: file.ffprobe ? JSON.stringify(file.ffprobe) : null,
-				chapters: file.ffprobe?.chapters ? JSON.stringify(file.ffprobe?.chapters) : null,
+				chapters: (file.ffprobe as VideoFFprobe)?.chapters ? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters) : null,
 				Library: {
 					connect: {
 						id: libraryId,
@@ -292,17 +281,13 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 				},
 				Movie: {
 					connect: {
-						id: movie?.id!
+						id: id
 					},
 				}
 			});
 
-			// if(!(insertData.Movie ?? insertData.Episode)){
-					// console.log(insertData);
-			// }
-
-			// promises.push(
-			await	confDb.file.upsert({
+			promises.push(
+				confDb.file.upsert({
 					where: {
 						path_libraryId: {
 							libraryId: libraryId,
@@ -312,39 +297,43 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 					create: insertData,
 					update: insertData,
 				})
-			// );
+			);
 
 			if(file.ffprobe?.format && movie){
-				const videoFileInset = Prisma.validator<Prisma.VideoFileUncheckedUpdateInput>()({
+				const videoFileInset = Prisma.validator<Prisma.VideoFileUpdateInput>()({
 					filename: file.ffprobe.format.filename.replace(/.+[\\\/](.+)/u,'/$1'),
-					folder: file.ep_folder,
+					folder: file.episodeFolder!,
 					hostFolder: file.ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
 					duration: humanTime(file.ffprobe.format.duration),
-					movieId: movie?.id,
 					quality: JSON.stringify(getQualityTag(file.ffprobe)),
 					share: libraryId,
 					subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1/subtitles'))),
-					languages: JSON.stringify(file.ffprobe.streams.audio.map(a => a.language)),
-					Chapters: JSON.stringify(file.ffprobe.chapters),
+					languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
+					Chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
+					Movie: {
+						connect: {
+							id: id,
+						}
+					}
 				});
 
-				// promises.push(
-				await	confDb.videoFile.upsert({
+				promises.push(
+					confDb.videoFile.upsert({
 						where: {
-							movieId: movie?.id
+							movieId: id
 						},
 						create: videoFileInset,
 						update: videoFileInset,
 					})
-				// );
+				);
 			}
 		}
 	});
 
 	try {
-		console.log('before');
+		// console.log('before');
 		await confDb.$transaction(transaction);
-		console.log('after');
+		// console.log('after');
 
 		Logger.log({
 			level: 'info',
@@ -359,7 +348,7 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 			data: movie,
 		};
 	} catch (error: any) {
-		if(error.code){
+		if(error){
 			Logger.log({
 				level: 'error',
 				name: 'App',

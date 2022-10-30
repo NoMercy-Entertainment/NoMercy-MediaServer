@@ -1,20 +1,23 @@
-import { confDb } from '../../database/config';
-import { commitConfigTransaction } from '../../database';
+import { activityLog, configData, devices, encoderProfiles, folders, libraries, notificationData, serverTasks } from "./data";
+import { countries, languages } from "../../providers/tmdb/config/index";
+import { jsonToString, unique } from "../../functions/stringArray";
 
-import genres from '../../providers/tmdb/genres/index';
-import { languages, countries } from '../../providers/tmdb/config/index';
-import { activityLog, configData, devices, encoderProfiles, folders, libraries, notificationData, serverTasks } from './data';
-import Logger from '../../functions/logger';
-import { Prisma } from '@prisma/client'
-import storeConfig from '../storeConfig';
-import certifications from '../../providers/tmdb/certification/index';
+import Logger from "../../functions/logger";
+import { Prisma } from "@prisma/client";
+import certifications from "../../providers/tmdb/certification/index";
+import { commitConfigTransaction } from "../../database";
+import { confDb } from "../../database/config";
+import genres from "../../providers/tmdb/genres/index";
+import { musicGenres } from "../../providers/musicbrainz/genre";
+import storeConfig from "../storeConfig";
+import { writeFileSync } from "fs";
 
 const seed = async () => {
 	Logger.log({
-		level: 'info',
-		name: 'setup',
-		color: 'blueBright',
-		message: 'Seeding database',
+		level: "info",
+		name: "setup",
+		color: "blueBright",
+		message: "Seeding database",
 	});
 
 	const transaction: Prisma.PromiseReturnType<any>[] = [];
@@ -48,7 +51,7 @@ const seed = async () => {
 					rating_iso31661: {
 						iso31661: certification.iso_3166_1,
 						rating: certification.certification,
-					}
+					},
 				},
 				create: {
 					iso31661: certification.iso_3166_1,
@@ -103,6 +106,25 @@ const seed = async () => {
 					iso31661: country.iso_3166_1,
 					native_name: country.native_name,
 					english_name: country.english_name,
+				},
+			})
+		);
+	}
+	
+	const MusicGenres = await musicGenres();
+	for (const genre of MusicGenres) {
+		transaction.push(
+			confDb.musicGenre.upsert({
+				where: {
+					id: genre.id,
+				},
+				create: {
+					id: genre.id,
+					name: genre.name,
+				},
+				update: {
+					id: genre.id,
+					name: genre.name,
 				},
 			})
 		);
@@ -165,62 +187,38 @@ const seed = async () => {
 	}
 
 	for (const library of libraries) {
+		
+		const libraryInsert = Prisma.validator<Prisma.LibraryUpdateInput>()({
+			id: library.id,
+			title: library.title,
+			autoRefreshInterval: library.autoRefreshInterval,
+			chapterImages: library.chapterImages,
+			extractChapters: library.extractChapters,
+			extractChaptersDuring: library.extractChaptersDuring,
+			image: library.image,
+			perfectSubtitleMatch: library.perfectSubtitleMatch,
+			realtime: library.realtime,
+			specialSeasonName: library.specialSeasonName,
+			type: library.type,
+			Folders: {
+				connect: library.folders.map((folder) => ({
+					libraryId_folderId: {
+						folderId: folder.id,
+						libraryId: library.id,
+					},
+				})),
+			},
+			country: "NL",
+			language: "nl",
+		});
+
 		transaction.push(
 			confDb.library.upsert({
 				where: {
 					id: library.id,
 				},
-				update: {
-					id: library.id,
-					title: library.title,
-					autoRefreshInterval: library.autoRefreshInterval,
-					chapterImages: library.chapterImages,
-					extractChapters: library.extractChapters,
-					extractChaptersDuring: library.extractChaptersDuring,
-					image: library.image,
-					perfectSubtitleMatch: library.perfectSubtitleMatch,
-					realtime: library.realtime,
-					specialSeasonName: library.specialSeasonName,
-					type: library.type,
-					folders: {
-						set: library.folders.map((folder) => ({
-							libraryId_folderId: {
-								folderId: folder.id,
-								libraryId: library.id,
-							},
-						})),
-					},
-					country: 'NL',
-					language: 'nl',
-				},
-				create: {
-					id: library.id,
-					title: library.title,
-					autoRefreshInterval: library.autoRefreshInterval,
-					chapterImages: library.chapterImages,
-					extractChapters: library.extractChapters,
-					extractChaptersDuring: library.extractChaptersDuring,
-					image: library.image,
-					perfectSubtitleMatch: library.perfectSubtitleMatch,
-					realtime: library.realtime,
-					specialSeasonName: library.specialSeasonName,
-					type: library.type,
-					folders: {
-						connectOrCreate: library.folders.map((folder) => ({
-							where: {
-								libraryId_folderId: {
-									folderId: folder.id,
-									libraryId: folder.path,
-								},
-							},
-							create: {
-								folderId: folder.id,
-							},
-						})),
-					},
-					country: 'NL',
-					language: 'nl',
-				},
+				create: libraryInsert,
+				update: libraryInsert,
 			})
 		);
 	}
@@ -295,7 +293,7 @@ const seed = async () => {
 		);
 	}
 
-	await commitConfigTransaction(transaction);
+	await commitConfigTransaction(transaction).catch((error) => console.log(error));
 };
 
 export default seed;

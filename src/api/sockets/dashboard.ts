@@ -1,3 +1,4 @@
+import { deviceName } from '../../functions/system';
 // import progress from '../../controllers/encoder/ffmpeg/progress';
 import fs from 'fs';
 import i18next from 'i18next';
@@ -11,7 +12,7 @@ export default function (socket, io) {
 
 		fs.writeFileSync(`${watchDir}update.json`, JSON.stringify(Date.now()));
 
-		const workerName = JSON.parse(process.env.CONFIG as string).workerName;
+		const workerName = deviceName;
 		const status = i18next.t('inactive');
 		socket.emit('servers', {
 			workerName,

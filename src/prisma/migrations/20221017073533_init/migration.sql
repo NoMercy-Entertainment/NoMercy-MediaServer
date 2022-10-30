@@ -4,7 +4,7 @@ CREATE TABLE "new_File" (
     "folder" TEXT NOT NULL,
     "episodeNumber" INTEGER,
     "seasonNumber" INTEGER,
-    "ep_folder" TEXT NOT NULL,
+    "episodeFolder" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "extension" TEXT NOT NULL,
     "year" INTEGER,
@@ -43,6 +43,7 @@ CREATE TABLE "new_File" (
     "type" TEXT NOT NULL,
     "uid" REAL NOT NULL,
     "libraryId" TEXT NOT NULL,
+    "albumId" TEXT,
     "episodeId" INTEGER,
     "movieId" INTEGER,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -50,10 +51,11 @@ CREATE TABLE "new_File" (
 
     PRIMARY KEY ("path", "libraryId"),
     CONSTRAINT "File_libraryId_fkey" FOREIGN KEY ("libraryId") REFERENCES "Library" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "File_albumId_fkey" FOREIGN KEY ("albumId") REFERENCES "Album" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "File_episodeId_fkey" FOREIGN KEY ("episodeId") REFERENCES "Episode" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "File_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
-INSERT INTO "new_File" ("airDate", "atimeMs", "audioChannels", "audioCodec", "birthtimeMs", "chapters", "complete", "createdAt", "ctimeMs", "edition", "ep_folder", "episodeId", "episodeNumber", "extension", "ffprobe", "folder", "fullSeason", "gid", "group", "id", "isMultiSeason", "isPartialSeason", "isSeasonExtra", "isSpecial", "isTv", "languages", "libraryId", "mode", "movieId", "mtimeMs", "multi", "name", "nlink", "path", "resolution", "revision", "seasonNumber", "seasonPart", "size", "sources", "title", "type", "uid", "updatedAt", "videoCodec", "year") SELECT "airDate", "atimeMs", "audioChannels", "audioCodec", "birthtimeMs", "chapters", "complete", "createdAt", "ctimeMs", "edition", "ep_folder", "episodeId", "episodeNumber", "extension", "ffprobe", "folder", "fullSeason", "gid", "group", "id", "isMultiSeason", "isPartialSeason", "isSeasonExtra", "isSpecial", "isTv", "languages", "libraryId", "mode", "movieId", "mtimeMs", "multi", "name", "nlink", "path", "resolution", "revision", "seasonNumber", "seasonPart", "size", "sources", "title", "type", "uid", "updatedAt", "videoCodec", "year" FROM "File";
+INSERT INTO "new_File" ("airDate", "atimeMs", "audioChannels", "audioCodec", "birthtimeMs", "chapters", "complete", "createdAt", "ctimeMs", "edition", "episodeFolder", "episodeId", "episodeNumber", "extension", "ffprobe", "folder", "fullSeason", "gid", "group", "id", "isMultiSeason", "isPartialSeason", "isSeasonExtra", "isSpecial", "isTv", "languages", "libraryId", "mode", "movieId", "mtimeMs", "multi", "name", "nlink", "path", "resolution", "revision", "seasonNumber", "seasonPart", "size", "sources", "title", "type", "uid", "updatedAt", "videoCodec", "year") SELECT "airDate", "atimeMs", "audioChannels", "audioCodec", "birthtimeMs", "chapters", "complete", "createdAt", "ctimeMs", "edition", "episodeFolder", "episodeId", "episodeNumber", "extension", "ffprobe", "folder", "fullSeason", "gid", "group", "id", "isMultiSeason", "isPartialSeason", "isSeasonExtra", "isSpecial", "isTv", "languages", "libraryId", "mode", "movieId", "mtimeMs", "multi", "name", "nlink", "path", "resolution", "revision", "seasonNumber", "seasonPart", "size", "sources", "title", "type", "uid", "updatedAt", "videoCodec", "year" FROM "File";
 DROP TABLE "File";
 ALTER TABLE "new_File" RENAME TO "File";
 CREATE UNIQUE INDEX "File_id_key" ON "File"("id");

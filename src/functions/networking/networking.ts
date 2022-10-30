@@ -1,11 +1,13 @@
+import { AppState, useSelector } from '../../state/redux';
+import { setExternalIp, setInternalIp } from '../../state/redux/system/actions';
+
+import { Client } from '@runonflux/nat-upnp';
+import Logger from '../../functions/logger';
+import axios from 'axios';
 import chalk from 'chalk';
 import os from 'os';
-import axios from 'axios';
-import { Client } from '@runonflux/nat-upnp';
 
-import Logger from '../../functions/logger';;
-import { setExternalIp, setInternalIp } from '../../state/redux/system/actions';
-import { AppState, useSelector } from '../../state/redux';
+;
 
 export const get_externa_ip = async () => {
 	await axios
@@ -121,7 +123,7 @@ export const allowedOrigins = [
 export const socketCors = {
 	cors: {
 		origin: allowedOrigins,
-		methods: 'GET,PUT,POST,DELETE,OPTIONS'.split(','),
+		methods: ['GET','PUT','POST','DELETE','OPTIONS'],
 		credentials: true,
 		exposedHeaders: ['Content-Length', 'Range'],
 		acceptRanges: 'byes',

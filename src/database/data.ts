@@ -1,3 +1,4 @@
+import { LibraryFolder } from '@prisma/client';
 import { confDb } from './config';
 
 export interface LibraryWithFolders {
@@ -28,7 +29,7 @@ interface Folder {
 export const getLibrariesWithFolders = async (): Promise<LibraryWithFolders[]> => {
 	const libraryDB = await confDb.library.findMany({
 		include: {
-			folders: {
+			Folders: {
 				include: {
 					folder: true,
 				},
@@ -38,8 +39,15 @@ export const getLibrariesWithFolders = async (): Promise<LibraryWithFolders[]> =
 	const libraries = libraryDB.map((l) => {
 		return {
 			...l,
-			folders: l.folders.map((f) => f.folder!) ?? [],
+			folders: l.Folders.map((f) => f.folder!) ?? [],
 		};
 	});
 	return libraries;
 };
+
+
+export interface DBLibraryWithFolders {
+	Folders: (LibraryFolder & {
+		folder: Folder | null;
+	})[];
+}

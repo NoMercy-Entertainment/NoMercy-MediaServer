@@ -1,20 +1,20 @@
-import cors from 'cors';
-import { confDb } from '../database/config';
-import express, { Application, NextFunction, Request, Response } from 'express';
-import path from 'path';
-import Logger from '../functions/logger';
-import { unique } from '../functions/stringArray';
-import session from 'express-session';
-
-import routes from '../api/index';
-import check from '../api/middlewares/check';
-import changeLanguage from '../api/middlewares/language';
-import { staticPermissions } from '../api/middlewares/permissions';
-import { allowedOrigins } from '../functions/networking';
-import { imagesPath, subtitlesPath, transcodesPath } from '../state';
 import { AppState, useSelector } from '../state/redux';
+import express, { Application, NextFunction, Request, Response } from 'express';
+import { imagesPath, setupComplete, subtitlesPath, transcodesPath } from '../state';
+
+import Logger from '../functions/logger';
+import { allowedOrigins } from '../functions/networking';
+import changeLanguage from '../api/middlewares/language';
+import check from '../api/middlewares/check';
+import { confDb } from '../database/config';
+import cors from 'cors';
 import { initKeycloak } from '../functions/keycloak';
+import path from 'path';
+import routes from '../api/index';
+import session from 'express-session';
 import { session_config } from '../functions/keycloak/config';
+import { staticPermissions } from '../api/middlewares/permissions';
+import { unique } from '../functions/stringArray';
 
 export default async (app: Application) => {
 	const owner = useSelector((state: AppState) => state.system.owner);
@@ -29,9 +29,9 @@ export default async (app: Application) => {
 		res.set('X-Powered-By', 'NoMercy MediaServer');
 		res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
 
-		if (allowedOrigins.some((o) => o == req.headers.origin)) {
-			res.set('Access-Control-Allow-Origin', req.headers.origin as string);
-		}
+		// if (allowedOrigins.some((o) => o == req.headers.origin)) {
+		// 	res.set('Access-Control-Allow-Origin', req.headers.origin as string);
+		// }
 
 		next();
 	});
@@ -84,11 +84,10 @@ export default async (app: Application) => {
 	});
 
 	app.get('/api/ping', check, (req: Request, res: Response) => {
-		const config = JSON.parse(process.env.CONFIG as string);
 
 		return res.json({
 			message: 'pong',
-			setupComplete: config.setupComplete || false,
+			setupComplete: setupComplete || false,
 		});
 	});
 

@@ -1,12 +1,16 @@
 /* eslint-disable max-len */
-// import { anime_regexes, dvd_regexes, movie_regexes, normal_regexes } from './nameRegexes';
-import { parseYear } from '../../functions/dateTime';
-import { pad } from '../../functions/stringArray';
-import { AppState, useSelector } from '../../state/redux';
-import { DirectoryTree } from 'directory-tree';
-import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
-import { VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
-import { filenameParse, ParsedMovie, ParsedShow } from '../../functions/videoFilenameParser';
+import { parseYear } from "../../functions/dateTime";
+import { pad } from "../../functions/stringArray";
+import { AppState, useSelector } from "../../state/redux";
+import { DirectoryTree } from "directory-tree";
+import getVideoInfo from "../../encoder/ffprobe/getVideoInfo";
+import { AudioFFprobe, VideoFFprobe } from "../../encoder/ffprobe/ffprobe";
+import { filenameParse, ParsedMovie, ParsedShow } from "../../functions/videoFilenameParser";
+import { MovieAppend, MovieTranslation } from "../../providers/tmdb/movie";
+import { TvAppend, TvShowTranslation } from "../../providers/tmdb/tv";
+import { DBLibraryWithFolders } from "../../database/data";
+import getAudioInfo from "../../encoder/ffprobe/getAudioInfo";
+import { Channels } from "../../functions/videoFilenameParser/audioChannels";
 
 interface IObj {
 	[key: string]: any;
@@ -15,7 +19,8 @@ interface IObj {
 export interface ParsedFileList extends ParsedMovie, ParsedShow {
 	path: string;
 	folder: string;
-	ep_folder: string;
+	episodeFolder?: string;
+	musicFolder?: string;
 	name: string;
 	mode: number;
 	nlink: number;
@@ -28,7 +33,7 @@ export interface ParsedFileList extends ParsedMovie, ParsedShow {
 	mtimeMs: number;
 	ctimeMs: number;
 	birthtimeMs: number;
-	ffprobe?: VideoFFprobe;
+	ffprobe?: VideoFFprobe | AudioFFprobe;
 }
 
 export interface ShowData {
@@ -75,42 +80,58 @@ export interface FolderList {
 	birthtimeMs: number;
 }
 
-export const yearRegex = new RegExp('(\\s|\\.|\\()(?<year>(19|20)[0-9][0-9])(\\)|.*|(?!p))', 'u');
+export const yearRegex = new RegExp("(\\s|\\.|\\()(?<year>(19|20)[0-9][0-9])(\\)|.*|(?!p))", "u");
 
 export const parseFileName = async function (file: DirectoryTree<IObj>, isTvShow: boolean): Promise<ParsedFileList> {
-	
 	let reg: any = /(.*[\\\/])(?<fileName>.*)/u.exec(file.path);
 
 	const yearReg: any = yearRegex.exec(file.path);
 
 	const fileName: any = reg.groups.fileName;
-
-	let res: ParsedFileList = <ParsedFileList>{...filenameParse(fileName, isTvShow)};
+	
+	let res: ParsedFileList = <ParsedFileList>{ ...filenameParse(fileName, isTvShow) };
 
 	for (const obj of Object.entries(file)) {
-		if (obj[0] == 'children') continue;
-		if (obj[0] == 'path') {
-			res.ffprobe = await getVideoInfo(obj[1] as string)
-				.catch(error => undefined);
-		};
+		if (obj[0] == "children") continue;
+		if (obj[0] == "path") {
+			res.ffprobe = await getVideoInfo(obj[1] as string).catch((error) => undefined);
+		}
 		res[obj[0]] = obj[1];
 	}
 
 	res.year = yearReg?.groups?.year;
-	
-	if(res.episodeNumbers?.length > 0){
-		res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+[\\\/].+/u, '/$1');
-	}
-	else {
-		res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+/u, '/$1');
+
+	if(!res.ffprobe){ 
+		res.ffprobe = await getAudioInfo(file.path).catch((error) => undefined);
+		if(res.ffprobe){
+			res.year = parseInt((res.ffprobe as AudioFFprobe).tags?.originalyear ?? '0', 10);
+			res.audioChannels = res.ffprobe.audio.channels == 2 ? Channels.STEREO : Channels.SIX;
+			res.title = res.ffprobe.tags.title ?? res.name.replace(/\d+\s(.+)\.\w{3}/u, '$1');
+		}
 	}
 
-	res.ep_folder = file.path.replace(/.+[\\\/](.+\(.+)[\\\/].+[\\\/]?/u, '/$1');
+	if (res.episodeNumbers?.length > 0) {
+		res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+[\\\/].+/u, "/$1");
+	} else {
+		res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+/u, "/$1");
+	}
+
+	res.episodeFolder = file.path.replace(/.+[\\\/](.+\(.+)[\\\/].+[\\\/]?/u, "/$1");
+	if(res.episodeFolder){
+		res.musicFolder = file.path.replace(/.+[\\\/](\[.+)[\\\/].+[\\\/]?/u, "/$1");
+		res.folder = file.path.replace(/.+[\\\/](.+[\\\/].+)[\\\/].+[\\\/].+/u, "/$1");
+		res.episodeFolder = undefined;
+	}
+	if(res.episodeFolder && !res.musicFolder){
+		res.musicFolder = file.path.replace(/.+[\\\/](.+)[\\\/].*/u, "/$1");
+		res.folder = file.path.replace(/.+[\\\/](.+[\\\/].+)[\\\/].+[\\\/].+/u, "/$1");
+		res.episodeFolder = undefined;
+	}
 
 	return res;
 };
 
-const parseTitle = (title: string) => {
+export const parseTitle = (title: string) => {
 	let m: any;
 	const regex = /([\w’'_\(-]+)|([^\w{2}](?<abb>(\w{1}\.){2,}\(?))/g;
 	const arr: string[] = [];
@@ -119,32 +140,34 @@ const parseTitle = (title: string) => {
 		if (m.index === regex.lastIndex) {
 			regex.lastIndex++;
 		}
-		
+
 		m.forEach((match: string, groupIndex: number) => {
-			if(groupIndex == 0){
+			if (groupIndex == 0) {
 				arr.push(match);
 			}
 		});
 	}
-	return arr.join('+').replace(/\+(\w)$/g, '$1').replace(/^(\w)\+\./g, '$1.');
-}
+	return arr
+		.join("+")
+		.replace(/\+(\w)$/g, "$1")
+		.replace(/^(\w)\+\./g, "$1.");
+};
 
 export const parseFolderName = function (file: DirectoryTree<IObj>) {
-
 	const res: FolderList = <FolderList>{};
 
 	Object.entries(file)?.map((c) => {
-
-		if (c[0] == 'children') return;
-		if (c[0] == 'name') {
-			const name = (c[1] as string).split('.(');
+		
+		if (c[0] == "children") return;
+		if (c[0] == "name") {
+			const name = (c[1] as string).split(".(");
 			const yearReg: any = yearRegex.exec(c[1] as string);
-			if(name[0] && name[1]) {
+			if (name[0] && name[1]) {
 				// console.log(parseTitle(name[0]));
-				res['title'] = name[0];
-				res['year'] = yearReg?.groups?.year;
+				res["title"] = name[0];
+				res["year"] = yearReg?.groups?.year;
 			}
-		};
+		}
 		res[c[0]] = c[1];
 	});
 
@@ -175,7 +198,7 @@ export const getEpisodeIndex = function (showData: ShowData, filenameInfo: FileN
 export const createShowFolderName = function (type: string, showData: ShowData, filenameInfo: FileNameInfo) {
 	let showName: string;
 
-	if (type == 'movie') {
+	if (type == "movie") {
 		showName = `${showData.title || showData.name}.(${parseYear(showData.release_date)})`;
 	} else {
 		showName = `${showData.title || showData.name}.S${pad(filenameInfo.season_num, 2)}E${pad(filenameInfo.ep_num, 2)}`;
@@ -189,11 +212,11 @@ export const createFileName = function (type: string, showData: ShowData, episod
 
 	const title = episode?.title.substring(0, 100) || showData.name?.substring(0, 100) || showData.title?.substring(0, 100);
 
-	if (type == 'movie') {
+	if (type == "movie") {
 		fileName = `${showData.title || showData.name}.(${parseYear(showData.release_date)})`;
 	} else {
 		showName = `${showData.title || showData.name}.S${pad(episode.season_number, 2)}E${pad(episode.episode_number, 2)}`;
-		fileName = showName + (episode ? `.${title}` : '').replace(/\//gu, '.');
+		fileName = showName + (episode ? `.${title}` : "").replace(/\//gu, ".");
 	}
 
 	return cleanFileName(fileName);
@@ -208,37 +231,53 @@ export const episodeData = function (showData: ShowData, filenameInfo: FileNameI
 
 export const cleanFileName = function (name: string) {
 	return name
-		.replace(/:\s/gu, '.')
-		.replace(/\? {2}/gu, '.')
-		.replace(/\? /gu, '.')
-		.replace(/,\./gu, '.')
-		.replace(/, /gu, '.')
-		.replace(/`/gu, '')
-		.replace(/'/gu, '')
-		.replace(/"/gu, '')
-		.replace(/,/gu, '.')
+		.replace(/:\s/gu, ".")
+		.replace(/\? {2}/gu, ".")
+		.replace(/\? /gu, ".")
+		.replace(/,\./gu, ".")
+		.replace(/, /gu, ".")
+		.replace(/`/gu, "")
+		.replace(/'/gu, "")
+		.replace(/"/gu, "")
+		.replace(/,/gu, ".")
 		.replace(/"/gu, "'")
-		.replace(/\.{2,}/u, '.')
-		.replace(/\s/gu, '.')
-		.replace(/&/gu, 'and')
-		.replace(/#/gu, '%23')
-		.replace(/!/gu, '')
-		.replace(/\*/gu, '-')
-		.replace(/\.\./gu, '.')
-		.replace(/,\./gu, '.')
-		.replace(/:/gu, '.')
-		.replace(/'|\?|\.\s|-\.|\.\(\d{1,3}\)|[^[:print:]\]|[^-_.[:alnum:]\]/giu, '')
-		.replace(/\.{2,}/gu, '.');
+		.replace(/\.{2,}/u, ".")
+		.replace(/\s/gu, ".")
+		.replace(/&/gu, "and")
+		.replace(/#/gu, "%23")
+		.replace(/!/gu, "")
+		.replace(/\*/gu, "-")
+		.replace(/\.\./gu, ".")
+		.replace(/,\./gu, ".")
+		.replace(/:/gu, ".")
+		.replace(/'|\?|\.\s|-\.|\.\(\d{1,3}\)|[^[:print:]\]|[^-_.[:alnum:]\]/giu, "")
+		.replace(/\.{2,}/gu, ".");
 };
 
 export const createTitleSort = function (title: string, date?: string) {
 	const newTitle = cleanFileName(
 		title
-			.replace(/^The[\s]*/u, '')
-			.replace(/^An[\s]{1,}/u, '')
-			.replace(/^A[\s]{1,}/u, '')
-			.replace(/:\s|\sand\sthe/u, date ? `.${parseYear(date)}` : '.')
-			.replace(/\./gu, ' ')
+			.replace(/^The[\s]*/u, "")
+			.replace(/^An[\s]{1,}/u, "")
+			.replace(/^A[\s]{1,}/u, "")
+			.replace(/:\s|\sand\sthe/u, date ? `.${parseYear(date)}` : ".")
+			.replace(/\./gu, " ")
 	);
 	return newTitle.toLowerCase();
+};
+
+export const createMediaFolder = (
+	library: DBLibraryWithFolders,
+	data: MovieAppend | TvAppend
+): string => {
+	const baseFolder = library.Folders[0].folder?.path;
+
+	const translation = [...data.translations.translations].find(t => t.iso_639_1 == 'en');
+	const translatedTitle = (translation as MovieTranslation).data.title ?? (translation as TvShowTranslation).data.name;
+
+	const title = translatedTitle ?? (data as MovieAppend).title ?? (data as TvAppend).name;
+
+	const year = parseYear((data as MovieAppend).release_date ?? (data as TvAppend).first_air_date);
+
+	return `${baseFolder}/${title}.(${year})`;
 };

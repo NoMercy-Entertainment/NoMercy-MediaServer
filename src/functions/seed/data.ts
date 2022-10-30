@@ -1,6 +1,7 @@
-import { confDb } from '../../database/config';
-import { byObjectValues } from '../../functions/stringArray';
 import { ActivityLog, ConfigData, Device, ServerTask } from 'types/server';
+
+import { byObjectValues } from '../../functions/stringArray';
+import { confDb } from '../../database/config';
 import { deviceName } from '../system';
 
 export const configData: ConfigData = {
@@ -151,38 +152,38 @@ interface Folder {
 	path: string;
 }
 export const folders: Folder[] = [
-	// {
-	// 	id: 'cl7i4km1n0000qwefaltp4913',
-	// 	path: 'M:\\Anime\\Anime',
-	// },
-	// {
-	// 	id: 'cl7i4km1o0001qwefarqd8r0q',
-	// 	path: 'M:\\Films\\Films',
-	// },
-	// {
-	// 	id: 'cl7i4km1o0002qwef0xv15b15',
-	// 	path: 'M:\\TV.Shows\\TV.Shows',
-	// },
-	// {
-	// 	id: 'cl7i4km1o0003qwef44qpen9z',
-	// 	path: 'M:\\Music',
-	// },
 	{
 		id: 'cl7i4km1n0000qwefaltp4913',
-		path: 'Z:\\mnt\\m\\Anime\\Anime',
+		path: 'M:\\Anime\\Anime',
 	},
 	{
 		id: 'cl7i4km1o0001qwefarqd8r0q',
-		path: 'Z:\\mnt\\m\\Films\\Films',
+		path: 'M:\\Films\\Films',
 	},
 	{
 		id: 'cl7i4km1o0002qwef0xv15b15',
-		path: 'Z:\\mnt\\m\\TV.Shows\\TV.Shows',
+		path: 'M:\\TV.Shows\\TV.Shows',
 	},
 	{
 		id: 'cl7i4km1o0003qwef44qpen9z',
-		path: 'Z:\\mnt\\m\\Music',
+		path: 'M:\\Music',
 	},
+	// {
+	// 	id: 'cl7i4km1n0000qwefaltp4913',
+	// 	path: 'Z:\\mnt\\m\\Anime\\Anime',
+	// },
+	// {
+	// 	id: 'cl7i4km1o0001qwefarqd8r0q',
+	// 	path: 'Z:\\mnt\\m\\Films\\Films',
+	// },
+	// {
+	// 	id: 'cl7i4km1o0002qwef0xv15b15',
+	// 	path: 'Z:\\mnt\\m\\TV.Shows\\TV.Shows',
+	// },
+	// {
+	// 	id: 'cl7i4km1o0003qwef44qpen9z',
+	// 	path: 'Z:\\mnt\\m\\Music',
+	// },
 	// {
 	// 	id: 'cl7i4km1n0000qwefaltp4913',
 	// 	path: 'F:\\Anime',
@@ -217,7 +218,6 @@ interface LibrarySeed {
 	perfectSubtitleMatch: boolean;
 	folders: {
 		id: string;
-		path: string;
 	}[];
 }
 export const libraries: LibrarySeed[] = [
@@ -238,7 +238,6 @@ export const libraries: LibrarySeed[] = [
 		folders: [
 			{
 				id: 'cl7i4km1n0000qwefaltp4913',
-				path: 'M:\\Anime\\Anime',
 			},
 		],
 	},
@@ -259,7 +258,6 @@ export const libraries: LibrarySeed[] = [
 		folders: [
 			{
 				id: 'cl7i4km1o0001qwefarqd8r0q',
-				path: 'M:\\Films\\Films',
 			},
 		],
 	},
@@ -280,7 +278,6 @@ export const libraries: LibrarySeed[] = [
 		folders: [
 			{
 				id: 'cl7i4km1o0002qwef0xv15b15',
-				path: 'M:\\TV.Shows\\TV.Shows',
 			},
 		],
 	},
@@ -301,15 +298,12 @@ export const libraries: LibrarySeed[] = [
 		folders: [
 			{
 				id: 'cl7i4km1n0000qwefaltp4913',
-				path: 'M:\\Anime\\Anime',
 			},
 			{
 				id: 'cl7i4km1o0001qwefarqd8r0q',
-				path: 'M:\\Films\\Films',
 			},
 			{
 				id: 'cl7i4km1o0002qwef0xv15b15',
-				path: 'M:\\TV.Shows\\TV.Shows',
 			},
 		],
 	},
@@ -330,15 +324,12 @@ export const libraries: LibrarySeed[] = [
 		folders: [
 			{
 				id: 'cl7i4km1n0000qwefaltp4913',
-				path: 'M:\\Anime\\Anime',
 			},
 			{
 				id: 'cl7i4km1o0001qwefarqd8r0q',
-				path: 'M:\\Films\\Films',
 			},
 			{
 				id: 'cl7i4km1o0002qwef0xv15b15',
-				path: 'M:\\TV.Shows\\TV.Shows',
 			},
 		],
 	},
@@ -359,7 +350,6 @@ export const libraries: LibrarySeed[] = [
 		folders: [
 			{
 				id: 'cl7i4km1o0003qwef44qpen9z',
-				path: 'M:\\Music',
 			},
 		],
 	},
@@ -482,18 +472,18 @@ export const devices: Device[] = [
 ].sort(byObjectValues(['title', 'type']));
 
 export const serverTasks: ServerTask[] = [
-	{
-		id: 'cl7i4km1p001gqwefcdnb9tju',
-		title: 'Scan media library',
-		value: 69,
-		type: 'library',
-	},
-	{
-		id: 'cl7i4km1p001hqwefbyo8c9hm',
-		title: 'Checking external services for updated content with a veeeeeery long text ',
-		value: 51,
-		type: 'database',
-	},
+	// {
+	// 	id: 'cl7i4km1p001gqwefcdnb9tju',
+	// 	title: 'Scan media library',
+	// 	value: 69,
+	// 	type: 'library',
+	// },
+	// {
+	// 	id: 'cl7i4km1p001hqwefbyo8c9hm',
+	// 	title: 'Checking external services for updated content with a veeeeeery long text ',
+	// 	value: 51,
+	// 	type: 'database',
+	// },
 ];
 
 const ips = ['127.0.0.1', '192.168.2.201', '192.168.2.80', '86.92.205.45', '218.19.27.169'];

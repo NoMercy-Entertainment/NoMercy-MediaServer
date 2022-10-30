@@ -10,6 +10,7 @@ import { fileChangedAgo, humanTime } from '../../functions/dateTime';
 import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
 import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
 import { ParsedFileList } from './filenameParser';
+import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
 
 export default () => {
 	return new Promise((resolve, reject) => {
@@ -82,7 +83,7 @@ export default () => {
 										}, <Prisma.FileCreateWithoutMovieInput>{}
 									);
 
-								const insertData = Prisma.validator<Prisma.FileCreateInput>()({
+								const insertData = {
 									...newFile,
 									sources: JSON.stringify(file.sources),
 									revision: JSON.stringify(file.revision),
@@ -91,7 +92,7 @@ export default () => {
 									seasonNumber: file.seasons[0],
 									episodeNumber: file.episodeNumbers[0],
 									ffprobe: file.ffprobe ? JSON.stringify(file.ffprobe) : null,
-									chapters: file.ffprobe?.chapters ? JSON.stringify(file.ffprobe?.chapters) : null,
+									chapters: (file.ffprobe as VideoFFprobe)?.chapters ? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters) : null,
 									Library: {
 										connect: {
 											id: folder.Libraries[0].libraryId,
@@ -107,7 +108,7 @@ export default () => {
 											id: episodeId,
 										},
 									},
-								});
+								};
 
 								if(!movieId) {
 									// @ts-expect-error
@@ -137,7 +138,7 @@ export default () => {
 								if(file.ffprobe?.format && (movieId || episodeId)){
 									const videoFileInset = Prisma.validator<Prisma.VideoFileUncheckedUpdateInput>()({
 										filename: file.ffprobe.format.filename.replace(/.+[\\\/](.+)/u,'/$1'),
-										folder: file.ep_folder,
+										folder: file.episodeFolder!,
 										hostFolder: file.ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
 										duration: humanTime(file.ffprobe.format.duration),
 										episodeId: episodeId,
@@ -145,8 +146,8 @@ export default () => {
 										quality: JSON.stringify(getQualityTag(file.ffprobe)),
 										share: folder.Libraries[0].libraryId,
 										subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1/subtitles'))),
-										languages: JSON.stringify(file.ffprobe.streams.audio.map(a => a.language)),
-										Chapters: JSON.stringify(file.ffprobe.chapters),
+										languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
+										Chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
 									});
 	
 									// promises.push(

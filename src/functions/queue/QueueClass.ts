@@ -1,6 +1,7 @@
 import { ChildProcess, fork } from 'child_process';
 import { QueueJob } from '../../database/queue/client';
-import { queDb } from '../../database/config';
+import { confDb, queDb } from '../../database/config';
+import { AppState, useSelector } from '../../state/redux';
 
 interface QueueProps {
 	name?: string;
@@ -101,6 +102,7 @@ export class Queue {
 				runAt: null,
 				payload: JSON.stringify({ file, fn, args }),
 				priority: 2,
+				taskId: args.task.id
 			},
 		});
 	}
@@ -224,7 +226,10 @@ export class Queue {
 
 	stop() {
 		this.isDisabled = true;
-		this.forks = [];
+	}
+
+	state() {
+		return this.isDisabled ? 'stopped' : 'running';
 	}
 
 	start() {
@@ -237,12 +242,12 @@ export class Queue {
 
 	async run() {
 		if (this.isDisabled) return;
-
+		
 		const Worker = this.forks.find((w) => !w.running);
 		if (!Worker) return;
-
+		
 		const job = await this.next();
-
+		
 		if (!job || this.runningJobs.includes(job.id)) {
 			return this.run();
 		}
@@ -258,12 +263,32 @@ export class Queue {
 
 		Worker.worker.once('message', async (message: any) => {
 
-			// console.log(job.id, message);
-			if (!message?.result?.success || message?.result?.error || message.error) {
-				await this.failed(job.id, message.result ?? message?.result?.error ?? message.error);
+			const socket = useSelector((state: AppState) => state.system.socket);
+
+			const runningTask = await confDb.runningTask.findFirst({
+				where: {
+					id: message.result.task.id
+				},
+			}).catch(e => console.log(e));
+
+			if(runningTask?.value == 100){
+				await confDb.runningTask.delete({
+					where: {
+						id: runningTask.id
+					},
+				}).catch(e => console.log(e));
+			}
+			
+			socket.emit('tasks', runningTask);
+			
+			if (message?.error) {
+				console.log('no id');
+				await this.failed(job.id, message.result);
 			} else if (this.keepJobs) {
+				console.log('finished');
 				await this.finished(job.id, message.result.data);
 			} else {
+				console.log('else');
 				await this.remove(job.id);
 			}
 

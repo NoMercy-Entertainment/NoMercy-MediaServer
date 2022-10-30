@@ -1,9 +1,10 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
-import { EpisodeAppend } from '../../providers/tmdb/episode/index';
-import { SeasonAppend } from '../../providers/tmdb/season/index';
-import { CompleteTvAggregate } from './fetchTvShow';
 import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
+import { EpisodeAppend } from '../../providers/tmdb/episode/index';
+import Logger from '../../functions/logger';
+import { Prisma } from '@prisma/client'
+import { SeasonAppend } from '../../providers/tmdb/season/index';
+import { confDb } from '../../database/config';
 
 export default async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate,
@@ -16,8 +17,14 @@ export default async (
 	>,
 	people: number[]
 ) => {
+	// Logger.log({
+	// 	level: 'info',
+	// 	name: 'App',
+	// 	color: 'magentaBright',
+	// 	message: `Adding crew for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
+	// });
 	for (const crew of req.credits.crew) {
-		if(!people.includes(crew.id)) return;
+		if(!people.includes(crew.id)) continue;
 
 		const crewsInsert = Prisma.validator<Prisma.CrewUncheckedCreateInput>()({
 			id: crew.credit_id,
@@ -34,15 +41,15 @@ export default async (
 			profilePath: crew.profile_path,
 		});
 
-		// transaction.push(
-		await	confDb.crew.upsert({
+		transaction.push(
+			confDb.crew.upsert({
 				where: {
 					creditId: crew.credit_id,
 				},
 				update: crewsInsert,
 				create: crewsInsert,
 			})
-		// );
+		);
 
 		crewArray.push({
 			where: {
@@ -53,4 +60,11 @@ export default async (
 			},
 		});
 	}
+	
+	// Logger.log({
+	// 	level: 'info',
+	// 	name: 'App',
+	// 	color: 'magentaBright',
+	// 	message: `Crew for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title} added successfully`,
+	// });
 };
