@@ -21,7 +21,7 @@ export default async function (req: Request, res: Response) {
 				},
 			},
 		},
-		take: 20,
+		take: 12,
 	});
 	
     const userData = await confDb.userData.findMany({
@@ -31,7 +31,7 @@ export default async function (req: Request, res: Response) {
                 isFavorite: null,
             }
         },
-		take: 20,
+		take: 12,
         orderBy: {
             updatedAt: 'desc',
         }
@@ -46,14 +46,14 @@ export default async function (req: Request, res: Response) {
 		include: {
 			MusicGenre: true,
 		}
-		// take: 20,
+		// take: 12,
 	});
 
 	const albums = await confDb.album.findMany({
 		include: {
 			Artist: true,
 		}
-		// take: 20,
+		// take: 12,
 
 	});
 
@@ -65,7 +65,7 @@ export default async function (req: Request, res: Response) {
 				},
 			},
 		},
-		// take: 20,
+		// take: 12,
 
 	});
 
@@ -91,7 +91,7 @@ export default async function (req: Request, res: Response) {
 					};
 				}), 'folder')
 				.sort(() => Math.random() - 0.5)
-				.slice(0, 20);
+				.slice(0, 12);
 	
 			if (x.length > 7) {
 				genreItems
@@ -105,7 +105,7 @@ export default async function (req: Request, res: Response) {
 		return res.json({
 			top: {
 				moreLink: '',
-				items: shuffle(tracks).slice(0,20).map(t => ({...t, libraryId: albums[0].libraryId, type: 'track'})),
+				items: shuffle(tracks).slice(0,12).map(t => ({...t, libraryId: albums[0].libraryId, type: 'track'})),
 			},
 			recent: {
 				moreLink: '',
@@ -113,7 +113,7 @@ export default async function (req: Request, res: Response) {
 			},
 			artists: {
 				moreLink: '',
-				items: shuffle(artists).slice(0, 20).map((m) => {
+				items: shuffle(artists).slice(0, 12).map((m) => {
 					return {
 						...m,
 						type: 'artist',
@@ -125,7 +125,7 @@ export default async function (req: Request, res: Response) {
 			},
 			albums: {
 				moreLink: '',
-				items: shuffle(albums).slice(0, 20).map((m) => {
+				items: shuffle(albums).slice(0, 12).map((m) => {
 					return {
 						...m,
 						type: 'album',
