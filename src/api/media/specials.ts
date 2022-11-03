@@ -69,7 +69,7 @@ export default async function (req: Request, res: Response) {
 			// id: tv.id,
 			// poster: tv.poster_path,
 			name: name[0].toUpperCase() + name.slice(1),
-			// title_sort: createTitleSort(title[0].toUpperCase() + title.slice(1)),
+			// title_sort: createTitleSort(title),
 			type: 'tv',
 			media_type: 'tv',
 			have_episodes: newNumber,

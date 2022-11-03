@@ -8,7 +8,7 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		fmt: 'json',
 		...config.params,
 	};
-	config.timeout = 60000;
+	config.timeout = 2000;
 
 	return config;
 };
@@ -16,7 +16,7 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 const onRequestError = (error: AxiosError): Promise<AxiosError> => {
 	Logger.log({
 		level: 'error',
-		name: 'moviedb',
+		name: 'musicBrainz',
 		color: 'red',
 		message: JSON.stringify(error, null,2 ),
 	});
@@ -33,7 +33,7 @@ const onResponse = (response: AxiosResponse<any>): AxiosResponse => {
 const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 	Logger.log({
 		level: 'error',
-		name: 'moviedb',
+		name: 'musicBrainz',
 		color: 'red',
 		message: JSON.stringify(error, null,2),
 	});

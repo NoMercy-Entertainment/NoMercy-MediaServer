@@ -10,5 +10,5 @@
     "src/database/queue/client",
     "src/functions/queue/QueueClass.ts"
   ],
-  "exec": "ts-node --swc --pretty ./src/index.ts"
+  "exec": "node --inspect=0.0.0.0:9229 --require ts-node/register ./src/index.ts"
 }

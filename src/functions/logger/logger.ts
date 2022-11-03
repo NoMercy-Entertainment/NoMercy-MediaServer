@@ -95,6 +95,7 @@ const Logger = winston.createLogger({
 		fileLogger,
 		consoleLogger,
 	],
+	exitOnError: false,
 });
 
 // Logger.rejections.handle(
@@ -105,10 +106,10 @@ const Logger = winston.createLogger({
 
 export default Logger;
 
-const spacer = (text: string, rightpadding: number) => {
+const spacer = (text: string, rightPadding: number) => {
 	const spacing: any[] = [];
 	spacing.push(text);
-	for (let i = 0; i < rightpadding - text.length; i++) {
+	for (let i = 0; i < rightPadding - text.length; i++) {
 		spacing.push("");
 	}
 	return spacing.join(" ");

@@ -1,16 +1,18 @@
 import { Request, Response } from 'express';
 
+import { cachePath } from '../../../state';
 import downloadImage from "../../../functions/downloadImage";
+import { join } from 'path';
 import { storageArtistImageInDatabase } from "../../../functions/artistImage";
 
 export default async function (req: Request, res: Response) {
 
-	const { name, image, storagePath } = req.body;
+	const { id, image, storagePath } = req.body;
 
-	downloadImage(image, `${JSON.parse((process.env.CONFIG as string)).mediaRoot}/Music/${storagePath}`)
-		.then(async () => {
+	downloadImage(image, join(cachePath, 'images', 'music', storagePath))
+		.then(async ({dimensions, stats, colorPalette}) => {
 
-			await storageArtistImageInDatabase(name, storagePath);
+			await storageArtistImageInDatabase(id, colorPalette);
 
 			return res.json({
 				success: true,

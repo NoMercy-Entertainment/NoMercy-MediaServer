@@ -7,6 +7,12 @@ import { join } from "path";
 
 env.config();
 
+process.on('uncaughtException', error => console.error(error));
+process.on('unhandledRejection', error => console.error(error));
+process.on('unhandledError', error => console.error(error));
+process.on('error', error => console.error(error));
+process.on('warning', error => console.warn(error.stack));
+
 let win: BrowserWindow, tray, splash: BrowserWindow;
 
 const trayIcon = join(__dirname, "/logo-white.png");

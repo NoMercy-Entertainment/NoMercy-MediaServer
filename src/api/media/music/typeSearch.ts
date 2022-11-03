@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { sortBy, uniqBy } from '../../../functions/stringArray';
+import { sortBy, uniqBy, unique } from '../../../functions/stringArray';
 
 import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
@@ -22,7 +22,7 @@ export default async function (req: Request, res: Response) {
 				},
 				NOT: {
 					Track: {
-						isNot: {},
+						every: {},
 					},
 				},
 			},
@@ -76,12 +76,12 @@ export default async function (req: Request, res: Response) {
 
 
 	data = {
-		data: sortBy(uniqBy(result?.map((t) => {
+		data: sortBy(unique(result?.map((t) => {
 			return {
 				...t,
 				type,
 				year: t.description?.match?.(/\((\d{4})\)/)?.[1] ?? 9999,
-				title_sort: createTitleSort((t.title ?? t.name)[0].toUpperCase() + (t.title ?? t.name).slice(1)),
+				title_sort: createTitleSort(t.title ?? t.name),
 				origin: JSON.parse((process.env.CONFIG as string)).server_id,
 				cover: t.cover ? t.cover : t.album?.[0]?.cover ?? null,
 			};

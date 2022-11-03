@@ -7,12 +7,12 @@ import image from './image';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[]) => {
 	
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `Adding people for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
-	// });
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding people for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
+	});
 	for (let i = 0; i < req.people.length; i++) {
 		const person = req.people[i];
 
@@ -46,10 +46,10 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 		await image(person, transaction, 'profile', 'person');
 	}
 	
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `People for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title} added successfully`,
-	// });
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `People for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title} added successfully`,
+	});
 };

@@ -1,9 +1,9 @@
-import { Socket } from 'socket.io-client';
+import { Collection, Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '@prisma/client';
 
 import { Movie } from '../providers/tmdb/movie';
+import { Socket } from 'socket.io-client';
 import { TvShow } from '../providers/tmdb/tv';
 import { Video } from '../providers/tmdb/shared';
-import { Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '@prisma/client';
 
 export interface MediaServer {
 	connected: boolean;
@@ -316,6 +316,7 @@ export interface LibraryResponseContent {
 	genres?: Genre[] | GenreTv[] | GenreMovie[];
 	year?: number | '';
 	files?: Array<number | null> | undefined;
+	collection?: LibraryResponseContent[] | undefined;
 }
 
 export interface ConfigData {

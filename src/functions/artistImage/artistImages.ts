@@ -1,6 +1,8 @@
+import { PaletteColors } from 'types/server';
 import axios from "axios";
 import { confDb } from "../../database/config";
-import fs from "fs";
+import downloadImage from "../../functions/downloadImage";
+import { jsonToString } from "../../functions/stringArray";
 import { load } from "cheerio";
 
 export interface Urls {
@@ -27,7 +29,7 @@ export const artistImages = async (artist: string) => {
 
 	const urls: Urls[] = [];
 
-	const promisses: any[] = [];
+	const promises: any[] = [];
 
 	try {
 		await axios
@@ -53,7 +55,7 @@ export const artistImages = async (artist: string) => {
 			})
 			.then(() => {
 				for (let i = 0; i < urls.length; i += 1) {
-					promisses.push(
+					promises.push(
 						axios
 							.get<any>(urls[i].page, { timeout: 2000 })
 							.then(async ({ data }) => {
@@ -87,9 +89,10 @@ export const artistImages = async (artist: string) => {
 					);
 				}
 			});
-		await Promise.all(promisses).catch(() => {
-			//
-		});
+		await Promise.all(promises)
+			.catch(() => {
+				//
+			});
 	} catch {
 		//
 	}
@@ -108,50 +111,24 @@ export const artistImages = async (artist: string) => {
 		.concat(urls.filter((a) => a.type.includes("gif")).sort((a, b) => b.average - a.average));
 };
 
-export const storageArtistImageInDatabase = async function (name, storagePath) {
+export const storageArtistImageInDatabase = async function (id: string, colorPalette: PaletteColors | null) {
+	
 	const artist = await confDb.artist.findFirst({
 		where: {
-			name: name,
+			id: id,
 		},
 	});
-	if (!artist?.name) {
+	if (!artist?.id) {
 		return;
 	}
-
+	
 	await confDb.artist.update({
 		where: {
 			id: artist.id,
 		},
 		data: {
-			cover: `/Music/${storagePath}`,
+			colorPalette: colorPalette ? jsonToString(colorPalette) : undefined,
 		},
-	});
-};
-export const downloadImage = function (url, destination) {
-	return new Promise(async (resolve, reject) => {
-		const folder = destination.replace(/[\/\\][^\\\/]+$/u, "");
-		
-		try {
-			if (!fs.existsSync(folder)) {
-				fs.mkdirSync(folder, { recursive: true });
-			}
-			const writer = fs.createWriteStream(destination);
-
-			const response = await axios({
-				url,
-				method: "GET",
-				responseType: "stream",
-				timeout: 2000,
-			});
-
-			response.data.pipe(writer);
-
-			writer.on("finish", resolve);
-			writer.on("error", reject);
-		} catch (error) {
-			reject(error);
-		}
-		resolve(null);
 	});
 };
 
@@ -162,8 +139,8 @@ export const getBestArtistImag = async function (artist: string, storagePath: st
 	let extension: string | null = '';
 
 	if (image) {
-		extension = image.type.replace('image/', '').replace('jpeg', 'jpg');
-		await downloadImage(image.url, `${storagePath}.${extension}`.replace(/[\\\/]undefined/gu,'').replace('undefined','png'))
+		extension = image.type.replace('image/', '').replace('jpeg', 'jpg').replace('unknown','png');
+		await downloadImage(image.url, `${storagePath}.${extension}`.replace('undefined','png'))
 			.then(() => (result = true))
 			.catch(() => {
 				//

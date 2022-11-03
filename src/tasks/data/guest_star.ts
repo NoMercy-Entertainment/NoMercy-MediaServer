@@ -28,15 +28,15 @@ export default async (
 			episodeId: episode.id,
 		});
 
-		// transaction.push(
-		await	confDb.guestStar.upsert({
+		transaction.push(
+			confDb.guestStar.upsert({
 				where: {
 					creditId: guest_star.credit_id,
 				},
 				update: guestStarInsert,
 				create: guestStarInsert,
 			})
-		// );
+		);
 
 		guestStarArray.push({
 			where: {

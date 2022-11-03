@@ -271,7 +271,7 @@ export default async function (req: Request, res: Response) {
 			playlists: {
 				moreLink: `/music/search/${query}/playlist`,
 				items: uniqBy(playlists.map((p: any) => {
-					const playlist = p.playlist;
+					const playlist = p.Playlist;
 					p.playlist = undefined;
 					return {
 						...p,

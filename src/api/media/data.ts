@@ -1,4 +1,6 @@
 import {
+	Collection,
+	CollectionMovie,
 	Episode,
 	Folder,
 	GenreMovie,
@@ -38,6 +40,9 @@ export type LibraryWithTvAndMovie = Library & {
 		Genre: GenreMovie[];
 		Media: Media[];
 		VideoFile: VideoFile[];
+		CollectionMovie: (CollectionMovie & {
+			Collection: Collection;
+		})[];
 	})[];
 };
 
@@ -68,12 +73,11 @@ export const getContent = async (data: LibraryWithTvAndMovie, translations: Tran
 			logo: logo,
 			mediaType: data.type,
 			numberOfEpisodes: tv.numberOfEpisodes ?? 1,
-			// haveEpisodes: Math.floor(Math.random() * (tv.numberOfEpisodes ?? 1) + 1) ?? 0,
 			haveEpisodes: files.length,
 			overview: overview,
 			poster: tv.poster,
 			title: title[0].toUpperCase() + title.slice(1),
-			titleSort: createTitleSort(title[0].toUpperCase() + title.slice(1)),
+			titleSort: createTitleSort(title, tv.firstAirDate),
 			type: tv.type ?? 'unknown',
 			genres: tv.Genre,
 			year: parseYear(tv.firstAirDate),
@@ -96,10 +100,19 @@ export const getContent = async (data: LibraryWithTvAndMovie, translations: Tran
 			overview: overview,
 			poster: movie.poster,
 			title: title[0].toUpperCase() + title.slice(1),
-			titleSort: createTitleSort(title[0].toUpperCase() + title.slice(1)),
+			titleSort: createTitleSort(title, movie.releaseDate),
 			type: data.type,
 			genres: movie.Genre,
 			year: parseYear(movie.releaseDate),
+			collection: movie.CollectionMovie.map(c => ({
+				id: c.Collection.id,
+				backdrop: c.Collection.backdrop,
+				mediaType: 'collections',
+				poster: c.Collection.poster,
+				title: c.Collection.title[0].toUpperCase() + c.Collection.title.slice(1),
+				titleSort: createTitleSort(c.Collection.title),
+				type: 'collection',
+			})),
 		});
 	}
 
@@ -190,6 +203,11 @@ export const ownerQuery = (id?: string) => {
 					},
 					Genre: true,
 					VideoFile: true,
+					CollectionMovie: {
+						include: {
+							Collection: true
+						}
+					},
 				},
 				orderBy: {
 					titleSort: 'asc',
@@ -277,6 +295,11 @@ export const userQuery = (userId: string, id?: string) => {
 									},
 									VideoFile: true,
 									Genre: true,
+									CollectionMovie: {
+										include: {
+											Collection: true
+										}
+									},
 								},
 								orderBy: {
 									titleSort: 'asc',

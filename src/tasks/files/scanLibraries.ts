@@ -1,6 +1,6 @@
 import { AppState, useSelector } from '../../state/redux';
 import { Folder, Library, LibraryFolder, Movie } from '@prisma/client'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 
 import { FolderList, ParsedFileList } from './filenameParser';
@@ -10,6 +10,7 @@ import { fallbackSearch } from '../data/search';
 import { fullUpdate } from '../../tasks/data/fullUpdate';
 import getFolders from './getFolders';
 import { needsUpdate } from '../data/needsUpdate';
+import { cachePath } from '../../state';
 
 export interface FolderInfo {
 	lib: Lib;
@@ -212,17 +213,10 @@ const process = async (
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 	const socket = useSelector((state: AppState) => state.system.socket);
 
-	const jsonFile = join(title.path, `${title.title ?? title.name}_cache.json`);
+	const jsonFile = join(cachePath, 'temp', `${title.title ?? title.name}_cache.json`);
 	let x: FolderInfo;
 	const updateDate = Date.now();
 	
-	if (!existsSync(title.path)) {
-		mkdirSync(title.path, { recursive: true, });
-	}
-	if (existsSync(jsonFile)) {
-		rmSync(jsonFile);
-	}
-
 	if (existsSync(jsonFile)) {
 		x = JSON.parse(readFileSync(jsonFile, 'utf8'));
 		x.lastCheck = updateDate;
@@ -280,12 +274,12 @@ const process = async (
 			socket.emit('tasks', runningTask);
 
 		} else {
-			await fullUpdate(x);
-			// queue.add({
-			// 	file: resolve(__dirname, '..', 'data', 'fullUpdate'),
-			// 	fn: 'fullUpdate',
-			// 	args: x,
-			// });
+			// await fullUpdate(x);
+			queue.add({
+				file: resolve(__dirname, '..', 'data', 'fullUpdate'),
+				fn: 'fullUpdate',
+				args: x,
+			});
 		}
 	}
 }

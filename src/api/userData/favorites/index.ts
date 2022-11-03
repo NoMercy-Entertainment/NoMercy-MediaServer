@@ -1,6 +1,7 @@
-import { confDb } from "../../../database/config";
 import { Request, Response } from "express";
+
 import { KAuthRequest } from "types/keycloak";
+import { confDb } from "../../../database/config";
 import { createTitleSort } from "../../../tasks/files/filenameParser";
 
 export default async function (req: Request, res: Response) {
@@ -43,7 +44,7 @@ export default async function (req: Request, res: Response) {
         mediaType: tv.mediaType ?? 'movies',
         poster: tv.poster,
         title: tv.title[0].toUpperCase() + tv.title.slice(1),
-        titleSort: createTitleSort(tv.title[0].toUpperCase() + tv.title.slice(1)),
+        titleSort: createTitleSort(tv.title),
         type: tv.mediaType ? 'tv' : 'movies',
 	}));
 

@@ -836,7 +836,7 @@ model Movie {
   AlternativeTitles AlternativeTitles[]
   Cast              CastMovie[]
   Certification     CertificationMovie[]
-  Collection        CollectionMovie[]
+  CollectionMovie   CollectionMovie[]
   Crew              CrewMovie[]
   Genre             GenreMovie[]
   SpecialItem       SpecialItem[]
@@ -1148,7 +1148,6 @@ model Artist {
   id          String  @id @default(cuid())
   name        String
   description String?
-  artistId    String?
   cover       String?
   folder      String?
   colorPalette String?
@@ -1160,7 +1159,6 @@ model Artist {
   Track     Track[]
   trackId   String?
 
-  @@unique([artistId], name: "artist_name_unique")
   @@index([id], name: "artist_id_index")
 }
 
@@ -1168,7 +1166,6 @@ model Album {
   id          String  @id @default(cuid())
   name        String
   description String?
-  albumId     String
   folder      String?
   cover       String?
   country     String?
@@ -1183,7 +1180,6 @@ model Album {
   libraryId String
   Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@unique([albumId], name: "album_unique")
   @@index([id], name: "album_track_id_index")
 }
 
@@ -1202,7 +1198,7 @@ model Track {
   track    Int?
   disc     Int?
   cover    String?
-  date     DateTime
+  date     DateTime?
   folder   String
   filename String
   duration String?

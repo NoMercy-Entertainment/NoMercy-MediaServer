@@ -10,7 +10,6 @@ import { CompleteMovieAggregate } from './fetchMovie';
 import colorPalette from '../../functions/colorPalette/colorPalette';
 import { PaletteColors } from 'types/server';
 
-
 export default async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | MovieAppend | PersonAppend | CompleteMovieAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
@@ -18,6 +17,7 @@ export default async (
 	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video'
 ) => {
 	if(!req.images[`${type}s`]) return;
+	
 	for (const image of req.images[`${type}s`] as Array<Image>) {
 		
 		let pallette: PaletteColors | null = <PaletteColors>{};
@@ -54,5 +54,7 @@ export default async (
 				create: mediaInsert,
 			})
 		);
+		
 	}
+
 }

@@ -19,23 +19,43 @@ export default async (type: string, req: CompleteTvAggregate | CompleteMovieAggr
 
 		const year = new Date(Date.parse(date)).getFullYear();
 
-		title = title.replace(/\s/gu, '-').toLowerCase().match(/[^!*'();:@&=+$,/?%#\[\]]+/)![0];
+		title = title
+			.replace(/\s/gu, '-')
+			.replace(/\./gu, '')
+			.replace(/'/gu, '')
+			.replace(/:/gu, '')
+			.replace(/&/gu, 'and')
+			.replace(/[!*'();:@&=+$,/?%#\[\]]/gu, '')
+			.toLowerCase()
 
 		let url:string = `https://thetvdb.com/${type}/${title}/people`;
 		await axios.get(`https://thetvdb.com/${type}/${title}-${year}/people`)
 			.then(() => {
-				url = `https://thetvdb.com/${type}/${title}-${year}/people`
-			}).catch(() => {
-				url = `https://thetvdb.com/${type}/${title}/people`
+				url = `https://thetvdb.com/${type}/${title}-${year}/people`;
+
+			}).catch(async () => {
+
+				await axios.get(`https://thetvdb.com/${type}/${title}-show/people`)
+					.then(() => {
+						url = `https://thetvdb.com/${type}/${title}-show/people`;
+					}).catch(async () => {
+						await axios.get(`https://thetvdb.com/${type}/the-${title}/people`)
+							.then(() => {
+								url = `https://thetvdb.com/${type}/the-${title}/people`;
+							}).catch(async () => {
+								url = `https://thetvdb.com/${type}/${title}/people`;
+							})
+					})
 			});
 
 		try {
 			const people = await imageCrawler(url);
+			if(!people) return;
 
 			const promises: any[] = [];
 
-			for (let i = 0; i < people!.length; i++) {
-				const p = people![i];
+			for (let i = 0; i < people.length; i++) {
+				const p = people[i];
 
 				const credit = req.credits.cast
 					.find((c) => c.character.toLowerCase().includes(p.character.toLowerCase()));
@@ -48,7 +68,7 @@ export default async (type: string, req: CompleteTvAggregate | CompleteMovieAggr
 					
 					continue;
 				}
-
+				
 				await searchPeople(p.actor)
 					.then(async (personData) => {
 						for (let j = 0; j < personData.length; j++) {
@@ -58,11 +78,11 @@ export default async (type: string, req: CompleteTvAggregate | CompleteMovieAggr
 									.then((personDetails) => {
 									
 										let characterResult: Cast | undefined = personDetails.tv_credits.cast
-											.find((c) => c.character.toLowerCase().includes(p.character.toLowerCase()));
+											.find((c) => c.character?.toLowerCase().includes(p.character.toLowerCase()));
 										
 										if(!characterResult) {
 											characterResult = personDetails.movie_credits.cast
-												.find((c) => c.character.toLowerCase().includes(p.character.toLowerCase()));
+												.find((c) => c.character?.toLowerCase().includes(p.character.toLowerCase()));
 										}
 
 										if(!characterResult) {
@@ -76,19 +96,18 @@ export default async (type: string, req: CompleteTvAggregate | CompleteMovieAggr
 												...characterResult,
 											});
 										}
-										return;
 									})
 							);
 						}
-				});
+					});
 
 			}
 			
-			await Promise.all(promises);
+			await Promise.all(promises).catch(error => reject(error));
 
 			resolve(imageResult);
 		} catch (error) {
-			reject(error);
+			resolve([]);
 		}
 	});
 };

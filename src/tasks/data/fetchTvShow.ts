@@ -2,7 +2,6 @@ import {
 	AlternativeTitles,
 	ExternalIDS,
 	Recommendations,
-	tv,
 	TvContentRatings,
 	TvImages,
 	TvKeywords,
@@ -10,23 +9,24 @@ import {
 	TvSimilar,
 	TvVideos,
 	TvWatchProviders,
+	tv,
 } from '../../providers/tmdb/tv/index';
-import { SeasonAppend, seasons } from '../../providers/tmdb/season/index';
+import { Cast, Country, CreatedBy, Crew, Genre, Language } from '../../providers/tmdb/shared/index';
 import { Episode, EpisodeAppend, episodes } from '../../providers/tmdb/episode/index';
-import { person, PersonAppend } from '../../providers/tmdb/people/index';
-
+import { PersonAppend, person } from '../../providers/tmdb/people/index';
+import { SeasonAppend, seasons } from '../../providers/tmdb/season/index';
 import { chunk, unique } from '../../functions/stringArray';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
+
+import { Company } from '../../providers/tmdb/company/company';
+import { Network } from '../../providers/tmdb/networks/network';
+import { TvCast } from '../../providers/tmdb/tv/index';
+import { TvCredits } from '../../providers/tmdb/tv/index';
+import { TvCrew } from '../../providers/tmdb/tv/index';
 import { cachePath } from '../../state';
+import { fileChangedAgo } from '../../functions/dateTime';
 import { jsonToString } from '../../functions/stringArray';
 import path from 'path';
-import { fileChangedAgo } from '../../functions/dateTime';
-import { Cast, Country, CreatedBy, Crew, Genre, Language } from '../../providers/tmdb/shared/index';
-import { Network } from '../../providers/tmdb/networks/network';
-import { Company } from '../../providers/tmdb/company/company';
-import { TvCast } from '../../providers/tmdb/tv/index';
-import { TvCrew } from '../../providers/tmdb/tv/index';
-import { TvCredits } from '../../providers/tmdb/tv/index';
 
 export default (id: number) => {
 	return new Promise<CompleteTvAggregate>((resolve, reject) => {

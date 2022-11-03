@@ -16,12 +16,17 @@ export default class TVDBImageCrawler {
     constructor(url: string) {
         this.#url = url;
     }
-    getData = async () => {
-        return await axios.get(this.#url)
+    getData = () => {
+		console.log(this.#url);
+        return axios.get(this.#url)
             .then((response) => {
                 if (response.status == 200) {
                     const parsedData = this.#parseData(response.data, this.#url);
                     return parsedData;
+                }
+                else {
+                    console.log(response);
+                    return
                 }
             });
 

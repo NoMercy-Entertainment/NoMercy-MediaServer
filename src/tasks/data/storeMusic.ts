@@ -9,7 +9,7 @@ import { AudioFFprobe } from "../../encoder/ffprobe/ffprobe";
 import FileList from "../../tasks/files/getFolders";
 import Logger from "../../functions/logger";
 import { ParsedFileList } from "../../tasks/files/filenameParser";
-import { downloadImage, getBestArtistImag } from "../../functions/artistImage";
+import { getBestArtistImag } from "../../functions/artistImage";
 import i18n from "../../loaders/i18n";
 import { join } from "path";
 import { confDb } from "../../database/config";
@@ -18,8 +18,8 @@ import colorPalette from "../../functions/colorPalette";
 import { PaletteColors } from "types/server";
 import { recording, recordingAppend, RecordingWithAppends } from "../../providers/musicbrainz/recording";
 import { releaseCover } from "../../providers/musicbrainz/release";
-import { Image } from "providers/musicbrainz/cover";
-// import { genresByRecording } from "../../providers/musicbrainz";
+import { Image } from "../../providers/musicbrainz/cover";
+import downloadImage from "../../functions/downloadImage";
 
 export const storeMusic = async ({ folder, libraryId }: { id: string; folder: string; libraryId: string; job?: Jobs }) => {
 	console.log({ folder, libraryId });
@@ -78,10 +78,10 @@ export const storeMusic = async ({ folder, libraryId }: { id: string; folder: st
 				let match: Recording = <Recording>{};
 
 				if (existsSync(trackInfoFile)) {
-					// console.log("file " + file.path);
+					// console.log("file " + trackInfoFile);
 					match = JSON.parse(readFileSync(trackInfoFile, "utf8"));
 				} else {
-					// console.log("api " + file.path);
+					// console.log("api " + trackInfoFile);
 					await new Promise((resolve, reject) => {
 						try {
 							getAcousticFingerprintFromParsedFileList(file)
@@ -93,11 +93,19 @@ export const storeMusic = async ({ folder, libraryId }: { id: string; folder: st
 									const newMatch = filterRecordings(data?.recordings, file, parsedFiles);
 									if (newMatch) {
 										match = newMatch;
+									} 
+									else { 
+										match = data?.recordings[0];
 									}
 
-									writeFileSync(trackInfoFile, JSON.stringify(match, null, 2));
+									if(match?.id){
+										writeFileSync(trackInfoFile, JSON.stringify(match, null, 2));
+										resolve(true);
+									} 
+									else {
+										reject('Nothing found for: ' + file.name);
+									}
 
-									resolve(true);
 								})
 								.catch((error) => reject(error));
 						} catch (error) {
@@ -107,7 +115,10 @@ export const storeMusic = async ({ folder, libraryId }: { id: string; folder: st
 					sleep(1);
 				}
 
+				console.log(match?.title);
+
 				if (!match?.title) {
+					console.log(file.path);
 					continue;
 					// TODO: throw to db for manual review
 				}
@@ -187,7 +198,7 @@ const createArtist = async (libraryId: string, artist: Artist, transaction: Pris
 		cover: image,
 		colorPalette: colorPalette ? jsonToString(colorPalette) : undefined,
 		folder: `/${artistName[0].toUpperCase()}/${artistName}`,
-		artistId: artist.id,
+		id: artist.id,
 		Library: {
 			connect: {
 				id: libraryId,
@@ -198,7 +209,7 @@ const createArtist = async (libraryId: string, artist: Artist, transaction: Pris
 	transaction.push(
 		confDb.artist.upsert({
 			where: {
-				artistId: artist.id,
+				id: artist.id,
 			},
 			create: artistInsert,
 			update: artistInsert,
@@ -223,7 +234,7 @@ const createAlbum = async (
 
 	const albumInsert = Prisma.validator<Prisma.AlbumCreateWithoutFileInput>()({
 		name: album.title,
-		albumId: album.id,
+		id: album.id,
 		cover: image,
 		folder: `${file.folder}${file.musicFolder}`.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/, "$1"),
 		colorPalette: colorPalette ? jsonToString(colorPalette) : undefined,
@@ -237,7 +248,7 @@ const createAlbum = async (
 		},
 		Artist: {
 			connect: (album.artists?.concat(...artist) ?? [...artist]).map((a) => ({
-				artistId: a.id,
+				id: a.id,
 			})),
 		},
 	});
@@ -245,7 +256,7 @@ const createAlbum = async (
 	transaction.push(
 		confDb.album.upsert({
 			where: {
-				albumId: album.id,
+				id: album.id,
 			},
 			create: albumInsert,
 			update: albumInsert,
@@ -275,7 +286,7 @@ const createTrack = async (
 		cover: image,
 		colorPalette: colorPalette ? jsonToString(colorPalette) : undefined,
 		disc: track.tracks[0].position,
-		date: new Date(album.date.year, album.date.month ?? 1, album.date.day ?? 1),
+		date: album.date?.year ? new Date(album.date.year, album.date.month ?? 1, album.date.day ?? 1) : undefined,
 		folder: file.musicFolder ? `${file.folder}${file.musicFolder}` : file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/, "$1"),
 		filename: "/" + file.name,
 		duration: humanTime(file.ffprobe?.format.duration),
@@ -283,12 +294,12 @@ const createTrack = async (
 		quality: 320,
 		Artist: {
 			connect: (album.artists?.concat(...artist) ?? [...artist]).map((a) => ({
-				artistId: a.id,
+				id: a.id,
 			})),
 		},
 		Album: {
 			connect: {
-				albumId: album.id,
+				id: album.id,
 			},
 		},
 	});
@@ -310,8 +321,16 @@ const createTrack = async (
 	if (existsSync(recordingInfoFile)) {
 		response = JSON.parse(readFileSync(recordingInfoFile, "utf8"));
 	} else {
-		response = await recording(recordingID).catch((e) => null);
-		writeFileSync(recordingInfoFile, JSON.stringify(response, null, 2));
+		response = await recording(recordingID)
+			.then(res => res)
+			.catch((e) => {
+				console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc='artist-credits+artists+releases+tags+genres`);
+				return null;
+			});
+
+		if(response?.id){
+			writeFileSync(recordingInfoFile, JSON.stringify(response, null, 2));
+		}
 	}
 
 	response?.genres.map(async (genre) => {
@@ -341,26 +360,27 @@ const getArtistImage = async (folder: string, artist: Artist): Promise<{ colorPa
 	let image: string | null = null;
 	let palette: PaletteColors | null = null;
 
-	const artistName = artist.name.replace(/[\/]/gu, "_").replace(/“/gu, "");
+	const artistName = artist.name.replace(/[\/]/gu, "_").replace(/“/gu, "").replace(/["*?<>|]/gu, '');
 	const base = `${folder}/${artistName[0]}/${artistName}/${artistName}`.replace(/[\\\/]undefined/gu, "");
 
 	try {
 		if (existsSync(`${base}.jpg`)) {
 			image = `/${artistName}.jpg`;
 			palette = await colorPaletteFromFile(`${base}.jpg`);
-			copyFileSync(base + ".jpg", `${imagesPath}/music/${artist.id}.jpg`);
+			copyFileSync(`${base}.jpg`, `${imagesPath}/music/${artist.id}.jpg`);
 		} else if (existsSync(`${base}.png`)) {
 			image = `/${artistName}.png`;
 			palette = await colorPaletteFromFile(`${base}.png`);
-			copyFileSync(base + ".png", `${imagesPath}/music/${artist.id}.png`);
+			copyFileSync(`${base}.png`, `${imagesPath}/music/${artist.id}.png`);
 		} else {
 			const x = await getBestArtistImag(artistName, base);
 			if (x) {
 				image = `/${artistName}.${x.extension}`;
 				palette = await colorPalette(x.url);
-				await downloadImage(x.url, `${imagesPath}/music/${artist.id}.${x.extension}`).catch(() => {
-					//
-				});
+				await downloadImage(x.url, `${imagesPath}/music/${artist.id}.${x.extension}`)
+					.catch(() => {
+						//
+					});
 
 				if (
 					existsSync(`${imagesPath}/music/${artist.id}.${x.extension}`) &&
@@ -376,9 +396,10 @@ const getArtistImage = async (folder: string, artist: Artist): Promise<{ colorPa
 			image = `/${artistName}.${x.extension}`;
 			palette = await colorPalette(x.url);
 			try {
-				await downloadImage(x.url, `${imagesPath}/music/${artist.id}.${x.extension}`).catch(() => {
-					//
-				});
+				await downloadImage(x.url, `${imagesPath}/music/${artist.id}.${x.extension}`)
+					.catch(() => {
+						//
+					});
 
 				if (
 					existsSync(`${imagesPath}/music/${artist.id}.${x.extension}`) &&
@@ -467,17 +488,18 @@ const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList
 			if (existsSync(`${base}/cover.jpg`)) {
 				image = `/cover.jpg`;
 				palette = await colorPaletteFromFile(`${base}/cover.jpg`);
-				copyFileSync(base + ".png", `${imagesPath}/music/${id}.png`);
+				copyFileSync(`${base}/cover.jpg`, `${imagesPath}/music/${id}.png`);
 			} else if (existsSync(`${base}/cover.png`)) {
 				image = `/cover.png`;
 				palette = await colorPaletteFromFile(`${base}/cover.png`);
-				copyFileSync(base + ".png", `${imagesPath}/music/${id}.png`);
+				copyFileSync(`${base}/cover.png`, `${imagesPath}/music/${id}.png`);
 			} else {
 				const img = readdirSync(`${path}`).find((a) => a.endsWith(".jpg") || a.endsWith(".png"));
-
-				image = img ? `/${img}` : null;
-				palette = await colorPaletteFromFile(`${path}/${img}`);
-				copyFileSync(`${path}/${img}`, `${imagesPath}/music/${id}.png`);
+				if(img){
+					image = img ? `/${img}` : null;
+					palette = await colorPaletteFromFile(`${path}/${img}`);
+					copyFileSync(`${path}/${img}`, `${imagesPath}/music/${id}.png`);
+				}
 			}
 
 			if (existsSync(`${imagesPath}/music/${id}.png`) && statSync(`${imagesPath}/music/${id}.png`).size == 0) {
@@ -498,7 +520,7 @@ const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList
 	try {
 		palette = coverPath ? await colorPalette(coverPath) : null;
 
-		const extension = coverPath?.replace(/.+(\w{3,})$/, "$1").replace("undefined", "png");
+		const extension = coverPath?.replace(/.+(\w{3,})$/, "$1").replace('unknown','png');
 
 		if (!existsSync(`${imagesPath}/music/${id}.${extension}`)) {
 			await downloadImage(coverPath, `${imagesPath}/music/${id}.${extension}`).catch(() => {

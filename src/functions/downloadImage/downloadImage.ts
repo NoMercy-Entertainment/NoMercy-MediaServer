@@ -1,7 +1,8 @@
-import { PathLike, Stats, createWriteStream, existsSync, mkdirSync } from 'fs';
+import { Stats, createWriteStream, existsSync, mkdirSync } from 'fs';
 
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import { PaletteColors } from 'types/server';
+import { WriteStream } from 'tty';
 import axios from 'axios';
 import colorPalette from '../../functions/colorPalette/colorPalette';
 import { resolve as pathResolve } from 'path';
@@ -25,17 +26,17 @@ export default async (url: string, path: string): Promise<DownloadImage> => {
 			const dimensions = sizeOf(path);
 			const stats = statSync(path);
 
-			let pallete: PaletteColors | null = null
+			let pallette: PaletteColors | null = null
 			try {
-				pallete = await colorPalette(url);
+				pallette = await colorPalette(url);
 			} catch (error) {
-				
+				reject(error);
 			}
 	
 			resolve({
 				dimensions: dimensions,
 				stats: stats,
-				colorPalette: pallete,
+				colorPalette: pallette,
 			})
 
 		} catch (error) {
@@ -48,21 +49,26 @@ const fetch = (url: string, path: string): Promise<void> => {
 	
 	return new Promise(async (resolve, reject): Promise<void> => {
 
-		if(existsSync(path)) return resolve();
+		try {
+			mkdirSync(path.replace(/(.+)[\\\/].+\.\w+$/u, '$1'), { recursive: true });
 
-		mkdirSync(path.replace(/[\\\/][\w\d_-]+\.\w+$/u, ''), { recursive: true });
-		
-		const writer = createWriteStream(path, { mode: 777});
+			const writer = createWriteStream(path, { mode: 0o777 });
 
-		await axios({
-			url,
-			method: 'GET',
-			responseType: 'stream',
-		})
-		.then((response) => response.data.pipe(writer))
-		.catch(() => reject);
+			await axios.get(url, {
+				method: 'GET',
+				responseType: 'stream',
+				timeout: 30000,
+			})
+			.then((response) => {
+				response.data.pipe(writer);
+			})
+			.catch((error) => reject(error));
+			
+			writer.on('finish', resolve);
+			writer.on('error', reject);
 
-		writer.on('finish', resolve);
-		writer.on('error', reject);
+		} catch (error) {
+			reject(error);
+		}
 	});
 }

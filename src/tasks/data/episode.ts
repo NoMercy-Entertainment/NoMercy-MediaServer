@@ -12,12 +12,12 @@ import translation from './translation';
 const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.PromiseReturnType<any>[],
 	people: number[]) => {
 
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `Adding episodes for season: ${season.season_number}`,
-	// });
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding episodes for season: ${season.season_number}`,
+	});
 	
 	for (const episode of season.episodes) {
 		if(!episode.id) continue;
@@ -97,12 +97,12 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 		await image(episode, transaction, 'still', 'episode');
 	}
 
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `Episodes for season: ${season.season_number} added successfully`,
-	// });
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Episodes for season: ${season.season_number} added successfully`,
+	});
 };
 
 export default episode;

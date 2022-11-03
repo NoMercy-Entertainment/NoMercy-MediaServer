@@ -10,6 +10,7 @@ import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import { Image } from '../../providers/tmdb/shared/index';
 import { Prisma } from '@prisma/client'
+import { chunk } from '../../functions/stringArray';
 import { commitConfigTransaction } from '../../database';
 import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';
@@ -39,9 +40,9 @@ export const downloadTMDBImages = async (dbType: string, data: TvAppend | MovieA
 
 	return new Promise<void>(async (resolve, reject) => {
 		try {
-			// const downloadedImages = (await confDb.image.findMany()).map(i => i.filePath);
 
 			const transaction: Prisma.PromiseReturnType<any>[] = [];
+			const promises: any[] = [];
 
 			const combinedList: { [arg: string]: Image[] } = {
 				posters: (data.images as TvImages | MovieImages | SeasonImages)?.posters ?? [],
@@ -64,7 +65,8 @@ export const downloadTMDBImages = async (dbType: string, data: TvAppend | MovieA
 						const size = usableImageSizes[k].size;
 
 						if (existsSync(`${imagesPath}/${size}${image.file_path}`)) continue;
-						await downloadImage(`https://image.tmdb.org/t/p/${size}${image.file_path}`, `${imagesPath}/${size}${image.file_path}`)
+						
+						promises.push(() => downloadImage(`https://image.tmdb.org/t/p/${size}${image.file_path}`, `${imagesPath}/${size}${image.file_path}`)
 							.then(async ({ dimensions, stats, colorPalette }) => {
 								transaction.push(
 									confDb.image.upsert({
@@ -75,10 +77,14 @@ export const downloadTMDBImages = async (dbType: string, data: TvAppend | MovieA
 										update: imageQuery(dbType, data, image, dimensions, stats),
 									}).catch(error => console.log(error))
 								);
-							})
-							.catch(() => null);
+							}));
 					}
 				}
+			}
+
+			const promiseChunks = chunk(promises, 10);
+			for (const promise of promiseChunks) {
+				await Promise.all(promise.map(p => p()));
 			}
 
 			await commitConfigTransaction(transaction);

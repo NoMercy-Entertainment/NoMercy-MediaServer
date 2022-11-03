@@ -109,14 +109,14 @@ export class Queue {
 
 	async remove(id: number) {
 		try {
-			return await queDb.queueJob.deleteMany({
+			return await queDb.queueJob.delete({
 				where: {
 					id: id,
 				},
 			});
 		} catch (error) {
 			setTimeout(async () => {
-				return await queDb.queueJob.deleteMany({
+				return await queDb.queueJob.delete({
 					where: {
 						id: id,
 					},
@@ -258,8 +258,24 @@ export class Queue {
 		Worker.job = job;
 
 		await this.running(job.id);
+		
+		const runningTask = await confDb.runningTask.findFirst({
+			where: {
+				id: job.taskId
+			},
+		}).catch(e => console.log(e));
+		
+		await confDb.runningTask.update({
+			where: {
+				id: job.taskId
+			},
+			data: {
+				title: `${runningTask!.title.replace(/\n.+/, '')}\n${JSON.parse(job.payload as string).args.folder}`
+			}
+		}).catch(e => console.log(e));
 
 		Worker.worker.send(job);
+		
 
 		Worker.worker.once('message', async (message: any) => {
 
@@ -267,7 +283,7 @@ export class Queue {
 
 			const runningTask = await confDb.runningTask.findFirst({
 				where: {
-					id: message.result.task.id
+					id: message.result?.task.id
 				},
 			}).catch(e => console.log(e));
 
@@ -282,13 +298,13 @@ export class Queue {
 			socket.emit('tasks', runningTask);
 			
 			if (message?.error) {
-				console.log('no id');
+				console.log('error');
 				await this.failed(job.id, message.result);
 			} else if (this.keepJobs) {
 				console.log('finished');
 				await this.finished(job.id, message.result.data);
 			} else {
-				console.log('else');
+				console.log('remove');
 				await this.remove(job.id);
 			}
 
@@ -301,7 +317,7 @@ export class Queue {
 			}
 			setTimeout(async () => {
 				await this.run();
-			}, 2000);
+			}, 500);
 		});
 	}
 }
@@ -309,25 +325,25 @@ export class Queue {
 function _getCallerFile() {
 	let originalFunc = Error.prepareStackTrace;
 
-	let callerfile;
+	let callerFile;
 	try {
 		let error: any = new Error();
-		let currentfile;
+		let currentFile;
 
 		Error.prepareStackTrace = function (err, stack) {
 			return stack;
 		};
 
-		currentfile = error.stack.shift().getFileName();
+		currentFile = error.stack.shift().getFileName();
 
 		while (error.stack.length) {
-			callerfile = error.stack.shift().getFileName();
+			callerFile = error.stack.shift().getFileName();
 
-			if (currentfile !== callerfile) break;
+			if (currentFile !== callerFile) break;
 		}
 	} catch (e) {}
 
 	Error.prepareStackTrace = originalFunc;
 
-	return callerfile;
+	return callerFile;
 }

@@ -15,6 +15,9 @@ export default async function (req: Request, res: Response) {
 				},
 			},
 		},
+		orderBy: {
+			name: 'asc',
+		},
 		include: {
 			_count: {
 				select: {

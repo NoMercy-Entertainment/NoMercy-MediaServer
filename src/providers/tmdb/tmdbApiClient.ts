@@ -9,7 +9,7 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		language: i18next.language || process.env.LANGUAGE,
 		...config.params,
 	};
-	config.timeout = 60000;
+	config.timeout = 20000;
 
 	return config;
 };

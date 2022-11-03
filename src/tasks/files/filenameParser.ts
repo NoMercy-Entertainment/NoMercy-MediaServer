@@ -255,6 +255,9 @@ export const cleanFileName = function (name: string) {
 };
 
 export const createTitleSort = function (title: string, date?: string) {
+	
+	title = title[0].toUpperCase() + title.slice(1);
+
 	const newTitle = cleanFileName(
 		title
 			.replace(/^The[\s]*/u, "")

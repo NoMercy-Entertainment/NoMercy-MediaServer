@@ -4,8 +4,10 @@ import getTVDBImages, { ImageResult } from './getTVDBImages';
 import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
 import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import Logger from '../../functions/logger';
 import { PaletteColors } from 'types/server';
 import { Prisma } from '@prisma/client'
+import { chunk } from '../../functions/stringArray';
 import { commitConfigTransaction } from '../../database';
 import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';
@@ -16,12 +18,20 @@ export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregat
 	return new Promise<void>(async (resolve, reject) => {
 		try {
 			const transaction: Prisma.PromiseReturnType<any>[] = [];
+			const promises: any[] = [];
+
+			Logger.log({
+				level: 'info',
+				name: 'App',
+				color: 'magentaBright',
+				message: `Fetching character images`,
+			});
 
 			let type = dbType == 'tv' ? 'series' : 'movies';
 			const data = await getTVDBImages(
 				type,req
 			);
-
+			
 			for (let i = 0; i < data.length; i++) {
 				const image = data[i];
 
@@ -36,13 +46,24 @@ export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregat
 								},
 								create: imageQuery(dbType, image, dimensions, stats, colorPalette, req),
 								update: imageQuery(dbType, image, dimensions, stats, colorPalette, req),
-							}).catch(error => console.log(error))
+							})
 						);
-					})
-					.catch(() => null);
+					}).catch(e => console.log(e));
 			}
 
+			// const promiseChunks = chunk(promises, 10);
+			// for (const promise of promiseChunks) {
+			// 	await Promise.all(promise.map(p => p())).catch(e => console.log(e));
+			// }
+			
 			await commitConfigTransaction(transaction);
+
+			Logger.log({
+				level: 'info',
+				name: 'App',
+				color: 'magentaBright',
+				message: `Fetching character images complete`,
+			});
 
 			resolve();
 		} catch (error) {

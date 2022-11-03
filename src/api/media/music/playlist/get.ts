@@ -41,31 +41,44 @@ export default async function (req: Request, res: Response) {
 				...music,
 				colorPalette: JSON.parse(music.colorPalette ?? "{}"),
 				track: music.PlaylistTrack.map((t) => {
+					
+					const albums = t.Track.Album.map(a => ({
+						id: a.id,
+						name: a?.name,
+						folder: a?.folder,
+						albumId: a?.albumId,
+						cover: a?.cover ?? t.Track.Artist[0]?.cover ?? t.Track.cover ?? null,
+						description: a?.description,
+						libraryId: t.Track.Artist[0].libraryId,
+						origin: deviceId,
+						colorPalette: undefined,
+					}));
+					const artists = t.Track.Artist.filter(a => a.name != 'Various Artists').map(a => ({
+						id: a.id,
+						name: a.name,
+						artistId: a.artistId,
+						cover: a.cover ?? t.Track.cover ?? t.Track.cover ?? null,
+						description: a.description,
+						folder: a.folder,
+						libraryId: a.libraryId,
+						origin: deviceId,
+						colorPalette: undefined,
+					}));
+
 					return {
 						...t.Track,
-						cover: t.Track.Album[0].cover,
-						type: "playlist",
+						type: 'artist',
+						artistId: artists[0].id,
 						origin: deviceId,
-						date: t.updated_at,
-						favorite_track: t.Track.FavoriteTrack.length > 0,
-						colorPalette: undefined,
+						artists: artists,
+						cover: albums[0]?.cover ?? t.Track.cover ?? null,
+						folder: albums[0]?.folder ?? t.Track.folder,
+						Artist: undefined,
+						Album: undefined,
 						FavoriteTrack: undefined,
-						album: {
-							id: t.Track.Album[0]?.id ?? null,
-							name: t.Track.Album[0]?.name ?? null,
-							artistId: t.Track.Artist[0]?.id ?? null,
-							cover: music.PlaylistTrack[0].Track.Album[0]?.cover ?? null,
-							description: t.Track.Album[0]?.description ?? null,
-						},
-						artists: t.Track.Artist,
-						artist: {
-							id: t.Track.Artist[0]?.id ?? null,
-							name: t.Track.Artist[0]?.name ?? null,
-							artistId: t.Track.Artist[0]?.artistId ?? null,
-							cover: music.PlaylistTrack[0].Track.Artist[0]?.cover ?? null,
-							description: t.Track.Artist[0]?.description ?? null,
-							folder: t.Track.Artist[0]?.folder ?? null,
-						},
+						libraryId: t.Track.Artist[0].libraryId,
+						colorPalette: undefined,
+						album: albums[0],
 					};
 				}),
 			};

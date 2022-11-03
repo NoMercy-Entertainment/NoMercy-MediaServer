@@ -5,6 +5,7 @@ import { sortBy, unique } from '../../../functions/stringArray';
 import Logger from '../../../functions/logger';
 import { Prisma } from '@prisma/client';
 import { confDb } from '../../../database/config';
+import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
 import {movie} from '../../../providers/tmdb/movie/index';
 import { moviePopular } from '../../../providers/tmdb/movie/index';
@@ -93,11 +94,13 @@ export default async function (req: Request, res: Response) {
 		return {
 			...collection,
 			name: name[0].toUpperCase() + name.slice(1),
-			// title_sort: createTitleSort(title[0].toUpperCase() + title.slice(1)),
+			title_sort: createTitleSort(name),
 			type: 'collections',
 			media_type: 'collections',
 			have_episodes: newNumber,
 			number_of_episodes: number,
+			backdrop: collection.backdrop_path,
+			poster: collection.poster_path,
 			// files: servers?.length > 0 ? undefined : files,
 		};
 	});

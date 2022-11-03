@@ -1,41 +1,40 @@
-import { confDb } from '../../database/config';
 import { Jobs, Prisma } from '@prisma/client'
+import { ParsedFileList, cleanFileName, createTitleSort } from '../../tasks/files/filenameParser';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { fileChangedAgo, humanTime, parseYear, sleep } from '../../functions/dateTime';
+
+import FileList from '../../tasks/files/getFolders';
 import Logger from '../../functions/logger';
-import { cleanFileName, createTitleSort, ParsedFileList } from '../../tasks/files/filenameParser';
+import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
+import alternative_title from './alternative_title';
+import axios from 'axios';
+import { cachePath } from '../../state';
 import cast from './cast';
+import { confDb } from '../../database/config';
+import creator from './creator';
 import crew from './crew';
+import downloadTMDBImages from '../images/downloadTMDBImages';
+import downloadTVDBImages from '../images/downloadTVDBImages';
 import fetchTvShow from './fetchTvShow';
 import genre from './genre';
+import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
+import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
+import i18n from '../../loaders/i18n';
 import image from './image';
+import { join } from 'path';
+import { jsonToString } from '../../functions/stringArray';
+import keyword from './keyword';
+import person from './person';
 import recommendation from './recommendation';
 import season from './season';
 import similar from './similar';
 import translation from './translation';
-import person from './person';
-import axios from 'axios';
-import { fileChangedAgo, humanTime, parseYear, sleep } from '../../functions/dateTime';
-import downloadTMDBImages from '../images/downloadTMDBImages';
-import downloadTVDBImages from '../images/downloadTVDBImages';
-import i18n from '../../loaders/i18n';
-import creator from './creator';
-import { join } from 'path';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { jsonToString } from '../../functions/stringArray';
-import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
-import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
-import FileList from '../../tasks/files/getFolders';
-import { cachePath } from '../../state';
-import alternative_title from './alternative_title';
-import keyword from './keyword';
-import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
 
 export const storeTvShow = async ({ id, folder, libraryId, job }: { id: number; folder: string; libraryId: string; job?: Jobs }) => {
 	console.log({ id, folder, libraryId, job });
 	await i18n.changeLanguage('en');
 
-	const tv = await fetchTvShow(id).catch(() => {
-		return;
-	});
+	const tv = await fetchTvShow(id);
 	if (!tv) {
 		return;
 	}
@@ -86,22 +85,22 @@ export const storeTvShow = async ({ id, folder, libraryId, job }: { id: number; 
 	}
 
 	await axios
-		.get(`https://kitsu.io/api/edge/anime?filter[text]=${tv.name}&filter[year]=${year}`)
+		.get(`https://kitsu.io/api/edge/anime?filter[text]=${tv.name}&filter[year]=${year}`, {
+			timeout: 2000,
+		})
 		.then((response) => {
 			for (const data of response.data.data) {
-				if(data.attributes.titles.en.toLowerCase() == tv.name.toLowerCase()){
+				if(data.attributes.titles.en?.toLowerCase() == tv.name.toLowerCase()){
 					Type = 'anime';
 				}
-				else if(data.attributes.titles.en_jp.toLowerCase() == tv.name.toLowerCase()){
+				else if(data.attributes.titles.en_jp?.toLowerCase() == tv.name.toLowerCase()){
 					Type = 'anime';
 				}
-				else if(data.attributes.titles.en_us.toLowerCase() == tv.name.toLowerCase()){
+				else if(data.attributes.titles.en_us?.toLowerCase() == tv.name.toLowerCase()){
 					Type = 'anime';
 				}
 			}
-
-		})
-		.catch(() => null);
+		}).catch(e => console.log(e));
 
 	const tvInsert = Prisma.validator<Prisma.TvUncheckedCreateInput>()({
 		backdrop: tv.backdrop_path,
@@ -166,8 +165,8 @@ export const storeTvShow = async ({ id, folder, libraryId, job }: { id: number; 
 	await image(tv, transaction, 'logo', 'tv');
 	await image(tv, transaction, 'poster', 'tv');
 
-	await downloadTMDBImages('tv', tv).catch(() => null);
-	await downloadTVDBImages('tv', tv).catch(() => null);
+	// await downloadTMDBImages('tv', tv);
+	await downloadTVDBImages('tv', tv);
 
 	await recommendation(tv, transaction, 'tv');
 	await similar(tv, transaction, 'tv');
@@ -235,6 +234,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }: { id: number; 
 		const promises: Prisma.PromiseReturnType<any>[] = [];
 
 		const folderFile = join(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
+		console.log(folderFile);
 
 		let parsedFiles: ParsedFileList[];
 		if(existsSync(folderFile) && fileChangedAgo(folderFile, 'days') < 50 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0){
@@ -341,7 +341,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }: { id: number; 
 
 	try {
 		console.log('before');
-		await confDb.$transaction(transaction).catch(e => console.log(e));
+		await confDb.$transaction(transaction);
 		console.log('after');
 		
 		Logger.log({

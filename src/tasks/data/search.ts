@@ -38,8 +38,7 @@ export const fallbackSearch = async (type: string, title: FolderList | ParsedFil
 						}
 					}
 					return show;
-				})
-				.catch(() => null);
+				});
 		case 'music':
 
 			// const mbApi = new MusicBrainzApi({

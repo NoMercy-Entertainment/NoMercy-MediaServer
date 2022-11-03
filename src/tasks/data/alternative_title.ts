@@ -1,8 +1,8 @@
-import { Prisma } from '@prisma/client'
-import { CompleteTvAggregate } from './fetchTvShow';
-import { CompleteMovieAggregate } from './fetchMovie';
 import { AlternativeTitles } from '../../providers/tmdb/tv/index';
+import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
 import { MovieAlternativeTitles } from '../../providers/tmdb/movie/index';
+import { Prisma } from '@prisma/client'
 
 export default async (
 	req: CompleteTvAggregate | CompleteMovieAggregate,

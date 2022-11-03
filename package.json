@@ -4,7 +4,6 @@
   "version": "0.0.5",
   "description": "The Effortless Encoder",
   "main": "dist/index.js",
-  "type": "commonjs",
   "scripts": {
     "prestart": "yarn",
     "electron": "tsc && electron --unhandled-rejections=strict --trace-warnings dist/index.js",
@@ -13,7 +12,7 @@
     "make": "tsc && electron-forge make",
     "publish": "tsc && electron-forge publish",
     "lint": "eslint --ext .ts .",
-    "dev": "nodemon --max-old-space-size=8192"
+    "dev": "nodemon"
   },
   "keywords": [],
   "author": {

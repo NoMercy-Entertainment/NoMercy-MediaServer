@@ -1,6 +1,6 @@
 import { AppState, useSelector } from '../state/redux';
 import express, { Application, NextFunction, Request, Response } from 'express';
-import { imagesPath, setupComplete, subtitlesPath, transcodesPath } from '../state';
+import { imagesPath, publicPath, setupComplete, subtitlesPath, transcodesPath } from '../state';
 
 import Logger from '../functions/logger';
 import { allowedOrigins } from '../functions/networking';
@@ -8,9 +8,11 @@ import changeLanguage from '../api/middlewares/language';
 import check from '../api/middlewares/check';
 import { confDb } from '../database/config';
 import cors from 'cors';
+import { existsSync } from 'fs';
 import { initKeycloak } from '../functions/keycloak';
 import path from 'path';
 import routes from '../api/index';
+import serveStatic from 'serve-static';
 import session from 'express-session';
 import { session_config } from '../functions/keycloak/config';
 import { staticPermissions } from '../api/middlewares/permissions';
@@ -21,26 +23,23 @@ export default async (app: Application) => {
 
 	const KC = initKeycloak();
 
-	const staticOptions = {
-		dotfiles: 'deny',
-	};
-
-	app.use((req: Request, res: Response, next: NextFunction) => {
-		res.set('X-Powered-By', 'NoMercy MediaServer');
-		res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
-
-		// if (allowedOrigins.some((o) => o == req.headers.origin)) {
-		// 	res.set('Access-Control-Allow-Origin', req.headers.origin as string);
-		// }
-
-		next();
-	});
-
 	app.use(
 		cors({
 			origin: allowedOrigins,
 		})
 	);
+
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		res.set('X-Powered-By', 'NoMercy MediaServer');
+		res.set('Access-Control-Allow-Private-Network', 'true');
+		res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
+
+		if (allowedOrigins.some((o) => o == req.headers.origin)) {
+			res.set('Access-Control-Allow-Origin', req.headers.origin as string);
+		}
+
+		next();
+	});
 
 	await confDb.folder
 		.findMany({
@@ -52,17 +51,57 @@ export default async (app: Application) => {
 			unique(folders, 'path')
 				.filter((r) => r.path)
 				.map((r) => {
-					app.use(
-						`/${r.Libraries[0].libraryId}`,
-						// staticPermissions,
-						express.static(r.path, staticOptions)
-					);
+					app.get(`/${r.Libraries[0].libraryId}/*`, staticPermissions, function(req, res) {
+						if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
+							return res.status(401).json({
+								status: 'error',
+								message: 'Access denied',
+							});
+						}
+						return res.sendFile(r.path + '/' + req.params[0]); 
+					});
 				});
 		});
 
-	app.use('/images', staticPermissions, express.static(imagesPath, staticOptions));
-	app.use('/transcodesPath', staticPermissions, express.static(transcodesPath, staticOptions));
-	app.use('/subtitles', staticPermissions, express.static(subtitlesPath, staticOptions));
+	app.get(`/images/*`, staticPermissions, function(req, res) {
+		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
+			return res.status(401).json({
+				status: 'error',
+				message: 'Access denied',
+			});
+		}
+		if(existsSync(imagesPath + '/' + req.params[0])){
+			return res.sendFile(imagesPath + '/' + req.params[0]); 
+		} else {
+			return res.status(404).end();
+		}
+	});
+	app.get(`/transcodesPath/*`, staticPermissions, function(req, res) {
+		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
+			return res.status(401).json({
+				status: 'error',
+				message: 'Access denied',
+			});
+		}
+		if(existsSync(transcodesPath + '/' + req.params[0])){
+			return res.sendFile(transcodesPath + '/' + req.params[0]); 
+		} else {
+			return res.status(404).end();
+		}
+	});
+	app.get(`/subtitles/*`, staticPermissions, function(req, res) {
+		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
+			return res.status(401).json({
+				status: 'error',
+				message: 'Access denied',
+			});
+		}
+		if(existsSync(subtitlesPath + '/' + req.params[0])){
+			return res.sendFile(subtitlesPath + '/' + req.params[0]); 
+		} else {
+			return res.status(404).end();
+		}
+	});
 
 	app.enable('trust proxy');
 	app.use(changeLanguage);
@@ -84,7 +123,6 @@ export default async (app: Application) => {
 	});
 
 	app.get('/api/ping', check, (req: Request, res: Response) => {
-
 		return res.json({
 			message: 'pong',
 			setupComplete: setupComplete || false,
@@ -93,7 +131,20 @@ export default async (app: Application) => {
 
 	app.use('/api', KC.checkSso(), check, changeLanguage, routes);
 
-	app.use('/', staticPermissions, express.static(path.join(__dirname, '..', 'public'), staticOptions));
+	app.get(`/*`, function(req, res) {
+		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
+			return res.status(401).json({
+				status: 'error',
+				message: 'Access denied',
+			});
+		}
+		if(existsSync(publicPath + '/' + req.params[0])){
+			return res.sendFile(publicPath + '/' + req.params[0]); 
+		} else {
+			return res.status(404).end();
+		}
+	});
+
 	app.get('/', (req: Request, res: Response) => {
 		res.redirect('https://app.nomercy.tv');
 	});

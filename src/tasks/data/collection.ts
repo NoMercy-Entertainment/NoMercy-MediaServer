@@ -1,7 +1,7 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
-import { createTitleSort } from '../../tasks/files/filenameParser';
 import { CompleteMovieAggregate } from './fetchMovie';
+import { Prisma } from '@prisma/client'
+import { confDb } from '../../database/config';
+import { createTitleSort } from '../../tasks/files/filenameParser';
 
 const collection = async (movie: CompleteMovieAggregate, libraryId: string, transaction: any[], collectionMovieInsert: Prisma.CollectionMovieCreateOrConnectWithoutMovieInput[]) => {
 	const collection = movie.collection;
@@ -29,15 +29,15 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 		libraryId: libraryId,
 	});
 
-	// transaction.push(
-	await	confDb.collection.upsert({
+	transaction.push(
+		confDb.collection.upsert({
 			where: {
 				id: collection.id,
 			},
 			update: collectionInsert,
 			create: collectionInsert,
 		})
-	// );
+	);
 
 	for (const p of collection.parts) {
 		
@@ -89,15 +89,15 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 			},
 		});
 
-		// transaction.push(
-		await	confDb.movie.upsert({
+		transaction.push(
+			confDb.movie.upsert({
 				where: {
 					id: p.id,
 				},
 				create: movieCollectionInsert,
 				update: movieCollectionInsert,
 			})
-		// );
+		);
 	};
 	for (const tr of collection.translations.translations) {
 		
@@ -113,8 +113,8 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 			translationableType: 'collection',
 		});
 
-		// transaction.push(
-		await	confDb.translation.upsert({
+		transaction.push(
+			confDb.translation.upsert({
 				where: {
 					translationableId_translationableType_iso6391: {
 						translationableId: collection.id,
@@ -125,7 +125,7 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 				update: collectionTranslationsInsert,
 				create: collectionTranslationsInsert,
 			})
-		// );
+		);
 	};
 
 };

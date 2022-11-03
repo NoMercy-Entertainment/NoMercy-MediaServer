@@ -124,7 +124,7 @@ type MovieWithInfo = Movie & {
 			Person: Person | null;
 		};
 	})[];
-	Collection: (CollectionMovie & {
+	CollectionMovie: (CollectionMovie & {
 		Movie: Movie;
 	})[];
 	Crew: (CrewMovie & {
@@ -265,7 +265,7 @@ const ownerQuery = (id: string, language: string) => {
 		},
 		include: {
 			AlternativeTitles: true,
-			Collection: {
+			CollectionMovie: {
 				include: {
 					Movie: true,
 				},
@@ -343,7 +343,7 @@ const userQuery = (id: string, userId: string, language: string) => {
 		},
 		include: {
 			AlternativeTitles: true,
-			Collection: {
+			CollectionMovie: {
 				include: {
 					Movie: true,
 				},

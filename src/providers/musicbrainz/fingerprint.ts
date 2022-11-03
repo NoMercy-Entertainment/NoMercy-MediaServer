@@ -22,12 +22,14 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
 
     return await axios.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
         params: {
-            client: "QFpBLHqmsAw",
+            client: "pXzJ7uXskB",
             duration: parseInt(fingerprintData.duration, 10),
             fingerprint: fingerprintData.fingerprint,
         },
     })
-        .then(response => response.data.results[0])
+        .then(response => {
+            return response.data.results[0];
+        })
         .catch(error => console.log(error.response.data.error));
 
 };

@@ -17,7 +17,7 @@ export const fullUpdate = async (data: FolderInfo) => {
 			type: 'library',
 			value: Math.floor((data.index / data.jobsCount) * 100),
 		}
-	}).catch(e => console.log(e));
+	});
 	
 	switch (data.type) {
 		case 'tv':

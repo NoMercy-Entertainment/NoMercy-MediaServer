@@ -64,7 +64,7 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 		}
 	}).then(d => d.map(e => e.id));
 
-	await downloadTMDBImages('movie', movie).catch(() => null);
+	// await downloadTMDBImages('movie', movie).catch(() => null);
 	await downloadTVDBImages('movie', movie).catch(() => null);
 
 
@@ -121,7 +121,7 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 		Keyword: {
 			connectOrCreate: keywordsInsert,
 		},
-		Collection: {
+		CollectionMovie: {
 			connectOrCreate: collectionInsert,
 		},
 		libraryId: libraryId,
@@ -237,6 +237,7 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 		const promises: Prisma.PromiseReturnType<any>[] = [];
 
 		const folderFile = join(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
+		console.log(folderFile);
 
 		let parsedFiles: ParsedFileList[];
 		if(existsSync(folderFile) && fileChangedAgo(folderFile, 'days') < 50 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0){
@@ -331,9 +332,9 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 	});
 
 	try {
-		// console.log('before');
+		console.log('before');
 		await confDb.$transaction(transaction);
-		// console.log('after');
+		console.log('after');
 
 		Logger.log({
 			level: 'info',

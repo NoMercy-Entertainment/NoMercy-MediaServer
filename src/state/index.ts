@@ -27,30 +27,32 @@ export const pluginConfigPath = path.resolve(pluginsPath, 'configurations');
 export const rootPath = path.resolve(appPath, 'root');
 export const certPath = path.resolve(rootPath, 'certs');
 export const binariesPath = path.resolve(rootPath, 'binaries');
+export const publicPath = path.join(__dirname, '..', 'public');
 
 export const applicationPaths = {
 	appPath,
+	binariesPath,
 	cachePath,
-	imagesPath,
-	omdbPath,
-	tempPath,
-	transcodesPath,
+	certPath,
+	collectionsPath,
 	configPath,
 	dataPath,
-	collectionsPath,
-	playlistsPath,
-	ScheduledTasksPath,
-	subtitlesPath,
+	imagesPath,
+	libraryPath,
 	logPath,
 	metadataPath,
-	libraryPath,
+	omdbPath,
 	peoplePath,
-	viewsPath,
-	pluginsPath,
+	playlistsPath,
 	pluginConfigPath,
+	pluginsPath,
+	publicPath,
 	rootPath,
-	certPath,
-	binariesPath,
+	ScheduledTasksPath,
+	subtitlesPath,
+	tempPath,
+	transcodesPath,
+	viewsPath,
 };
 
 export const tokenFile = path.resolve(configPath, 'token.json');

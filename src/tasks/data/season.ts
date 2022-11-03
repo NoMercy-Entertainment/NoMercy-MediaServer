@@ -15,12 +15,12 @@ const season = async (
 	people: number[],
 ) => {
 
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `Adding seasons for TV Show: ${(tv as CompleteTvAggregate).name}`,
-	// });
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding seasons for TV Show: ${(tv as CompleteTvAggregate).name}`,
+	});
 
 	for (let i = 0; i < tv.seasons.length; i++) {
 		const season = tv.seasons[i];
@@ -65,7 +65,7 @@ const season = async (
 
 		await translation(season, transaction, 'season');
 
-		await downloadTMDBImages('season', season).catch(() => null);
+		// await downloadTMDBImages('season', season);
 
 		await image(season, transaction, 'backdrop', 'season');
 		await image(season, transaction, 'poster', 'season');
@@ -74,12 +74,12 @@ const season = async (
 	
 	}
 	
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `Seasons for TV Show: ${(tv as CompleteTvAggregate).name} added successfully`,
-	// });
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Seasons for TV Show: ${(tv as CompleteTvAggregate).name} added successfully`,
+	});
 };
 
 export default season;

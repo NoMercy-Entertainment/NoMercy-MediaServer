@@ -9,7 +9,10 @@ import { deviceId } from '../../functions/system';
 import { isOwner } from '../middlewares/permissions';
 
 export default async function (req: Request, res: Response) {
-	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';
+	const language = req.acceptsLanguages()[0] != 'undefined' 
+		? req.acceptsLanguages()[0].split('-')[0] 
+		: 'en';
+
 	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
@@ -18,7 +21,8 @@ export default async function (req: Request, res: Response) {
 	const response: any[] = [];
 	const translations: Translation[] = [];
 
-	await confDb.translation.findMany({where: {iso31661: language}	}).then((data) => translations.push(...data));
+	await confDb.translation.findMany({where: {iso31661: language}	})
+		.then((data) => translations.push(...data));
 
 	if (owner) {
 		confDb.library
