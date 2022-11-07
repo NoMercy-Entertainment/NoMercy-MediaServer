@@ -11,6 +11,7 @@
     "package": "tsc && electron-forge package",
     "make": "tsc && electron-forge make",
     "publish": "tsc && electron-forge publish",
+    "pm2" : "tsc && pm2 start ./dist/index.js --watch",
     "lint": "eslint --ext .ts .",
     "dev": "nodemon"
   },

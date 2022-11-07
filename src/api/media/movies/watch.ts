@@ -1,13 +1,14 @@
-import { isOwner } from '../../middlewares/permissions';
 import { Request, Response } from 'express';
-import { deviceId } from '../../../functions/system';
-import { KAuthRequest } from 'types/keycloak';
-import { confDb } from '../../../database/config';
-import { Prisma } from '@prisma/client'
-import requestCountry from 'request-country';
-import i18next from 'i18next';
 import { existsSync, readFileSync } from 'fs';
+
+import { KAuthRequest } from 'types/keycloak';
+import { Prisma } from '@prisma/client'
+import { confDb } from '../../../database/config';
 import { convertToSeconds } from '../../../functions/dateTime';
+import { deviceId } from '../../../functions/system';
+import i18next from 'i18next';
+import { isOwner } from '../../middleware/permissions';
+import requestCountry from 'request-country';
 import { sortBy } from '../../../functions/stringArray';
 
 export default async function (req: Request, res: Response) {

@@ -67,7 +67,7 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 			}
 		});
 
-		const movieCollectionInsert = Prisma.validator<Prisma.MovieUncheckedCreateWithoutCollectionInput>()({
+		const movieCollectionInsert = Prisma.validator<Prisma.MovieUncheckedCreateWithoutCollectionMovieInput>()({
 			adult: p.adult,
 			backdrop: p.backdrop_path,
 			id: p.id,

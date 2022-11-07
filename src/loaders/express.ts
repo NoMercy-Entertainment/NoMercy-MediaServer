@@ -1,22 +1,18 @@
 import { AppState, useSelector } from '../state/redux';
 import express, { Application, NextFunction, Request, Response } from 'express';
-import { imagesPath, publicPath, setupComplete, subtitlesPath, transcodesPath } from '../state';
+import { serveImagesPath, serveLibraryPaths, servePublicPath, serveSubtitlesPath, serveTranscodePath } from '../api/routes/files';
 
 import Logger from '../functions/logger';
 import { allowedOrigins } from '../functions/networking';
-import changeLanguage from '../api/middlewares/language';
-import check from '../api/middlewares/check';
-import { confDb } from '../database/config';
+import changeLanguage from '../api/middleware/language';
+import check from '../api/middleware/check';
 import cors from 'cors';
-import { existsSync } from 'fs';
 import { initKeycloak } from '../functions/keycloak';
-import path from 'path';
 import routes from '../api/index';
-import serveStatic from 'serve-static';
 import session from 'express-session';
 import { session_config } from '../functions/keycloak/config';
-import { staticPermissions } from '../api/middlewares/permissions';
-import { unique } from '../functions/stringArray';
+import { setupComplete } from '../state';
+import { staticPermissions } from '../api/middleware/permissions';
 
 export default async (app: Application) => {
 	const owner = useSelector((state: AppState) => state.system.owner);
@@ -41,67 +37,11 @@ export default async (app: Application) => {
 		next();
 	});
 
-	await confDb.folder
-		.findMany({
-			include: {
-				Libraries: true,
-			},
-		})
-		.then((folders) => {
-			unique(folders, 'path')
-				.filter((r) => r.path)
-				.map((r) => {
-					app.get(`/${r.Libraries[0].libraryId}/*`, staticPermissions, function(req, res) {
-						if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
-							return res.status(401).json({
-								status: 'error',
-								message: 'Access denied',
-							});
-						}
-						return res.sendFile(r.path + '/' + req.params[0]); 
-					});
-				});
-		});
+	await serveLibraryPaths(app);
 
-	app.get(`/images/*`, staticPermissions, function(req, res) {
-		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
-			return res.status(401).json({
-				status: 'error',
-				message: 'Access denied',
-			});
-		}
-		if(existsSync(imagesPath + '/' + req.params[0])){
-			return res.sendFile(imagesPath + '/' + req.params[0]); 
-		} else {
-			return res.status(404).end();
-		}
-	});
-	app.get(`/transcodesPath/*`, staticPermissions, function(req, res) {
-		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
-			return res.status(401).json({
-				status: 'error',
-				message: 'Access denied',
-			});
-		}
-		if(existsSync(transcodesPath + '/' + req.params[0])){
-			return res.sendFile(transcodesPath + '/' + req.params[0]); 
-		} else {
-			return res.status(404).end();
-		}
-	});
-	app.get(`/subtitles/*`, staticPermissions, function(req, res) {
-		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
-			return res.status(401).json({
-				status: 'error',
-				message: 'Access denied',
-			});
-		}
-		if(existsSync(subtitlesPath + '/' + req.params[0])){
-			return res.sendFile(subtitlesPath + '/' + req.params[0]); 
-		} else {
-			return res.status(404).end();
-		}
-	});
+	app.get("/images/*", staticPermissions, serveImagesPath);
+	app.get("/transcodesPath/*", staticPermissions, serveTranscodePath);
+	app.get("/subtitles/*", staticPermissions, serveSubtitlesPath);
 
 	app.enable('trust proxy');
 	app.use(changeLanguage);
@@ -131,29 +71,11 @@ export default async (app: Application) => {
 
 	app.use('/api', KC.checkSso(), check, changeLanguage, routes);
 
-	app.get(`/*`, function(req, res) {
-		if(req.params[0].split(/[\\\/]/).some(p => p.startsWith('.'))) {
-			return res.status(401).json({
-				status: 'error',
-				message: 'Access denied',
-			});
-		}
-		if(existsSync(publicPath + '/' + req.params[0])){
-			return res.sendFile(publicPath + '/' + req.params[0]); 
-		} else {
-			return res.status(404).end();
-		}
-	});
+	app.get("/*", staticPermissions, servePublicPath);
 
 	app.get('/', (req: Request, res: Response) => {
 		res.redirect('https://app.nomercy.tv');
 	});
-
-	// app.use(
-	// 	'/Ripper',
-	// 	staticPermissions,
-	// 	express.static(config.ripperOutFolder, staticOptions)
-	// );
 
 	Logger.log({
 		level: 'info',

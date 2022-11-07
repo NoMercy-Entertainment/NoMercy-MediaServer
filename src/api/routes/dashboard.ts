@@ -6,10 +6,10 @@ import { createEncoderProfiles, encoderProfiles, updateEncoderProfiles } from '.
 import { deleteLogs, logOptions, logs } from '../dashboard/logs'
 import { deleteTask, pauseTasks, resumeTasks, runningTaskWorkers, tasks } from '../dashboard/tasks'
 import { devices, metadata, serverActivity, serverInfo, serverPaths } from '../dashboard/serverInfo'
-import { editMiddleware, permissions } from '../middlewares/permissions'
+import { editMiddleware, permissions } from '../middleware/permissions'
 import { startServer, stopServer } from '../dashboard/server'
 
-import directorytree from '../dashboard/directorytree'
+import directoryTree from '../dashboard/directoryTree'
 import express from 'express'
 import { group } from '../routeGroup'
 
@@ -49,7 +49,7 @@ router.use(
 		route.post("/libraries/:id/delete", deleteLibrary);
 		route.post("/libraries/:id/add", addNewItem);
 
-		route.get("/directorytree", directorytree);
+		route.get("/directorytree", directoryTree);
 
 		route.get("/configuration", configuration);
 		route.post("/configuration", createConfiguration);

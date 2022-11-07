@@ -46,7 +46,6 @@ export default async function (req: Request, res: Response) {
 						id: a.id,
 						name: a?.name,
 						folder: a?.folder,
-						albumId: a?.albumId,
 						cover: a?.cover ?? t.Track.Artist[0]?.cover ?? t.Track.cover ?? null,
 						description: a?.description,
 						libraryId: t.Track.Artist[0].libraryId,
@@ -56,7 +55,6 @@ export default async function (req: Request, res: Response) {
 					const artists = t.Track.Artist.filter(a => a.name != 'Various Artists').map(a => ({
 						id: a.id,
 						name: a.name,
-						artistId: a.artistId,
 						cover: a.cover ?? t.Track.cover ?? t.Track.cover ?? null,
 						description: a.description,
 						folder: a.folder,

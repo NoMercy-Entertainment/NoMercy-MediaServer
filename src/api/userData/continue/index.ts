@@ -1,53 +1,72 @@
 import { Request, Response } from "express";
+import { sortBy, unique } from "../../../functions/stringArray";
 
 import { KAuthRequest } from "types/keycloak";
 import { confDb } from "../../../database/config";
 import { createTitleSort } from "../../../tasks/files/filenameParser";
 
 export default async function (req: Request, res: Response) {
-
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 
-	let tvs: any[] = [];
+	const userData = await confDb.userData.findMany({
+		where: {
+			sub_id: user,
+			NOT: {
+				time: null,
+			},
+		},
+		orderBy: {
+			updatedAt: "desc",
+		},
+	});
 
-    const userData = await confDb.userData.findMany({
-        where: {
-            sub_id: user,
-            NOT: {
-                time: null,
-            }
-        },
-        orderBy: {
-            updatedAt: 'desc',
-        }
-    });
+	const userDataTvs = unique(
+		userData.filter((u) => u.tvId),
+		"tvId"
+	);
+	const userDataMovies = unique(
+		userData.filter((u) => u.movieId),
+		"movieId"
+	);
+
+	const items: any = [];
 
 	await Promise.all([
-        confDb.tv.findMany({
-            where: {
-                id: {
-                    in: userData.filter(u => u.tvId).map(u => u.tvId!) ?? [],
-                }
-            }
-        }).then((data) => tvs.push(...data.map(t => ({...t, userData: userData.find(u => u.tvId)})))),
-        confDb.movie.findMany({
-            where: {
-                id: {
-                    in: userData.filter(u => u.movieId).map(u => u.movieId!) ?? [],
-                }
-            }
-        }).then((data) => tvs.push(...data.map(t => ({...t, userData: userData.find(u => u.movieId)}))))
+		confDb.tv
+			.findMany({
+				where: {
+					id: {
+						in: userDataTvs.map((u) => u.tvId!) ?? [],
+					},
+				},
+			})
+			.then((data) => items.push(...data)),
+
+		confDb.movie
+			.findMany({
+				where: {
+					id: {
+						in: userDataMovies.map((u) => u.movieId!) ?? [],
+					},
+				},
+			})
+			.then((data) => items.push(...data)),
 	]);
 
-	const data = tvs.map((tv) => ({
-        id: tv.id,
-        mediaType: tv.mediaType,
-        poster: tv.poster,
-        title: tv.title[0].toUpperCase() + tv.title.slice(1),
-        titleSort: createTitleSort(tv.title),
-        type: tv.mediaType ? 'tv' : 'movies',
+	const newArray = sortBy(userDataTvs.concat(userDataMovies), "updatedAt", "desc").map((d) => ({
+		...items.find((n) => (d.tvId ?? d.movieId) == n.id),
+		time: d.updatedAt,
+	}));
+
+	const data = newArray.map((tv) => ({
+		id: tv.id,
+		mediaType: tv.mediaType,
+		poster: tv.poster,
+		title: tv.title[0].toUpperCase() + tv.title.slice(1),
+		titleSort: createTitleSort(tv.title),
+		type: tv.mediaType ? "tv" : "movies",
+		updatedAt: tv.updatedAt,
 	}));
 
 	return res.json(data);
-
 }

@@ -1,6 +1,7 @@
+import { hasOwner, isAllowed, isOwner } from './permissions';
+
 import check from './check';
 import language from './language';
-import { hasOwner, isAllowed, isOwner } from './permissions';
 
 export default {
 	check,

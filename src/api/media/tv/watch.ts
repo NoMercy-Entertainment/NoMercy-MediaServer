@@ -7,7 +7,7 @@ import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
 import i18next from 'i18next';
-import { isOwner } from '../../middlewares/permissions';
+import { isOwner } from '../../middleware/permissions';
 import requestCountry from 'request-country';
 import { sortBy } from '../../../functions/stringArray';
 

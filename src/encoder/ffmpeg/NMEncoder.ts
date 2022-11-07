@@ -80,12 +80,12 @@ export class NMEncoder {
 	#queryParams = {
         Library:{
             include:{
-                folders: {
+                Folders: {
                     include: {
                         folder: true,
                     }
                 },
-                encoderProfiles: {
+                EncoderProfiles: {
                     include: {
                         EncoderProfile: true,
                     }
@@ -170,12 +170,12 @@ export class NMEncoder {
 				include: {
                     Library: {
                         include:{
-                            folders: {
+                            Folders: {
                                 include: {
                                     folder: true,
                                 }
                             },
-                            encoderProfiles: {
+                            EncoderProfiles: {
                                 include: {
                                     EncoderProfile: true,
                                 }

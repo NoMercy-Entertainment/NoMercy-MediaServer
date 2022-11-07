@@ -31,7 +31,7 @@ import Logger from '../../../functions/logger';
 import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
 import { groupBy } from '../../../functions/stringArray';
-import { isOwner } from '../../middlewares/permissions';
+import { isOwner } from '../../middleware/permissions';
 
 export default async function (req: Request, res: Response) {
 	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';

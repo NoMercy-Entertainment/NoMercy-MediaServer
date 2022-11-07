@@ -28,7 +28,7 @@ import Logger from '../../../functions/logger';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
-import { isOwner } from '../../middlewares/permissions';
+import { isOwner } from '../../middleware/permissions';
 
 export default async function (req: Request, res: Response) {
     

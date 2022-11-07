@@ -39,7 +39,7 @@ export default async function (req: Request, res: Response) {
 					date: t.updated_at,
 					favorite_track: t.Track.FavoriteTrack.length > 0,
 					libraryId: t.Track.Album[0].libraryId,
-					artistId: t.Track.Artist[0].artistId,
+					artistId: t.Track.Artist[0].id,
 					origin: deviceId,
 					artists: t.Track.Artist,
 					cover: t.Track.Album[0].cover,
@@ -49,7 +49,6 @@ export default async function (req: Request, res: Response) {
 					artist: {
 						id: t.Track.Artist[0].id,
 						name: t.Track.Artist[0].name,
-						artistId: t.Track.Artist[0].id,
 						cover: t.Track.Artist[0].cover,
 						description: t.Track.Artist[0].description,
 						folder: t.Track.Artist[0].folder,
@@ -58,7 +57,6 @@ export default async function (req: Request, res: Response) {
 					album: {
 						id: t.Track.Album[0]?.id,
 						name: t.Track.Album[0]?.name,
-						albumId: t.Track.Album[0]?.albumId,
 						cover: t.Track.Album[0]?.cover,
 						description: t.Track.Album[0]?.description,
 						colorPalette: undefined,
