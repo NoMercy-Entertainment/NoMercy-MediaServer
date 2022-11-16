@@ -1,18 +1,15 @@
 import { activityLog, configData, devices, encoderProfiles, folders, libraries, notificationData, serverTasks } from "./data";
 import { countries, languages } from "../../providers/tmdb/config/index";
-import { jsonToString, unique } from "../../functions/stringArray";
 
 import Logger from "../../functions/logger";
 import { Prisma } from "@prisma/client";
 import certifications from "../../providers/tmdb/certification/index";
-import { commitConfigTransaction } from "../../database";
 import { confDb } from "../../database/config";
 import genres from "../../providers/tmdb/genres/index";
 import { musicGenres } from "../../providers/musicbrainz/genre";
 import storeConfig from "../storeConfig";
-import { writeFileSync } from "fs";
 
-const seed = async () => {
+export const seed = async () => {
 	Logger.log({
 		level: "info",
 		name: "setup",
@@ -22,7 +19,7 @@ const seed = async () => {
 
 	const transaction: Prisma.PromiseReturnType<any>[] = [];
 
-	storeConfig(configData, null, transaction);
+	await storeConfig(configData, null, transaction);
 
 	const Genres = await genres();
 	for (const genre of Genres) {
@@ -186,43 +183,6 @@ const seed = async () => {
 		);
 	}
 
-	for (const library of libraries) {
-		
-		const libraryInsert = Prisma.validator<Prisma.LibraryUpdateInput>()({
-			id: library.id,
-			title: library.title,
-			autoRefreshInterval: library.autoRefreshInterval,
-			chapterImages: library.chapterImages,
-			extractChapters: library.extractChapters,
-			extractChaptersDuring: library.extractChaptersDuring,
-			image: library.image,
-			perfectSubtitleMatch: library.perfectSubtitleMatch,
-			realtime: library.realtime,
-			specialSeasonName: library.specialSeasonName,
-			type: library.type,
-			Folders: {
-				connect: library.folders.map((folder) => ({
-					libraryId_folderId: {
-						folderId: folder.id,
-						libraryId: library.id,
-					},
-				})),
-			},
-			country: "NL",
-			language: "nl",
-		});
-
-		transaction.push(
-			confDb.library.upsert({
-				where: {
-					id: library.id,
-				},
-				create: libraryInsert,
-				update: libraryInsert,
-			})
-		);
-	}
-
 	for (const task of serverTasks) {
 		transaction.push(
 			confDb.runningTask.upsert({
@@ -293,7 +253,45 @@ const seed = async () => {
 		);
 	}
 
-	await commitConfigTransaction(transaction).catch((error) => console.log(error));
+	await confDb.$transaction(transaction)
+		.catch((error) => console.log(error));
+		
+	for (const library of libraries) {
+		
+		const libraryInsert = Prisma.validator<Prisma.LibraryUpdateInput>()({
+			id: library.id,
+			title: library.title,
+			autoRefreshInterval: library.autoRefreshInterval,
+			chapterImages: library.chapterImages,
+			extractChapters: library.extractChapters,
+			extractChaptersDuring: library.extractChaptersDuring,
+			image: library.image,
+			perfectSubtitleMatch: library.perfectSubtitleMatch,
+			realtime: library.realtime,
+			specialSeasonName: library.specialSeasonName,
+			type: library.type,
+			Folders: {
+				connect: library.folders.map((folder) => ({
+					libraryId_folderId: {
+						folderId: folder.id,
+						libraryId: library.id,
+					},
+				})),
+			},
+			country: "NL",
+			language: "nl",
+		});
+
+		transaction.push(
+			confDb.library.upsert({
+				where: {
+					id: library.id,
+				},
+				create: libraryInsert,
+				update: libraryInsert,
+			})
+		);
+	}
 };
 
 export default seed;

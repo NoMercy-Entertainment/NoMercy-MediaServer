@@ -3,15 +3,15 @@ import { getContent, ownerQuery, userQuery } from './data';
 
 import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../functions/logger';
-import { Translation } from '@prisma/client'
+import { Translation } from '@prisma/client';
 import { confDb } from '../../database/config';
 import { deviceId } from '../../functions/system';
 import { isOwner } from '../middleware/permissions';
 
 export default async function (req: Request, res: Response) {
-	const language = req.acceptsLanguages()[0] != 'undefined' 
-		? req.acceptsLanguages()[0].split('-')[0] 
-		: 'en';
+	const language = req.acceptsLanguages()[0] == 'undefined'
+		? 'en'
+		: req.acceptsLanguages()[0].split('-')[0];
 
 	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 
@@ -21,8 +21,8 @@ export default async function (req: Request, res: Response) {
 	const response: any[] = [];
 	const translations: Translation[] = [];
 
-	await confDb.translation.findMany({where: {iso31661: language}	})
-		.then((data) => translations.push(...data));
+	await confDb.translation.findMany({ where: { iso31661: language }	})
+		.then(data => translations.push(...data));
 
 	if (owner) {
 		confDb.library
@@ -31,13 +31,13 @@ export default async function (req: Request, res: Response) {
 				for (let i = 0; i < data.length; i++) {
 					const l = data[i];
 					response.push({
-                        ...l,
-                        Tv: undefined,
-                        Movie: undefined,
+						...l,
+						Tv: undefined,
+						Movie: undefined,
 						content: await getContent(l, translations, servers),
 					});
 				}
-				if(req.params.id){
+				if (req.params.id) {
 					return res.json(response[0]);
 				}
 				return res.json(response);
@@ -66,12 +66,12 @@ export default async function (req: Request, res: Response) {
 
 					response.push({
 						...l.library,
-                        Tv: undefined,
-                        Movie: undefined,
+						Tv: undefined,
+						Movie: undefined,
 						content: await getContent(l.library, translations, servers),
 					});
 				}
-				if(req.params.id){
+				if (req.params.id) {
 					return res.json(response[0]);
 				}
 

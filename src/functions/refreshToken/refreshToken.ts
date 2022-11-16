@@ -1,31 +1,32 @@
-import { keycloak_key } from '../keycloak/config';
-import Logger from '../../functions/logger';
-import axios from 'axios';
-import qs from 'qs';
 import { AppState, useSelector } from '../../state/redux';
-import { KeycloakToken } from 'types/keycloak';
-import {
-	setAccessToken,
-	setRefreshToken,
-	setExpiresIn,
-	setRefreshExpiresIn,
-	setTokenType,
-	setIdToken,
-	setNotBeforePolicy,
-	setSessionState,
-	setScope,
-} from '../../state/redux/user';
 import { configFile, tokenFile } from '../../state';
 import { readFileSync, writeFileSync } from 'fs';
+import {
+	setAccessToken,
+	setExpiresIn,
+	setIdToken,
+	setNotBeforePolicy,
+	setRefreshExpiresIn,
+	setRefreshToken,
+	setScope,
+	setSessionState,
+	setTokenType
+} from '../../state/redux/user/actions';
+
+import { KeycloakToken } from 'types/keycloak';
+import Logger from '../../functions/logger';
+import axios from 'axios';
+import { keycloak_key } from '../keycloak/config';
+import qs from 'qs';
 import { setOwner } from '../../state/redux/system/actions';
 
-export default async () => {
+export const refreshToken = async () => {
 
 	const tokens = JSON.parse(readFileSync(tokenFile, 'utf-8'));
 	const config = JSON.parse(readFileSync(configFile, 'utf8'));
 
 	setOwner(config?.user_id ?? ('' as string));
-	
+
 	setAccessToken(tokens.access_token);
 	setRefreshToken(tokens.refresh_token);
 	setExpiresIn(tokens.expires_in);
@@ -39,6 +40,8 @@ export default async () => {
 	await refresh();
 	refreshLoop();
 };
+
+export default refreshToken;
 
 const refreshLoop = () => {
 	const expires_in = useSelector((state: AppState) => state.user.expires_in);

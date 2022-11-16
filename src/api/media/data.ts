@@ -14,7 +14,7 @@ import {
 	Translation,
 	Tv,
 	UserData,
-	VideoFile,
+	VideoFile
 } from '@prisma/client';
 
 import { LibraryResponseContent } from 'types/server';
@@ -46,20 +46,20 @@ export type LibraryWithTvAndMovie = Library & {
 	})[];
 };
 
-export const getContent = async (data: LibraryWithTvAndMovie, translations: Translation[], servers: string[]) => {
+export const getContent = (data: LibraryWithTvAndMovie, translations: Translation[], servers: string[]) => {
 	const response: LibraryResponseContent[] = [];
 
 	for (const tv of data.Tv) {
-		const title = translations.find((t) => t.translationableType == 'tv' && t.translationableId == tv.id)?.title || tv.title;
-		const overview = translations.find((t) => t.translationableType == 'tv' && t.translationableId == tv.id)?.overview || tv.overview;
-		const logo = tv.Media.find((m) => m.type == 'logo')?.src ?? null;
+		const title = translations.find(t => t.translationableType == 'tv' && t.translationableId == tv.id)?.title || tv.title;
+		const overview = translations.find(t => t.translationableType == 'tv' && t.translationableId == tv.id)?.overview || tv.overview;
+		const logo = tv.Media.find(m => m.type == 'logo')?.src ?? null;
 		const userData = tv.UserData?.[0];
 
 		const files = [
-			...tv.Season.filter((t) => t.seasonNumber > 0)
-				.map((s) => s.Episode.map((e) => e.VideoFile).flat())
+			...tv.Season.filter(t => t.seasonNumber > 0)
+				.map(s => s.Episode.map(e => e.VideoFile).flat())
 				.flat()
-				.map((f) => f.episodeId),
+				.map(f => f.episodeId),
 			// ...external?.find(t => t.id == tv.id && t.files)?.files ?? [],
 		];
 		// .filter((v, i, a) => a.indexOf(v) === i);
@@ -84,10 +84,10 @@ export const getContent = async (data: LibraryWithTvAndMovie, translations: Tran
 		});
 	}
 	for (const movie of data.Movie) {
-		const title = translations.find((t) => t.translationableType == 'movie' && t.translationableId == movie.id)?.title || movie.title;
-		const overview =
-			translations.find((t) => t.translationableType == 'movie' && t.translationableId == movie.id)?.overview || movie.overview;
-		const logo = movie.Media.find((m) => m.type == 'logo')?.src ?? null;
+		const title = translations.find(t => t.translationableType == 'movie' && t.translationableId == movie.id)?.title || movie.title;
+		const overview
+			= translations.find(t => t.translationableType == 'movie' && t.translationableId == movie.id)?.overview || movie.overview;
+		const logo = movie.Media.find(m => m.type == 'logo')?.src ?? null;
 		const userData = movie.UserData?.[0];
 
 		response.push({
@@ -131,7 +131,9 @@ export const translationQuery = ({ ids, language }) => {
 export const ownerQuery = (id?: string) => {
 	return Prisma.validator<Prisma.LibraryFindManyArgs>()({
 		where: {
-			id: id ? id : undefined,
+			id: id
+				? id
+				: undefined,
 		},
 		include: {
 			Folders: {
@@ -168,11 +170,7 @@ export const ownerQuery = (id?: string) => {
 					Episode: {
 						some: {
 							VideoFile: {
-								some: {
-									duration: {
-										not: null,
-									},
-								},
+								some: {},
 							},
 						},
 					},
@@ -205,8 +203,8 @@ export const ownerQuery = (id?: string) => {
 					VideoFile: true,
 					CollectionMovie: {
 						include: {
-							Collection: true
-						}
+							Collection: true,
+						},
 					},
 				},
 				orderBy: {
@@ -225,7 +223,9 @@ export const userQuery = (userId: string, id?: string) => {
 		include: {
 			Libraries: {
 				where: {
-					libraryId: id ? id : undefined,
+					libraryId: id
+						? id
+						: undefined,
 				},
 				include: {
 					library: {
@@ -238,12 +238,12 @@ export const userQuery = (userId: string, id?: string) => {
 							Tv: {
 								include: {
 									UserData: true,
+									Genre: true,
 									Media: {
 										orderBy: {
 											voteAverage: 'desc',
 										},
 									},
-									Genre: true,
 									Season: {
 										orderBy: {
 											seasonNumber: 'asc',
@@ -253,18 +253,18 @@ export const userQuery = (userId: string, id?: string) => {
 												orderBy: {
 													episodeNumber: 'asc',
 												},
-												where: {
-													VideoFile: {
-														some: {
-															duration: {
-																not: null,
-															},
-														},
-													},
-												},
 												include: {
 													VideoFile: true,
 												},
+											},
+										},
+									},
+								},
+								where: {
+									Episode: {
+										some: {
+											VideoFile: {
+												some: {},
 											},
 										},
 									},
@@ -297,8 +297,8 @@ export const userQuery = (userId: string, id?: string) => {
 									Genre: true,
 									CollectionMovie: {
 										include: {
-											Collection: true
-										}
+											Collection: true,
+										},
 									},
 								},
 								orderBy: {

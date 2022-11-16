@@ -1,8 +1,9 @@
 import { execFileSync, execSync } from 'child_process';
-import path, { join, resolve } from 'path';
+import path, { join } from 'path';
 
 import diskinfo from '../diskinfo';
 import { machineIdSync } from 'node-machine-id';
+import os from 'os';
 import { readFileSync } from 'fs';
 
 export const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
@@ -179,8 +180,8 @@ export const drives = getDrives();
 export const uptime = () => process.uptime();
 
 export const deviceId = machineIdSync(true);
-export const deviceName = process.env.COMPUTERNAME ?? process.env.NAME as string;
-export const clientName = process.env.CLIENTNAME as string;
+export const deviceName = process.env.COMPUTERNAME ?? process.env.NAME ?? os.hostname() as string;
+export const clientName = process.env.eventName as string;
 export const cpuCores = (parseInt(process.env.NUMBER_OF_PROCESSORS as string), 10);
 export const arch = process.arch as string;
 

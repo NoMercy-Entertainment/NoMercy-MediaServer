@@ -1,11 +1,12 @@
+import { AppState, useSelector } from '../../state/redux';
+
 import Logger from '../../functions/logger';
+import { binariesPath } from '../../state';
+import { fileLastModified } from '../dateTime';
 import fs from 'fs';
 import path from 'path';
 import request from 'request';
 import unzipper from 'unzipper';
-import { AppState, useSelector } from '../../state/redux';
-import { binariesPath } from '../../state';
-import { fileLastModified } from '../dateTime';
 
 export default async () => {
 	const downloads = useSelector((state: AppState) => state.config.downloads);
@@ -70,7 +71,11 @@ export default async () => {
 									fs.chmodSync(`${binariesPath}/../${program.path}/${f.path}`, 711);
 								}
 
-								fs.rmSync(`${binariesPath}/../${name}`);
+								try {
+									fs.rmSync(`${binariesPath}/../${name}`);
+								} catch (error) {
+									
+								}
 
 								resolve();
 							}

@@ -44,7 +44,7 @@ export default async function (req: Request, res: Response) {
 						folder: a.folder,
 						libraryId: a.libraryId,
 						origin: deviceId,
-						colorPalette: undefined,
+						colorPalette: a.colorPalette,
 					}));
 					const albums = t.Album.map(a => ({
 						id: a.id,
@@ -54,7 +54,7 @@ export default async function (req: Request, res: Response) {
 						description: a?.description,
 						libraryId: music.libraryId,
 						origin: deviceId,
-						colorPalette: undefined,
+						colorPalette: a.colorPalette,
 					}));
 
 					return {
@@ -63,10 +63,9 @@ export default async function (req: Request, res: Response) {
 						favorite_track: t.FavoriteTrack.length > 0,
 						artistId: music.Artist[0]?.id,
 						origin: deviceId,
-						cover: albums[0].cover ?? t.cover,
-						folder: albums[0].folder ?? t.folder,
+						cover: (albums[0] ?? t).cover,
 						libraryId: music.libraryId,
-						colorPalette: undefined,
+						colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? "{}"),
 						artists: artists,
 						Artist: undefined,
 						FavoriteTrack: undefined,

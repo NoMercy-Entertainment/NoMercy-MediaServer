@@ -17,6 +17,7 @@ export interface InitialState {
 	hasSubtitleEdit: boolean;
 	server: Server;
 	socket: SocketIoServer;
+	clientList: any[];
 }
 export const initialState: InitialState = {
 	database: libraryDb,
@@ -30,6 +31,7 @@ export const initialState: InitialState = {
 	hasSubtitleEdit: existsSync(subtitleEdit),
 	server: new https.Server(),
 	socket: <SocketIoServer>{},
+	clientList: [],
 };
 
 const system = createSlice({
@@ -41,6 +43,9 @@ const system = createSlice({
 		},
 		setExternalIp: (state, action: PayloadAction<string>) => {
 			state.external_ip = action.payload;
+		},
+		setClientList: (state, action: PayloadAction<any[]>) => {
+			state.clientList = action.payload;
 		},
 		setSecureInternalPort: (state, action: PayloadAction<number>) => {
 			state.secureInternalPort = action.payload;

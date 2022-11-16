@@ -1,4 +1,4 @@
-import { Genre, Translation } from '@prisma/client'
+import { Genre, Translation } from '@prisma/client';
 import { Request, Response } from 'express';
 import { getContent, ownerQuery, userQuery } from './data';
 
@@ -9,7 +9,9 @@ import { deviceId } from '../../functions/system';
 import { isOwner } from '../middleware/permissions';
 
 export default async function (req: Request, res: Response) {
-	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';
+	const language = req.acceptsLanguages()[0] == 'undefined'
+		? 'en'
+		: req.acceptsLanguages()[0].split('-')[0];
 
 	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
@@ -22,11 +24,11 @@ export default async function (req: Request, res: Response) {
 	await confDb.translation.findMany({
 		where: {
 			iso6391: language,
-			translationableType:{
-				in: ['movie', 'tv']
-			}
-		}	
-	}).then((data) => translations.push(...data));
+			translationableType: {
+				in: ['movie', 'tv'],
+			},
+		},
+	}).then(data => translations.push(...data));
 
 	await Promise.all([
 
@@ -34,7 +36,7 @@ export default async function (req: Request, res: Response) {
 			.then(async (data) => {
 				for (let i = 0; i < data.length; i++) {
 					const l = data[i];
-					response.push(...await getContent(l, translations, servers));
+					response.push(...(await getContent(l, translations, servers)));
 				}
 			}),
 
@@ -47,7 +49,7 @@ export default async function (req: Request, res: Response) {
 					const l = data?.Libraries[i];
 					if (!l.library) return;
 
-					response.push(...await getContent(l.library, translations, servers));
+					response.push(...(await getContent(l.library, translations, servers)));
 				}
 			}),
 
@@ -62,10 +64,10 @@ export default async function (req: Request, res: Response) {
 	// return res.json(response);
 
 	const body = {};
-    
+
 	genres.map((g) => {
 		const x: LibraryResponseContent[] = response
-            .filter(d => d.genres && d.genres.map(g => g.genreId).includes(g.id))
+			.filter(d => d.genres && d.genres.map(g => g.genreId).includes(g.id))
 			.map((d) => {
 				return {
 					id: d.id,
@@ -79,7 +81,7 @@ export default async function (req: Request, res: Response) {
 					titleSort: d.titleSort,
 					type: d.mediaType,
 					year: d.year,
-                    mediaType: d.mediaType,
+					mediaType: d.mediaType,
 				};
 			})
 			.sort(() => Math.random() - 0.5)

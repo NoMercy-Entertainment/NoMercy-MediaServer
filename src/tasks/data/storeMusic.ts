@@ -115,8 +115,6 @@ export const storeMusic = async ({ folder, libraryId }: { id: string; folder: st
 					sleep(1);
 				}
 
-				console.log(match?.title);
-
 				if (!match?.title) {
 					console.log(file.path);
 					continue;
@@ -141,9 +139,9 @@ export const storeMusic = async ({ folder, libraryId }: { id: string; folder: st
 			}
 		});
 
-		// console.log("before");
+		console.log("before");
 		await confDb.$transaction(transaction).catch((e) => console.log(e));
-		// console.log("after");
+		console.log("after");
 
 		Logger.log({
 			level: "info",
@@ -236,7 +234,7 @@ const createAlbum = async (
 		name: album.title,
 		id: album.id,
 		cover: image,
-		folder: `${file.folder}${file.musicFolder}`.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/, "$1"),
+		folder: `${file.folder}${file.musicFolder}`.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/, "$1").replace('/Music', ''),
 		colorPalette: colorPalette ? jsonToString(colorPalette) : undefined,
 		year: album.date?.year,
 		tracks: album.track_count,
@@ -287,7 +285,7 @@ const createTrack = async (
 		colorPalette: colorPalette ? jsonToString(colorPalette) : undefined,
 		disc: track.tracks[0].position,
 		date: album.date?.year ? new Date(album.date.year, album.date.month ?? 1, album.date.day ?? 1) : undefined,
-		folder: file.musicFolder ? `${file.folder}${file.musicFolder}` : file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/, "$1"),
+		folder: file.musicFolder ? `${file.folder}${file.musicFolder}`.replace('/Music', '') : file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/, "$1").replace('/Music', ''),
 		filename: "/" + file.name,
 		duration: humanTime(file.ffprobe?.format.duration),
 		path: file.path,

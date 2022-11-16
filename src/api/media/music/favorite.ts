@@ -43,7 +43,7 @@ export default async function (req: Request, res: Response) {
 					origin: deviceId,
 					artists: t.Track.Artist,
 					cover: t.Track.Album[0].cover,
-					colorPalette: JSON.parse(t.Track.Album[0].colorPalette ?? ""),
+					colorPalette: JSON.parse(t.Track.Album[0].colorPalette ?? '{}'),
 					Artist: undefined,
 					Album: undefined,
 					artist: {

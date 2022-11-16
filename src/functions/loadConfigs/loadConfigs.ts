@@ -1,4 +1,3 @@
-import { AppState, useSelector } from '../../state/redux';
 import { setDeviceName, setLibraries } from '../../state/redux/config/actions';
 import { setSecureExternalPort, setSecureInternalPort } from '../../state/redux/system/actions';
 
@@ -6,7 +5,7 @@ import { Configuration } from '@prisma/client'
 import { confDb } from '../../database/config';
 import { getLibrariesWithFolders } from '../../database/data';
 
-export default async () => {
+export const loadConfigs = async () => {
 
 	const dbConf: Configuration[] = await confDb.configuration.findMany();
 
@@ -23,3 +22,5 @@ export default async () => {
 	setLibraries(libraries);
 	
 };
+
+export default loadConfigs;

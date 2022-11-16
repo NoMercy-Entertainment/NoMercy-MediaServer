@@ -1,17 +1,18 @@
+import Logger from '../../functions/logger';
 import { ModeratorsResponse } from 'types/api';
-
 import axios from '../axios';
 import { setModerators } from '../../state/redux/config/actions';
-import Logger from '../../functions/logger';
 
-export default async (): Promise<void> => {
+export const moderators = async () => {
 	setInterval(async () => {
 		await getMods();
 	}, 1 * 60 * 1000);
 	await getMods();
 };
 
-export const getMods = async (): Promise<void> => {
+export default moderators;
+
+export const getMods = async () => {
 	await axios()
 		.get<ModeratorsResponse>('https://api.nomercy.tv/server/moderators')
 		.then(({ data }) => {

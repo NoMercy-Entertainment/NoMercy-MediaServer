@@ -1,7 +1,6 @@
-import { Prisma } from '@prisma/client'
 import { ConfigData } from 'types/server';
+import { Prisma } from '@prisma/client'
 import { confDb } from '../../database/config';
-import { commitConfigTransaction } from '../../database';
 import loadConfigs from '../loadConfigs';
 
 export default async (data: ConfigData, user: string | null, transaction?: Prisma.PromiseReturnType<any>[]) => {
@@ -24,12 +23,12 @@ export default async (data: ConfigData, user: string | null, transaction?: Prism
 							key: key.toString(),
 							value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
 							modified_by: user,
-					  }
+					}
 					: {
 							key: key.toString(),
 							value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
 							modified_by: null,
-					  },
+					},
 				create: {
 					key: key.toString(),
 					value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
@@ -39,7 +38,7 @@ export default async (data: ConfigData, user: string | null, transaction?: Prism
 	}
 
 	if (!hasTransaction) {
-		await commitConfigTransaction(transaction);
+		await confDb.$transaction(transaction);
 		await loadConfigs();
 	}
 };

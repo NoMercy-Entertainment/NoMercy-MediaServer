@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { trackSort, uniqBy } from '../../../functions/stringArray';
 
-import { Song } from '../../../types/music';
 import { Track } from '@prisma/client';
 import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
@@ -43,7 +42,7 @@ export default async function (req: Request, res: Response) {
 						description: a?.description,
 						libraryId: music.libraryId,
 						origin: deviceId,
-						colorPalette: undefined,
+						colorPalette: a.colorPalette,
 					}));
 					const artists = t.Artist.filter(a => a.name != 'Various Artists').map(a => ({
 						id: a.id,
@@ -53,7 +52,7 @@ export default async function (req: Request, res: Response) {
 						folder: a.folder,
 						libraryId: a.libraryId,
 						origin: deviceId,
-						colorPalette: undefined,
+						colorPalette: a.colorPalette,
 					}));
 					
 					return {
@@ -62,13 +61,13 @@ export default async function (req: Request, res: Response) {
 						favorite_track: t.FavoriteTrack.length > 0,
 						origin: deviceId,
 						artists: artists,
-						cover: albums[0]?.cover ?? t.cover ?? null,
-						folder: albums[0]?.folder ?? t.folder,
+						cover: (albums[0] ?? t).cover ?? null,
+						folder: (albums[0] ?? t).folder,
 						Artist: undefined,
 						Album: undefined,
 						FavoriteTrack: undefined,
 						libraryId: music.libraryId,
-						colorPalette: undefined,
+						colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? "{}"),
 						album: albums[0],
 					};
 				}),

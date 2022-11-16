@@ -1,6 +1,5 @@
 import { AppState, useSelector } from '../../state/redux';
 
-// import { resolve } from "path";
 import { Configuration } from '@prisma/client';
 import { confDb } from '../../database/config';
 
@@ -24,11 +23,4 @@ export default async () => {
 	const requestWorker = useSelector((state: AppState) => state.config.requestWorker);
 	requestWorker.start();
 
-	// for (let i = 0; i < 1000; i++) {
-	//     queue.add({
-	//         file: resolve(__dirname, '..', 'jobs'),
-	//         fn: 'sum',
-	//         args: { a: i, b: i },
-	//     });
-	// }
 };

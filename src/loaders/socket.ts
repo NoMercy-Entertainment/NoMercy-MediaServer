@@ -1,24 +1,25 @@
-import { AppState, useSelector } from "../state/redux";
-import { Server, Socket } from "socket.io";
+import { AppState, useSelector } from '../state/redux';
+import { Server, Socket } from 'socket.io';
 
-import Logger from "../functions/logger";
-import base from "../api/sockets/base";
-import { socketCors } from "../functions/networking";
-import socketioJwt from "socketio-jwt";
+import Logger from '../functions/logger';
+import base from '../api/sockets/base';
+import { socketCors } from '../functions/networking';
+import socketioJwt from 'socketio-jwt';
 
 let io: any = null;
-let myClientList: any[] = [];
+export let myClientList: any[] = [];
 
 process.setMaxListeners(300);
 
 const updatedList = (socket: Socket) =>
 	myClientList
-		.filter((c) => c.sub == (socket as any).decoded_token.sub)
-		.map((s) => ({
+		.filter(c => c.sub == (socket as any).decoded_token.sub)
+		.map(s => ({
 			socket_id: s.id,
 			id: s.client_id,
 			type: s.client_type,
 			name: s.client_name,
+			os: s.client_os,
 			secure_connection: s.secure_connection,
 		}));
 
@@ -42,7 +43,7 @@ export const socket = {
 	},
 	on(event: any, values: any) {
 		if (io) {
-			``;
+			'';
 			io.on(event, values);
 		}
 	},
@@ -62,43 +63,43 @@ export const socket = {
 				auth_header_required: true,
 			})
 		);
-				
+
 		io.use((socket: { decoded_token: { email: string; }; }, next: (arg0?: Error) => void) => {
 			const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-			if(!allowedUsers.some(u => u.email == socket.decoded_token.email)){
-				next(new Error("thou shall not pass"));
+			if (!allowedUsers.some(u => u.email == socket.decoded_token.email)) {
+				next(new Error('thou shall not pass'));
 			}
 
 			next();
 		});
 
-		io.once("connection", (socket: { emit: (arg0: any, arg1?: any) => void }) => {
-			socket.emit("update_content");
+		io.once('connection', (socket: { emit: (arg0: any, arg1?: any) => void }) => {
+			socket.emit('update_content');
 
-			socket.emit("notification", {
+			socket.emit('notification', {
 				id: 1,
-				title: "NoMercy Mediaserver",
-				body: "Your server has started.",
+				title: 'NoMercy Mediaserver',
+				body: 'Your server has started.',
 				silent: false,
 				notify: true,
 				read: false,
-				from: "NoMercy Mediaserver",
-				method: "add",
-				to: "*",
-				image: "https://cdn.nomercy.tv/img/favicon.ico",
+				from: 'NoMercy Mediaserver',
+				method: 'add',
+				to: '*',
+				image: 'https://cdn.nomercy.tv/img/favicon.ico',
 				created_at: Date.now(),
 			});
 		});
 
-		const uniqueFilter = "connection";
+		const uniqueFilter = 'connection';
 
-		io.on("connection", async (socket: any) => {
+		io.on('connection', async (socket: any) => {
 
-			if (uniqueFilter == "connection") {
-				myClientList = myClientList.filter((s) => s.id != socket.id);
-			} else if (uniqueFilter == "device") {
-				myClientList = myClientList.filter((s) => s.client_id != socket.handshake.headers.device_id);
+			if (uniqueFilter == 'connection') {
+				myClientList = myClientList.filter(s => s.id != socket.id);
+			} else if (uniqueFilter == 'device') {
+				myClientList = myClientList.filter(s => s.client_id != socket.handshake.headers.device_id);
 			}
 
 			myClientList.push({
@@ -112,44 +113,55 @@ export const socket = {
 				client_id: socket.handshake.headers.device_id,
 				client_name: socket.handshake.headers.device_name,
 				client_type: socket.handshake.headers.device_type,
+				client_os: socket.handshake.headers.device_os,
 				rooms: socket.adapter.rooms,
 				socket,
 			});
 
 			socket.join(socket.decoded_token.sub);
 
+			// setClientList(myClientList);
+
 			Logger.log({
-				level: "http",
-				name: "socket",
-				color: "yellow",
+				level: 'http',
+				name: 'socket',
+				color: 'yellow',
 				user: socket.decoded_token.name,
-				message: `connected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1 ? "" : "s"} ${
-					uniqueFilter == "connection" ? "established" : "connected"
+				message: `connected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
+					? ''
+					: 's'} ${
+					uniqueFilter == 'connection'
+						? 'established'
+						: 'connected'
 				}.`,
 			});
-			socket.nsp.to(socket.decoded_token.sub).emit("get_devices", updatedList(socket));
+			socket.nsp.to(socket.decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
 
-			socket.on("disconnect", () => {
-				if (uniqueFilter == "connection") {
-					myClientList = myClientList.filter((s) => s.id != socket.id);
-				} else if (uniqueFilter == "device") {
-					myClientList = myClientList.filter((s) => s.client_id != socket.handshake.headers.device_id);
+			socket.on('disconnect', () => {
+				if (uniqueFilter == 'connection') {
+					myClientList = myClientList.filter(s => s.id != socket.id);
+				} else if (uniqueFilter == 'device') {
+					myClientList = myClientList.filter(s => s.client_id != socket.handshake.headers.device_id);
 				}
 
 				Logger.log({
-					level: "http",
-					name: "socket",
-					color: "yellow",
+					level: 'http',
+					name: 'socket',
+					color: 'yellow',
 					user: socket.decoded_token.name,
-					message: `disconnected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1 ? "" : "s"} ${
-						uniqueFilter == "connection" ? "established" : "connected"
+					message: `disconnected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
+						? ''
+						: 's'} ${
+						uniqueFilter == 'connection'
+							? 'established'
+							: 'connected'
 					}.`,
 				});
 
-				socket.nsp.to(socket.decoded_token.sub).emit("get_devices", updatedList(socket));
+				socket.nsp.to(socket.decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
 			});
 
-			await base(socket, io, updatedList);
+			await base(socket, io);
 		});
 
 		// io.of("/").adapter.on("create-room", (room) => {
@@ -178,7 +190,7 @@ export const socket = {
  */
 
 export const sendTo = (to: any, event: any, message = null) => {
-	myClientList.filter((c) => c.sub == to).forEach((c) => c.io.sockets.emit(event, message));
+	myClientList.filter(c => c.sub == to).forEach(c => c.io.sockets.emit(event, message));
 };
 
 /**
@@ -187,7 +199,7 @@ export const sendTo = (to: any, event: any, message = null) => {
  * @description Send a message to a user on their socket connection.
  */
 export const sendMessageTo = (to: any, message: any) => {
-	myClientList.filter((c) => c.email == to || c.sub == to).forEach((c) => c.io.sockets.emit("message", message));
+	myClientList.filter(c => c.email == to || c.sub == to).forEach(c => c.io.sockets.emit('message', message));
 };
 
 /**
@@ -196,12 +208,5 @@ export const sendMessageTo = (to: any, message: any) => {
  * @description Send a notification to a user on their socket connection.
  */
 export const sendNotificationTo = (to: any, message: any) => {
-	myClientList.filter((c) => c.email == to || c.sub == to).forEach((c) => c.io.sockets.emit("notification", message));
-};
-
-export default {
-	socket,
-	sendTo,
-	sendMessageTo,
-	sendNotificationTo,
+	myClientList.filter(c => c.email == to || c.sub == to).forEach(c => c.io.sockets.emit('notification', message));
 };

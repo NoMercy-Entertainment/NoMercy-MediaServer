@@ -1,8 +1,8 @@
 import { AppState, useSelector } from '../../state/redux';
-import { deviceId, deviceName } from '../system';
+import { deviceId, deviceName, platform } from '../system';
 import express, { Request, Response } from 'express';
 import { readFileSync, writeFileSync } from 'fs';
-import { setAccessToken, setRefreshToken } from '../../state/redux/user';
+import { setAccessToken, setRefreshToken } from '../../state/redux/user/actions';
 
 import DetectBrowsers from '../detectBrowsers';
 import { KeycloakToken } from 'types/keycloak';
@@ -19,14 +19,16 @@ import { tokenFile } from '../../state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
 
-;
-
 const registerServer = async () => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const external_ip = useSelector((state: AppState) => state.system.external_ip);
 	const server_version = useSelector((state: AppState) => state.system.server_version);
-	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' ? parseInt(process.env.DEFAULT_PORT as string, 10) : 7635;
-	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' ? parseInt(process.env.DEFAULT_PORT as string, 10) : 7635;
+	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
+		? parseInt(process.env.DEFAULT_PORT as string, 10)
+		: 7635;
+	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
+		? parseInt(process.env.DEFAULT_PORT as string, 10)
+		: 7635;
 	let registerComplete = false;
 
 	const redirect_uri = `http://${internal_ip}:${internal_port}/sso-callback`;
@@ -39,6 +41,7 @@ const registerServer = async () => {
 		external_ip: external_ip,
 		external_port: external_port,
 		server_version: server_version,
+		platform: platform.toTitleCase(),
 	};
 
 	Logger.log({
@@ -65,23 +68,18 @@ const registerServer = async () => {
 				});
 			}
 		});
-		
+
 	if (success || !JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token) {
-		const detected =  DetectBrowsers();
+		const detected = DetectBrowsers();
 
-		if (!detected) {
-			await loginPropmt().then(() => {
-				registerComplete = true;
-			});
-
-		} else {
+		if (detected) {
 			await tempServer(redirect_uri, internal_port, registerComplete);
 
 			Logger.log({
 				level: 'info',
 				name: 'setup',
 				color: 'blueBright',
-				message: `Opening browser, please login to link your server`,
+				message: 'Opening browser, please login to link your server',
 			});
 
 			await open(
@@ -92,11 +90,17 @@ const registerServer = async () => {
 					wait: true,
 				}
 			);
+
+		} else {
+			await loginPrompt().then(() => {
+				registerComplete = true;
+			});
 		}
 
-		await new Promise((resolve, reject) => {
+		await new Promise((resolve) => {
+			// eslint-disable-next-line no-unmodified-loop-condition
 			while (!registerComplete) {
-				///
+				// /
 			}
 			resolve(true);
 		});
@@ -105,7 +109,7 @@ const registerServer = async () => {
 
 export default registerServer;
 
-const tempServer = async (redirect_uri: string, internal_port: number, registerComplete: boolean) => {
+const tempServer = (redirect_uri: string, internal_port: number, registerComplete: boolean) => {
 	const app = express();
 	const httpsServer = http.createServer(app);
 
@@ -142,7 +146,7 @@ const tempServer = async (redirect_uri: string, internal_port: number, registerC
 
 				writeFileSync(tokenFile, JSON.stringify(data, null, 2));
 
-				res.send(`<script>window.close();</script>`).end();
+				res.send('<script>window.close();</script>').end();
 
 				registerComplete = true;
 				httpsServer.close();
@@ -168,13 +172,13 @@ const tempServer = async (redirect_uri: string, internal_port: number, registerC
 				level: 'error',
 				name: 'App',
 				color: 'magentaBright',
-				message: 'Sorry Something went wrong starting the secure server: ' + JSON.stringify(error, null, 2),
+				message: `Sorry Something went wrong starting the secure server: ${JSON.stringify(error, null, 2)}`,
 			});
 			process.exit(1);
 		});
 };
 
-const login = ({email, password, totp}) => {
+const login = ({ email, password, totp }) => {
 	return new Promise(async (resolve, reject) => {
 		const keycloakData = qs.stringify({
 			client_id: 'nomercy-server',
@@ -216,13 +220,13 @@ const login = ({email, password, totp}) => {
 					color: 'red',
 					message: JSON.stringify(response.data, null, 2),
 				});
-				reject();
+				reject(new Error(response.data));
 			});
 	});
 };
 
-const loginPropmt = () => {
-	return new Promise(async (resolve, reject) => {
+const loginPrompt = () => {
+	return new Promise((resolve) => {
 		inquirer
 			.prompt([
 				{
@@ -236,16 +240,18 @@ const loginPropmt = () => {
 					message: 'Password: ',
 				},
 				{
-					type: 'number',
+					type: 'input',
 					name: 'totp',
 					message: '2fa code: ',
 				},
 			])
 			.then((answers) => {
 				login({
-					email: answers.email, 
-					password: answers.password, 
-					totp: isNaN(answers.totp) ? undefined : answers.totp
+					email: answers.email,
+					password: answers.password,
+					totp: isNaN(answers.totp)
+						? undefined
+						: answers.totp,
 				}).then(resolve);
 			})
 			.catch((error) => {
@@ -256,4 +262,4 @@ const loginPropmt = () => {
 				}
 			});
 	});
-}
+};

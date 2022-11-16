@@ -7,9 +7,9 @@ import registerServer from '../registerServer';
 export default async () => {
 	await createAppFolders();
 
-	await migrateQueueDatabase();
-
 	await migrateConfigDatabase();
+	
+	await migrateQueueDatabase();
 
 	await registerServer();
 

@@ -249,7 +249,10 @@ export class Queue {
 		const job = await this.next();
 		
 		if (!job || this.runningJobs.includes(job.id)) {
-			return this.run();
+			setTimeout(async () => {
+				await this.run();
+			}, 1500);
+			return;
 		}
 		
 		this.runningJobs.push(job.id);
@@ -317,7 +320,7 @@ export class Queue {
 			}
 			setTimeout(async () => {
 				await this.run();
-			}, 500);
+			}, 1500);
 		});
 	}
 }

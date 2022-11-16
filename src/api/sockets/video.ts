@@ -1,12 +1,16 @@
-import { confDb } from "../../database/config";
+import { confDb } from '../../database/config';
 
-export default function (socket: any, io: any, myClientList: any) {
+export default function (socket: any, io: any) {
 	socket.on('setTime', async (data: any) => {
 		if (data.tmdb_id && data.video_id) {
 			const progressInsert = {
 				sub_id: socket.decoded_token.sub,
-				movieId: data.type == 'movie' ? parseInt(data.tmdb_id, 10) : undefined,
-				tvId: data.type == 'tv' ? parseInt(data.tmdb_id, 10) : undefined,
+				movieId: data.type == 'movie'
+					? parseInt(data.tmdb_id, 10)
+					: undefined,
+				tvId: data.type == 'tv'
+					? parseInt(data.tmdb_id, 10)
+					: undefined,
 				videoFileId: parseInt(data.video_id, 10),
 				audio: data.audio,
 				subtitle: data.subtitle,
@@ -18,16 +22,20 @@ export default function (socket: any, io: any, myClientList: any) {
 			try {
 				await confDb.userData.upsert({
 					where: {
-						movieId_videoFileId_sub_id: data.type == 'movie' ? {
-							sub_id: socket.decoded_token.sub,
-							movieId: parseInt(data.tmdb_id, 10),
-							videoFileId: data.video_id
-						} : undefined,
-						tvId_videoFileId_sub_id: data.type == 'tv' ? {
-							sub_id: socket.decoded_token.sub,
-							tvId: parseInt(data.tmdb_id, 10),
-							videoFileId: data.video_id
-						} : undefined
+						movieId_videoFileId_sub_id: data.type == 'movie'
+							? {
+								sub_id: socket.decoded_token.sub,
+								movieId: parseInt(data.tmdb_id, 10),
+								videoFileId: data.video_id,
+							}
+							: undefined,
+						tvId_videoFileId_sub_id: data.type == 'tv'
+							? {
+								sub_id: socket.decoded_token.sub,
+								tvId: parseInt(data.tmdb_id, 10),
+								videoFileId: data.video_id,
+							}
+							: undefined,
 					},
 					update: progressInsert,
 					create: progressInsert,
@@ -51,21 +59,29 @@ export default function (socket: any, io: any, myClientList: any) {
 		try {
 			await confDb.userData.upsert({
 				where: {
-					movieId_videoFileId_sub_id: data.type == 'movie' ? {
-						sub_id: socket.decoded_token.sub,
-						movieId: parseInt(data.tmdb_id, 10),
-						videoFileId: data.video_id
-					} : undefined,
-					tvId_videoFileId_sub_id: data.type == 'tv' ? {
-						sub_id: socket.decoded_token.sub,
-						tvId: parseInt(data.tmdb_id, 10),
-						videoFileId: data.video_id
-					} : undefined
+					movieId_videoFileId_sub_id: data.type == 'movie'
+						? {
+							sub_id: socket.decoded_token.sub,
+							movieId: parseInt(data.tmdb_id, 10),
+							videoFileId: data.video_id,
+						}
+						: undefined,
+					tvId_videoFileId_sub_id: data.type == 'tv'
+						? {
+							sub_id: socket.decoded_token.sub,
+							tvId: parseInt(data.tmdb_id, 10),
+							videoFileId: data.video_id,
+						}
+						: undefined,
 				},
 				update: {
 					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie' ? parseInt(data.tmdb_id, 10) : undefined,
-					tvId: data.type == 'tv' ? parseInt(data.tmdb_id, 10) : undefined,
+					movieId: data.type == 'movie'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
+					tvId: data.type == 'tv'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
 					videoFileId: parseInt(data.video_id, 10),
 					played: false,
 				},
@@ -83,11 +99,15 @@ export default function (socket: any, io: any, myClientList: any) {
 			const start = await confDb.userData.findFirst({
 				where: {
 					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie' ? parseInt(data.tmdb_id, 10) : undefined,
-					tvId: data.type == 'tv' ? parseInt(data.tmdb_id, 10) : undefined,
+					movieId: data.type == 'movie'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
+					tvId: data.type == 'tv'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
 					videoFileId: {
-						not: null
-					}
+						not: null,
+					},
 				},
 				orderBy: {
 					updatedAt: 'desc',
@@ -103,8 +123,12 @@ export default function (socket: any, io: any, myClientList: any) {
 			const start = await confDb.userData.findFirst({
 				where: {
 					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie' ? parseInt(data.tmdb_id, 10) : undefined,
-					tvId: data.type == 'tv' ? parseInt(data.tmdb_id, 10) : undefined,
+					movieId: data.type == 'movie'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
+					tvId: data.type == 'tv'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
 					subtitle: data.subtitle,
 					subtitleType: data.subtitle_type,
 					videoFileId: parseInt(data.video_id, 10),
@@ -131,8 +155,12 @@ export default function (socket: any, io: any, myClientList: any) {
 			const video = await confDb.userData.findMany({
 				where: {
 					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie' ? parseInt(data.tmdb_id, 10) : undefined,
-					tvId: data.type == 'tv' ? parseInt(data.tmdb_id, 10) : undefined,
+					movieId: data.type == 'movie'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
+					tvId: data.type == 'tv'
+						? parseInt(data.tmdb_id, 10)
+						: undefined,
 				},
 			});
 			if (video.length > 0) {

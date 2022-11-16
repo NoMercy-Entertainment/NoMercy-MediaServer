@@ -3,36 +3,28 @@ env:
   es2021: true
 extends:
   - eslint:recommended
-  - plugin:react/recommended
   - plugin:@typescript-eslint/recommended
 parser: '@typescript-eslint/parser'
 parserOptions:
-  ecmaFeatures:
-    jsx: true
   ecmaVersion: latest
   sourceType: module
   project: 
     - './tsconfig.json'
     - './tsconfig.eslint.json'
 plugins:
-  - 'import',
-  - 'react',
-  - '@typescript-eslint',
-  - 'prettier',
-settings:
-  react:
-    version: detect
-  'import/resolver': 
-    typescript: {}
+  - 'import'
+  - 'react'
+  - '@typescript-eslint'
+  - 'prettier'
 
 rules:
+  "@typescript-eslint/no-non-null-assertion":
+    - off
   "@typescript-eslint/no-this-alias":
     - off
   "@typescript-eslint/no-explicit-any": 
     - off
   "@typescript-eslint/ban-ts-comment": 
-    - off
-  "react/prop-types":
     - off
   no-useless-escape:
     - off
@@ -41,7 +33,7 @@ rules:
   no-case-declarations:
     - off
   indent:
-    - error
+    - off
     - tab
   linebreak-style:
     - off
@@ -93,15 +85,10 @@ rules:
     - off
     - as-needed
   func-style:
-    - error
+    - off
     - expression
   guard-for-in:
     - off
-  id-denylist:
-    - error
-    - err
-    - e
-    - cb
   init-declarations:
     - off
     - always
@@ -117,7 +104,7 @@ rules:
   no-alert:
     - off
   no-array-constructor:
-    - error
+    - off
   no-bitwise:
     - off
   no-confusing-arrow:
@@ -134,7 +121,7 @@ rules:
   no-eval:
     - off
   no-extend-native:
-    - error
+    - off
   no-extra-bind:
     - error
   no-floating-decimal:
@@ -229,7 +216,7 @@ rules:
   no-void:
     - error
   no-warning-comments:
-    - warn
+    - off
   object-shorthand:
     - off
     - consistent-as-needed
@@ -355,7 +342,7 @@ rules:
     - off
   multiline-ternary:
     - error
-    - never
+    - always
   new-parens:
     - error
   newline-per-chained-call:
@@ -395,7 +382,7 @@ rules:
   space-before-blocks:
     - error
   space-before-function-paren:
-    - error
+    - off
   space-in-parens:
     - error
   space-infix-ops:

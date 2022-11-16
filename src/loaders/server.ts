@@ -11,7 +11,7 @@ import ping from './ping';
 import { serverRunning } from './serverRunning';
 import { socket } from './socket';
 
-export default async () => {
+export const server = async () => {
 	const app = _express();
 
 	await express(app);
@@ -55,3 +55,4 @@ export default async () => {
 	}
 };
 
+export default server;

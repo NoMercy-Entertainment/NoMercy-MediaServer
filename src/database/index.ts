@@ -1,13 +1,8 @@
-import { configDb, queueDb } from '../state';
+import { configDatabaseString, queueDatabaseString } from './config';
 
 import Logger from '../functions/logger';
-import { Prisma } from '@prisma/client';
-import { confDb } from './config';
 import { convertPath } from '../functions/system';
 import { execSync } from 'child_process';
-
-export const configDatabaseString = `file:${configDb.replace(/\\/gu, '/')}?socket_timeout=10&connection_limit=1&timeout=5000`;
-export const queueDatabaseString = `file:${queueDb.replace(/\\/gu, '/')}?socket_timeout=10&connection_limit=1&timeout=5000`;
 
 export const migrateConfigDatabase = async() => {
 	// if (!existsSync(configDb)) {
@@ -23,6 +18,7 @@ export const migrateConfigDatabase = async() => {
 	execSync(`npx prisma migrate dev --name init --schema ${convertPath(__dirname + '/../prisma/schema.prisma')}`);
 	execSync(`npx prisma generate --schema ${convertPath(__dirname + '/../prisma/schema.prisma')}`);
 
+	const { confDb } = require('./config');
 	await confDb.$queryRaw`PRAGMA journal_mode=WAL;`;
 	// }
 };
@@ -46,7 +42,8 @@ export const migrateQueueDatabase = async () => {
 	// }
 };
 
-export const commitConfigTransaction = async (transaction: Prisma.PromiseReturnType<any>[]) => {
+export const commitConfigTransaction = async (transaction) => {
+	const { confDb } = require('./config');
 	try {
 		await confDb.$transaction(transaction)
 	} catch (error) {

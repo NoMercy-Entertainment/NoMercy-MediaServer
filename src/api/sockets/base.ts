@@ -1,19 +1,19 @@
 // import progress from '../../controllers/encoder/ffmpeg/progress';
 // import cpuStats from '../../controllers/monitor/cpu';
 import Logger from '../../functions/logger';
+import audio from './audio';
 // import content from './content';
 import dashboard from './dashboard';
-// import music from './music';
 import video from './video';
 
-export default function (socket, io, updatedList: (socket: any) => any[]) {
+export default function (socket, io) {
 	socket.on('notification', (data) => {
 		Logger.log({
 			level: 'http',
 			name: 'notification',
 			color: 'yellow',
 			user: socket.decoded_token.name,
-			message: data,
+			message: data.value,
 		});
 		socket.nsp.to(socket.decoded_token.sub).emit('notification', data);
 	});
@@ -24,7 +24,7 @@ export default function (socket, io, updatedList: (socket: any) => any[]) {
 			name: 'command',
 			color: 'yellow',
 			user: socket.decoded_token.name,
-			message: data,
+			message: data.value,
 		});
 		socket.nsp.to(socket.decoded_token.sub).emit('command', data);
 	});
@@ -35,14 +35,15 @@ export default function (socket, io, updatedList: (socket: any) => any[]) {
 			name: 'log',
 			color: 'yellow',
 			user: socket.decoded_token.name,
-			message: data,
+			message: data.value,
 		});
 	});
 
-	// music(socket, io, updatedList);
+	audio(socket, io);
 	// content(socket, io);
 	dashboard(socket, io);
 	// progress(socket, io);
-	video(socket, io, updatedList);
+	video(socket, io);
 	// cpuStats(socket, io);
+
 }

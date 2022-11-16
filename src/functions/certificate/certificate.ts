@@ -9,10 +9,12 @@ import certificateNeedsRenewal from './certificateNeedsRenewal';
 import { deviceId } from '../system';
 import open from 'open';
 
-export default async () => {
+export const certificate = async () => {
 	await refresh();
 	refreshLoop();
 };
+
+export default certificate;
 
 const refreshLoop = () => {
 	setTimeout(async () => {

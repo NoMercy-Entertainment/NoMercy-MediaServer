@@ -1,21 +1,21 @@
-import axios from 'axios';
-import express, { Request, Response } from 'express';
-import { writeFileSync } from 'fs';
-import qs from 'qs';
-import Logger from '../functions/logger';
-import { KAuthRequest, KeycloakToken } from 'types/keycloak';
-
-import { keycloak_key } from '../functions/keycloak/config';
-import { tokenParser } from '../functions/tokenParser';
-import writeToConfigFile from '../functions/writeToConfigFile';
-import { tokenFile } from '../state';
 import { AppState, useSelector } from '../state/redux';
-import { setOwner } from '../state/redux/system/actions';
-import { setAccessToken, setRefreshToken } from '../state/redux/user';
+import { KAuthRequest, KeycloakToken } from 'types/keycloak';
+import express, { Request, Response } from 'express';
+import { setAccessToken, setRefreshToken } from '../state/redux/user/actions';
+
+import Logger from '../functions/logger';
+import axios from 'axios';
 import dashboard from './routes/dashboard';
+import { keycloak_key } from '../functions/keycloak/config';
 import media from './routes/media';
 import music from './routes/music';
+import qs from 'qs';
+import { setOwner } from '../state/redux/system/actions';
+import { tokenFile } from '../state';
+import { tokenParser } from '../functions/tokenParser';
 import userData from './routes/userData';
+import { writeFileSync } from 'fs';
+import writeToConfigFile from '../functions/writeToConfigFile';
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ router.get('/me', (req: Request, res: Response) => {
 router.get('/sso-callback', async (req: Request, res: Response) => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const secureInternalPort = useSelector((state: AppState) => state.system.secureInternalPort);
-	
+
 	const redirect_uri = `http://${internal_ip}:${secureInternalPort}/sso-callback`;
 
 	const keycloakData = qs.stringify({
@@ -66,7 +66,7 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 
 			writeFileSync(tokenFile, JSON.stringify(data));
 
-			res.send(`<script>window.close();</script>`).end();
+			res.send('<script>window.close();</script>').end();
 		})
 		.catch(({ response }) => {
 			Logger.log({

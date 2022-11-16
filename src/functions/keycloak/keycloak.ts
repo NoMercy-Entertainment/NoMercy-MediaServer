@@ -1,8 +1,8 @@
-import Logger from '../../functions/logger';
-import session from 'express-session';
 import Keycloak from 'keycloak-connect';
-import { setKeycloakCertificate } from '../../state/redux/config/actions';
+import Logger from '../../functions/logger';
 import axios from 'axios';
+import session from 'express-session';
+import { setKeycloakCertificate } from '../../state/redux/config/actions';
 
 export let _keycloak;
 
@@ -59,9 +59,3 @@ export const getKeycloakKeys = async () => {
 
 	return key;
 }
-
-// export default {
-// 	initKeycloak,
-// 	getKeycloak,
-// 	_keycloak,
-// };
