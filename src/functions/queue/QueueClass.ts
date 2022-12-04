@@ -96,15 +96,23 @@ export class Queue {
 			file = _getCallerFile();
 		}
 
-		return await queDb.queueJob.create({
-			data: {
-				queue: this.name,
-				runAt: null,
-				payload: JSON.stringify({ file, fn, args }),
-				priority: 2,
-				taskId: args.task.id
-			},
-		});
+		try {
+			const job =  await queDb.queueJob.create({
+				data: {
+					queue: this.name,
+					runAt: null,
+					priority: 2,
+					taskId: args.task.id,
+					payload: JSON.stringify({ file, fn, args }),
+				},
+			});
+	
+			return job
+			
+		} catch (error) {
+			console.log(error);
+		}
+
 	}
 
 	async remove(id: number) {
@@ -267,13 +275,13 @@ export class Queue {
 				id: job.taskId
 			},
 		}).catch(e => console.log(e));
-		
+
 		await confDb.runningTask.update({
 			where: {
 				id: job.taskId
 			},
 			data: {
-				title: `${runningTask!.title.replace(/\n.+/, '')}\n${JSON.parse(job.payload as string).args.folder}`
+				title: `${runningTask?.title?.replace(/\n.+/, '')}\n${JSON.parse(job.payload as string).args.folder}` ?? 'Downloading images'
 			}
 		}).catch(e => console.log(e));
 
@@ -301,13 +309,10 @@ export class Queue {
 			socket.emit('tasks', runningTask);
 			
 			if (message?.error) {
-				console.log('error');
 				await this.failed(job.id, message.result);
 			} else if (this.keepJobs) {
-				console.log('finished');
 				await this.finished(job.id, message.result.data);
 			} else {
-				console.log('remove');
 				await this.remove(job.id);
 			}
 

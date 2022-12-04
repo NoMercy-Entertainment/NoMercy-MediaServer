@@ -5,7 +5,7 @@ import colorPalette from '../../../functions/colorPalette';
 
 export default async function (req: Request, res: Response) {
 
-	const { artist } = req.query;
+	const { artist } = req.body;
 
 	const urls = (await artistImages(artist as string));
 

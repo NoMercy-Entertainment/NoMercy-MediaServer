@@ -3,13 +3,12 @@ import { arch, deviceName, platform } from '../../functions/system';
 import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '../../state';
 
 import Logger from '../../functions/logger';
-import { ResponseStatus } from 'types/server';
 import { confDb } from '../../database/config';
 import osu from 'os-utils';
 import path from 'path';
 import { readFileSync } from 'fs';
 
-export const serverInfo = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const serverInfo = async (req: Request, res: Response) => {
 	const json = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
 
 	return res.json({
@@ -21,7 +20,7 @@ export const serverInfo = async (req: Request, res: Response): Promise<Response<
 	});
 };
 
-export const serverPaths = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const serverPaths = async (req: Request, res: Response) => {
 	return res.json([
 		{
 			key: 'Cache',
@@ -46,7 +45,7 @@ export const serverPaths = async (req: Request, res: Response): Promise<Response
 	]);
 };
 
-export const serverActivity = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const serverActivity = async (req: Request, res: Response) => {
 	confDb.activityLog
 		.findMany({
 			include: {
@@ -80,7 +79,7 @@ export const serverActivity = async (req: Request, res: Response): Promise<Respo
 		});
 };
 
-export const devices = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const devices = async (req: Request, res: Response) => {
 	confDb.device
 		.findMany({})
 		.then((data) => {
@@ -104,7 +103,7 @@ export const devices = async (req: Request, res: Response): Promise<Response<any
 		});
 };
 
-export const metadata = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const metadata = async (req: Request, res: Response) => {
 	confDb.metadata
 		.findMany({})
 		.then((data) => {

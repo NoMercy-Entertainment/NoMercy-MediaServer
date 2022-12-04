@@ -1,35 +1,54 @@
-import { confDb } from '../../database/config';
-import { Jobs, Prisma } from '@prisma/client'
-import { PersonDetails } from '../../providers/tmdb/people/index';
-import Logger from '../../functions/logger';
-import { createTitleSort, ParsedFileList } from '../../tasks/files/filenameParser';
-import fetchMovie from './fetchMovie';
-import genre from './genre';
-import image from './image';
-import keyword from './keyword';
-import recommendation from './recommendation';
-import similar from './similar';
-import translation from './translation';
-import person from './person';
+import { Jobs, Prisma } from '@prisma/client';
+import { join, resolve } from 'path';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+} from 'fs';
+import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
+
+import alternative_title from './alternative_title';
 import cast from './cast';
+import collection from './collection';
 import crew from './crew';
 import downloadTMDBImages from '../images/downloadTMDBImages';
 import downloadTVDBImages from '../images/downloadTVDBImages';
-import i18n from '../../loaders/i18n';
+import fetchMovie from './fetchMovie';
 import FileList from '../files/getFolders';
-import { join } from 'path';
+import genre from './genre';
+import image from './image';
+import keyword from './keyword';
+import Logger from '../../functions/logger';
+import person from './person';
+import recommendation from './recommendation';
+import similar from './similar';
+import translation from './translation';
+import { confDb } from '../../database/config';
+import {
+  PersonDetails,
+} from '../../providers/tmdb/people/index';
+import {
+  createTitleSort,
+  ParsedFileList,
+} from '../../tasks/files/filenameParser';
 import { cachePath } from '../../state';
-import { fileChangedAgo, humanTime } from '../../functions/dateTime';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import {
+  fileChangedAgo,
+  humanTime,
+} from '../../functions/dateTime';
 import { jsonToString } from '../../functions/stringArray';
-import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
-import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
-import collection from './collection';
-import alternative_title from './alternative_title';
-import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
+import {
+  getQualityTag,
+} from '../../functions/ffmpeg/quality/quality';
+import {
+  getExistingSubtitles,
+} from '../../functions/ffmpeg/subtitles/subtitle';
 
-export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; folder: string, libraryId: string, job?:Jobs }) => {
-	console.log({ id, folder, libraryId, job });
+import i18n from '../../loaders/i18n';
+import { AppState, useSelector } from '../../state/redux';
+
+export const storeMovie = async ({ id, folder, libraryId, job, task }: { id: number; folder: string, libraryId: string, job?:Jobs, task: {id: string} }) => {
+	console.log({ id, folder, libraryId, job, task });
 	await i18n.changeLanguage('en');
 
 	const movie = await fetchMovie(id);
@@ -63,10 +82,23 @@ export const storeMovie = async ({ id, folder, libraryId, job }: { id: number; f
 			id: true,
 		}
 	}).then(d => d.map(e => e.id));
+	
+	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	// await downloadTMDBImages('movie', movie).catch(() => null);
-	await downloadTVDBImages('movie', movie).catch(() => null);
+	await queue.add({
+		file: resolve(__dirname, '..', 'images', 'downloadTVDBImages'),
+		fn: 'downloadTVDBImages',
+		args: {type: 'movie', data: {...movie, task}},
+	});
+	
+	await queue.add({
+		file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
+		fn: 'downloadTMDBImages',
+		args: {type: 'movie', task, data: movie},
+	});
 
+	// await downloadTVDBImages({type: 'movie', data: {...movie, task}}).catch(() => null);
+	// await downloadTMDBImages({type: 'movie', data: {...movie, task}});
 
 	if (movie.belongs_to_collection) {
 		await collection(movie, libraryId, transaction, collectionInsert);

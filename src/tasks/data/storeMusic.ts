@@ -21,7 +21,7 @@ import { releaseCover } from "../../providers/musicbrainz/release";
 import { Image } from "../../providers/musicbrainz/cover";
 import downloadImage from "../../functions/downloadImage";
 
-export const storeMusic = async ({ folder, libraryId }: { id: string; folder: string; libraryId: string; job?: Jobs }) => {
+export const storeMusic = async ({ folder, libraryId }: { id: number | string; folder: string; libraryId: string; job?: Jobs }) => {
 	console.log({ folder, libraryId });
 	await i18n.changeLanguage("en");
 

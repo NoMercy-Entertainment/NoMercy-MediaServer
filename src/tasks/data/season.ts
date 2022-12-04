@@ -1,18 +1,21 @@
+import { AppState, useSelector } from '../../state/redux';
+
 import { CompleteTvAggregate } from './fetchTvShow';
 import Logger from '../../functions/logger';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
 import cast from './cast';
 import { confDb } from '../../database/config';
 import crew from './crew';
-import downloadTMDBImages from '../images/downloadTMDBImages';
 import episode from './episode';
 import image from './image';
+import { resolve } from 'path';
 import translation from './translation';
 
 const season = async (
 	tv: CompleteTvAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
 	people: number[],
+	task: {id: string},
 ) => {
 
 	Logger.log({
@@ -65,12 +68,20 @@ const season = async (
 
 		await translation(season, transaction, 'season');
 
+		const queue = useSelector((state: AppState) => state.config.dataWorker);
+		
+		await queue.add({
+			file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
+			fn: 'downloadTMDBImages',
+			args: {type: 'season', task, data: season},
+		});
+
 		// await downloadTMDBImages('season', season);
 
 		await image(season, transaction, 'backdrop', 'season');
 		await image(season, transaction, 'poster', 'season');
 
-		await episode(tv.id, season, transaction, people);
+		await episode(tv.id, season, transaction, people, task);
 	
 	}
 	

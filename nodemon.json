@@ -10,5 +10,5 @@
     "src/database/queue/client",
     "src/functions/queue/QueueClass.ts"
   ],
-  "exec": "node --inspect=0.0.0.0:9229 --require ts-node/register ./src/index.ts"
+  "exec": "node --require ts-node/register --max-old-space-size=10240 --max-http-header-size=1024000 ./src/index.ts"
 }

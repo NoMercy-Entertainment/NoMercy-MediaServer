@@ -1,6 +1,10 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { existsSync } from 'fs';
 import https, { Server } from 'https';
+import {
+  createSlice,
+  PayloadAction,
+} from '@reduxjs/toolkit';
+import { existsSync } from 'fs';
+import { Http2SecureServer } from 'http2';
 
 import { libraryDb, makeMkv, subtitleEdit } from '../..';
 import { SocketIoServer } from '../../../loaders/socket';
@@ -15,7 +19,7 @@ export interface InitialState {
 	server_version: number;
 	hasMakeMkv: boolean;
 	hasSubtitleEdit: boolean;
-	server: Server;
+	server: Http2SecureServer;
 	socket: SocketIoServer;
 	clientList: any[];
 }
@@ -62,7 +66,7 @@ const system = createSlice({
 		setHasSubtitleEdit: (state, action: PayloadAction<boolean>) => {
 			state.hasSubtitleEdit = action.payload;
 		},
-		setHttpsServer: (state, action: PayloadAction<Server>) => {
+		setHttpsServer: (state, action: PayloadAction<Http2SecureServer>) => {
 			state.server = action.payload;
 		},
 		setSocketServer: (state, action: PayloadAction<SocketIoServer>) => {

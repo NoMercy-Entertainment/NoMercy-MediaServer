@@ -9,10 +9,10 @@ import watched from '../userData/watched';
 const router = express.Router();
 
 router.post('/watched', watched);
-router.get('/favorites', favorites);
-router.post('/favorites', updateFavorite);
-router.get('/continue', _continue);
-router.post('/continue', removeContinue);
+router.post('/favorites', favorites);
+router.post('/favorites/add', updateFavorite);
+router.post('/continue', _continue);
+router.post('/continue/remove', removeContinue);
 router.post('/music/like', like);
 
 export default router;

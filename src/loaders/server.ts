@@ -1,12 +1,15 @@
 import { AppState, useSelector } from '../state/redux';
-import { setHttpsServer, setSocketServer } from '../state/redux/system/actions';
+import {
+  setHttpsServer,
+  setSocketServer,
+} from '../state/redux/system/actions';
 import { sslCA, sslCert, sslKey } from '../state';
 
 import Logger from '../functions/logger';
 import _express from 'express';
 import express from './express';
 import fs from 'fs';
-import https from 'https';
+import https from '../functions/server/lib/spdy';
 import ping from './ping';
 import { serverRunning } from './serverRunning';
 import { socket } from './socket';

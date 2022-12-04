@@ -1,13 +1,15 @@
+import Logger from '../../../functions/logger';
+import tmdbApiClient from '../tmdbApiClient';
 import { Collection } from '../collection/collection';
 import { Company } from '../company/company';
 import { Keyword } from '../keywords/keyword';
-import Logger from '../../../functions/logger';
 import { Movie } from '../movie/movie';
 import { PaginatedResponse } from '../helpers';
 import { Person } from '../people/person';
 import { TvShow } from '../tv/tv';
-import { sortByMathPercentage } from '../../../functions/stringArray';
-import tmdbApiClient from '../tmdbApiClient';
+import {
+  sortByMathPercentage,
+} from '../../../functions/stringArray';
 
 export * from './search';
 export * from './search-result';
@@ -71,10 +73,18 @@ export const searchKeyword = async (query: string): Promise<Keyword[]> => {
 };
 
 export const searchMovie = async (query: string, year: number | null = null): Promise<Movie[]> => {
-	query = query
-		.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
+	query = query?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
 		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
 		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+		
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
+	}
 
 	Logger.log({
 		level: 'info',
@@ -154,10 +164,18 @@ export const searchPeople = async (query: string): Promise<Person[]> => {
 };
 
 export const searchTv = async (query: string, year: number | null = null): Promise<TvShow[]> => {
-	query = query
-		.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
+	query = query?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
 		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
 		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
+	}
 
 	Logger.log({
 		level: 'info',

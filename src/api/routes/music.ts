@@ -6,11 +6,9 @@ import musicAlbums from '../media/music/albums';
 import musicArtist from '../media/music/artist';
 import musicArtists from '../media/music/artists';
 import musicCoverImage from '../media/music/coverImage';
-import musicCreate from '../media/music/playlist/create';
 import musicDelete from '../media/music/playlist/delete';
 import musicEdit from '../media/music/playlist/edit';
 import musicFavorites from '../media/music/favorite';
-import musicGet from '../media/music/playlist/get';
 import musicImages from '../media/music/images';
 import musicLike from '../media/music/like';
 import musicLyrics from '../media/music/lyrics';
@@ -21,29 +19,30 @@ import musicTypeSearch from '../media/music/typeSearch';
 
 const router = express.Router();
 
-router.get('/', music);
+router.post('/', music);
 
-router.get('/albums', musicAlbums);
-router.get('/album/:id', musicAlbum);
+router.post('/albums', musicAlbums);
+router.post('/album/:id', musicAlbum);
 
-router.get('/artists', musicArtists);
-router.get('/artist/:id', musicArtist);
+router.post('/artists', musicArtists);
+router.post('/artist/:id', musicArtist);
 
-router.get('/playlists', musicPlaylists);
-router.get('/playlist/:id', musicPlaylist);
-router.post('/playlist/:id', musicEdit);
-router.put('/playlist/:id', musicAdd);
+router.post('/playlists', musicPlaylists);
+router.post('/playlist/:id', musicPlaylist);
+router.post('/playlist/:id/edit', musicEdit);
+router.post('/playlist/:id/add', musicAdd);
 router.delete('/playlist/:id', musicDelete);
 
-router.get('/collection/tracks', musicFavorites);
-router.get('/collection/artists', musicArtists);
-router.get('/collection/albums', musicAlbums);
+router.post('/collection/tracks', musicFavorites);
+router.post('/collection/artists', musicArtists);
+router.post('/collection/albums', musicAlbums);
+router.post('/collection/playlists', musicPlaylists);
 
 router.post('/tracks/:id/like', musicLike);
-router.get('/lyrics', musicLyrics);
-router.get('/search', musicSearch);
-router.get('/search/:query/:type', musicTypeSearch);
+router.post('/lyrics', musicLyrics);
+router.post('/search', musicSearch);
+router.post('/search/:query/:type', musicTypeSearch);
 router.post('/coverimage', musicCoverImage);
-router.get('/images', musicImages);
+router.post('/images', musicImages);
 
 export default router;

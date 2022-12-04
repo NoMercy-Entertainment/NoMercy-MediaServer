@@ -1,4 +1,4 @@
-import { AppState, store, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '../../state/redux';
 import { setExternalIp, setInternalIp } from '../../state/redux/system/actions';
 
 import { Client } from '@runonflux/nat-upnp';
@@ -107,16 +107,16 @@ export const portMap = async () => {
 };
 
 export const allowedOrigins = [
-	'https://*.nomercy.tv',
-	`https://*.nomercy.tv:${store.getState().system.secureInternalPort}`,
-	'wss://*.nomercy.tv',
-	'ws://*.nomercy.tv',
+	'https://nomercy.tv',
+	'wss://nomercy.tv',
+	'ws://nomercy.tv',
 	'https://app.nomercy.tv',
 	'https://beta.nomercy.tv',
 	'https://dev.nomercy.tv',
 	'https://node.nomercy.tv',
 	'http://localhost:3000',
 	'http://localhost:5173',
+	'http://localhost:5173/',
 	`https://${get_internal_ip()}:3000`,
 	`https://${get_internal_ip()}:5173`,
 	`http://${get_internal_ip()}:3000`,
@@ -126,9 +126,24 @@ export const allowedOrigins = [
 export const socketCors = {
 	cors: {
 		origin: allowedOrigins,
-		methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+		methods: [
+			'GET', 
+			'PUT', 
+			'POST', 
+			'DELETE', 
+			'OPTIONS',
+			'HEAD',
+		],
 		credentials: true,
-		exposedHeaders: ['Content-Length', 'Range'],
-		acceptRanges: 'byes',
+		// allowedHeaders: [
+		// 	'Content-Length', 
+		// 	'Range', 
+		// 	'Authorization', 
+		// 	'device_id', 
+		// 	'device_name', 
+		// 	'device_os', 
+		// 	'device_type',
+		// ],
+		// acceptRanges: 'byes',
 	},
 };

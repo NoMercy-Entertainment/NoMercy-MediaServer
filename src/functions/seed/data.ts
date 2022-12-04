@@ -1,7 +1,13 @@
-import { ActivityLog, ConfigData, Device, ServerTask } from 'types/server';
+import {
+  ActivityLog,
+  ConfigData,
+  Device,
+  ServerTask,
+} from 'types/server';
 
-import { byObjectValues } from '../../functions/stringArray';
-import { confDb } from '../../database/config';
+import {
+  byObjectValues,
+} from '../../functions/stringArray';
 import { deviceName } from '../system';
 
 export const configData: ConfigData = {
@@ -341,118 +347,118 @@ export const libraries: LibrarySeed[] = [
 
 const version = 'NoMercy web 0.0.1';
 export const devices: Device[] = [
-	{
-		id: 'cl7i4km1o000kqwefbugyeqs4',
-		deviceId: 'cl7i4km1o000lqwef9bpm4okw',
-		title: 'Android',
-		type: 'Android',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1o000mqwef10se91xl',
-		deviceId: 'cl7i4km1p000nqwef4pek2f4t',
-		title: 'Apple',
-		type: 'Apple',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p000oqwefb2d09eaq',
-		deviceId: 'cl7i4km1p000pqwef1ifmhsxy',
-		title: 'Chrome (web)',
-		type: 'Chrome',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p000qqwefhl7u9f5b',
-		deviceId: 'cl7i4km1p000rqwef1wz6bj14',
-		title: 'Edge',
-		type: 'Edge',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p000sqwefbx5qflt6',
-		deviceId: 'cl7i4km1p000tqwef7fza0jck',
-		title: 'Edge Chromium',
-		type: 'Edge Chromium',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p000uqwef8qrf2xxd',
-		deviceId: 'cl7i4km1p000vqwef2m6d8v7y',
-		title: 'Firefox',
-		type: 'Firefox',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p000wqwefdqg340tq',
-		deviceId: 'cl7i4km1p000xqwef5s16423y',
-		title: 'Html5',
-		type: 'Html5',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p000yqwef36918h8b',
-		deviceId: 'cl7i4km1p000zqweff0bs0wvw',
-		title: 'Kodi',
-		type: 'Kodi',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p0010qwef4jfyhmor',
-		deviceId: 'cl7i4km1p0011qwef1xv3gldv',
-		title: 'Msie',
-		type: 'Msie',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p0012qwef17htdozh',
-		deviceId: 'cl7i4km1p0013qwefgs0k7nsq',
-		title: 'Opera',
-		type: 'Opera',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p0014qwefhwylhsa5',
-		deviceId: 'cl7i4km1p0015qwef5n530gkm',
-		title: 'Other',
-		type: 'Other',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p0016qwefdcalbu25',
-		deviceId: 'cl7i4km1p0017qwefbox7hxdx',
-		title: 'Playstation',
-		type: 'Playstation',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p0018qwef6sgn55is',
-		deviceId: 'cl7i4km1p0019qwefchiqg1uw',
-		title: 'Safari',
-		type: 'Safari',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p001aqwefcz51553u',
-		deviceId: 'cl7i4km1p001bqwef40q1684z',
-		title: 'Samsung TV',
-		type: 'Samsung TV',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p001cqwefddftdkt8',
-		deviceId: 'cl7i4km1p001dqwef2gfb1mxs',
-		title: 'Windows',
-		type: 'Windows',
-		version: version,
-	},
-	{
-		id: 'cl7i4km1p001eqwef51nehv0j',
-		deviceId: 'cl7i4km1p001fqwefg14k55vd',
-		title: 'Xbox',
-		type: 'Xbox',
-		version: version,
-	},
+	// {
+	// 	id: 'cl7i4km1o000kqwefbugyeqs4',
+	// 	deviceId: 'cl7i4km1o000lqwef9bpm4okw',
+	// 	title: 'Android',
+	// 	type: 'Android',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1o000mqwef10se91xl',
+	// 	deviceId: 'cl7i4km1p000nqwef4pek2f4t',
+	// 	title: 'Apple',
+	// 	type: 'Apple',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p000oqwefb2d09eaq',
+	// 	deviceId: 'cl7i4km1p000pqwef1ifmhsxy',
+	// 	title: 'Chrome (web)',
+	// 	type: 'Chrome',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p000qqwefhl7u9f5b',
+	// 	deviceId: 'cl7i4km1p000rqwef1wz6bj14',
+	// 	title: 'Edge',
+	// 	type: 'Edge',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p000sqwefbx5qflt6',
+	// 	deviceId: 'cl7i4km1p000tqwef7fza0jck',
+	// 	title: 'Edge Chromium',
+	// 	type: 'Edge Chromium',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p000uqwef8qrf2xxd',
+	// 	deviceId: 'cl7i4km1p000vqwef2m6d8v7y',
+	// 	title: 'Firefox',
+	// 	type: 'Firefox',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p000wqwefdqg340tq',
+	// 	deviceId: 'cl7i4km1p000xqwef5s16423y',
+	// 	title: 'Html5',
+	// 	type: 'Html5',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p000yqwef36918h8b',
+	// 	deviceId: 'cl7i4km1p000zqweff0bs0wvw',
+	// 	title: 'Kodi',
+	// 	type: 'Kodi',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p0010qwef4jfyhmor',
+	// 	deviceId: 'cl7i4km1p0011qwef1xv3gldv',
+	// 	title: 'Msie',
+	// 	type: 'Msie',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p0012qwef17htdozh',
+	// 	deviceId: 'cl7i4km1p0013qwefgs0k7nsq',
+	// 	title: 'Opera',
+	// 	type: 'Opera',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p0014qwefhwylhsa5',
+	// 	deviceId: 'cl7i4km1p0015qwef5n530gkm',
+	// 	title: 'Other',
+	// 	type: 'Other',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p0016qwefdcalbu25',
+	// 	deviceId: 'cl7i4km1p0017qwefbox7hxdx',
+	// 	title: 'Playstation',
+	// 	type: 'Playstation',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p0018qwef6sgn55is',
+	// 	deviceId: 'cl7i4km1p0019qwefchiqg1uw',
+	// 	title: 'Safari',
+	// 	type: 'Safari',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p001aqwefcz51553u',
+	// 	deviceId: 'cl7i4km1p001bqwef40q1684z',
+	// 	title: 'Samsung TV',
+	// 	type: 'Samsung TV',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p001cqwefddftdkt8',
+	// 	deviceId: 'cl7i4km1p001dqwef2gfb1mxs',
+	// 	title: 'Windows',
+	// 	type: 'Windows',
+	// 	version: version,
+	// },
+	// {
+	// 	id: 'cl7i4km1p001eqwef51nehv0j',
+	// 	deviceId: 'cl7i4km1p001fqwefg14k55vd',
+	// 	title: 'Xbox',
+	// 	type: 'Xbox',
+	// 	version: version,
+	// },
 ].sort(byObjectValues(['title', 'type']));
 
 export const serverTasks: ServerTask[] = [
@@ -482,24 +488,24 @@ const types = [
 ];
 
 export const activityLog = async (): Promise<ActivityLog[]> => {
-	const users = await confDb.user.findMany();
-	const activityLog = await confDb.activityLog.findMany();
-	// console.log(users);
-	if (activityLog.length < 30 && users.length > 0) {
-		return [...Array(15)]
-			.map(() => {
-				return {
-					sub_id: users[Math.floor(Math.random() * users.length)].sub_id,
-					deviceId: devices[Math.floor(Math.random() * devices.length)].id,
-					type: types[Math.floor(Math.random() * types.length)],
-					time: randomDate(new Date(2022, 6, 1), new Date()),
-					from: ips[Math.floor(Math.random() * ips.length)],
-				};
-			})
-			.sort((a: { time: number }, b: { time: number }) => b.time - a.time);
-	} else {
+	// const users = await confDb.user.findMany();
+	// const activityLog = await confDb.activityLog.findMany();
+	// // console.log(users);
+	// if (activityLog.length < 30 && users.length > 0) {
+	// 	return [...Array(15)]
+	// 		.map(() => {
+	// 			return {
+	// 				sub_id: users[Math.floor(Math.random() * users.length)].sub_id,
+	// 				deviceId: devices[Math.floor(Math.random() * devices.length)].id,
+	// 				type: types[Math.floor(Math.random() * types.length)],
+	// 				time: randomDate(new Date(2022, 6, 1), new Date()),
+	// 				from: ips[Math.floor(Math.random() * ips.length)],
+	// 			};
+	// 		})
+	// 		.sort((a: { time: number }, b: { time: number }) => b.time - a.time);
+	// } else {
 		return [];
-	}
+	// }
 };
 
 function randomDate(start: Date, end: Date) {

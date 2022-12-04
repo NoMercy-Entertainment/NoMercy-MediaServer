@@ -1,10 +1,11 @@
-import { AppState, useSelector } from '../state/redux';
+import socketioJwt from 'socketio-jwt';
 import { Server, Socket } from 'socket.io';
 
-import Logger from '../functions/logger';
 import base from '../api/sockets/base';
+import Logger from '../functions/logger';
+import { AppState, useSelector } from '../state/redux';
+import { confDb } from '../database/config';
 import { socketCors } from '../functions/networking';
-import socketioJwt from 'socketio-jwt';
 
 let io: any = null;
 export let myClientList: any[] = [];
@@ -136,6 +137,35 @@ export const socket = {
 				}.`,
 			});
 			socket.nsp.to(socket.decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
+			
+			await confDb.device.upsert({
+				where: {
+					id: socket.handshake.headers.device_id
+				},
+				update: {
+					id: socket.handshake.headers.device_id,
+					deviceId: socket.handshake.headers.device_id,
+					title: socket.handshake.headers.device_name,
+					type: socket.handshake.headers.device_os,
+					version: '0.0.5',
+					updated_at: new Date(),
+				},
+				create: {
+					id: socket.handshake.headers.device_id,
+					deviceId: socket.handshake.headers.device_id,
+					title: socket.handshake.headers.device_name,
+					type: socket.handshake.headers.device_os,
+					version: '0.0.5',
+					updated_at: new Date(),
+				}
+			})
+            .then(async () => {
+                const devices = await confDb.device.findMany();
+                socket.broadcast.emit('setDevices', devices);
+            })
+            .catch((error) => {
+				//
+            });
 
 			socket.on('disconnect', () => {
 				if (uniqueFilter == 'connection') {

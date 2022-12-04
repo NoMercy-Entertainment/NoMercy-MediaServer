@@ -1,7 +1,8 @@
-import { Server } from 'https';
+import { Http2SecureServer } from 'http2';
+
+import system from './system';
 import { SocketIoServer } from '../../../loaders/socket';
 import { store } from '..';
-import system from './system';
 
 export const setInternalIp = (payload: string) => store.dispatch(system.actions.setInternalIp(payload));
 
@@ -17,7 +18,7 @@ export const setHasMakeMkv = (payload: boolean) => store.dispatch(system.actions
 
 export const setHasSubtitleEdit = (payload: boolean) => store.dispatch(system.actions.setHasSubtitleEdit(payload));
 
-export const setHttpsServer = (payload: Server) => store.dispatch(system.actions.setHttpsServer(payload));
+export const setHttpsServer = (payload: Http2SecureServer) => store.dispatch(system.actions.setHttpsServer(payload));
 
 export const setSocketServer = (payload: SocketIoServer) => store.dispatch(system.actions.setSocketServer(payload));
 

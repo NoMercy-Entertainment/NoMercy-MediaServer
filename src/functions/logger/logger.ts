@@ -34,7 +34,9 @@ export const fileLogger = new winston.transports.File({
 		winston.format.prettyPrint(),
 		winston.format.json(),
 	),
-	handleRejections: true,
+	// silent: true,
+	// handleExceptions: true,
+	// handleRejections: true,
 });
 
 export const consoleLogger = new winston.transports.Console({
@@ -93,7 +95,7 @@ const Logger = winston.createLogger({
 	levels: myCustomLevels,
 	transports: [
 		fileLogger,
-		consoleLogger,
+		// consoleLogger,
 	],
 	exitOnError: false,
 });

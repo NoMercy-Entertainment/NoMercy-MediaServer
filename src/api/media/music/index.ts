@@ -112,7 +112,7 @@ export default async function (req: Request, res: Response) {
 				items: [],
 			},
 			artists: {
-				moreLink: '',
+				moreLink: '/music/collection/artists',
 				items: shuffle(artists).slice(0, 12).map((m) => {
 					return {
 						...m,
@@ -124,7 +124,7 @@ export default async function (req: Request, res: Response) {
 				}),
 			},
 			albums: {
-				moreLink: '',
+				moreLink: '/music/collection/albums',
 				items: shuffle(albums).slice(0, 12).map((m) => {
 					return {
 						...m,
@@ -136,7 +136,7 @@ export default async function (req: Request, res: Response) {
 				}),
 			},
 			playlists: {
-				moreLink: '',
+				moreLink: '/music/collection/playlists',
 				items: playlists,
 			},
 			genres: genreItems,

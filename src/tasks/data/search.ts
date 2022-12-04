@@ -1,11 +1,18 @@
-import { FolderList, ParsedFileList } from '../../tasks/files/filenameParser';
-import { searchMovie, searchTv } from '../../providers/tmdb/search/index';
-
-import {MusicBrainzApi} from 'musicbrainz-api';
-import { appVersion } from '../../functions/system';
-import { mathPercentage } from '../../functions/stringArray';
+import {
+  FolderList,
+  ParsedFileList,
+} from '../../tasks/files/filenameParser';
+import {
+  searchMovie,
+  searchTv,
+} from '../../providers/tmdb/search/index';
+import {
+  mathPercentage,
+} from '../../functions/stringArray';
 
 export const fallbackSearch = async (type: string, title: FolderList | ParsedFileList) => {
+	if(!title.title) return;
+	
 	switch (type) {
 		case 'tv':
 			return await searchTv(title.title, title.year)

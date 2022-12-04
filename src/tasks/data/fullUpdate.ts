@@ -15,16 +15,16 @@ export const fullUpdate = async (data: FolderInfo) => {
 		data: {
 			title: `Scanning ${data.lib.title} library`,
 			type: 'library',
-			value: Math.floor((data.index / data.jobsCount) * 100),
+			value: Math.ceil((data.index / data.jobsCount) * 100),
 		}
 	});
 	
 	switch (data.type) {
 		case 'tv':
-				fullUpdate = await storeTvShow({ id: data.id as number, folder: data.folder, libraryId: data.libraryId });
+				fullUpdate = await storeTvShow({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
 			break;
 		case 'movie':
-				fullUpdate = await storeMovie({ id: data.id as number, folder: data.folder, libraryId: data.libraryId });
+				fullUpdate = await storeMovie({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
 			break;
 		case 'music':
 				fullUpdate = await storeMusic({ id: data.id as string, folder: data.folder, libraryId: data.libraryId });

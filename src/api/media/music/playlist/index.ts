@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import fs, { readFileSync } from "fs";
 
 import { KAuthRequest } from "../../../../types/keycloak";
 import { confDb } from "../../../../database/config";
-import createDataImageURL from "../../../../functions/imageHelper";
 import { deviceId } from "../../../../functions/system";
 
 export default async function (req: Request, res: Response) {
@@ -53,7 +51,7 @@ export default async function (req: Request, res: Response) {
 			
 			const result = {
 				type: "playlists",
-				playlist: music.map((m) => {
+				data: music.map((m) => {
 
 					// TODO: playlist image data url
 
@@ -66,8 +64,8 @@ export default async function (req: Request, res: Response) {
 						...m,
 						origin: deviceId,
 						type: "playlist",
-						path: '',
-						// cover: m.cover,
+						// path: 'images/',
+						cover: m.cover,
 					};
 				}),
 			};

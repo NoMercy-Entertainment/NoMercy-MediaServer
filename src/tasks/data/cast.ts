@@ -1,9 +1,13 @@
+import { Prisma } from '@prisma/client';
+
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
-import { EpisodeAppend } from '../../providers/tmdb/episode/index';
-import Logger from '../../functions/logger';
-import { Prisma } from '@prisma/client'
-import { SeasonAppend } from '../../providers/tmdb/season/index';
+import {
+  EpisodeAppend,
+} from '../../providers/tmdb/episode/index';
+import {
+  SeasonAppend,
+} from '../../providers/tmdb/season/index';
 import { confDb } from '../../database/config';
 
 export default async (
@@ -40,6 +44,8 @@ export default async (
 			popularity: cast.popularity,
 			profilePath: cast.profile_path,
 		});
+		
+		// await downloadTMDBImages('cast', cast);
 
 		transaction.push(
 			confDb.cast.upsert({

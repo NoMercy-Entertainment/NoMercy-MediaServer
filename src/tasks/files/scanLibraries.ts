@@ -1,14 +1,27 @@
-import { AppState, useSelector } from '../../state/redux';
-import { Folder, Library, LibraryFolder, Movie } from '@prisma/client'
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import {
+  Folder,
+  Library,
+  LibraryFolder,
+  Movie,
+} from '@prisma/client';
+import {
+  existsSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'fs';
 import { join, resolve } from 'path';
 
-import { FolderList, ParsedFileList } from './filenameParser';
+import getFolders from './getFolders';
+import { AppState, useSelector } from '../../state/redux';
+import {
+  FolderList,
+  ParsedFileList,
+} from './filenameParser';
 import { TvShow } from '../../providers/tmdb/tv/index';
 import { confDb } from '../../database/config';
 import { fallbackSearch } from '../data/search';
 import { fullUpdate } from '../../tasks/data/fullUpdate';
-import getFolders from './getFolders';
 import { needsUpdate } from '../data/needsUpdate';
 import { cachePath } from '../../state';
 
@@ -265,7 +278,7 @@ const process = async (
 				data: {
 					title: `Scanning ${lib.title} library`,
 					type: 'library',
-					value: Math.round((index / x.jobsCount) * 100),
+					value: Math.ceil((index / x.jobsCount) * 100),
 				}
 			}).catch(e => console.log(e));
 
@@ -275,7 +288,7 @@ const process = async (
 
 		} else {
 			// await fullUpdate(x);
-			queue.add({
+			await queue.add({
 				file: resolve(__dirname, '..', 'data', 'fullUpdate'),
 				fn: 'fullUpdate',
 				args: x,

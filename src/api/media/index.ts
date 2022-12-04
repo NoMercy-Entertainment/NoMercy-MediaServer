@@ -32,12 +32,25 @@ export default async function (req: Request, res: Response) {
 
 	await Promise.all([
 
+		confDb.genre.findMany({
+			orderBy: {
+				name: 'asc',
+			},
+		})
+			.then(data => genres.push(...data)),
+
 		owner && confDb.library.findMany(ownerQuery())
 			.then(async (data) => {
-				for (let i = 0; i < data.length; i++) {
-					const l = data[i];
-					response.push(...(await getContent(l, translations, servers)));
+				for (const lib of data) {
+					if (!lib) continue;
+					
+					response.push(...(await getContent(lib, translations, servers)));					
 				}
+				
+				// for (let i = 0; i < data.length; i++) {
+				// 	const l = data[i];
+				// 	response.push(...(await getContent(l, translations, servers)));
+				// }
 			}),
 
 		!owner && confDb.user
@@ -45,23 +58,20 @@ export default async function (req: Request, res: Response) {
 			.then(async (data) => {
 				if (!data?.Libraries) return;
 
-				for (let i = 0; i < data?.Libraries.length; i++) {
-					const l = data?.Libraries[i];
-					if (!l.library) return;
-
-					response.push(...(await getContent(l.library, translations, servers)));
+				for (const lib of data?.Libraries) {
+					if (!lib.library) continue;
+					
+					response.push(...(await getContent(lib.library, translations, servers)));
 				}
+
+				// for (let i = 0; i < data?.Libraries.length; i++) {
+				// 	const l = data?.Libraries[i];
+				// 	if (!l.library) return;
+
+				// 	response.push(...(await getContent(l.library, translations, servers)));
+				// }
 			}),
-
-		confDb.genre.findMany({
-			orderBy: {
-				name: 'asc',
-			},
-		})
-			.then(data => genres.push(...data)),
 	]);
-
-	// return res.json(response);
 
 	const body = {};
 

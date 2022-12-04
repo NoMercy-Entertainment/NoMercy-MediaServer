@@ -1,19 +1,34 @@
-import { AppState, store, useSelector } from '../state/redux';
-import express, { Application, NextFunction, Request, Response } from 'express';
-import { serveImagesPath, serveLibraryPaths, servePublicPath, serveSubtitlesPath, serveTranscodePath } from '../api/routes/files';
+import { AppState, useSelector } from '../state/redux';
+import express, {
+  Application,
+  NextFunction,
+  Request,
+  Response,
+} from 'express';
+import {
+  serveImagesPath,
+  serveLibraryPaths,
+  servePublicPath,
+  serveSubtitlesPath,
+  serveTranscodePath,
+} from '../api/routes/files';
 
 import Logger from '../functions/logger';
 import { allowedOrigins } from '../functions/networking';
 import changeLanguage from '../api/middleware/language';
 import check from '../api/middleware/check';
+import compression from 'compression';
 import cors from 'cors';
-import expressMon from 'express-status-monitor';
 import { initKeycloak } from '../functions/keycloak';
 import routes from '../api/index';
 import session from 'express-session';
-import { session_config } from '../functions/keycloak/config';
+import {
+  session_config,
+} from '../functions/keycloak/config';
 import { setupComplete } from '../state';
-import { staticPermissions } from '../api/middleware/permissions';
+import {
+  staticPermissions,
+} from '../api/middleware/permissions';
 
 export default async (app: Application) => {
 	const owner = useSelector((state: AppState) => state.system.owner);
@@ -22,7 +37,7 @@ export default async (app: Application) => {
 
 	app.use(
 		cors({
-			origin: '*',
+			origin: allowedOrigins,
 		})
 	);
 
@@ -37,8 +52,18 @@ export default async (app: Application) => {
 
 		next();
 	});
-
-	app.use(expressMon(monitorConfig));
+	
+	const shouldCompress = (req, res) => {
+		if (req.headers['x-no-compression']) {
+			return false
+		}
+		return compression.filter(req, res)
+	}
+	app.use(compression({ filter: shouldCompress }));
+	
+	app.enable('trust proxy');
+	app.use(changeLanguage);
+	app.use(express.json());
 
 	await serveLibraryPaths(app);
 
@@ -46,9 +71,6 @@ export default async (app: Application) => {
 	app.get('/transcodesPath/*', staticPermissions, serveTranscodePath);
 	app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
 
-	app.enable('trust proxy');
-	app.use(changeLanguage);
-	app.use(express.json());
 
 	app.get('/status', (req: Request, res: Response) => {
 		res.status(200).end();
@@ -74,12 +96,14 @@ export default async (app: Application) => {
 
 	app.use('/api', KC.checkSso(), check, changeLanguage, routes);
 
-	app.get('/*', staticPermissions, servePublicPath);
 
 	app.get('/', (req: Request, res: Response) => {
 		res.redirect('https://app.nomercy.tv');
 	});
 
+	
+	app.get('/*', staticPermissions, servePublicPath);
+	
 	Logger.log({
 		level: 'info',
 		name: 'setup',
@@ -89,52 +113,3 @@ export default async (app: Application) => {
 
 	return app;
 };
-
-const monitorConfig = {
-	title: 'NoMercy MediaServer Status Monitor',
-	theme: 'default.css',
-	path: '/monitor',
-	// socketPath: '/socket.io',
-	// websocket: myClientList[0].io.socket,
-	spans: [
-		{
-			interval: 1,
-			retention: 60
-		}, 
-		{
-			interval: 1,
-			retention: 60 * 5
-		}, 
-		{
-			interval: 1,
-			retention: 60 * 10
-		},
-		{
-			interval: 1,
-			retention: 60 * 60
-		},
-	],
-	chartVisibility: {
-		cpu: true,
-		mem: true,
-		load: true,
-		eventLoop: true,
-		heap: true,
-		responseTime: true,
-		rps: true,
-		statusCodes: true
-	},
-	healthChecks: [
-		{
-			protocol: 'https',
-			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
-			path: '/status',
-			port: store.getState().system.secureInternalPort
-		}, {
-			protocol: 'https',
-			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
-			path: '/images/status.txt',
-			port: store.getState().system.secureInternalPort
-		}
-	],
-}

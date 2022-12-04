@@ -20,6 +20,7 @@ export const migrateConfigDatabase = async() => {
 
 	const { confDb } = require('./config');
 	await confDb.$queryRaw`PRAGMA journal_mode=WAL;`;
+	await confDb.$queryRaw`PRAGMA auto_vacuum = FULL;`;
 	// }
 };
 
@@ -39,6 +40,7 @@ export const migrateQueueDatabase = async () => {
 
 	const { queDb } = require('./config');
 	await queDb.$queryRaw`PRAGMA journal_mode=WAL;`;
+	await queDb.$queryRaw`PRAGMA auto_vacuum = FULL;`;
 	// }
 };
 

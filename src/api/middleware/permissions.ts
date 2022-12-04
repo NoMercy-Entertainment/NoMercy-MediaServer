@@ -1,11 +1,11 @@
-import { AppState, useSelector } from '../../state/redux';
-import { NextFunction, Request, Response } from 'express';
-
-import { KAuthRequest } from 'types/keycloak';
-import Logger from '../../functions/logger';
-import { confDb } from '../../database/config';
 import crypto from 'crypto';
+import { NextFunction, Request, Response } from 'express';
+import { KAuthRequest } from 'types/keycloak';
 import { readFileSync } from 'fs';
+
+import Logger from '../../functions/logger';
+import { AppState, useSelector } from '../../state/redux';
+import { confDb } from '../../database/config';
 import { sleep } from '../../functions/dateTime';
 import { sslCert } from '../../state';
 
@@ -60,6 +60,7 @@ export const isOwner = (req: KAuthRequest): boolean => {
 	const owner = useSelector((state: AppState) => state.system.owner);
 	return owner == token.content.sub;
 };
+
 export const ownerMiddleware = (req: Request, res: Response, next: NextFunction) => {
 	if (isOwner(req as KAuthRequest)) {
 		return next();

@@ -22,6 +22,7 @@ export default async () => {
 		await firstBoot();
 	}
 
+
 	await (await import('../refreshToken/refreshToken')).refreshToken();
 
 	await (await import('../certificate/certificate')).certificate();
@@ -37,7 +38,7 @@ export default async () => {
 	await portMap();
 
 	await require('../../loaders/server').server();
-
+	
 	queue();
 
 	dev();

@@ -1,21 +1,35 @@
 import { Stats, existsSync } from 'fs';
-import getTVDBImages, { ImageResult } from './getTVDBImages';
+import getTVDBImages, {
+  ImageResult,
+} from './getTVDBImages';
 
-import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
-import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import {
+  CompleteMovieAggregate,
+} from '../../tasks/data/fetchMovie';
+import {
+  CompleteTvAggregate,
+} from '../../tasks/data/fetchTvShow';
+import {
+  ISizeCalculationResult,
+} from 'image-size/dist/types/interface';
 import Logger from '../../functions/logger';
 import { PaletteColors } from 'types/server';
-import { Prisma } from '@prisma/client'
-import { chunk } from '../../functions/stringArray';
+import { Prisma } from '@prisma/client';
 import { commitConfigTransaction } from '../../database';
 import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';
 import { imagesPath } from '../../state';
 import path from 'path';
 
-export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregate | CompleteMovieAggregate) => {
+interface DownloadTVDBImages {
+	type: string;
+	data: (CompleteMovieAggregate | CompleteTvAggregate) & {task?: {id: string}};
+}
+
+export const downloadTVDBImages = async ({ type, data }: DownloadTVDBImages) => {
+	
 	return new Promise<void>(async (resolve, reject) => {
+		
 		try {
 			const transaction: Prisma.PromiseReturnType<any>[] = [];
 			const promises: any[] = [];
@@ -27,25 +41,26 @@ export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregat
 				message: `Fetching character images`,
 			});
 
-			let type = dbType == 'tv' ? 'series' : 'movies';
-			const data = await getTVDBImages(
-				type,req
+			type = type == 'tv' ? 'series' : 'movies';
+			const imageData = await getTVDBImages(
+				type,
+				data
 			);
 			
-			for (let i = 0; i < data.length; i++) {
-				const image = data[i];
+			for (let i = 0; i < imageData.length; i++) {
+				const image = imageData[i];
 
-				if (existsSync(`${imagesPath}/cast/${image.credit_id}.jpg`)) continue;
+				if (existsSync(`${imagesPath}/cast/${image.credit_id}.webp`)) continue;
 
-				await downloadImage(image.img, path.resolve(`${imagesPath}/cast/${image.credit_id}.jpg`))
+				await downloadImage(image.img, path.resolve(`${imagesPath}/cast/${image.credit_id}.webp`))
 					.then(async ({ dimensions, stats, colorPalette }) => {
 						transaction.push(
 							confDb.image.upsert({
 								where: {
 									id: image.credit_id,
 								},
-								create: imageQuery(dbType, image, dimensions, stats, colorPalette, req),
-								update: imageQuery(dbType, image, dimensions, stats, colorPalette, req),
+								create: imageQuery(type, image, dimensions, stats, colorPalette, data),
+								update: imageQuery(type, image, dimensions, stats, colorPalette, data),
 							})
 						);
 					}).catch(e => console.log(e));
@@ -67,6 +82,7 @@ export const downloadTVDBImages = async (dbType: string, req: CompleteTvAggregat
 
 			resolve();
 		} catch (error) {
+			console.log(error);
 			reject(error);
 		}
 	});
@@ -92,8 +108,8 @@ const imageQuery = (
 		width: dimensions.width,
 		type: dimensions.type,
 		size: stats.size,
-		colorPalette: colorPalette ? JSON.stringify(colorPalette) : null,
 		name: `${image.credit_id}.jpg`,
+		colorPalette: colorPalette ? JSON.stringify(colorPalette) : null,
 		tvId: dbType == 'tv' ? req.id : undefined,
 		movieId: dbType == 'movie' ? req.id : undefined,
 	});

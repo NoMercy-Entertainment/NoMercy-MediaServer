@@ -1,4 +1,4 @@
-import { Album, Artist, Playlist, PlaylistTrack, Track } from '@prisma/client';
+import { Album, Artist, Track } from '@prisma/client';
 import { Request, Response } from 'express';
 import { shuffle, uniqBy } from '../../../functions/stringArray';
 
@@ -10,7 +10,7 @@ import { deviceId } from '../../../functions/system';
 export default async function (req: Request, res: Response) {
 
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const query = req.query.query as string;
+	const query = req.body.query as string;
 	
 	try {
 		let data;

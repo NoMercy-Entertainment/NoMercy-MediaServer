@@ -1,11 +1,25 @@
-import { existsSync, readFileSync, rmSync, writeFile } from 'fs';
-import { jsonToString } from '../../functions/stringArray';
 import path from 'path';
-import { fileChangedAgo } from '../../functions/dateTime';
+import dirTree, {
+  DirectoryTree,
+  DirectoryTreeOptions,
+} from 'directory-tree';
+import {
+  existsSync,
+  readFileSync,
+  rmSync,
+  writeFile,
+} from 'fs';
+
 import Logger from '../../functions/logger';
-import { FolderList, ParsedFileList, parseFileName, parseFolderName } from './filenameParser';
+import { jsonToString } from '../../functions/stringArray';
+import { fileChangedAgo } from '../../functions/dateTime';
+import {
+  FolderList,
+  ParsedFileList,
+  parseFileName,
+  parseFolderName,
+} from './filenameParser';
 import { cachePath } from '../../state';
-import dirTree, { DirectoryTree, DirectoryTreeOptions } from 'directory-tree';
 import { chunk, sortBy } from '../../functions/stringArray';
 import { cpuCores } from '../../functions/system';
 
@@ -62,7 +76,7 @@ export class FileList {
 	}
 
 	folderToFileName (folder: string): string {
-		return folder.replace(/[\/\\]/gu, '_').replace(':', '_');
+		return folder?.replace(/[\/\\]/gu, '_')?.replace(':', '_');
 	}
 
 	folderList (folder: string): Promise<void> {
@@ -203,12 +217,12 @@ export class FileList {
 
 		for (const faultyFile of faultyFiles) {
 			if(faultyFile.extension == '.m3u8'){
-				const path = faultyFile.path.replace(/(.+[\\\/])/, '$1');
+				const path = faultyFile.path?.replace(/(.+[\\\/])/, '$1');
 				console.log(path);
 				// rmSync(path, { recursive: true});
 			}
 			else if(faultyFile.extension == '.mp4'){
-				const path = faultyFile.path.replace(/(\w.+[\\\/])/, '$1');
+				const path = faultyFile.path?.replace(/(\w.+[\\\/])/, '$1');
 				console.log(path);
 				// rmSync(path, { recursive: true});
 			}

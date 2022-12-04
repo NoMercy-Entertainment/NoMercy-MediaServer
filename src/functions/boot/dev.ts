@@ -1,10 +1,19 @@
-// import { confDb } from "../../database/config"
 // import { imagesPath } from "../../state";
 // import { musicGenres } from "../../providers/musicbrainz/genre";
 // import storeTvShow from "../../tasks/data/storeTvShow";
 
 
-export default () => {
+export default async () => {
+
+    // const tracks = await confDb.track.findMany();
+
+    // let duration = 0;
+
+    // for (const track of tracks) {
+    //     duration += convertToSeconds(track.duration);
+    // }
+
+    // console.log({count: tracks.length, duration: convertToHuman(duration)})
 
     // const arr1: number[] = JSON.parse(execSync(`ffmpeg -i "M:\\TV.Shows\\TV.Shows\\NCIS.(2003)\\NCIS.S01E01\\NCIS.S01E01.Yankee.White.NoMercy.mp4" -f wav - | audiowaveform --input-format wav  -o "C:\\Users\\Stoney\\Music\\prints\\NCIS.S01E01.Yankee.White.NoMercy.json" -b 16 -z 256`).toString()).data;
     // const arr2: number[] = JSON.parse(execSync(`ffmpeg -i "M:\\TV.Shows\\TV.Shows\\NCIS.(2003)\\NCIS.S01E02\\NCIS.S01E02.Hung.Out.to.Dry.NoMercy.mp4" -f wav - | audiowaveform --input-format wav -o "C:\\Users\\Stoney\\Music\\prints\\NCIS.S01E02.Hung.Out.to.Dry.NoMercy.json" -b 16 -z 256`).toString()).data;

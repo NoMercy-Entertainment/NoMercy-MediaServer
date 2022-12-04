@@ -1,19 +1,22 @@
-import { Request, Response } from "express";
-import { searchMovie, searchTv } from "../../providers/tmdb/search";
+import path from 'path';
+import { Request, Response } from 'express';
+import { updateEncoderProfilesParams } from 'types/server';
 
-import Logger from "../../functions/logger";
-import { confDb } from "../../database/config";
-import { createMediaFolder } from "../../tasks/files/filenameParser";
+import Logger from '../../functions/logger';
+import storeMovie from '../../tasks/data/storeMovie';
+import storeTvShow from '../../tasks/data/storeTvShow';
+import { confDb } from '../../database/config';
+import {
+  createMediaFolder,
+} from '../../tasks/files/filenameParser';
+import { movie } from '../../providers/tmdb/movie';
+import { platform } from '../../functions/system';
+import {
+  scanLibrary,
+} from '../../tasks/files/scanLibraries';
+import { tv } from '../../providers/tmdb/tv';
+
 import i18n from "../../loaders/i18n";
-import { movie } from "../../providers/tmdb/movie";
-import path from "path";
-import { platform } from "../../functions/system";
-import { scanLibrary } from "../../tasks/files/scanLibraries";
-import storeMovie from "../../tasks/data/storeMovie";
-import storeTvShow from "../../tasks/data/storeTvShow";
-import { tv } from "../../providers/tmdb/tv";
-import { updateEncoderProfilesParams } from "types/server";
-
 export const libraries = async (req: Request, res: Response) => {
 	await confDb.library
 		.findMany({
@@ -87,7 +90,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 	const Folders = await confDb.folder.findMany({
 		where: {
 			path: {
-				in: folders.map((f) => (platform == "windows" ? path.resolve(f).replace(/\/$/u, "") : f.replace(/\/$/u, ""))),
+				in: folders.map((f) => (platform == "windows" ? path.resolve(f)?.replace(/\/$/u, "") : f?.replace(/\/$/u, ""))),
 			},
 		},
 	});
