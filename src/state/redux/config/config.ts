@@ -4,6 +4,7 @@ import { CDNInfoResponse, Files } from '../../../types/cdn';
 import { deviceName } from '../../../functions/system';
 import { LibraryWithFolders } from '../../../database/data';
 import { PreferedOrder } from '../../../encoder/ffprobe/ffprobe';
+import { User } from '@prisma/client';
 
 export const keepOriginal: { [arg: string]: boolean } = {
 	audio: true,
@@ -24,9 +25,9 @@ const initialState = {
 	colors: <CDNInfoResponse['data']['colors']>{},
 	downloads: new Array<Files>(),
 	
-	queueWorker: new Queue({ name: 'queue' }),
+	queueWorker: new Queue({ name: 'queue', workers: 1 }),
 	queueWorkers: 1,
-	cronWorker: new Queue({ name: 'cron' }),
+	cronWorker: new Queue({ name: 'cron', workers: 1 }),
 	cronWorkers: 1,
 	dataWorker: new Queue({ name: 'data', workers: 1 }),
 	requestWorker: new Queue({ name: 'request', workers: 1 }),
@@ -116,11 +117,11 @@ export const defaultUserOptions: DefaultUserOptions = {
 	noTranscoding: false,
 };
 
-export interface User extends DefaultUserOptions {
-	sub_id: string;
-	email: string;
-	name: string;
-}
+// export interface User extends DefaultUserOptions {
+// 	sub_id: string;
+// 	email: string;
+// 	name: string;
+// }
 
 export interface AllowedUser {
 	sub_id: string;

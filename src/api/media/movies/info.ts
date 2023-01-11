@@ -22,16 +22,20 @@ import {
 	SpecialItem,
 	UserData,
 	VideoFile,
-} from '@prisma/client'
+} from '@prisma/client';
+import { ExtendedVideo, InfoResponse, MediaItem } from '../../../types/server';
 import { Request, Response } from 'express';
 
-import { InfoResponse } from 'types/server';
-import { KAuthRequest } from 'types/keycloak';
+import { KAuthRequest } from '../../../types/keycloak';
 import Logger from '../../../functions/logger';
 import { confDb } from '../../../database/config';
+import createBlurHash from '../../../functions/createBlurHash';
+import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
 import { groupBy } from '../../../functions/stringArray';
+import i18next from 'i18next';
 import { isOwner } from '../../middleware/permissions';
+import { movie } from '../../../providers/tmdb/movie';
 
 export default async function (req: Request, res: Response) {
 	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';
@@ -70,10 +74,7 @@ export default async function (req: Request, res: Response) {
 			.findFirst(ownerQuery(req.params.id, language))
 			.then(async (movie) => {
 				if (!movie) {
-					return res.json({
-						status: 'ok',
-						message: `Something went wrong getting library`,
-					});
+					return res.json(await getMovieData(req.params.id, language));
 				}
 				return res.json(await getContent(movie, language, similar, recommendations, servers));
 			})
@@ -94,10 +95,7 @@ export default async function (req: Request, res: Response) {
 			.findFirst(userQuery(req.params.id, user, language))
 			.then(async (movie) => {
 				if (!movie) {
-					return res.json({
-						status: 'ok',
-						message: `Something went wrong getting library`,
-					});
+					return res.json(await getMovieData(req.params.id, language));
 				}
 				return res.json(await getContent(movie, language, similar, recommendations, servers));
 			})
@@ -157,15 +155,23 @@ const getContent = async (data: MovieWithInfo, language: string, similar: Simila
 	const title = translations.find((t) => t.translationableType == 'movie' && t.translationableId == data.id)?.title || data.title;
 	const overview = translations.find((t) => t.translationableType == 'movie' && t.translationableId == data.id)?.overview || data.overview;
 
+	const logos = groupedMedia.logo?.map((i: Image) => ({...i, colorPalette: JSON.parse(i.colorPalette ?? "{}")})) ?? [];
+	const hash = JSON.parse(data.blurHash ?? '{}');
+
 	const response: InfoResponse = {
 		id: data.id,
 		title: title,
 		overview: overview,
 		poster: data.poster,
 		backdrop: data.backdrop,
+		blurHash: {
+			logo: logos[0]?.blurHash ?? null,
+			poster: hash?.poster ?? null,
+			backdrop: hash?.backdrop ?? null,
+		},
 		videos: groupedMedia.Trailer ?? [],
 		backdrops: groupedMedia.backdrop?.map((i: Image) => ({...i, colorPalette: JSON.parse(i.colorPalette ?? "{}")})) ?? [],
-		logos: groupedMedia.logo?.map((i: Image) => ({...i, colorPalette: JSON.parse(i.colorPalette ?? "{}")})) ?? [],
+		logos: logos,
 		posters: groupedMedia.poster?.map((i: Image) => ({...i, colorPalette: JSON.parse(i.colorPalette ?? "{}")})) ?? [],
 		contentRatings: data.Certification.map((r) => {
 			return {
@@ -181,8 +187,8 @@ const getContent = async (data: MovieWithInfo, language: string, similar: Simila
 		voteAverage: data.voteAverage,
 		watched: data.UserData?.[0]?.played ?? false,
 		favorite: data.UserData?.[0]?.isFavorite ?? false,
-		similar: similar,
-		recommendations: recommendations,
+		similar: similar.map(s => ({...s, blurHash: JSON.parse(s.blurHash ?? '')})),
+		recommendations: recommendations.map(s => ({...s, blurHash: JSON.parse(s.blurHash ?? '')})),
 		externalIds: {
 			imdbId: data.imdbId,
 			tvdbId: data.tvdbId,
@@ -209,8 +215,8 @@ const getContent = async (data: MovieWithInfo, language: string, similar: Simila
 				name: g.Genre.name,
 			})) ?? [],
 		keywords: data.Keyword.map((c) => c.Keyword.name),
-		type: data.Library.type == 'tv' ? 'tv' : 'movies',
-		mediaType: data.Library.type == 'tv' ? 'tv' : 'movies',
+		type: 'movies',
+		mediaType: 'movies',
 		cast: data.Cast.map((c) => c.Cast).map((c) => {
 			return {
 				gender: c.gender,
@@ -222,6 +228,7 @@ const getContent = async (data: MovieWithInfo, language: string, similar: Simila
 				profilePath: c.profilePath,
 				popularity: c.popularity,
 				deathday: c.Person?.deathday,
+				blurHash: c.blurHash,
 			};
 		}),
 		crew: data.Crew.map((c) => c.Crew).map((c) => {
@@ -236,13 +243,15 @@ const getContent = async (data: MovieWithInfo, language: string, similar: Simila
 				profilePath: c.profilePath,
 				popularity: c.popularity,
 				deathday: c.Person?.deathday,
+				blurHash: c.blurHash,
 			};
 		}),
 		director: data.Crew.filter((c) => c.Crew.department == 'Directing')
 			.map((c) => c.Crew)
 			.map((c) => ({ 
 				id: c.personId, 
-				name: c.name 
+				name: c.name,
+				blurHash: c.blurHash,
 			})),
 	};
 
@@ -406,3 +415,153 @@ const userQuery = (id: string, userId: string, language: string) => {
 		},
 	});
 };
+
+const getMovieData = async (id: string, language: string) => {
+
+	i18next.changeLanguage('en');
+
+	const data = await movie(parseInt(id, 10));
+
+	const similar: any = [];
+	const recommendations: any = [];
+
+	for (const s of data.similar.results) {
+		const index = data.similar.results.indexOf(s);
+		similar.push({
+			...s, 
+			backdrop: s.backdrop_path, 
+			poster: s.poster_path, 
+			mediaType: 'movies',
+			blurHash: {
+				poster: index < 10 && s.poster_path 
+					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`) 
+					: null,
+				backdrop: index < 10 && s.backdrop_path 
+					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`) 
+					: null,
+			}
+		});
+	}
+
+	for (const s of data.recommendations.results) {
+		const index = data.recommendations.results.indexOf(s);
+		recommendations.push({
+			...s, 
+			backdrop: s.backdrop_path, 
+			poster: s.poster_path,
+			mediaType: 'movies', 
+			blurHash: {
+				poster: index < 10 && s.poster_path 
+					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`) 
+					: null,
+				backdrop: index < 10 && s.backdrop_path 
+					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`) 
+					: null,
+			}
+		});
+	}
+
+	const ratings: any = [];
+
+	for (const rating of data.release_dates?.results) {
+
+		for (const rate of rating.release_dates) {
+
+			ratings.push({
+				rating: rate.certification,
+				meaning: rate.note,
+				iso31661: rating.iso_3166_1,
+			});
+		}
+	}
+	
+	const response: InfoResponse = {
+		id: data.id,
+		title: data.title,
+		overview: data.overview,
+		poster: data.poster_path,
+		backdrop: data.backdrop_path,
+		blurHash: {
+			logo: data.images.logos[0]?.file_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`) : null,
+			poster: data?.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`) : null,
+			backdrop: data?.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`) : null,
+		},
+		videos: data.videos.results.map(v => ({...v, src: v.key})) as unknown as ExtendedVideo[],
+		backdrops: data.images.backdrops as unknown as MediaItem[],
+		logos: data.images.logos as unknown as MediaItem[],
+		posters: data.images.posters as unknown as MediaItem[],
+		contentRatings: ratings,
+		watched: false,
+		favorite: false,
+		titleSort: createTitleSort(data.title),
+		duration: data.runtime,
+		year: new Date(Date.parse(data.release_date!)).getFullYear(),
+		voteAverage: data.vote_average,
+		similar: similar as unknown as Similar[],
+		recommendations: recommendations as unknown as Recommendation[],
+		externalIds: {
+			imdbId: data.external_ids.imdb_id as string | null,
+			tvdbId: data.external_ids.tvdb_id as number | null,
+		},
+		directors:
+			data.credits.crew.filter((c) => c.department == 'Directing')
+				.slice(0, 10)
+				.map((c) => ({
+					id: c.id,
+					name: c.name,
+				})) ?? [],
+		writers:
+			data.credits.crew.filter((c) => c.department == 'Writing')
+				.slice(0, 10)
+				.map((c) => ({
+					id: c.id,
+					name: c.name,
+				})) ?? [],
+		genres:
+			data.genres.map((g) => ({
+				id: g.id,
+				name: g.name,
+			})) ?? [],
+		keywords: data.keywords.keywords.map((c) => c.name),
+		type: 'movies',
+		mediaType: 'movies',
+		cast: data.credits.cast.map((c) => {
+			return {
+				gender: c.gender,
+				id: c.id,
+				creditId: c.credit_id,
+				character: c.character,
+				knownForDepartment: c.known_for_department,
+				name: c.name,
+				profilePath: c.profile_path,
+				popularity: c.popularity,
+				deathday: null,
+				// blurHash: c.blurHash,
+			};
+		}),
+		crew: data.credits.crew.map((c) => {
+			return {
+				gender: c.gender,
+				id: c.id,
+				creditId: c.credit_id,
+				job: c.job,
+				department: c.department,
+				knownForDepartment: c.known_for_department,
+				name: c.name,
+				profilePath: c.profile_path,
+				popularity: c.popularity,
+				deathday: null,
+				// blurHash: c.blurHash,
+			};
+		}),
+		director: data.credits.crew.filter((c) => c.department == 'Directing')
+			.map((c) => ({
+				id: c.id,
+				name: c.name,
+				// blurHash: c.blurHash,
+			})),
+	};
+
+	return response;
+
+}

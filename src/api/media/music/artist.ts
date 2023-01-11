@@ -1,17 +1,21 @@
 import { Request, Response } from 'express';
 import { trackSort, uniqBy } from '../../../functions/stringArray';
 
-import { Track } from '@prisma/client';
 import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
 
 export default async function (req: Request, res: Response) {
+
+	const language = req.acceptsLanguages()[0] == 'undefined'
+		? 'en'
+		: req.acceptsLanguages()[0].split('-')[0];
 
 	const music = await confDb.artist.findFirst({
 		where: {
 			id: req.params.id,
 		},
 		include: {
+			_count: true,
 			Track: {
 				distinct: 'name',
 				include: {
@@ -25,15 +29,14 @@ export default async function (req: Request, res: Response) {
 
 	try {
 		if (music) {
-			const result: any = {
+			const results: any = {
 				...music,
-				// artist: [music],
 				type: 'artist',
 				Track: undefined,
 				cover: music.cover ?? music.Track?.find(t => t.cover)?.cover ?? music.Track?.[0]?.Artist.find(t => t.cover)?.cover,
-				colorPalette: JSON.parse(music.colorPalette ?? music.Track?.find(t => t.cover)?.colorPalette ?? music.Track?.[0]?.Artist.find(t => t.cover)?.colorPalette ?? "{}"),
+				colorPalette: JSON.parse(music.colorPalette ?? music.Track?.find(t => t.cover)?.colorPalette ?? music.Track?.[0]?.Artist.find(t => t.cover)?.colorPalette ?? '{}'),
 				track: uniqBy<typeof music.Track>(music.Track.sort(trackSort), 'name').map((t) => {
-					
+
 					const albums = t.Album.map(a => ({
 						id: a.id,
 						name: a?.name,
@@ -44,7 +47,7 @@ export default async function (req: Request, res: Response) {
 						origin: deviceId,
 						colorPalette: a.colorPalette,
 					}));
-					const artists = t.Artist.filter(a => a.name != 'Various Artists').map(a => ({
+					const artists = t.Artist.filter(a => a.id != '89ad4ac3-39f7-470e-963a-56509c546377').map(a => ({
 						id: a.id,
 						name: a.name,
 						cover: a.cover ?? t.Album.find(t => t.cover)?.cover ?? t.Artist.find(t => t.cover)?.cover ?? null,
@@ -54,27 +57,32 @@ export default async function (req: Request, res: Response) {
 						origin: deviceId,
 						colorPalette: a.colorPalette,
 					}));
-					
+
 					return {
 						...t,
+						lyrics: undefined,
+						date: t.date && new Date(t.date)
+							.toLocaleDateString(language, {
+								year: 'numeric',
+								month: 'short',
+								day: '2-digit',
+							}),
 						type: 'artist',
 						favorite_track: t.FavoriteTrack.length > 0,
 						origin: deviceId,
-						artists: artists,
+						Artist: artists,
 						cover: (albums[0] ?? t).cover ?? null,
 						folder: (albums[0] ?? t).folder,
-						Artist: undefined,
-						Album: undefined,
 						FavoriteTrack: undefined,
 						libraryId: music.libraryId,
-						colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? "{}"),
-						album: albums[0],
+						colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? '{}'),
+						Album: albums,
 					};
 				}),
 			};
-			return res.json(result);
+			return res.json(results);
 		}
-		
+
 	} catch (error) {
 		console.log(error);
 	}

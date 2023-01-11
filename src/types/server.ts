@@ -1,4 +1,4 @@
-import { Collection, Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '@prisma/client';
+import { Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '@prisma/client';
 
 import { Movie } from '../providers/tmdb/movie';
 import { Socket } from 'socket.io-client';
@@ -141,6 +141,7 @@ export interface SystemPath {
 export interface Device {
 	id: string;
 	title: string;
+	ip: string;
 	type: string;
 	version: string;
 	deviceId: string;
@@ -217,6 +218,11 @@ export interface InfoResponse {
 	cast: InfoCredit[];
 	crew: InfoCredit[];
 	director: Item[];
+	blurHash?: {
+		poster?: string|null|undefined,
+		backdrop?: string|null|undefined,
+		logo?: string|null|undefined,
+	};
 
 	videos: ExtendedVideo[];
 	similar: Similar[];
@@ -311,6 +317,11 @@ export interface LibraryResponseContent {
 	titleSort: string;
 	type: string;
 	mediaType: string;
+	blurHash?: {
+		poster?: string|null|undefined,
+		backdrop?: string|null|undefined,
+		logo?: string|null|undefined,
+	};
 	numberOfEpisodes?: number;
 	haveEpisodes?: number;
 	genres?: Genre[] | GenreTv[] | GenreMovie[];

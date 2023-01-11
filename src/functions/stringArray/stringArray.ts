@@ -1,5 +1,5 @@
-import crypto from 'crypto'
-import hexToUuid from 'hex-to-uuid'
+import crypto from 'crypto';
+import hexToUuid from 'hex-to-uuid';
 
 /* eslint-disable no-extend-native */
 export const breakLogoTitle = (str: string, characters = [':', '!', '?']) => {
@@ -387,12 +387,12 @@ export const random_string = (length: number) => {
  * @param {string} key Group key
  * @param {string} key Sort key
  */
-export const sortByPriority = (arr: any[], prefferedOrder: string | any[]) => {
+export const sortByPriority = (arr: any[], preferredOrder: string | any[]) => {
 	const result: any[] = [];
 	let i: number;
 	let j: any;
-	for (i = 0; i < prefferedOrder.length; i++) {
-		while ((j = arr.indexOf(prefferedOrder[i])) != -1) {
+	for (i = 0; i < preferredOrder.length; i++) {
+		while ((j = arr.indexOf(preferredOrder[i])) != -1) {
 			result.push(arr.splice(j, 1)[0]);
 		}
 	}
@@ -433,7 +433,7 @@ export const trackSort = function (a: any, b: any) {
 	return pad(a.track, 2) > pad(b.track, 2) ? 1 : -1;
 };
 
-export const sortByPosterAlfabetized = <T>(
+export const sortByPosterAlphabetized = <T>(
 	data: T[],
 	sort = 'name',
 	uniqued:string|null = null
@@ -575,7 +575,7 @@ String.prototype.toPascalCase = function (): string {
 };
 
 
-export const mathPercentage = (strA: string, strB: string): number => {
+export const matchPercentage = (strA: string, strB: string): number => {
 	let result = 0;
 	// eslint-disable-next-line no-cond-assign
 	for (let i = strA.length; (i -= 1);) {
@@ -601,14 +601,14 @@ export const mathPercentage = (strA: string, strB: string): number => {
  * @param {string} key Group key
  * @param {string} match Match to
  */
-export const sortByMathPercentage = (
+export const sortByMatchPercentage = (
 	array: any[],
 	key: string | number,
 	match: string
 ) => {
 	return array.sort((a, b) => {
-		const x = mathPercentage(match, a[key]);
-		const y = mathPercentage(match, b[key]);
+		const x = matchPercentage(match, a[key]);
+		const y = matchPercentage(match, b[key]);
 		return x > y ? -1 : x < y ? 1 : 0;
 	});
 };
@@ -707,3 +707,34 @@ export function byObjectValues<T extends object>(keys: ((keyof T) | SortConfig<T
 }
 
 export const jsonToString = (arg: any) => JSON.stringify(arg, null, 2);
+
+export const dualSort = <T>(data: T[], key1: string, key2: string, sortKey: string, uniqued?: string): T[] => {
+
+    if (uniqued) {
+        data = unique<T>(data, uniqued);
+    }
+
+    const current = Object.create(null);
+    const finalArr: any[] = [];
+
+    data.forEach((o: any) => {
+        if (!current[o.name ?? o.title]) {
+            current[o.name ?? o.title] = [];
+            finalArr.push({ ...o, department: current[o.name ?? o.title] });
+        }
+        current[o.name ?? o.title].push(o.department);
+    });
+
+    const hasPoster = finalArr
+        .filter((d) => d[key1])
+        .sort((a: { [x: string]: number }, b: { [x: string]: number }) => +(a[sortKey] > b[sortKey]) || -(a[sortKey] < b[sortKey]));
+		
+    const nulled = finalArr
+        .filter((d) => d[key2])
+        .sort((a: { [x: string]: number }, b: { [x: string]: number }) => +(a[sortKey] > b[sortKey]) || -(a[sortKey] < b[sortKey]));
+
+	console.log(hasPoster);
+
+    return hasPoster.concat(nulled);
+
+} 

@@ -42,16 +42,13 @@ export const artistImages = async (artist: string) => {
 						const item: any = $(el).children().closest("a").attr("href");
 						urls.push({
 							page: `${baseUrl}${item}`,
-							url: `https://lastfm.freetls.fastly.net/i/u/avatar300s/${item.replace(/.*\//u, "")}`,
+							url: `https://lastfm.freetls.fastly.net/i/u/avatar300s/${item.replace(/.*\//u, "")}.png`,
 							up: 0,
 							down: 0,
 							average: 0,
 							type: "unknown",
 						});
 					});
-			})
-			.catch(() => {
-				//
 			})
 			.then(() => {
 				for (let i = 0; i < urls.length; i += 1) {
@@ -78,27 +75,55 @@ export const artistImages = async (artist: string) => {
 										urls[i].down = text;
 									}
 								});
-								urls[i].average = (urls[i].up / (urls[i].down + urls[i].up)) * 100;
-
-								const res = await axios.head(urls[i].url, { timeout: 2000 });
-								urls[i].type = res.headers["content-type"] as string;
+								
+								try {
+									const res = await axios.head(urls[i].url, { timeout: 2000 });
+									urls[i].type = res.headers["content-type"] as string;
+									urls[i].average = (urls[i].up / (urls[i].down + urls[i].up)) * 100;
+								} catch (error) {
+									
+								}
 							})
-							.catch(() => {
-								//
+							.catch((error) => {
+								// console.log(error);
+								null;
 							})
 					);
 				}
+			})
+			.catch((error) => {
+				// console.log(error);
+				null;
 			});
+
 		await Promise.all(promises)
-			.catch(() => {
-				//
-			});
+			.catch((error) => {
+				// console.log(error);
+				null;
+			})
 	} catch {
 		//
 	}
-
+	// console.log(urls.filter(async (u) => (await axios
+	// 	.head<any>(u.url, { timeout: 2000 })
+	// 	.catch(() => ({ status: 500 }))
+	// ).status < 400)
+	// .filter((a) => !a.type.includes("gif"))
+	// .filter((a) => a.average > 40)
+	// .sort((a, b) => b.up - a.up)
+	// .concat(
+	// 	urls
+	// 		.filter((a) => a.average <= 40)
+	// 		.filter((a) => !a.type.includes("gif"))
+	// 		.sort((a, b) => b.up - a.up)
+	// )
+	// .concat(urls.filter((a) => a.type.includes("gif")).sort((a, b) => b.average - a.average)));
 	return urls
-		.filter(async (u) => (await axios.head<any>(u.url, { timeout: 2000 }).catch(() => ({ status: 500 }))).status < 400)
+		.filter((a) => !!a.type)
+		.filter(async (u) => (await axios
+			.head<any>(u.url, { timeout: 2000 })
+			.catch(() => ({ status: 500 }))
+		).status < 400)
 		.filter((a) => !a.type.includes("gif"))
 		.filter((a) => a.average > 40)
 		.sort((a, b) => b.up - a.up)

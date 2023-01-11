@@ -1,15 +1,14 @@
-//artists, releases, isrcs, url-
+// artists, releases, isrcs, url-
 
-import { Genre } from "../genre";
-import Logger from "../../../functions/logger";
-import axios from "axios";
-import mbApiClient from "../mbApiClient";
+import { Genre } from '../genre';
+import Logger from '../../../functions/logger';
+import mbApiClient from '../mbApiClient';
 
 export interface Recording {
 	video: boolean;
 	disambiguation: string;
 	id: string;
-	"first-release-date": Date;
+	'first-release-date': Date;
 	title: string;
 	length: number;
 }
@@ -22,34 +21,34 @@ export interface Credit {
 
 export interface Artist {
 	disambiguation: string;
-	"type-id": null | string;
+	'type-id': null | string;
 	tags?: Tag[];
 	id: string;
 	name: string;
 	aliases?: Alias[];
-	"sort-name": string;
+	'sort-name': string;
 	type: null | string;
-	"label-code"?: null;
+	'label-code'?: null;
 	rating?: Rating;
-	"iso-3166-1-codes"?: string[];
-	"iso-3166-2-codes"?: string[];
+	'iso-3166-1-codes'?: string[];
+	'iso-3166-2-codes'?: string[];
 }
 
 export interface Alias {
 	end: null;
 	name: string;
-	"sort-name": string;
+	'sort-name': string;
 	type: null | string;
 	begin: null;
 	locale: null | string;
 	ended: boolean;
-	"type-id": null | string;
+	'type-id': null | string;
 	primary: boolean | null;
 }
 
 export interface Rating {
 	value: number;
-	"votes-count": number;
+	'votes-count': number;
 }
 
 export interface Tag {
@@ -58,37 +57,40 @@ export interface Tag {
 }
 
 export interface Relation {
-	"attribute-values": Attribute;
+	'attribute-values': Attribute;
 	end: null | string;
-	"attribute-ids": AttributeIds;
+	'attribute-ids': AttributeIds;
 	type: string;
-	"attribute-credits"?: Attribute;
+	'attribute-credits'?: Attribute;
 	ended: boolean;
 	direction: string;
-	"target-credit": string;
+	'target-credit': string;
 	begin: null | string;
 	artist?: Artist;
-	"type-id": string;
-	"target-type": string;
+	'type-id': string;
+	'target-type': string;
 	attributes: string[];
-	"source-credit": string;
+	'source-credit': string;
 	label?: Artist;
 	work?: Work;
 	genre: Genre[];
 }
 
-export interface Attribute {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Attribute {
+	//
+}
 
 export interface AttributeIds {
 	strings?: string;
 	assistant?: string;
 	additional?: string;
-	"lead vocals"?: string;
+	'lead vocals'?: string;
 }
 
 export interface Work {
 	disambiguation: string;
-	"type-id": string;
+	'type-id': string;
 	language: string;
 	languages: string[];
 	attributes: any[];
@@ -99,15 +101,15 @@ export interface Work {
 }
 
 export interface Release {
-	"packaging-id": null | string;
-	"release-events": ReleaseEvent[];
+	'packaging-id': null | string;
+	'release-events': ReleaseEvent[];
 	disambiguation: string;
-	"status-id": null | string;
+	'status-id': null | string;
 	status: null | string;
 	tags: Tag[];
 	country: null | string;
-	"artist-credit": Credit[];
-	"text-representation": TextRepresentation;
+	'artist-credit': Credit[];
+	'text-representation': TextRepresentation;
 	media: Media[];
 	packaging: null | string;
 	date: string;
@@ -120,24 +122,24 @@ export interface Release {
 
 export interface Media {
 	position: number;
-	"track-offset": number;
+	'track-offset': number;
 	title: string;
-	"format-id": string;
+	'format-id': string;
 	tracks: Track[];
 	discs: Disc[];
 	format: string;
-	"track-count": number;
+	'track-count': number;
 }
 
 export interface Disc {
 	id: string;
-	"offset-count": number;
+	'offset-count': number;
 	offsets: number[];
 	sectors: number;
 }
 
 export interface Track {
-	"artist-credit": Credit[];
+	'artist-credit': Credit[];
 	title: string;
 	id: string;
 	length: number;
@@ -158,7 +160,7 @@ export interface TextRepresentation {
 export interface RecordingAppend extends Recording {
 	aliases: any[];
 	annotation: string;
-	"artist-credit": Credit[];
+	'artist-credit': Credit[];
 	rating: Rating;
 	relations: Relation[];
 	releases: Release[];
@@ -167,35 +169,35 @@ export interface RecordingAppend extends Recording {
 }
 
 export const recordingAppend = [
-    "aliases", 
-    "annotation", 
-    "artist-credit", 
-    "genres",
-    "rating", 
-    "relations", 
-    "releases", 
-    "tags"
+    'aliases',
+    'annotation',
+    'artist-credit',
+    'genres',
+    'rating',
+    'relations',
+    'releases',
+    'tags',
 ] as const;
 
 export type RecordingWithAppends<T extends keyof RecordingAppend> = Recording & Pick<RecordingAppend, T>;
 
 export const recording = async (id: string) => {
 	Logger.log({
-		level: "info",
-		name: "musicBrainz",
-		color: "blue",
+		level: 'info',
+		name: 'musicBrainz',
+		color: 'blue',
 		message: `Fetching Recording id: ${id}`,
 	});
 
 	const params = {
 		params: {
 			inc: [
-				"artist-credits",
-				"artists",
-				"releases",
-				"tags",
-                "genres",
-			].join("+"),
+				'artist-credits',
+				'artists',
+				'releases',
+				'tags',
+                'genres',
+			].join('+'),
 		},
 	};
 

@@ -1,26 +1,26 @@
 import {
-	AlternativeTitles,
-	Cast,
-	CastMovie,
-	Certification,
-	CertificationMovie,
-	Collection,
-	CollectionMovie,
-	Crew,
-	CrewMovie,
-	Genre,
-	GenreMovie,
-	Keyword,
-	KeywordMovie,
-	Library,
-	Media,
-	Movie,
-	Person,
-	Prisma,
-	SpecialItem,
-	UserData,
-	VideoFile,
-} from '@prisma/client'
+    AlternativeTitles,
+    Cast,
+    CastMovie,
+    Certification,
+    CertificationMovie,
+    Collection,
+    CollectionMovie,
+    Crew,
+    CrewMovie,
+    Genre,
+    GenreMovie,
+    Keyword,
+    KeywordMovie,
+    Library,
+    Media,
+    Movie,
+    Person,
+    Prisma,
+    SpecialItem,
+    UserData,
+    VideoFile,
+} from '@prisma/client';
 import { Request, Response } from 'express';
 
 import { KAuthRequest } from 'types/keycloak';
@@ -44,7 +44,7 @@ export default async function (req: Request, res: Response) {
 			.then(async (collection) => {
 				if (!collection) {
 					return res.json({
-						status: 'ok',
+						status: 'error',
 						message: `Something went wrong getting library`,
 					});
 				}
@@ -68,7 +68,7 @@ export default async function (req: Request, res: Response) {
 			.then(async (collection) => {
 				if (!collection) {
 					return res.json({
-						status: 'ok',
+						status: 'error',
 						message: `Something went wrong getting library`,
 					});
 				}
@@ -87,7 +87,6 @@ export default async function (req: Request, res: Response) {
 				});
 			});
 	}
-
 }
 
 type MovieWithInfo = Collection & {
@@ -138,16 +137,17 @@ const getContent = async (data: MovieWithInfo, language: string, servers: string
 
     const response = {
         id: data.id,
-        backdrop: data.backdrop,
-        favorite: userData?.isFavorite ?? false,
-        watched: userData?.played ?? false,
-        logo: logo,
-        mediaType: 'collections',
         overview: overview,
+        backdrop: data.backdrop,
         poster: data.poster,
         title: title[0].toUpperCase() + title.slice(1),
         titleSort: createTitleSort(title),
         type: 'collections',
+        mediaType: 'collections',
+        logo: logo,
+        favorite: userData?.isFavorite ?? false,
+        watched: userData?.played ?? false,
+        blurHash: data.blurHash ? JSON.parse(data.blurHash) : null,
         collection: data.Movie.map(c => ({
             id: c.Movie.id,
             backdrop: c.Movie.backdrop,
@@ -156,6 +156,8 @@ const getContent = async (data: MovieWithInfo, language: string, servers: string
             title: c.Movie.title[0].toUpperCase() + c.Movie.title.slice(1),
             titleSort: createTitleSort(c.Movie.title, c.Movie.releaseDate),
             type: 'movies',
+            logo: c.Movie.Media.find(m => m.type == 'logo')?.src,
+			blurHash: c.Movie.blurHash ? JSON.parse(c.Movie.blurHash) : null,
         })),
     }
 

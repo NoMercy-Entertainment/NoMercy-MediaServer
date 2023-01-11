@@ -1,3 +1,4 @@
+import { Movie, Tv } from "@prisma/client";
 import { Request, Response } from "express";
 import { sortBy, unique } from "../../../functions/stringArray";
 
@@ -58,14 +59,15 @@ export default async function (req: Request, res: Response) {
 		time: d.updatedAt,
 	}));
 
-	const data = newArray.map((tv) => ({
-		id: tv.id,
-		mediaType: tv.mediaType,
-		poster: tv.poster,
-		title: tv.title[0].toUpperCase() + tv.title.slice(1),
-		titleSort: createTitleSort(tv.title),
-		type: tv.mediaType ? "tv" : "movies",
-		updatedAt: tv.updatedAt,
+	const data = newArray.map((d: Tv | Movie) => ({
+		id: d.id,
+		mediaType: (d as Tv).mediaType ?? 'movie',
+		poster: d.poster,
+		title: d.title[0].toUpperCase() + d.title.slice(1),
+		titleSort: createTitleSort(d.title),
+		type: (d as Tv).mediaType ? "tv" : "movies",
+		updatedAt: d.updatedAt,
+		blurHash: d.blurHash ? JSON.parse(d.blurHash) : null,
 	}));
 
 	return res.json(data);

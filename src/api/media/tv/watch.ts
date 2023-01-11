@@ -1,10 +1,10 @@
 import { Media, Prisma } from '@prisma/client'
 import { Request, Response } from 'express';
-import { convertToHuman, convertToSeconds } from '../../../functions/dateTime';
 import { existsSync, readFileSync } from 'fs';
 
 import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
+import { convertToSeconds } from '../../../functions/dateTime';
 import { deviceId } from '../../../functions/system';
 import i18next from 'i18next';
 import { isOwner } from '../../middleware/permissions';
@@ -219,7 +219,7 @@ export default async function (req: Request, res: Response) {
 			});
 		});
 
-		console.log(convertToHuman(length));
+		// console.log(convertToHuman(length));
 
 		return res.json(files.filter((f) => f.season != 0).concat(...files.filter((f) => f.season == 0)));
 	});

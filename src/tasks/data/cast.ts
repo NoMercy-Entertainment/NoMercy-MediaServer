@@ -1,14 +1,14 @@
-import { Prisma } from '@prisma/client';
-
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import {
-  EpisodeAppend,
+	EpisodeAppend,
 } from '../../providers/tmdb/episode/index';
+import { Prisma } from '@prisma/client';
 import {
-  SeasonAppend,
+	SeasonAppend,
 } from '../../providers/tmdb/season/index';
 import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 
 export default async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate,
@@ -43,6 +43,7 @@ export default async (
 			originalName: cast.original_name,
 			popularity: cast.popularity,
 			profilePath: cast.profile_path,
+			blurHash: cast.profile_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${cast.profile_path}`) : undefined,
 		});
 		
 		// await downloadTMDBImages('cast', cast);

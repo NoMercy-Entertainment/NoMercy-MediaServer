@@ -1,8 +1,8 @@
-import { commitConfigTransaction } from '../../database';
-import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client'
 import { Certification } from '../../providers/tmdb/movie/index';
 import { ContentRating } from '../../providers/tmdb/shared/index';
+import { Prisma } from '@prisma/client';
+import { commitConfigTransaction } from '../../database';
+import { confDb } from '../../database/config';
 
 export default async function (certifications: Array<Certification | ContentRating>) {
 	const transaction: any[] = [];

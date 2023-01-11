@@ -38,13 +38,12 @@ export default async function (req: Request, res: Response) {
 			return {
 				...m,
 				type: 'album',
-				Artist: undefined,
-				artist: m.Artist[0],
+				Artist: m.Artist,
 				name: m.name?.replace(/["'\[\]*]/gu, ''),
-				title_sort: createTitleSort(m.name?.replace(/["'\[\]*]/gu, '') ?? ''),
+				titleSort: createTitleSort(m.name?.replace(/["'\[\]*]/gu, '') ?? ''),
 				origin: deviceId,
 			};
-		}), 'title_sort');
+		}), 'titleSort');
 
 
 		return res.json(result);

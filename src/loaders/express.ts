@@ -1,16 +1,16 @@
 import { AppState, useSelector } from '../state/redux';
 import express, {
-  Application,
-  NextFunction,
-  Request,
-  Response,
+	Application,
+	NextFunction,
+	Request,
+	Response,
 } from 'express';
 import {
-  serveImagesPath,
-  serveLibraryPaths,
-  servePublicPath,
-  serveSubtitlesPath,
-  serveTranscodePath,
+	serveImagesPath,
+	serveLibraryPaths,
+	servePublicPath,
+	serveSubtitlesPath,
+	serveTranscodePath,
 } from '../api/routes/files';
 
 import Logger from '../functions/logger';
@@ -23,11 +23,11 @@ import { initKeycloak } from '../functions/keycloak';
 import routes from '../api/index';
 import session from 'express-session';
 import {
-  session_config,
+	session_config
 } from '../functions/keycloak/config';
 import { setupComplete } from '../state';
 import {
-  staticPermissions,
+	staticPermissions,
 } from '../api/middleware/permissions';
 
 export default async (app: Application) => {
@@ -61,16 +61,15 @@ export default async (app: Application) => {
 	}
 	app.use(compression({ filter: shouldCompress }));
 	
-	app.enable('trust proxy');
-	app.use(changeLanguage);
-	app.use(express.json());
-
 	await serveLibraryPaths(app);
 
 	app.get('/images/*', staticPermissions, serveImagesPath);
-	app.get('/transcodesPath/*', staticPermissions, serveTranscodePath);
+	app.get('/transcodes/*', staticPermissions, serveTranscodePath);
 	app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
-
+	
+	app.enable('trust proxy');
+	app.use(changeLanguage);
+	app.use(express.json());
 
 	app.get('/status', (req: Request, res: Response) => {
 		res.status(200).end();
@@ -96,12 +95,10 @@ export default async (app: Application) => {
 
 	app.use('/api', KC.checkSso(), check, changeLanguage, routes);
 
-
 	app.get('/', (req: Request, res: Response) => {
 		res.redirect('https://app.nomercy.tv');
 	});
 
-	
 	app.get('/*', staticPermissions, servePublicPath);
 	
 	Logger.log({

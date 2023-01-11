@@ -1,10 +1,10 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
-import Logger from '../../functions/logger';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
 import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 
 export default async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate,
@@ -39,6 +39,7 @@ export default async (
 			originalName: crew.original_name,
 			popularity: crew.popularity,
 			profilePath: crew.profile_path,
+			blurHash: crew.profile_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${crew.profile_path}`) : undefined,
 		});
 
 		transaction.push(

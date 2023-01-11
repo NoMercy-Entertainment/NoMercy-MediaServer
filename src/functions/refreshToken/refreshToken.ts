@@ -13,9 +13,7 @@ import {
 	setTokenType
 } from '../../state/redux/user/actions';
 
-import { KeycloakToken } from 'types/keycloak';
 import Logger from '../../functions/logger';
-import axios from 'axios';
 import { keycloak_key } from '../keycloak/config';
 import qs from 'qs';
 import { setOwner } from '../../state/redux/system/actions';
@@ -67,12 +65,16 @@ const refresh = async () => {
 		refresh_token: useSelector((state: AppState) => state.user.refresh_token),
 	});
 
-	await axios
-		.post<KeycloakToken>(
-			useSelector((state: AppState) => state.user.keycloakUrl),
-			keycloakData
-		)
-		.then(({ data }) => {
+	await fetch(useSelector((state: AppState) => state.user.keycloakUrl), {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		redirect: 'follow',
+		body: keycloakData,
+	})
+		.then(data => data.json())
+		.then((data) => {
 			Logger.log({
 				level: 'info',
 				name: 'keycloak',
@@ -96,7 +98,7 @@ const refresh = async () => {
 			Logger.log({
 				level: 'error',
 				name: 'keycloak',
-				color: 'blueBright',
+				color: 'red',
 				message: error,
 			});
 		});

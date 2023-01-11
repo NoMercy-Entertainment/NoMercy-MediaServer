@@ -2,13 +2,13 @@ import { errorLog, ffprobe } from '../../state';
 
 import { AudioFFprobe } from './ffprobe';
 import Logger from '../../functions/logger';
-import fffmpeg from 'fluent-ffmpeg';
+import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 
 export default (file: string): Promise<AudioFFprobe> => {
-	return new Promise(async (resolve, reject) => {
+	return new Promise((resolve, reject) => {
 
-		fffmpeg.setFfprobePath(ffprobe);
+		ffmpeg.setFfprobePath(ffprobe);
 
 		Logger.log({
 			level: 'verbose',
@@ -17,7 +17,7 @@ export default (file: string): Promise<AudioFFprobe> => {
 			message: `Getting file info from: ${file}`,
 		});
 
-		return fffmpeg.ffprobe(file, async (error, audioInfo) => {
+		return ffmpeg.ffprobe(file, async (error, audioInfo) => {
 			if (error) {
 				fs.appendFileSync(errorLog, `${error.toString().replace(/[\w\s\d\W\D\S\n\r]*\n/u, '')}\n`);
 				return reject(error);
@@ -81,14 +81,14 @@ export default (file: string): Promise<AudioFFprobe> => {
 					'artist-sort': audioInfo.format.tags?.['artist-sort'] || audioInfo.format.tags?.ARTISTSORT,
 
 					ARTISTS:
-						(audioInfo.format.tags?.ARTISTS as string)?.split(';').map((a) => a.trim()) ||
-						(audioInfo.format.tags?.ALBUMARTISTSORT as string)?.split(';').map((a) => a.trim()),
+						(audioInfo.format.tags?.ARTISTS as string)?.split(';').map(a => a.trim())
+						|| (audioInfo.format.tags?.ALBUMARTISTSORT as string)?.split(';').map(a => a.trim()),
 					ASIN: audioInfo.format.tags?.ASIN,
 					BARCODE: audioInfo.format.tags?.BARCODE,
 					CATALOGNUMBER: audioInfo.format.tags?.CATALOGNUMBER || audioInfo.format.tags?.CATALOGNUMBER,
 					MusicBrainz_artist_ids:
-						(audioInfo.format.tags?.['MusicBrainz Artist Id'] as string)?.split(';').map((a) => a.trim()) ||
-						(audioInfo.format.tags?.MUSICBRAINZ_ARTISTID as string)?.split(';').map((a) => a.trim()),
+						(audioInfo.format.tags?.['MusicBrainz Artist Id'] as string)?.split(';').map(a => a.trim())
+						|| (audioInfo.format.tags?.MUSICBRAINZ_ARTISTID as string)?.split(';').map(a => a.trim()),
 					SCRIPT: audioInfo.format.tags?.SCRIPT || audioInfo.format.tags?.SCRIPT,
 					TDOR: audioInfo.format.tags?.TDOR,
 					TIPL: audioInfo.format.tags?.TIPL,
@@ -97,14 +97,14 @@ export default (file: string): Promise<AudioFFprobe> => {
 					TSO2: audioInfo.format.tags?.TSO2,
 					TSRC: audioInfo.format.tags?.TSRC,
 					Writer: audioInfo.format.tags?.Writer,
-					album: audioInfo.format.tags?.album || audioInfo.format.tags?.ALBUM,
+					Album: audioInfo.format.tags?.album || audioInfo.format.tags?.ALBUM,
 					album_artist: audioInfo.format.tags?.album_artist,
-					artist: audioInfo.format.tags?.artist || audioInfo.format.tags?.ARTIST,
+					Artist: audioInfo.format.tags?.artist || audioInfo.format.tags?.ARTIST,
 					date: audioInfo.format.tags?.date || audioInfo.format.tags?.DATE,
 					disc: audioInfo.format.tags?.disc,
 					genre:
-						(audioInfo.format.tags?.genre as string)?.split(';').map((g) => g.trim()) ||
-						(audioInfo.format.tags?.GENRE as string)?.split(';').map((g) => g.trim()),
+						(audioInfo.format.tags?.genre as string)?.split(';').map(g => g.trim())
+						|| (audioInfo.format.tags?.GENRE as string)?.split(';').map(g => g.trim()),
 					language: audioInfo.format.tags?.language,
 					originalyear: audioInfo.format.tags?.originalyear || audioInfo.format.tags?.ORIGINALYEAR,
 					publisher: audioInfo.format.tags?.publisher,

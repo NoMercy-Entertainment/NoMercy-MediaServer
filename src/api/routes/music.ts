@@ -9,6 +9,8 @@ import musicCoverImage from '../media/music/coverImage';
 import musicDelete from '../media/music/playlist/delete';
 import musicEdit from '../media/music/playlist/edit';
 import musicFavorites from '../media/music/favorite';
+import musicGenre from '../media/music/genre';
+import musicGenres from '../media/music/genres';
 import musicImages from '../media/music/images';
 import musicLike from '../media/music/like';
 import musicLyrics from '../media/music/lyrics';
@@ -26,6 +28,9 @@ router.post('/album/:id', musicAlbum);
 
 router.post('/artists', musicArtists);
 router.post('/artist/:id', musicArtist);
+
+router.post('/genres', musicGenres);
+router.post('/genre/:id', musicGenre);
 
 router.post('/playlists', musicPlaylists);
 router.post('/playlist/:id', musicPlaylist);

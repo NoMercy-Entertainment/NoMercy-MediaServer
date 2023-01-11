@@ -12,7 +12,7 @@ router.post('/watched', watched);
 router.post('/favorites', favorites);
 router.post('/favorites/add', updateFavorite);
 router.post('/continue', _continue);
-router.post('/continue/remove', removeContinue);
+router.post('/continue/delete', removeContinue);
 router.post('/music/like', like);
 
 export default router;

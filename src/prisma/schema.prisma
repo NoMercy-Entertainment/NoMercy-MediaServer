@@ -6,8 +6,9 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   // output   = "./client"
+  binaryTargets = ["native"]
 }
 
 model Configuration {
@@ -33,6 +34,7 @@ model Library {
   type                  String
   country               String
   language              String
+  blurHash              String? @default("S1423toNIVof00R$_1WB")
 
   Folders           LibraryFolder[]
   Metadata          Metadata[]
@@ -148,7 +150,6 @@ model ActivityLog {
   id   String   @id @default(cuid())
   type String
   time DateTime
-  from String
 
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
@@ -166,6 +167,7 @@ model Device {
   title    String
   type     String
   version  String
+  ip       String?
 
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
@@ -427,6 +429,7 @@ model Cast {
   originalName       String?
   popularity         Float?
   profilePath        String?
+  blurHash           String? @default("S1423toNIVof00R$_1WB")
 
   Episode CastEpisode[]
   Movie   CastMovie[]
@@ -532,6 +535,7 @@ model Collection {
   poster    String?
   title     String
   titleSort String
+  blurHash  String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
 
   Movie CollectionMovie[]
 
@@ -558,6 +562,7 @@ model Creator {
   id          String  @id @default(cuid())
   name        String
   profilePath String?
+  blurHash    String? @default("S1423toNIVof00R$_1WB")
 
   Tv CreatorTv[]
 
@@ -591,6 +596,7 @@ model Crew {
   popularity         Float?
   profilePath        String?
   profileId          Int?
+  blurHash           String? @default("S1423toNIVof00R$_1WB")
 
   Episode CrewEpisode[]
   Movie   CrewMovie[]
@@ -662,6 +668,7 @@ model Episode {
   updatedAt      DateTime @updatedAt
   voteAverage    Float?
   voteCount      Int?
+  blurHash       String?  @default("S1423toNIVof00R$_1WB")
 
   tvId     Int
   Tv       Tv     @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -832,6 +839,7 @@ model Movie {
   video            String?
   voteAverage      Float?
   voteCount        Int?
+  blurHash         String?  @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
 
   AlternativeTitles AlternativeTitles[]
   Cast              CastMovie[]
@@ -883,6 +891,7 @@ model Person {
   popularity         Float?
   profilePath        String?
   updatedAt          DateTime  @updatedAt
+  blurHash           String?   @default("S1423toNIVof00R$_1WB")
 
   Cast      Cast[]
   Crew      Crew[]
@@ -900,6 +909,7 @@ model Recommendation {
   poster    String?
   title     String
   titleSort String
+  blurHash  String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
 
   recommendationableId   Int
   recommendationableType String
@@ -920,6 +930,7 @@ model Season {
   seasonNumber Int
   title        String?
   updatedAt    DateTime  @updatedAt
+  blurHash     String?   @default("S1423toNIVof00R$_1WB")
 
   tvId Int
   Tv   Tv  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -939,6 +950,7 @@ model Similar {
   poster    String?
   title     String
   titleSort String
+  blurHash  String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
 
   mediaId         Int
   mediaType       String
@@ -955,6 +967,7 @@ model Special {
   id          Int     @id @default(autoincrement())
   poster      String?
   title       String  @unique
+  blurHash    String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1033,6 +1046,7 @@ model Tv {
   updatedAt        DateTime @updatedAt
   voteAverage      Float?
   voteCount        Int?
+  blurHash         String?  @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
 
   AlternativeTitles AlternativeTitles[]
   Cast              CastTv[]
@@ -1096,6 +1110,7 @@ model Image {
   voteAverage  Float?
   voteCount    Int?
   colorPalette String?
+  blurHash     String?   @default("S1423toNIVof00R$_1WB")
 
   tvId Int?
   Tv   Tv?  @relation(fields: [tvId], references: [id])
@@ -1122,6 +1137,7 @@ model Media {
   voteCount    Int?
   width        Int?
   colorPalette String?
+  blurHash     String?   @default("S1423toNIVof00R$_1WB")
 
   tvId Int?
   Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -1145,12 +1161,13 @@ model Media {
 }
 
 model Artist {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-  cover       String?
-  folder      String?
+  id           String  @id @default(cuid())
+  name         String
+  description  String?
+  cover        String?
+  folder       String?
   colorPalette String?
+  blurHash     String? @default("S1423toNIVof00R$_1WB")
 
   Album Album[]
 
@@ -1163,15 +1180,16 @@ model Artist {
 }
 
 model Album {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-  folder      String?
-  cover       String?
-  country     String?
-  year        Int?
-  tracks      Int?
+  id           String  @id @default(cuid())
+  name         String
+  description  String?
+  folder       String?
+  cover        String?
+  country      String?
+  year         Int?
+  tracks       Int?
   colorPalette String?
+  blurHash     String? @default("S1423toNIVof00R$_1WB")
 
   Track  Track[]
   Artist Artist[]
@@ -1193,19 +1211,20 @@ model MusicGenre {
 }
 
 model Track {
-  id       String   @id @default(cuid())
-  name     String
-  track    Int?
-  disc     Int?
-  cover    String?
-  date     DateTime?
-  folder   String
-  filename String
-  duration String?
-  quality  Int?
-  path     String
-  lyrics   String?
+  id           String    @id @default(cuid())
+  name         String
+  track        Int?
+  disc         Int?
+  cover        String?
+  date         DateTime?
+  folder       String
+  filename     String
+  duration     String?
+  quality      Int?
+  path         String
+  lyrics       String?
   colorPalette String?
+  blurHash     String?   @default("S1423toNIVof00R$_1WB")
 
   MusicGenre    MusicGenre[]
   Album         Album[]
@@ -1217,17 +1236,18 @@ model Track {
 }
 
 model Playlist {
-  id            String          @id @default(cuid())
-  userId        String
-  name          String
-  description   String?
-  cover         String?
+  id           String  @id @default(cuid())
+  userId       String
+  name         String
+  description  String?
+  cover        String?
   colorPalette String?
+  blurHash     String? @default("S1423toNIVof00R$_1WB")
 
   PlaylistTrack PlaylistTrack[]
 
-  created_at    DateTime        @default(now())
-  updated_at    DateTime        @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@unique([id, userId], name: "playlist_unique")
 }

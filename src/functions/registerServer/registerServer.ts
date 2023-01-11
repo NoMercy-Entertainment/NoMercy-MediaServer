@@ -157,9 +157,9 @@ const tempServer = (redirect_uri: string, internal_port: number, registerComplet
 					level: 'error',
 					name: 'keycloak',
 					color: 'red',
-					message: JSON.stringify(response.data, null, 2),
+					message: JSON.stringify(response?.data ?? response, null, 2),
 				});
-				return res.json(response.data);
+				return res.json(response?.data);
 			});
 	});
 

@@ -1,6 +1,7 @@
 import { CompleteMovieAggregate } from './fetchMovie';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
 import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import { createTitleSort } from '../../tasks/files/filenameParser';
 
 const collection = async (movie: CompleteMovieAggregate, libraryId: string, transaction: any[], collectionMovieInsert: Prisma.CollectionMovieCreateOrConnectWithoutMovieInput[]) => {
@@ -18,12 +19,18 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 		},
 	});
 
+	const blurHash = {
+		poster: collection.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.poster_path}`) : undefined,
+		backdrop: collection.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`) : undefined,
+	}
+
 	const collectionInsert = Prisma.validator<Prisma.CollectionUncheckedCreateInput>()({
 		backdrop: collection.backdrop_path,
 		id: collection.id,
 		overview: collection.overview,
 		parts: collection.parts.length,
 		poster: collection.poster_path,
+		blurHash: JSON.stringify(blurHash),
 		title: collection.name,
 		titleSort: createTitleSort(collection.name),
 		libraryId: libraryId,
@@ -67,6 +74,11 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 			}
 		});
 
+		const blurHash = {
+			poster: p.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.poster_path}`) : undefined,
+			backdrop: p.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`) : undefined,
+		}
+
 		const movieCollectionInsert = Prisma.validator<Prisma.MovieUncheckedCreateWithoutCollectionMovieInput>()({
 			adult: p.adult,
 			backdrop: p.backdrop_path,
@@ -76,6 +88,7 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 			overview: p.overview,
 			popularity: p.popularity,
 			poster: p.poster_path,
+			blurHash: JSON.stringify(blurHash),
 			releaseDate: p.release_date,
 			tagline: p.tagline,
 			title: p.title,

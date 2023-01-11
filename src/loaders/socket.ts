@@ -1,11 +1,12 @@
-import socketioJwt from 'socketio-jwt';
+import { AppState, useSelector } from '../state/redux';
 import { Server, Socket } from 'socket.io';
 
-import base from '../api/sockets/base';
 import Logger from '../functions/logger';
-import { AppState, useSelector } from '../state/redux';
+import base from '../api/sockets/base';
 import { confDb } from '../database/config';
 import { socketCors } from '../functions/networking';
+import socketioJwt from 'socketio-jwt';
+import { storeServerActivity } from '../api/userData/activity/post';
 
 let io: any = null;
 export let myClientList: any[] = [];
@@ -119,6 +120,18 @@ export const socket = {
 				socket,
 			});
 
+			const data: any = {};
+			data.sub_id = socket.decoded_token.sub;
+			data.time = new Date();
+			data.device_id = socket.handshake.headers.device_id;
+			data.from = socket.request.connection.remoteAddress;
+			data.device_name = socket.handshake.headers.device_name;
+			data.device_type = socket.handshake.headers.device_type;
+			data.device_os = socket.handshake.headers.device_os;
+			data.version = '0.0.5';
+			data.type = 'Connected';
+			await storeServerActivity(data);
+
 			socket.join(socket.decoded_token.sub);
 
 			// setClientList(myClientList);
@@ -137,14 +150,15 @@ export const socket = {
 				}.`,
 			});
 			socket.nsp.to(socket.decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
-			
+
 			await confDb.device.upsert({
 				where: {
-					id: socket.handshake.headers.device_id
+					id: socket.handshake.headers.device_id,
 				},
 				update: {
 					id: socket.handshake.headers.device_id,
 					deviceId: socket.handshake.headers.device_id,
+					ip: socket.request.connection.remoteAddress,
 					title: socket.handshake.headers.device_name,
 					type: socket.handshake.headers.device_os,
 					version: '0.0.5',
@@ -153,26 +167,39 @@ export const socket = {
 				create: {
 					id: socket.handshake.headers.device_id,
 					deviceId: socket.handshake.headers.device_id,
+					ip: socket.request.connection.remoteAddress,
 					title: socket.handshake.headers.device_name,
 					type: socket.handshake.headers.device_os,
 					version: '0.0.5',
 					updated_at: new Date(),
-				}
+				},
 			})
             .then(async () => {
                 const devices = await confDb.device.findMany();
                 socket.broadcast.emit('setDevices', devices);
             })
-            .catch((error) => {
+            .catch(() => {
 				//
             });
 
-			socket.on('disconnect', () => {
+			socket.on('disconnect', async () => {
 				if (uniqueFilter == 'connection') {
 					myClientList = myClientList.filter(s => s.id != socket.id);
 				} else if (uniqueFilter == 'device') {
 					myClientList = myClientList.filter(s => s.client_id != socket.handshake.headers.device_id);
 				}
+
+				const data: any = {};
+				data.sub_id = socket.decoded_token.sub;
+				data.time = new Date();
+				data.device_id = socket.handshake.headers.device_id;
+				data.from = socket.request.connection.remoteAddress;
+				data.device_name = socket.handshake.headers.device_name;
+				data.device_type = socket.handshake.headers.device_type;
+				data.device_os = socket.handshake.headers.device_os;
+				data.version = '0.0.5';
+				data.type = 'Disconnected';
+				await storeServerActivity(data);
 
 				Logger.log({
 					level: 'http',

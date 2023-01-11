@@ -13,11 +13,15 @@ export const serveImagesPath = (req: Request, res: Response) => {
 			message: 'Access denied',
 		});
 	}
-	if (existsSync(`${imagesPath}/${req.params[0]}`)) {
-		return res.sendFile(`${imagesPath}/${req.params[0]}`);
-	}
-	return res.status(404).end();
-
+	try {
+		if (existsSync(`${imagesPath}/${req.params[0]}`)) {
+			return res.sendFile(`${imagesPath}/${req.params[0]}`);
+		} else {
+			return res.status(404).end();
+		}
+	} catch (error) {
+		return res.status(404).end();
+	};
 };
 
 export const serveTranscodePath = (req: Request, res: Response) => {
@@ -27,11 +31,15 @@ export const serveTranscodePath = (req: Request, res: Response) => {
 			message: 'Access denied',
 		});
 	}
-	if (existsSync(`${transcodesPath}/${req.params[0]}`)) {
-		return res.sendFile(`${transcodesPath}/${req.params[0]}`);
+	try {
+		if (existsSync(`${transcodesPath}/${req.params[0]}`)) {
+			return res.sendFile(`${transcodesPath}/${req.params[0]}`);
+		} else {
+			return res.status(404).end();
+		}
+	} catch (error) {
+		return res.status(404).end();
 	}
-	return res.status(404).end();
-
 };
 
 export const serveSubtitlesPath = (req: Request, res: Response) => {
@@ -41,11 +49,15 @@ export const serveSubtitlesPath = (req: Request, res: Response) => {
 			message: 'Access denied',
 		});
 	}
-	if (existsSync(`${subtitlesPath}/${req.params[0]}`)) {
-		return res.sendFile(`${subtitlesPath}/${req.params[0]}`);
+	try {
+		if (existsSync(`${subtitlesPath}/${req.params[0]}`)) {
+			return res.sendFile(`${subtitlesPath}/${req.params[0]}`);
+		} else {
+			return res.status(404).end();
+		}
+	} catch (error) {
+		return res.status(404).end();
 	}
-	return res.status(404).end();
-
 };
 
 export const servePublicPath = (req: Request, res: Response) => {
@@ -55,11 +67,15 @@ export const servePublicPath = (req: Request, res: Response) => {
 			message: 'Access denied',
 		});
 	}
-	if (existsSync(`${publicPath}/${req.params[0]}`)) {
-		return res.sendFile(`${publicPath}/${req.params[0]}`);
+	try {
+		if (existsSync(`${publicPath}/${req.params[0]}`)) {
+			return res.sendFile(`${publicPath}/${req.params[0]}`);
+		} else {
+			return res.status(404).end();
+		}
+	} catch (error) {
+		return res.status(404).end();
 	}
-	return res.status(404).end();
-
 };
 
 export const serveLibraryPaths = async (app) => {
@@ -73,7 +89,7 @@ export const serveLibraryPaths = async (app) => {
 			unique(folders, 'path')
 				.filter(r => r.path)
 				.map((r) => {
-					app.get(`/${r.Libraries[0].libraryId}/*`, staticPermissions, (req, res) => {
+					app.get(`/${r.Libraries[0]?.libraryId}/*`, staticPermissions, (req: Request, res: Response) => {
 						if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
 							return res.status(401).json({
 								status: 'error',

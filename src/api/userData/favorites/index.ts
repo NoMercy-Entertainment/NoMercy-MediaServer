@@ -8,7 +8,7 @@ export default async function (req: Request, res: Response) {
 
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 
-	const tvs: any[] = [];
+	const array: any[] = [];
 
 	const userData = await confDb.userData.findMany({
 		where: {
@@ -36,7 +36,7 @@ export default async function (req: Request, res: Response) {
 					},
 				},
 			},
-		}).then(data => tvs.push(...data.map(t => ({ ...t, userData: userData.find(u => u.tvId) })))),
+		}).then(data => array.push(...data.map(t => ({ ...t, userData: userData.find(u => u.tvId) })))),
 		confDb.movie.findMany({
 			where: {
 				id: {
@@ -50,18 +50,19 @@ export default async function (req: Request, res: Response) {
 					},
 				},
 			},
-		}).then(data => tvs.push(...data.map(t => ({ ...t, userData: userData.find(u => u.movieId) })))),
+		}).then(data => array.push(...data.map(t => ({ ...t, userData: userData.find(u => u.movieId) })))),
 	]);
 
-	const data = tvs.map(tv => ({
-		id: tv.id,
-		mediaType: tv.mediaType ?? 'movies',
-		poster: tv.poster,
-		backdrop: tv.backdrop,
-		logo: tv.Media.find(m => m.type == 'logo')?.src ?? null,
-		title: tv.title[0].toUpperCase() + tv.title.slice(1),
-		titleSort: createTitleSort(tv.title),
-		type: tv.mediaType
+	const data = array.map(d => ({
+		id: d.id,
+		mediaType: d.mediaType ?? 'movies',
+		poster: d.poster,
+		backdrop: d.backdrop,
+		logo: d.Media.find(m => m.type == 'logo')?.src ?? null,
+		title: d.title[0].toUpperCase() + d.title.slice(1),
+		titleSort: createTitleSort(d.title),
+		blurHash: d.blurHash ? JSON.parse(d.blurHash) : null,
+		type: d.mediaType
 			? 'tv'
 			: 'movies',
 	}));

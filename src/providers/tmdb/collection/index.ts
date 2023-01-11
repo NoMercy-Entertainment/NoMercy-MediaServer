@@ -22,6 +22,7 @@ export default async function collection(id: number) {
 		params: {
 			append_to_response: collectionAppend.join(','),
 			include_image_language: `en,null,${i18next.language}`,
+			include_video_language : `en,null,${i18next.language}`,
 		},
 	};
 

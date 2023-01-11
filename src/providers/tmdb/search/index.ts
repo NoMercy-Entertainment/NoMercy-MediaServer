@@ -1,20 +1,32 @@
-import Logger from '../../../functions/logger';
-import tmdbApiClient from '../tmdbApiClient';
 import { Collection } from '../collection/collection';
 import { Company } from '../company/company';
 import { Keyword } from '../keywords/keyword';
+import Logger from '../../../functions/logger';
 import { Movie } from '../movie/movie';
 import { PaginatedResponse } from '../helpers';
 import { Person } from '../people/person';
 import { TvShow } from '../tv/tv';
 import {
-  sortByMathPercentage,
+	sortByMatchPercentage,
 } from '../../../functions/stringArray';
+import tmdbApiClient from '../tmdbApiClient';
 
 export * from './search';
 export * from './search-result';
 
 export const searchCollection = async (query: string): Promise<Collection[]> => {
+
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
+
+		return [];
+	}
+
 	Logger.log({
 		level: 'info',
 		name: 'moviedb',
@@ -35,6 +47,18 @@ export const searchCollection = async (query: string): Promise<Collection[]> => 
 };
 
 export const searchCompany = async (query: string): Promise<Company[]> => {
+
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
+
+		return [];
+	}
+
 	Logger.log({
 		level: 'info',
 		name: 'moviedb',
@@ -54,6 +78,18 @@ export const searchCompany = async (query: string): Promise<Company[]> => {
 };
 
 export const searchKeyword = async (query: string): Promise<Keyword[]> => {
+
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
+
+		return [];
+	}
+
 	Logger.log({
 		level: 'info',
 		name: 'moviedb',
@@ -84,6 +120,8 @@ export const searchMovie = async (query: string, year: number | null = null): Pr
 			color: 'red',
 			message: `No query given`,
 		});
+		
+		return [];
 	}
 
 	Logger.log({
@@ -103,7 +141,7 @@ export const searchMovie = async (query: string, year: number | null = null): Pr
 
 	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('search/movie', params);
 
-	return sortByMathPercentage(
+	return sortByMatchPercentage(
 		data.results?.filter(
 			(d) => !d.title.includes('OVA') || !d.title.includes('ova') || !d.title.includes('Making of') || !d.title.includes('making of')
 		) || [],
@@ -117,6 +155,17 @@ export const searchMulti = async (query: string, year: number | string | null = 
 	query = query
 		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
 		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
+
+		return [];
+	}
 
 	Logger.log({
 		level: 'info',
@@ -143,6 +192,18 @@ export const searchPeople = async (query: string): Promise<Person[]> => {
 	query = query.
 		split('.(')[0].replace(/([a-z])\./g, '$1 ')
 		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
+
+		return [];
+	}
+	
 
 	Logger.log({
 		level: 'info',
@@ -175,6 +236,17 @@ export const searchTv = async (query: string, year: number | null = null): Promi
 			color: 'red',
 			message: `No query given`,
 		});
+
+		return [];
+	}
+
+	if(!query) {
+		Logger.log({
+			level: 'info',
+			name: 'moviedb',
+			color: 'red',
+			message: `No query given`,
+		});
 	}
 
 	Logger.log({
@@ -193,7 +265,7 @@ export const searchTv = async (query: string, year: number | null = null): Promi
 
 	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('search/tv', params);
 
-	return sortByMathPercentage(data.results?.filter((d) => !d.name.includes('OVA') || !d.name.includes('ova')) || [], 'name', query);
+	return sortByMatchPercentage(data.results?.filter((d) => !d.name.includes('OVA') || !d.name.includes('ova')) || [], 'name', query);
 };
 
 export default {

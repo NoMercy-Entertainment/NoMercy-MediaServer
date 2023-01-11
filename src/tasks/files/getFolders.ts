@@ -1,23 +1,21 @@
 import path from 'path';
 import dirTree, {
-  DirectoryTree,
-  DirectoryTreeOptions,
+	DirectoryTree,
+	DirectoryTreeOptions,
 } from 'directory-tree';
 import {
-  existsSync,
-  readFileSync,
-  rmSync,
-  writeFile,
+	existsSync,
+	readFileSync, writeFile
 } from 'fs';
 
 import Logger from '../../functions/logger';
 import { jsonToString } from '../../functions/stringArray';
 import { fileChangedAgo } from '../../functions/dateTime';
 import {
-  FolderList,
-  ParsedFileList,
-  parseFileName,
-  parseFolderName,
+	FolderList,
+	ParsedFileList,
+	parseFileName,
+	parseFolderName,
 } from './filenameParser';
 import { cachePath } from '../../state';
 import { chunk, sortBy } from '../../functions/stringArray';

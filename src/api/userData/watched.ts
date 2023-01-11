@@ -35,6 +35,12 @@ export default async function (req: Request, res: Response) {
         }))?.VideoFile?.[0]!;
     }
 
+    if(!data) {
+        return res.status(400).json({
+            status: 'error',
+            message: `Failed to ${value ? 'add item to' : 'remove item from'} watched`,
+        });
+    }
 
     confDb.userData.upsert({
         where: type == 'tv' ? {

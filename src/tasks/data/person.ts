@@ -1,8 +1,9 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import Logger from '../../functions/logger/logger';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
 import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import image from './image';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[]) => {
@@ -31,6 +32,7 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			placeOfBirth: person.place_of_birth,
 			popularity: person.popularity,
 			profilePath: person.profile_path,
+			blurHash: person.profile_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${person.profile_path}`) : undefined,
 		});
 
 		transaction.push(

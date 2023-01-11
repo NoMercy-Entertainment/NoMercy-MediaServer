@@ -41,10 +41,10 @@ export default async function (req: Request, res: Response) {
 					...m,
 					type: 'artist',
 					name: m.name.replace(/["'\[\]*]/gu, ''),
-					title_sort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
+					titleSort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
 					origin: deviceId,
 				};
-			}), 'title');
+			}), 'titleSort');
 
 		return res.json(result);
 	}

@@ -1,3 +1,5 @@
+import { setAllowedUsers, setUsers } from '../../state/redux/config/actions';
+
 import Logger from '../../functions/logger';
 import { Prisma } from '@prisma/client'
 import { UserResponse } from 'types/api';
@@ -5,7 +7,6 @@ import axios from '../axios';
 import { commitConfigTransaction } from '../../database';
 import { confDb } from '../../database/config';
 import { deviceId } from '../system';
-import { setAllowedUsers } from '../../state/redux/config/actions';
 
 export const getUsers = async () => {
 	const transaction: Prisma.PromiseReturnType<any>[] = [];
@@ -40,6 +41,7 @@ export const getUsers = async () => {
 			await commitConfigTransaction(transaction);
 
 			const users = await confDb.user.findMany();
+			setUsers(users);
 
 			const newAllowedUsers = [...users].map((d) => {
 				return {

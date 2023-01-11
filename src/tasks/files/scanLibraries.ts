@@ -1,29 +1,27 @@
 import {
-  Folder,
-  Library,
-  LibraryFolder,
-  Movie,
+	Folder,
+	Library,
+	LibraryFolder,
+	Movie,
 } from '@prisma/client';
 import {
-  existsSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
+	existsSync,
+	readFileSync, writeFileSync
 } from 'fs';
 import { join, resolve } from 'path';
 
 import getFolders from './getFolders';
 import { AppState, useSelector } from '../../state/redux';
 import {
-  FolderList,
-  ParsedFileList,
+	FolderList,
+	ParsedFileList,
 } from './filenameParser';
 import { TvShow } from '../../providers/tmdb/tv/index';
 import { confDb } from '../../database/config';
 import { fallbackSearch } from '../data/search';
-import { fullUpdate } from '../../tasks/data/fullUpdate';
 import { needsUpdate } from '../data/needsUpdate';
 import { cachePath } from '../../state';
+import { fullUpdate } from '../../tasks/data/fullUpdate';
 
 export interface FolderInfo {
 	lib: Lib;
@@ -41,7 +39,8 @@ export interface FolderInfo {
 	task: {
 		id: string
 	}, 
-	index: number
+	index: number; 
+	priority: number; 
 }
 
 export const scanLibraries = async (forceUpdate: boolean = false, synchronous: boolean = false) => {
@@ -223,7 +222,7 @@ const process = async (
 	index: number
 ) => {
 
-	const queue = useSelector((state: AppState) => state.config.dataWorker);
+	const queue = useSelector((state: AppState) => state.config.queueWorker);
 	const socket = useSelector((state: AppState) => state.system.socket);
 
 	const jsonFile = join(cachePath, 'temp', `${title.title ?? title.name}_cache.json`);
@@ -238,11 +237,15 @@ const process = async (
 		x.job = undefined;
 		x.lib = lib;
 		x.jobsCount = jobs.length;
-		x.task = task;
+		x.task = task ?? {id: 'manual'};
 		x.index = index;
+		x.priority = 1;
 	} else {
 		const search = (await fallbackSearch(lib.type, title)) as TvShow | Movie;
-		if (!search) return;
+		if (!search) {
+			console.log(title);
+			return
+		};
 		x = {
 			id: search?.id,
 			title: (search as TvShow).name ?? (search as Movie).title ?? title.title,
@@ -256,8 +259,9 @@ const process = async (
 			searchProvider: 'tmdb',
 			lib: lib,
 			jobsCount: jobs.length,
-			task: task, 
+			task: task ?? {id: 'manual'}, 
 			index: index,
+			priority: 1,
 		};
 	};
 	

@@ -3,33 +3,45 @@ import axios from "axios";
 import colorThief from "pure-color-thief-node";
 import { readFileSync } from "fs";
 
-export default async (url: string): Promise<PaletteColors | null> => {
-	const imageBuffer = await axios
-		.get(url, {
-			responseType: "arraybuffer",
-		});
+export default async (data: string| Buffer): Promise<PaletteColors | null> => {
 
-	if(!imageBuffer?.headers['content-type']){
+	try {
+		let imageBuffer;
+		if (typeof data == 'string') {
+			imageBuffer = await axios
+				.get(data, {
+					responseType: "arraybuffer",
+				});
+		} 
+		else {
+			imageBuffer = data;
+		}
+		
+		if(!imageBuffer?.headers['content-type']){
+			return null;
+		}
+	
+		const img = new colorThief();
+	
+		if(!['image/png', 'image/jpeg', 'image/jpg'].includes(imageBuffer.headers['content-type'])){
+			return null;
+		}
+	
+		await img.loadImage(Buffer.from(imageBuffer.data), imageBuffer.headers['content-type']);
+	
+		const pallette = img.getColorPalette(5);
+	
+		return {
+			primary: `rgb(${pallette[0]})`,
+			lightVibrant: `rgb(${pallette[1]})`,
+			darkVibrant: `rgb(${pallette[2]})`,
+			lightMuted: `rgb(${pallette[3]})`,
+			darkMuted: `rgb(${pallette[4]})`,
+		};
+		
+	} catch (error) {
 		return null;
 	}
-
-	const img = new colorThief();
-
-	if(!['image/png', 'image/jpeg', 'image/jpg'].includes(imageBuffer.headers['content-type'])){
-		return null;
-	}
-
-	await img.loadImage(Buffer.from(imageBuffer.data), imageBuffer.headers['content-type']);
-
-	const pallette = img.getColorPalette(5);
-
-	return {
-		primary: `rgb(${pallette[0]})`,
-		lightVibrant: `rgb(${pallette[1]})`,
-		darkVibrant: `rgb(${pallette[2]})`,
-		lightMuted: `rgb(${pallette[3]})`,
-		darkMuted: `rgb(${pallette[4]})`,
-	};
 };
 
 export const colorPaletteFromFile = async (path: string): Promise<PaletteColors|null> => {

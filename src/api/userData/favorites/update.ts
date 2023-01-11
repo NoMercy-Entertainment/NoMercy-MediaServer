@@ -34,6 +34,13 @@ export default async function (req: Request, res: Response) {
         }))?.VideoFile?.[0]!;
     }
 
+    if(!data) {
+        return res.status(400).json({
+            status: 'error',
+            message: `Failed to ${value ? 'add item to' : 'remove item from'} favorites`,
+        });
+    }
+
     confDb.userData.upsert({
         where: type == 'tv' ? {
             tvId_videoFileId_sub_id: {
@@ -66,14 +73,14 @@ export default async function (req: Request, res: Response) {
     })
     .then((data) => {
         return res.json({
-            success: true,
+            status: 'ok',
             data: data,
             message: `Item ${value ? 'added to' : 'removed from'} favorites`,
         })
     })
     .catch((error) => {
         return res.status(400).json({
-            success: true,
+            status: 'error',
             error: error,
             message: `Failed to ${value ? 'add item to' : 'remove item from'} favorites`,
         });

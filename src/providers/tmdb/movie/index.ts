@@ -1,6 +1,6 @@
-import { DiscoverMovie, DiscoverMovieParams } from '../discover';
+import { DiscoverMovieParams } from '../discover';
 import { MovieChange, MovieChanges } from './changes';
-import { Recommendations, Similar } from '../shared';
+import { Recommendations } from '../shared';
 
 import { AxiosResponse } from 'axios';
 import Logger from '../../../functions/logger';
@@ -9,12 +9,9 @@ import { MovieGenre } from '../genres/movie_genre';
 import { MovieImages } from './images';
 import { MovieLatest } from './latest';
 import { MoviePopular } from './popular';
-import { MovieTopRated } from './top_rated';
 import { MovieTranslations } from './translations';
-import { MovieUpcomming } from './upcomming';
 import { MovieVideos } from './videos';
 import { MovieWithAppends } from './movie-details';
-import { MoviesNowPlaying } from './now_playing';
 import { PaginatedResponse } from '../helpers';
 import i18next from 'i18next';
 import moment from 'moment';
@@ -71,6 +68,7 @@ export const movie = async (id: number) => {
 		params: {
 			append_to_response: movieAppend.join(','),
 			include_image_language: `en,null,${i18next.language}`,
+			include_video_language : `en,null,${i18next.language}`,
 		},
 	};
 

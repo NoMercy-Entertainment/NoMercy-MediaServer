@@ -9,6 +9,11 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		language: i18next.language || process.env.LANGUAGE,
 		...config.params,
 	};
+
+	config.headers = { 
+		"Accept": "application/json"
+	};
+
 	config.timeout = 20000;
 
 	return config;

@@ -13,7 +13,6 @@ parserOptions:
     - './tsconfig.eslint.json'
 plugins:
   - 'import'
-  - 'react'
   - '@typescript-eslint'
   - 'prettier'
 
@@ -401,7 +400,7 @@ rules:
     - error
     - inside
   wrap-regex:
-    - error
+    - off
   no-multi-spaces:
     - error
     - exceptions:

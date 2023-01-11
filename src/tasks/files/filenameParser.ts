@@ -99,7 +99,7 @@ export const parseFileName = async function (file: DirectoryTree<IObj>, isTvShow
 		res[obj[0]] = obj[1];
 	}
 
-	res.year = yearReg?.groups?.year;
+	res.year = parseInt(yearReg?.groups?.year, 10);
 
 	if(!res.ffprobe){ 
 		res.ffprobe = await getAudioInfo(file.path).catch((error) => undefined);
@@ -110,30 +110,41 @@ export const parseFileName = async function (file: DirectoryTree<IObj>, isTvShow
 		}
 	}
 
-	if (res.episodeNumbers?.length > 0) {
-		res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+[\\\/].+/u, "/$1");
-	} else {
-		res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+/u, "/$1");
-	}
+	// if (res.episodeNumbers?.length > 0) {
+	// 	res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+[\\\/].+/u, "/$1");
+	// } else {
+	// 	res.folder = file.path.replace(/.+[\\\/](.+)[\\\/].+/u, "/$1");
+	// }
 
-	res.episodeFolder = file.path.replace(/.+[\\\/](.+\(.+)[\\\/].+[\\\/]?/u, "/$1");
-	if(res.episodeFolder){
+	// if(res.episodeFolder){
+	// 	res.musicFolder = file.path.replace(/.+[\\\/](\[.+)[\\\/].+[\\\/]?/u, "/$1");
+	// 	// res.folder = file.path.replace(/.+[\\\/](.+\(.+)[\\\/].+[\\\/]/u, "/$1");
+	// 	res.episodeFolder = undefined;
+	// }
+	// if(res.episodeFolder && !res.musicFolder){
+	// 	res.musicFolder = file.path.replace(/.+[\\\/](.+)[\\\/].*/u, "/$1");
+	// 	res.folder = file.path.replace(/.+[\\\/](.+[\\\/].+)[\\\/].+[\\\/].+/u, "/$1");
+	// 	res.episodeFolder = undefined;
+	// }
+
+	res.episodeFolder = file.path.replace(/.+[\\\/].+(\s|\.|\()(?<year>(19|20)[0-9][0-9])(\)|.*|(?!p))([\\\/].+)[\\\/].+/u, "$5");
+	res.folder = file.path.replace(/.+([\\\/].+(\s|\.|\()(?<year>(19|20)[0-9][0-9])(\)|.*|(?!p)))[\\\/].+/u, "$1");
+	
+	if(['MP3', 'AAC', 'FLAC'].includes(res.audioCodec! ?? [])) {
 		res.musicFolder = file.path.replace(/.+[\\\/](\[.+)[\\\/].+[\\\/]?/u, "/$1");
 		res.folder = file.path.replace(/.+[\\\/](.+[\\\/].+)[\\\/].+[\\\/].+/u, "/$1");
 		res.episodeFolder = undefined;
 	}
-	if(res.episodeFolder && !res.musicFolder){
-		res.musicFolder = file.path.replace(/.+[\\\/](.+)[\\\/].*/u, "/$1");
-		res.folder = file.path.replace(/.+[\\\/](.+[\\\/].+)[\\\/].+[\\\/].+/u, "/$1");
-		res.episodeFolder = undefined;
-	}
+	// console.log(file.path);
+	// console.log(res);
+	// console.log(res.audioCodec);
 
 	return res;
 };
 
 export const parseTitle = (title: string) => {
 	let m: any;
-	const regex = /([\w’'_\(-]+)|([^\w{2}](?<abb>(\w{1}\.){2,}\(?))/g;
+	const regex = /([\w’'_\(-]+)|([^\w{2}](?<abb>(\w{1}\.){2,}\(?))/gu;
 	const arr: string[] = [];
 
 	while ((m = regex.exec(title)) !== null) {

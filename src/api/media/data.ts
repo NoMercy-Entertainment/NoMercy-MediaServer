@@ -52,7 +52,7 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 	for (const tv of data.Tv) {
 		const title = translations.find(t => t.translationableType == 'tv' && t.translationableId == tv.id)?.title || tv.title;
 		const overview = translations.find(t => t.translationableType == 'tv' && t.translationableId == tv.id)?.overview || tv.overview;
-		const logo = tv.Media.find(m => m.type == 'logo')?.src ?? null;
+		const logo = tv.Media.find(m => m.type == 'logo');
 		const userData = tv.UserData?.[0];
 
 		const files = [
@@ -64,17 +64,24 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 		];
 		// .filter((v, i, a) => a.indexOf(v) === i);
 
+		const hash = JSON.parse(tv.blurHash ?? '{}');
+
 		response.push({
 			id: tv.id,
 			backdrop: tv.backdrop,
 			favorite: userData?.isFavorite ?? false,
 			watched: userData?.played ?? false,
 			// files: servers?.length > 0 ? undefined : files,
-			logo: logo,
+			logo: logo?.src,
 			mediaType: data.type,
 			numberOfEpisodes: tv.numberOfEpisodes ?? 1,
 			haveEpisodes: files.length,
 			overview: overview,
+			blurHash: {
+				// logo: logo?.blurHash ?? null,
+				poster: hash?.poster ?? null,
+				backdrop: hash?.backdrop ?? null,
+			},
 			poster: tv.poster,
 			title: title[0].toUpperCase() + title.slice(1),
 			titleSort: createTitleSort(title, tv.firstAirDate),
@@ -87,17 +94,24 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 		const title = translations.find(t => t.translationableType == 'movie' && t.translationableId == movie.id)?.title || movie.title;
 		const overview
 			= translations.find(t => t.translationableType == 'movie' && t.translationableId == movie.id)?.overview || movie.overview;
-		const logo = movie.Media.find(m => m.type == 'logo')?.src ?? null;
+		const logo = movie.Media.find(m => m.type == 'logo');
 		const userData = movie.UserData?.[0];
+
+		const hash = JSON.parse(movie.blurHash ?? '{}');
 
 		response.push({
 			id: movie.id,
 			backdrop: movie.backdrop,
 			favorite: userData?.isFavorite ?? false,
 			watched: userData?.played ?? false,
-			logo: logo,
+			logo: logo?.src ?? null,
 			mediaType: 'movies',
 			overview: overview,
+			blurHash: {
+				// logo: logo?.blurHash ?? null,
+				poster: hash?.poster ?? null,
+				backdrop: hash?.backdrop ?? null,
+			},
 			poster: movie.poster,
 			title: title[0].toUpperCase() + title.slice(1),
 			titleSort: createTitleSort(title, movie.releaseDate),
@@ -185,7 +199,7 @@ export const ownerQuery = (id?: string) => {
 						not: null,
 					},
 					VideoFile: {
-						every: {
+						some: {
 							duration: {
 								not: null,
 							},

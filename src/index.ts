@@ -1,21 +1,15 @@
-import { BrowserWindow, Menu, Tray, app, ipcMain, screen } from "electron";
+import { BrowserWindow, Menu, Tray, app, ipcMain, screen } from 'electron';
 
-import boot from "./functions/boot";
+import boot from './functions/boot';
 import env from 'dotenv';
-import { execSync } from "child_process";
-import { join } from "path";
+import { execSync } from 'child_process';
+import { join } from 'path';
 
 env.config();
 
-process.on('uncaughtException', error => console.error(error));
-process.on('unhandledRejection', error => console.error(error));
-process.on('unhandledError', error => console.error(error));
-process.on('error', error => console.error(error));
-process.on('warning', error => console.warn(error.stack));
+let win: BrowserWindow; let tray; let splash: BrowserWindow;
 
-let win: BrowserWindow, tray, splash: BrowserWindow;
-
-const trayIcon = join(__dirname, "/logo-white.png");
+const trayIcon = join(__dirname, '/logo-white.png');
 
 function splashWindow() {
 	splash = new BrowserWindow({
@@ -29,9 +23,9 @@ function splashWindow() {
 			nodeIntegration: true,
 		},
 	});
-	splash.loadURL(`https://cdn.nomercy.tv/splash.html`);
+	splash.loadURL('https://dev.nomercy.tv/splash.html');
 
-	splash.on("ready-to-show", () => {
+	splash.on('ready-to-show', () => {
 		splash.focus();
 		splash.show();
 	});
@@ -43,37 +37,42 @@ function mainWindow() {
 
 	win = new BrowserWindow({
 		show: false,
-		title: "NoMercy MediaServer",
+		title: 'NoMercy MediaServer',
 		width: width - 100,
 		height: height - 100,
-		minWidth: 1281,
+		minWidth: 1280,
 		minHeight: 720,
 		resizable: true,
+		maximizable: true,
+		roundedCorners: true,
 		center: true,
 		icon: trayIcon,
-		autoHideMenuBar: true,
 		webPreferences: {
 			nodeIntegration: true,
-			autoplayPolicy: "no-user-gesture-required",
+			autoplayPolicy: 'no-user-gesture-required',
 			contextIsolation: false,
+			preload: join(__dirname, 'preload.js'),
+			webgl: true,
 		},
 	});
 
-	ipcMain.handle("get-displays", () => {
+	ipcMain.handle('get-displays', () => {
 		return screen.getAllDisplays();
 	});
 
-	win.loadURL(`https://dev.nomercy.tv`);
+	win.loadURL('https://dev.nomercy.tv');
 
-	win.on("closed", () => {});
+	win.on('closed', () => {
+		//
+	});
 
-	win.on("ready-to-show", async () => {
+	win.on('ready-to-show', () => {
 		splash.destroy();
 		win.focus();
 		win.show();
 	});
 
-	win.on("close", function (event) {
+	win.on('close', (event) => {
 		// @ts-ignore-next-line
 		if (!app.isQuiting) {
 			event.preventDefault();
@@ -82,12 +81,12 @@ function mainWindow() {
 		return false;
 	});
 
-	app.on("browser-window-created", function (e, window) {
+	app.on('browser-window-created', (e, window) => {
 		window.setMenu(null);
 	});
 
-	app.on("window-all-closed", function () {
-		if (process.platform !== "darwin") {
+	app.on('window-all-closed', () => {
+		if (process.platform !== 'darwin') {
 			app.quit();
 		}
 	});
@@ -96,13 +95,13 @@ function mainWindow() {
 function trayMenu() {
 	const trayMenu = Menu.buildFromTemplate([
 		{
-			label: "Show App",
+			label: 'Show App',
 			click: function () {
 				win.show();
 			},
 		},
 		{
-			label: "Quit",
+			label: 'Quit',
 			click: function () {
 				// @ts-ignore-next-line
 				app.isQuiting = true;
@@ -112,9 +111,9 @@ function trayMenu() {
 	]);
 	tray = new Tray(trayIcon);
 	tray.setContextMenu(trayMenu);
-	tray.setToolTip("NoMercy Media Server");
+	tray.setToolTip('NoMercy Media Server');
 
-	tray.on("click", function () {
+	tray.on('click', () => {
 		win.show();
 	});
 }
@@ -124,23 +123,23 @@ function createApp() {
 
 	const gotTheLock = app.requestSingleInstanceLock();
 
-	if (!gotTheLock) {
-		app.quit();
-	} else {
-		app.on("second-instance", () => {
+	if (gotTheLock) {
+		app.on('second-instance', () => {
 			if (win) {
 				if (win.isMinimized()) win.restore();
 				win.focus();
 			}
 		});
 
-		app.on("activate", () => {
-			BrowserWindow.getAllWindows().map((win) => win.show());
+		app.on('activate', () => {
+			BrowserWindow.getAllWindows().map(win => win.show());
 		});
+	} else {
+		app.quit();
 	}
 
 	execSync('yarn');
-	
+
 	boot().then(() => {
 		mainWindow();
 		trayMenu();
@@ -153,13 +152,13 @@ try {
 		createApp();
 	});
 
-	app.on("window-all-closed", () => {
-		if (process.platform !== "darwin") {
+	app.on('window-all-closed', () => {
+		if (process.platform !== 'darwin') {
 			app.quit();
 		}
 	});
 
-	app.on("activate", () => {
+	app.on('activate', () => {
 		// On OS X it's common to re-create a window in the app when the
 		// dock icon is clicked and there are no other windows open.
 		if (BrowserWindow.getAllWindows().length === 0) {

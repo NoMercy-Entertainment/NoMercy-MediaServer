@@ -4,7 +4,7 @@ import { winstonLog } from "../../state";
 
 export const dateFormat = (date: Date | number, format: string) => {
 	// @ts-expect-error
-	return (new Date(date)).format(format);
+	return (new Date(date)).format?.(format);
 };
 
 const myCustomLevels = {
@@ -95,7 +95,7 @@ const Logger = winston.createLogger({
 	levels: myCustomLevels,
 	transports: [
 		fileLogger,
-		// consoleLogger,
+		consoleLogger,
 	],
 	exitOnError: false,
 });

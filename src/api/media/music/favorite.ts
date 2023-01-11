@@ -6,6 +6,10 @@ import { deviceId } from '../../../functions/system';
 
 export default async function (req: Request, res: Response) {
 
+	const language = req.acceptsLanguages()[0] == 'undefined'
+		? 'en'
+		: req.acceptsLanguages()[0].split('-')[0];
+
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 
 	const music = await confDb.favoriteTrack.findMany({
@@ -26,7 +30,7 @@ export default async function (req: Request, res: Response) {
 	if (!music) { return; }
 
 	if (music) {
-		const result: any = {
+		const results: any = {
 			cover: 'favorites',
 			description: null,
 			name: 'Songs you like',
@@ -36,7 +40,12 @@ export default async function (req: Request, res: Response) {
 				return {
 					...t.Track,
 					type: 'track',
-					date: t.updated_at,
+					date: t.Track.date && new Date(t.updated_at)
+						.toLocaleDateString(language, {
+							year: 'numeric',
+							month: 'short',
+							day: '2-digit',
+						}),
 					favorite_track: t.Track.FavoriteTrack.length > 0,
 					libraryId: t.Track.Album[0].libraryId,
 					artistId: t.Track.Artist[0].id,
@@ -44,9 +53,7 @@ export default async function (req: Request, res: Response) {
 					artists: t.Track.Artist,
 					cover: t.Track.Album[0].cover,
 					colorPalette: JSON.parse(t.Track.Album[0].colorPalette ?? '{}'),
-					Artist: undefined,
-					Album: undefined,
-					artist: {
+					Artist: {
 						id: t.Track.Artist[0].id,
 						name: t.Track.Artist[0].name,
 						cover: t.Track.Artist[0].cover,
@@ -54,7 +61,7 @@ export default async function (req: Request, res: Response) {
 						folder: t.Track.Artist[0].folder,
 						colorPalette: undefined,
 					},
-					album: {
+					Album: {
 						id: t.Track.Album[0]?.id,
 						name: t.Track.Album[0]?.name,
 						cover: t.Track.Album[0]?.cover,
@@ -64,7 +71,7 @@ export default async function (req: Request, res: Response) {
 				};
 			}),
 		};
-		return res.json(result);
+		return res.json(results);
 	}
 
 

@@ -8,6 +8,12 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		fmt: 'json',
 		...config.params,
 	};
+	
+	config.headers = { 
+		'User-Agent': `NoMercy MediaServer v${appVersion}`,
+		"Accept": "application/json",
+	};
+
 	config.timeout = 2000;
 
 	return config;
@@ -51,7 +57,8 @@ const mbApiClient = setupInterceptorsTo(
 	axios.create({
 		baseURL: 'http://musicbrainz.org/ws/2/',
 		headers: {
-			'User-Agent': `NoMercy MediaServer v${appVersion}`
+			'User-Agent': `NoMercy MediaServer v${appVersion}`,
+			"Accept": "application/json",
 		},
 	})
 );

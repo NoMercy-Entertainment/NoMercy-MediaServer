@@ -1,8 +1,4 @@
-import axios from 'axios';
-
-import Logger from '../../functions/logger';
 import {
-	// setCDNData,
 	setColors,
 	setDownloads,
 	setMakeMKVKey,
@@ -10,6 +6,9 @@ import {
 	setQuote,
 	setTmdbApiKey,
 } from '../../state/redux/config/actions';
+
+import Logger from '../../functions/logger';
+import axios from 'axios';
 import { platform } from '../../functions/system';
 
 const cdn = async () => {

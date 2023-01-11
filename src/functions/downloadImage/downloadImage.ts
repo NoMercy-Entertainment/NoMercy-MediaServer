@@ -1,19 +1,20 @@
 import { ExecException, exec } from 'child_process';
 import {
-  Stats,
-  createWriteStream,
-  mkdirSync,
-  rmSync,
+	Stats,
+	createWriteStream,
+	mkdirSync,
+	rmSync
 } from 'fs';
 import { ffmpeg, tempPath } from '../../state';
 import { join, resolve as pathResolve } from 'path';
 
 import {
-  ISizeCalculationResult,
+	ISizeCalculationResult,
 } from 'image-size/dist/types/interface';
 import { PaletteColors } from 'types/server';
 import axios from 'axios';
 import colorPalette from '../../functions/colorPalette/colorPalette';
+import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import { randomUUID } from 'crypto';
 import sizeOf from 'image-size';
 import { statSync } from 'fs';
@@ -22,9 +23,19 @@ export interface DownloadImage {
     dimensions: ISizeCalculationResult;
     stats: Stats;
 	colorPalette: PaletteColors | null;
+	blurHash: string | null;
 }
 
-export default async (url: string, path: string): Promise<DownloadImage> => {
+export default async (url: string, path: string, usableImageSizes?: {
+    size: string;
+    type: string[];
+}[]| undefined): Promise<DownloadImage> => {
+
+	// Logger.log({
+	// 	name: 'image',
+	// 	message: `Downloading image: ${url}`,
+	// 	level: 'info'
+	// });
 
 	return new Promise(async (resolve, reject) => {
 		path = pathResolve(path);
@@ -44,7 +55,7 @@ export default async (url: string, path: string): Promise<DownloadImage> => {
 			}
 
 			if(!path.includes('.svg')){
-				await convertImageToWebp(tempName, path);
+				await convertImageToWebp(tempName, path, usableImageSizes);
 			}
 
 			const dimensions = sizeOf(path);
@@ -54,13 +65,21 @@ export default async (url: string, path: string): Promise<DownloadImage> => {
 			try {
 				pallette = await colorPalette(url);
 			} catch (error) {
-				reject(error);
+				//
+			}
+
+			let hash: string | null = null
+			try {
+				hash = await createBlurHash(url);
+			} catch (error) {
+				//
 			}
 	
 			resolve({
 				dimensions: dimensions,
 				stats: stats,
 				colorPalette: pallette,
+				blurHash: hash,
 			})
 
 		} catch (error) {
@@ -71,9 +90,10 @@ export default async (url: string, path: string): Promise<DownloadImage> => {
 
 const fetch = (url: string, path: string, tempName: string): Promise<number> => {
 
-	return new Promise(async (resolve, reject): Promise<number> => {
+	return new Promise(async (resolve, reject) => {
 
 		let size = 0;
+		
 		try {
 			mkdirSync(path.replace(/(.+)[\\\/].+\.\w+$/u, '$1'), { recursive: true });
 
@@ -102,10 +122,22 @@ const fetch = (url: string, path: string, tempName: string): Promise<number> => 
 	});
 }
 
-const convertImageToWebp = (input: string, output: string): Promise<void> => {
+const convertImageToWebp = (input: string, output: string, usableImageSizes?: {
+    size: string;
+    type: string[];
+}[] | undefined): Promise<void> => {
 	
 	return new Promise((resolve, reject): void => {
-		exec(`${ffmpeg} -i ${input} -quality 80 -pix_fmt yuva420p ${output}`, (error: ExecException | null, stdout: string, stderr: string) => {
+
+		const sizes = [`-quality 100 -pix_fmt yuva420p "${output}"`];
+
+		if(usableImageSizes) {
+			usableImageSizes.slice(1).map(s => {
+				sizes.push(`-quality 80 -pix_fmt yuva420p -vf "scale=${s.size.replace('w','')}:-2" "${output.replace('original', s.size)}"`);
+			});
+		}
+
+		exec(`${ffmpeg} -i "${input}" -y ${sizes.join(' ')}`, (error: ExecException | null, stdout: string, stderr: string) => {
 			if(error){
 				console.log(error)
 				return reject(error);

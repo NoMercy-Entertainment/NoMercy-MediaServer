@@ -87,6 +87,7 @@ export default async function (req: Request, res: Response) {
 					favorite: d.favorite,
 					played: d.played,
 					poster: d.poster,
+					blurHash: d.blurHash,
 					title: d.title,
 					titleSort: d.titleSort,
 					type: d.mediaType,

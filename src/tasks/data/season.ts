@@ -5,17 +5,17 @@ import Logger from '../../functions/logger';
 import { Prisma } from '@prisma/client';
 import cast from './cast';
 import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import crew from './crew';
 import episode from './episode';
 import image from './image';
-import { resolve } from 'path';
 import translation from './translation';
 
 const season = async (
 	tv: CompleteTvAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
 	people: number[],
-	task: {id: string},
+	task?: {id: string},
 ) => {
 
 	Logger.log({
@@ -40,6 +40,7 @@ const season = async (
 			id: season.id,
 			overview: season.overview,
 			poster: season.poster_path,
+			blurHash: season.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${season.poster_path}`) : undefined,
 			seasonNumber: season.season_number,
 			title: season.name,
 			episodeCount: season.episode_count,
@@ -70,11 +71,11 @@ const season = async (
 
 		const queue = useSelector((state: AppState) => state.config.dataWorker);
 		
-		await queue.add({
-			file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
-			fn: 'downloadTMDBImages',
-			args: {type: 'season', task, data: season},
-		});
+		// await queue.add({
+		// 	file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
+		// 	fn: 'downloadTMDBImages',
+		// 	args: {type: 'season', task, data: season},
+		// });
 
 		// await downloadTMDBImages('season', season);
 

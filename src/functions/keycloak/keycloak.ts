@@ -48,14 +48,19 @@ export const getKeycloak = () => {
 };
 
 export const getKeycloakKeys = async () => {
-	
+
 	const realm = 'https://auth.nomercy.tv/auth/realms/NoMercyTV';
 
-	const info = await axios.get(realm);
+	const info = await axios.get(realm, {
+		headers: {
+			'Accept-Encoding': 'gzip,deflate,compress',
+			'Accept': 'application/json',
+		},
+	});
 
 	const key = `-----BEGIN PUBLIC KEY-----\n${info.data.public_key}\n-----END PUBLIC KEY-----`;
 
 	setKeycloakCertificate(key);
 
 	return key;
-}
+};

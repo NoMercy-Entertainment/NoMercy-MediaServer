@@ -5,6 +5,7 @@ import { confDb } from "../../../../database/config";
 import { deviceId } from "../../../../functions/system";
 
 export default async function (req: Request, res: Response) {
+	
 	try {
 		const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 
@@ -14,6 +15,7 @@ export default async function (req: Request, res: Response) {
 				userId: user,
 			},
 			include: {
+				_count: true,
 				PlaylistTrack: {
 					include: {
 						Track: {
@@ -24,6 +26,7 @@ export default async function (req: Request, res: Response) {
 									where: {
 										userId: user,
 									},
+									take: 800,
 								},
 							},
 						},
@@ -36,7 +39,7 @@ export default async function (req: Request, res: Response) {
 		});
 
 		if (music) {
-			const result: any = {
+			const results: any = {
 				type: "playlist",
 				...music,
 				colorPalette: JSON.parse(music.colorPalette ?? "{}"),
@@ -81,14 +84,17 @@ export default async function (req: Request, res: Response) {
 				}),
 			};
 
-			delete result.playlistTrack;
+			delete results.playlistTrack;
 
-			return res.json(result);
+			return res.json(results);
 		} else {
 			const lists = await confDb.playlist
 				.findMany({
 					where: {
 						userId: user,
+					},
+					include: {
+						_count: true,
 					},
 				});
 

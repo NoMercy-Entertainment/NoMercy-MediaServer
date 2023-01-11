@@ -165,24 +165,6 @@ export const seed = async () => {
 		);
 	}
 
-	for (const folder of folders) {
-		transaction.push(
-			confDb.folder.upsert({
-				where: {
-					id: folder.id,
-				},
-				create: {
-					id: folder.id,
-					path: folder.path,
-				},
-				update: {
-					id: folder.id,
-					path: folder.path,
-				},
-			})
-		);
-	}
-
 	for (const task of serverTasks) {
 		transaction.push(
 			confDb.runningTask.upsert({
@@ -214,6 +196,7 @@ export const seed = async () => {
 				update: {
 					id: device.id,
 					deviceId: device.deviceId,
+					ip: device.ip,
 					title: device.title,
 					type: device.type,
 					version: device.version,
@@ -221,6 +204,7 @@ export const seed = async () => {
 				create: {
 					id: device.id,
 					deviceId: device.deviceId,
+					ip: device.ip,
 					title: device.title,
 					type: device.type,
 					version: device.version,
@@ -235,7 +219,7 @@ export const seed = async () => {
 		transaction.push(
 			confDb.activityLog.create({
 				data: {
-					from: activity.from,
+					// from: activity.from,
 					type: activity.type,
 					time: new Date(activity.time),
 					device: {
@@ -253,9 +237,26 @@ export const seed = async () => {
 		);
 	}
 
-	await confDb.$transaction(transaction)
-		.catch((error) => console.log(error));
-		
+	for (const folder of folders) {
+		transaction.push(
+			confDb.folder.upsert({
+				where: {
+					id: folder.id,
+				},
+				create: {
+					id: folder.id,
+					path: folder.path,
+				},
+				update: {
+					id: folder.id,
+					path: folder.path,
+				},
+			})
+		);
+	}
+
+	const users = await confDb.user.findMany();
+	
 	for (const library of libraries) {
 		
 		const libraryInsert = Prisma.validator<Prisma.LibraryUpdateInput>()({
@@ -271,11 +272,29 @@ export const seed = async () => {
 			specialSeasonName: library.specialSeasonName,
 			type: library.type,
 			Folders: {
-				connect: library.folders.map((folder) => ({
-					libraryId_folderId: {
+				connectOrCreate: library.folders.map((folder) => ({
+					create: {
 						folderId: folder.id,
-						libraryId: library.id,
 					},
+					where: {
+						libraryId_folderId: {
+							folderId: folder.id,
+							libraryId: library.id,
+						},
+					}
+				})),
+			},
+			User: {
+				connectOrCreate: users.map((user) => ({
+					create: {
+						userId: user.sub_id,
+					},
+					where: {
+						libraryId_userId: {
+							userId: user.sub_id,
+							libraryId: library.id,
+						},
+					}
 				})),
 			},
 			country: "NL",
@@ -292,6 +311,10 @@ export const seed = async () => {
 			})
 		);
 	}
+
+	await confDb.$transaction(transaction)
+		.catch((error) => console.log(error));
+		
 };
 
 export default seed;

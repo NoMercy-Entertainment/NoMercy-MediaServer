@@ -1,48 +1,46 @@
-import { existsSync, Stats } from 'fs';
+import { existsSync, mkdirSync, Stats } from 'fs';
 import {
-  ISizeCalculationResult,
+	ISizeCalculationResult,
 } from 'image-size/dist/types/interface';
 import { PaletteColors } from 'types/server';
 import { Prisma } from '@prisma/client';
 
 import downloadImage, {
-  DownloadImage,
+	DownloadImage,
 } from '../../functions/downloadImage/downloadImage';
 import {
-  Cast,
-  Crew,
-  Image,
+	Cast,
+	Crew,
+	Image,
 } from '../../providers/tmdb/shared/index';
 import {
-  EpisodeAppend,
-  EpisodeImages,
+	EpisodeAppend,
+	EpisodeImages,
 } from '../../providers/tmdb/episode/index';
 import {
-  MovieAppend,
-  MovieCredits,
-  MovieImages,
+	MovieAppend,
+	MovieCredits,
+	MovieImages,
 } from '../../providers/tmdb/movie/index';
 import {
-  PersonAppend,
-  PersonImages,
+	PersonAppend,
+	PersonImages,
 } from '../../providers/tmdb/people/index';
 import {
-  SeasonAppend,
-  SeasonImages,
+	SeasonAppend,
+	SeasonImages,
 } from '../../providers/tmdb/season/index';
 import {
-  TvAppend,
-  TvCredits,
-  TvImages,
+	TvAppend,
+	TvCredits,
+	TvImages,
 } from '../../providers/tmdb/tv/index';
 import {
-  CompleteMovieAggregate,
+	CompleteMovieAggregate,
 } from '../../tasks/data/fetchMovie';
 import {
-  CompleteTvAggregate,
+	CompleteTvAggregate,
 } from '../../tasks/data/fetchTvShow';
-import { chunk } from '../../functions/stringArray';
-import { commitConfigTransaction } from '../../database';
 import { confDb } from '../../database/config';
 import { imagesPath } from '../../state';
 
@@ -127,49 +125,60 @@ export const downloadTMDBImages = async ({type, data}: DownloadTMDBImages) => {
 					const image = images[j];
 	
 					const usableImageSizes = imageSizes.filter((i) => i.type.includes(allowedType));
+
+					usableImageSizes.forEach(s => {
+						mkdirSync(`${imagesPath}/${s.size}`, { recursive: true });
+					});
 	
-					for (let k = 0; k < usableImageSizes.length; k++) {
-						const size = usableImageSizes[k].size;
+					for (let k = 0; k < 1; k++) {
+						const size = usableImageSizes[k]?.size;
+						
+						if (!size) continue;
 	
 						const file = (image as Image).file_path ?? (image as Cast|Crew).profile_path;
+						if (!file) continue;
+
 						const newFile = file?.replace(/.jpg$|.png$/u, '.webp');
+
+						const query = await confDb.image.findFirst({
+							where: {
+								filePath: file,
+							}
+						});
 						
-						if (!newFile || existsSync(`${imagesPath}/${size}${newFile}`)) continue;
+						if (existsSync(`${imagesPath}/${size}${newFile}`) && query?.id) {
+							continue;
+						}
 						
 						// promises.push( 
-						await	downloadImage(`https://image.tmdb.org/t/p/${size}${file}`, `${imagesPath}/${size}${newFile}`)
-								.then(async ({ dimensions, stats, colorPalette }) => {
-									transaction.push(
-										confDb.image.upsert({
+						await	downloadImage(`https://image.tmdb.org/t/p/${size}${file}`, `${imagesPath}/${size}${newFile}`, usableImageSizes)
+								.then(async ({ dimensions, stats, colorPalette, blurHash }) => {
+									// transaction.push(
+									await	confDb.image.upsert({
 											where: {
 												filePath: file,
 											},
-											create: imageQuery(type, data, image, dimensions, stats, colorPalette),
-											update: imageQuery(type, data, image, dimensions, stats, colorPalette),
+											create: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
+											update: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
 										})
-									);
+									// );
 								}).catch(e => console.log(e))
 						// );
-						
-						// console.log(`${imagesPath}/${size}${newFile}`);
 					}
 				}
 			}
-	
-			// console.log(promises);
-	
-			// const promiseChunks = chunk(promises, 10);
+
+			// const promiseChunks = chunk(promises, 5);
 			// for (const promise of promiseChunks) {
 			// 	await Promise.all(promise);
 			// }
 	
-			await commitConfigTransaction(transaction);
+			// await commitConfigTransaction(transaction);
 	
 			resolve();
 			
 		} catch (error) {
-			
-			console.log(error);
+			// console.log(error);
 			reject(error);
 		}
 	
@@ -185,6 +194,7 @@ const imageQuery = (
 	dimensions: ISizeCalculationResult,
 	stats: Stats,
 	colorPalette: PaletteColors | null,
+	blurHash: string | null,
 ) => {
 
 	const path = (image as Image).file_path ?? (image as Cast|Crew).profile_path;
@@ -205,5 +215,6 @@ const imageQuery = (
 		tvId: dbType == 'tv' ? data.id : undefined,
 		movieId: dbType == 'movie' ? data.id : undefined,
 		colorPalette: colorPalette ? JSON.stringify(colorPalette) : null,
+		blurHash: blurHash, 
 	});
 };

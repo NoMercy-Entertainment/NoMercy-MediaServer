@@ -15,7 +15,11 @@ export const migrateConfigDatabase = async() => {
 		message: 'Migrating config database',
 	});
 
-	execSync(`npx prisma migrate dev --name init --schema ${convertPath(__dirname + '/../prisma/schema.prisma')}`);
+	try {
+		execSync(`npx prisma migrate dev --name init --schema ${convertPath(__dirname + '/../prisma/schema.prisma')}`);
+	} catch (error) {
+		execSync(`npx prisma migrate deploy --schema ${convertPath(__dirname + '/../prisma/schema.prisma')}`);
+	}
 	execSync(`npx prisma generate --schema ${convertPath(__dirname + '/../prisma/schema.prisma')}`);
 
 	const { confDb } = require('./config');
@@ -35,7 +39,11 @@ export const migrateQueueDatabase = async () => {
 		message: 'Migrating queue database',
 	});
 
-	execSync(`npx prisma migrate dev --name init --schema ${convertPath(__dirname + '/queue/schema.prisma')}`);
+	try {
+		execSync(`npx prisma migrate dev --name init --schema ${convertPath(__dirname + '/queue/schema.prisma')}`);
+	} catch (error) {
+		execSync(`npx prisma migrate deploy --schema ${convertPath(__dirname + '/queue/schema.prisma')}`);
+	}
 	execSync(`npx prisma generate --schema ${convertPath(__dirname + '/queue/schema.prisma')}`);
 
 	const { queDb } = require('./config');

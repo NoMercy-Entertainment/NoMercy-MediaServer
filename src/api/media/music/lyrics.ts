@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import { confDb } from '../../../database/config';
+import { findLyrics } from '../../../providers';
 import lyricsFinder from 'lyrics-finder';
 
 export default async function (req: Request, res: Response) {
@@ -15,7 +16,10 @@ export default async function (req: Request, res: Response) {
 		});
 
 		if (!song?.lyrics) {
-			lyrics = await lyricsFinder(req.body.artists?.[0]?.name, req.body.name);
+			lyrics = await findLyrics(req.body);
+			if (!lyrics) {
+				lyrics = await lyricsFinder(req.body.artists?.[0]?.name, req.body.name);
+			}
 		}
 
 		if (lyrics) {
@@ -32,15 +36,22 @@ export default async function (req: Request, res: Response) {
 	} catch (error) {
 		console.log(error);
 	}
-	
+
 	if (lyrics == '' && !song?.lyrics) {
 		return res.json({
 			message: 'No Lyrics found',
 		});
 	}
 
-	return res.json({
-		lyrics: song?.lyrics ?? lyrics,
-	});
+	try {
+		return res.json({
+			lyrics: JSON.parse(song?.lyrics ?? lyrics ?? '{}'),
+		});
+	} catch (error) {
+		return res.json({
+			lyrics: song?.lyrics ?? lyrics,
+		});
+	}
+
 
 }

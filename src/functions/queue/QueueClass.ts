@@ -2,6 +2,7 @@ import { ChildProcess, fork } from 'child_process';
 import { QueueJob } from '../../database/queue/client';
 import { confDb, queDb } from '../../database/config';
 import { AppState, useSelector } from '../../state/redux';
+import Logger from '../logger';
 
 interface QueueProps {
 	name?: string;
@@ -40,6 +41,11 @@ export class Queue {
 	}
 
 	createWorker() {
+		Logger.log({
+			name: `queue`,
+			message: `Starting ${this.name} worker ${this.forks.length}`,
+			level: 'info'
+		});
 		this.forks.push({
 			id: this.forks.length,
 			running: false,
@@ -70,17 +76,18 @@ export class Queue {
 	}
 
 	setWorkers(workers: number) {
-		if ((workers + 1) > this.workers) {
+		if (workers > this.workers) {
 			for (let i = 0; i < workers - this.workers; i++) {
 				this.createWorker();
 			}
 			this.workers = workers;
 		} else {
-			for (let i = 0; i < this.workers - (workers + 1); i++) {
+			for (let i = 0; i < this.workers - workers; i++) {
 				this.removeWorker();
 			}
-			this.workers = (workers + 1);
+			this.workers = workers;
 		}
+		
 	}
 
 	async jobs() {
@@ -101,8 +108,8 @@ export class Queue {
 				data: {
 					queue: this.name,
 					runAt: null,
-					priority: 2,
-					taskId: args.task.id,
+					priority: args?.priority ?? 2,
+					taskId: args.task?.id ?? 'manual',
 					payload: JSON.stringify({ file, fn, args }),
 				},
 			});
@@ -128,7 +135,7 @@ export class Queue {
 					where: {
 						id: id,
 					},
-				});
+				}).catch(() => null);
 			}, 2000);
 		}
 	}
@@ -168,21 +175,25 @@ export class Queue {
 					createdAt: 'asc',
 				},
 				{
-					priority: 'desc',
+					priority: 'asc',
 				},
 			],
 		});
 	}
 
 	async running(id: number) {
-		return await queDb.queueJob.update({
-			where: {
-				id: id,
-			},
-			data: {
-				runAt: new Date(),
-			},
-		});
+		try {
+			return await queDb.queueJob.update({
+				where: {
+					id: id,
+				},
+				data: {
+					runAt: new Date(),
+				},
+			});
+		} catch (error) {
+			return null;
+		}
 	}
 
 	async failed(id: number, error: any) {
@@ -243,7 +254,7 @@ export class Queue {
 	start() {
 		this.isDisabled = false;
 
-		for (let i = 0; i < this.workers; i++) {
+		for (let i = this.forks.length; i < this.workers; i++) {
 			this.createWorker();
 		}
 	}
@@ -270,23 +281,29 @@ export class Queue {
 
 		await this.running(job.id);
 		
-		const runningTask = await confDb.runningTask.findFirst({
-			where: {
-				id: job.taskId
-			},
-		}).catch(e => console.log(e));
-
-		await confDb.runningTask.update({
-			where: {
-				id: job.taskId
-			},
-			data: {
-				title: `${runningTask?.title?.replace(/\n.+/, '')}\n${JSON.parse(job.payload as string).args.folder}` ?? 'Downloading images'
+		if(job.taskId){
+			try {
+				const runningTask = await confDb.runningTask.findFirst({
+					where: {
+						id: job.taskId
+					},
+				});
+				if(runningTask?.id){
+					await confDb.runningTask.update({
+						where: {
+							id: runningTask.id
+						},
+						data: {
+							title: `${runningTask?.title?.replace(/\n.+/, '')}\n${JSON.parse(job.payload as string).args.folder}` ?? 'Downloading images'
+						}
+					});
+				}
+			} catch (error) {
+				
 			}
-		}).catch(e => console.log(e));
+		}
 
 		Worker.worker.send(job);
-		
 
 		Worker.worker.once('message', async (message: any) => {
 
@@ -294,7 +311,7 @@ export class Queue {
 
 			const runningTask = await confDb.runningTask.findFirst({
 				where: {
-					id: message.result?.task.id
+					id: message.result?.task?.id
 				},
 			}).catch(e => console.log(e));
 
@@ -307,6 +324,10 @@ export class Queue {
 			}
 			
 			socket.emit('tasks', runningTask);
+			
+			if(runningTask?.title.includes('library') && message.job.queue == 'queue'){
+				socket.emit('update_content', ['libraries']);
+			}
 			
 			if (message?.error) {
 				await this.failed(job.id, message.result);

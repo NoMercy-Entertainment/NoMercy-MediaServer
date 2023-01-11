@@ -11,10 +11,8 @@ export default async function (req: Request, res: Response) {
 
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 	const query = req.body.query as string;
-	
+
 	try {
-		let data;
-		
 		const artists = await confDb.artist.findMany({
 			where: {
 				OR: [
@@ -43,7 +41,7 @@ export default async function (req: Request, res: Response) {
 			},
 			take: 8,
 		});
-	
+
 		let tracks = await confDb.track.findMany({
 			where: {
 				name: {
@@ -60,7 +58,7 @@ export default async function (req: Request, res: Response) {
 			},
 			take: 4,
 		});
-	
+
 		const albums = await confDb.album.findMany({
 			where: {
 				OR: [
@@ -70,9 +68,9 @@ export default async function (req: Request, res: Response) {
 						},
 						Artist: {
 							every: {
-								NOT: {}
-							}
-						}
+								NOT: {},
+							},
+						},
 					},
 					{
 						AND: {
@@ -82,9 +80,9 @@ export default async function (req: Request, res: Response) {
 								},
 								Artist: {
 									every: {
-										NOT: {}
-									}
-								}
+										NOT: {},
+									},
+								},
 							},
 							Artist: {
 								some: {
@@ -115,7 +113,7 @@ export default async function (req: Request, res: Response) {
 			Album: Album[];
 			Artist: Artist[];
 		};
-	
+
 		const tracks2: Track2[] = [];
 
 		artists.map(t => t.Track).map((a) => {
@@ -123,13 +121,13 @@ export default async function (req: Request, res: Response) {
 				tracks2.push(b);
 			});
 		});
-	
+
 		tracks = Object.values({
 			...shuffle(tracks2),
 			...tracks,
 		})
 			.slice(0, 5);
-	
+
 		const playlists = await confDb.playlistTrack.findMany({
 			where: {
 				OR: [
@@ -164,9 +162,9 @@ export default async function (req: Request, res: Response) {
 			},
 			take: 8,
 		});
-	
+
 		let best: any = {};
-	
+
 		if (artists.some(a => a.name.toLowerCase() == query.toLowerCase())) {
 			best = artists.find(a => a.name.toLowerCase() == query.toLowerCase());
 			best.type = 'artist';
@@ -178,11 +176,15 @@ export default async function (req: Request, res: Response) {
 		} else if (tracks.some(a => a.name.toLowerCase() == query.toLowerCase())) {
 			best = tracks.find(a => a.name.toLowerCase() == query.toLowerCase());
 			best.type = 'track';
-			best.cover = !best.cover?.includes('Music/') ? (`${best.folder}/${best.cover}`) : best.cover;
+			best.cover = best.cover?.includes('Music/')
+				? best.cover
+				: (`${best.folder}/${best.cover}`);
 		} else if (tracks.some(a => a.name.toLowerCase().includes(query.toLowerCase()))) {
 			best = tracks.find(a => a.name.toLowerCase().includes(query.toLowerCase()));
 			best.type = 'track';
-			best.cover = !best.cover?.includes('Music/') ? (`${best.folder}/${best.cover}`) : best.cover;
+			best.cover = best.cover?.includes('Music/')
+				? (`${best.folder}/${best.cover}`)
+				: best.cover;
 		} else if (albums.some(a => a.name.toLowerCase() == query.toLowerCase())) {
 			best = albums.find(a => a.name.toLowerCase() == query.toLowerCase());
 			best.type = 'album';
@@ -204,7 +206,7 @@ export default async function (req: Request, res: Response) {
 			};
 		} else if (playlists.some(a => a.Playlist.name.toLowerCase().includes(query.toLowerCase()))) {
 			const playlist = playlists.find(a => a.Playlist.name.toLowerCase().includes(query.toLowerCase()))!.Playlist;
-			if(playlist != null) {
+			if (playlist != null) {
 				best = {
 					...playlist,
 					id: playlist.id,
@@ -216,10 +218,10 @@ export default async function (req: Request, res: Response) {
 					updated_at: playlist.updated_at,
 					type: 'playlist',
 				};
-			};
+			}
 		}
-		
-		data = {
+
+		const data = {
 			best: best,
 			artists: {
 				moreLink: `/music/search/${query}/artist`,
@@ -239,17 +241,17 @@ export default async function (req: Request, res: Response) {
 			track: {
 				moreLink: `/music/search/${query}/track`,
 				items: tracks?.map((t) => {
-					const cover = (!t.cover?.includes('Music/') ? (`${t.folder}/${t.cover}`) : t.cover);
+					// const cover = t.cover?.includes('Music/')
+					// 	? t.cover
+					// 	: (`${t.folder}/${t.cover}`);
 					return {
 						...t,
 						type: 'track',
 						moreLink: '',
 						Track: undefined,
-						Album: undefined,
-						Artist: undefined,
 						libraryId: t.Album[0]?.libraryId ?? t.Artist[0]?.libraryId,
-						artist: t.Artist,
-						album: t.Album,
+						Artist: t.Artist,
+						Album: t.Album,
 						cover: t.Album[0]?.cover ?? t.Artist[0]?.cover,
 					};
 				}),
@@ -262,8 +264,7 @@ export default async function (req: Request, res: Response) {
 						type: 'album',
 						moreLink: '',
 						Track: undefined,
-						Artist: undefined,
-						artist: a.Artist,
+						Artist: a.Artist,
 						items: a.Track,
 					};
 				}), 'name'),
@@ -290,9 +291,9 @@ export default async function (req: Request, res: Response) {
 				}), 'playlistId'),
 			},
 		};
-	
+
 		res.json(data);
-		
+
 	} catch (error) {
 		console.log(error);
 	}

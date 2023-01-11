@@ -124,7 +124,7 @@ const music = createSlice({
 		setCurrentItem: (state, action: PayloadAction<Song>) => {
 			state.currentItem = action.payload;
 
-			state.queue = state.queue?.filter(q => q.id != action.payload?.id);
+			state.queue = state.queue?.filter(q => q?.id != action.payload?.id);
 		},
 		setAudioElement: (state, action: PayloadAction<any>) => {
 			state.audio = action.payload;

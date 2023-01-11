@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { existsSync, readFileSync } from 'fs';
 
 import { KAuthRequest } from 'types/keycloak';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
 import { confDb } from '../../../database/config';
 import { convertToSeconds } from '../../../functions/dateTime';
 import { deviceId } from '../../../functions/system';
@@ -39,7 +39,7 @@ export default async function (req: Request, res: Response) {
 
             const baseFolder = `/${movie.VideoFile[0]?.share}${movie.VideoFile[0]?.folder}`;
 
-            JSON.parse(movie.VideoFile[0].subtitles ?? '[]')
+            JSON.parse(movie.VideoFile[0]?.subtitles ?? '[]')
                 .forEach((sub) => {
                     const {language, type, ext} = sub;
                     
@@ -50,7 +50,7 @@ export default async function (req: Request, res: Response) {
                         textTracks.push({
                             label: type,
                             type: type,
-                            src: `${baseFolder}/subtitles${movie.VideoFile[0].filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
+                            src: `${baseFolder}/subtitles${movie.VideoFile[0]?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
                             srclang: i18next.t(`languages:${language}`),
                             ext: ext,
                             language: language,
@@ -88,7 +88,7 @@ export default async function (req: Request, res: Response) {
 				origin: deviceId,
 				uuid: movie.id,
 				video_id: movie.VideoFile[0]?.id,
-				duration: movie.VideoFile[0].duration,
+				duration: movie.VideoFile[0]?.duration,
 				tmdbid: movie.id,
 				video_type: 'movie',
 				playlist_type: 'movie',
@@ -104,7 +104,7 @@ export default async function (req: Request, res: Response) {
 					};
 				})?.[0] ?? {},
 
-				progress: (progress[0]?.time / convertToSeconds(movie.VideoFile[0].duration) * 100) ?? null,
+				progress: (progress[0]?.time / convertToSeconds(movie.VideoFile[0]?.duration) * 100) ?? null,
 
 				poster: movie.poster ? movie.poster : null,
 				backdrop: movie.backdrop ? movie.backdrop : null,

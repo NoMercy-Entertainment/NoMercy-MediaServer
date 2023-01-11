@@ -1,4 +1,6 @@
+import { existsSync, rmSync } from 'fs';
 import { get_external_ip, get_internal_ip, portMap } from '../networking';
+import { setupComplete, transcodesPath } from '../../state/';
 
 import cdn from '../../loaders/cdn/cdn';
 import dev from './dev';
@@ -6,7 +8,6 @@ import firstBoot from '../firstBoot';
 import { getKeycloakKeys } from '../keycloak';
 import logo from '../logo';
 import queue from '../queue';
-import { setupComplete } from '../../state/';
 
 export default async () => {
 
@@ -18,10 +19,13 @@ export default async () => {
 	await cdn();
 	logo();
 
+	if(existsSync(transcodesPath)){
+		rmSync(transcodesPath, {recursive: true});
+	}
+
 	if (!setupComplete) {
 		await firstBoot();
 	}
-
 
 	await (await import('../refreshToken/refreshToken')).refreshToken();
 
