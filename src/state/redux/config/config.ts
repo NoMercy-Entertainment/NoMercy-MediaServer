@@ -3,7 +3,7 @@ import { Queue } from '../../../functions/queue/QueueClass';
 import { CDNInfoResponse, Files } from '../../../types/cdn';
 import { deviceName } from '../../../functions/system';
 import { LibraryWithFolders } from '../../../database/data';
-import { PreferedOrder } from '../../../encoder/ffprobe/ffprobe';
+import { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
 import { User } from '@prisma/client';
 
 export const keepOriginal: { [arg: string]: boolean } = {
@@ -24,16 +24,20 @@ const initialState = {
 	allowedUsers: new Array<AllowedUser>(),
 	colors: <CDNInfoResponse['data']['colors']>{},
 	downloads: new Array<Files>(),
-	
+
 	queueWorker: new Queue({ name: 'queue', workers: 1 }),
 	queueWorkers: 1,
 	cronWorker: new Queue({ name: 'cron', workers: 1 }),
 	cronWorkers: 1,
 	dataWorker: new Queue({ name: 'data', workers: 1 }),
+	dataWorkers: 1,
 	requestWorker: new Queue({ name: 'request', workers: 1 }),
+	requestWorkers: 1,
+	encoderWorker: new Queue({ name: 'request', workers: 1 }),
+	encoderWorkers: 1,
 
 	libraries: new Array<LibraryWithFolders>(),
-	prefferedOrder: <PreferedOrder>{},
+	preferredOrder: <PreferredOrder>{},
 	keepOriginal: keepOriginal,
 	assToVtt: true,
 
@@ -76,8 +80,8 @@ const config = createSlice({
 		setLibraries: (state, action: PayloadAction<any>) => {
 			state.libraries = action.payload;
 		},
-		setPreferedOrder: (state, action: PayloadAction<PreferedOrder>) => {
-			state.prefferedOrder = action.payload;
+		setPreferedOrder: (state, action: PayloadAction<PreferredOrder>) => {
+			state.preferredOrder = action.payload;
 		},
 		setKeepOriginal: (state, action: PayloadAction<{[arg: string]: any}>) => {
 			state.keepOriginal = action.payload;

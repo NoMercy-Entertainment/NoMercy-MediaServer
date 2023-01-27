@@ -1,27 +1,28 @@
+import { AppState, useSelector } from '../../state/redux';
 import {
 	Folder,
 	Library,
 	LibraryFolder,
-	Movie,
+	Movie
 } from '@prisma/client';
 import {
+	FolderList,
+	ParsedFileList
+} from './filenameParser';
+import {
 	existsSync,
-	readFileSync, writeFileSync
+	readFileSync,
+	writeFileSync
 } from 'fs';
 import { join, resolve } from 'path';
 
-import getFolders from './getFolders';
-import { AppState, useSelector } from '../../state/redux';
-import {
-	FolderList,
-	ParsedFileList,
-} from './filenameParser';
 import { TvShow } from '../../providers/tmdb/tv/index';
+import { cachePath } from '../../state';
 import { confDb } from '../../database/config';
 import { fallbackSearch } from '../data/search';
-import { needsUpdate } from '../data/needsUpdate';
-import { cachePath } from '../../state';
 import { fullUpdate } from '../../tasks/data/fullUpdate';
+import getFolders from './getFolders';
+import { needsUpdate } from '../data/needsUpdate';
 
 export interface FolderInfo {
 	lib: Lib;
@@ -38,12 +39,12 @@ export interface FolderInfo {
 	searchProvider: 'tmdb';
 	task: {
 		id: string
-	}, 
-	index: number; 
-	priority: number; 
+	},
+	index: number;
+	priority: number;
 }
 
-export const scanLibraries = async (forceUpdate: boolean = false, synchronous: boolean = false) => {
+export const scanLibraries = async (forceUpdate = false, synchronous = false) => {
 
 	const socket = useSelector((state: AppState) => state.system.socket);
 
@@ -55,18 +56,18 @@ export const scanLibraries = async (forceUpdate: boolean = false, synchronous: b
 		},
 		select: {
 			id: true,
-		}
+		},
 	});
-	
+
 	socket.emit('tasks', task);
-	
-	const jobs: { 
-		lib: Lib; 
-		parsedFolder?: FolderList; 
+
+	const jobs: {
+		lib: Lib;
+		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
 	}[] = [];
 
-	let libs = await confDb.library.findMany({
+	const libs = await confDb.library.findMany({
 		include: {
 			Folders: {
 				include: {
@@ -79,7 +80,7 @@ export const scanLibraries = async (forceUpdate: boolean = false, synchronous: b
 	for (const lib of libs) {
 		await scan(lib, jobs);
 	}
-	
+
 
 	for (const title of jobs) {
 		const index = jobs.indexOf(title);
@@ -97,19 +98,19 @@ type Lib = (Library & {
 })
 
 
-export const scanLibrary = async (id: string, forceUpdate: boolean = false, synchronous: boolean = false): Promise<Lib|void> => {
+export const scanLibrary = async (id: string, forceUpdate = false, synchronous = false): Promise<Lib|void> => {
 
 	const socket = useSelector((state: AppState) => state.system.socket);
 
-	const jobs: { 
-		lib: Lib; 
-		parsedFolder?: FolderList; 
+	const jobs: {
+		lib: Lib;
+		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
-	}[] = new Array<{ 
-		lib: Lib; 
-		parsedFolder?: FolderList; 
+	}[] = new Array<{
+		lib: Lib;
+		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
-	}>;
+	}>();
 
 	const lib = await confDb.library.findFirst({
 		include: {
@@ -121,10 +122,10 @@ export const scanLibrary = async (id: string, forceUpdate: boolean = false, sync
 		},
 		where: {
 			id: id,
-		}
+		},
 	})
 	.then(async (lib) => {
-		if(!lib) return;
+		if (!lib) return;
 		await scan(lib, jobs);
 		return lib;
 	});
@@ -137,12 +138,12 @@ export const scanLibrary = async (id: string, forceUpdate: boolean = false, sync
 		},
 		select: {
 			id: true,
-		}
+		},
 	});
 
 	socket.emit('tasks', task);
 	console.log(jobs.length);
-	
+
 	for (const title of jobs) {
 		const index = jobs.indexOf(title);
 
@@ -153,9 +154,9 @@ export const scanLibrary = async (id: string, forceUpdate: boolean = false, sync
 
 };
 
-const scan = async (lib: Lib, jobs: { 
-	lib: Lib; 
-	parsedFolder?: FolderList; 
+const scan = async (lib: Lib, jobs: {
+	lib: Lib;
+	parsedFolder?: FolderList;
 	parsedFile?: ParsedFileList;
 }[]): Promise<Lib|undefined> => {
 
@@ -164,41 +165,40 @@ const scan = async (lib: Lib, jobs: {
 
 		if (lib.type == 'tv' || lib.type == 'movie') {
 
-			const folders = await getFolders({ 
-				folder: path.folder?.path 
+			const folders = await getFolders({
+				folder: path.folder?.path,
 			});
 
 			const parsedFolders = folders.getParsedFolders();
-			
+
 			for (const parsedFolder of parsedFolders) {
-				if(parsedFolder.path.includes('~')){
+				if (parsedFolder.path.includes('~')) {
 					continue;
 				}
-				jobs.push({lib, parsedFolder});
+				jobs.push({ lib, parsedFolder });
 			}
 
-		}
-		else if (lib.type == 'music') {
+		} else if (lib.type == 'music') {
 
 			const folders = await getFolders({
-				folder: path.folder?.path, 
+				folder: path.folder?.path,
 				filter: ['mp3', 'flac'],
 				ignoreBaseFilter: true,
 			});
-			
+
 			const parsedFolders = folders.getParsedFolders();
-			
+
 			for (const parsedFolder of parsedFolders) {
 				const folders = await getFolders({
 					folder: parsedFolder?.path,
 					filter: ['mp3', 'flac'],
 					ignoreBaseFilter: true,
 				});
-				
+
 				const parsedFolders2 = folders.getParsedFolders();
-				
+
 				for (const parsedFolder2 of parsedFolders2) {
-					jobs.push({lib, parsedFolder: parsedFolder2});
+					jobs.push({ lib, parsedFolder: parsedFolder2 });
 				}
 			}
 
@@ -206,19 +206,19 @@ const scan = async (lib: Lib, jobs: {
 	}
 
 	return lib;
-}
+};
 
 const process = async (
-	title: FolderList | ParsedFileList, 
-	lib: Lib, 
-	forceUpdate: boolean, 
-	synchronous: boolean, 
-	jobs: { 
-		lib: Lib; 
-		parsedFolder?: FolderList; 
+	title: FolderList | ParsedFileList,
+	lib: Lib,
+	forceUpdate: boolean,
+	synchronous: boolean,
+	jobs: {
+		lib: Lib;
+		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
-	}[], 
-	task: {id: string}, 
+	}[],
+	task: {id: string},
 	index: number
 ) => {
 
@@ -228,24 +228,25 @@ const process = async (
 	const jsonFile = join(cachePath, 'temp', `${title.title ?? title.name}_cache.json`);
 	let x: FolderInfo;
 	const updateDate = Date.now();
-	
+
 	if (existsSync(jsonFile)) {
 		x = JSON.parse(readFileSync(jsonFile, 'utf8'));
-		x.lastCheck = updateDate;
-		x.lastUpdate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 14)).getTime();
-		// @ts-expect-error
-		x.job = undefined;
-		x.lib = lib;
-		x.jobsCount = jobs.length;
-		x.task = task ?? {id: 'manual'};
-		x.index = index;
-		x.priority = 1;
+		// x.lastCheck = updateDate;
+		// x.lastUpdate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 14)).getTime();
+		// // @ts-expect-error
+		// x.job = undefined;
+		// x.lib = lib;
+		// x.jobsCount = jobs.length;
+		// x.task = task ?? { id: 'manual' };
+		// x.index = index;
+		// x.priority = 1;
 	} else {
 		const search = (await fallbackSearch(lib.type, title)) as TvShow | Movie;
 		if (!search) {
 			console.log(title);
-			return
-		};
+			return;
+		}
+
 		x = {
 			id: search?.id,
 			title: (search as TvShow).name ?? (search as Movie).title ?? title.title,
@@ -259,39 +260,40 @@ const process = async (
 			searchProvider: 'tmdb',
 			lib: lib,
 			jobsCount: jobs.length,
-			task: task ?? {id: 'manual'}, 
+			task: task ?? { id: 'manual' },
 			index: index,
 			priority: 1,
 		};
-	};
-	
-	// @ts-expect-error
-	delete x.job;
-	writeFileSync(jsonFile, JSON.stringify(x, null, 4));
+
+		writeFileSync(jsonFile, JSON.stringify(x, null, 4));
+	}
+
 	if (
-		new Date(x.lastUpdate + 1000 * 60 * 60 * 24 * 15).getTime() <= updateDate || 
-		forceUpdate || 
-		await needsUpdate(x)
+		new Date(x.lastUpdate + 1000 * 60 * 60 * 24 * 15).getTime() <= updateDate
+		|| forceUpdate
+		|| (await needsUpdate(x))
 	) {
-		if(synchronous) {
-		
+		if (synchronous) {
+
 			const runningTask = await confDb.runningTask.update({
 				where: {
-					id: task.id
+					id: task.id,
 				},
 				data: {
 					title: `Scanning ${lib.title} library`,
 					type: 'library',
 					value: Math.ceil((index / x.jobsCount) * 100),
-				}
+				},
 			}).catch(e => console.log(e));
 
 			await fullUpdate(x);
-			
+
 			socket.emit('tasks', runningTask);
 
 		} else {
 			// await fullUpdate(x);
+			// console.log(x);
+
 			await queue.add({
 				file: resolve(__dirname, '..', 'data', 'fullUpdate'),
 				fn: 'fullUpdate',
@@ -299,4 +301,4 @@ const process = async (
 			});
 		}
 	}
-}
+};

@@ -6,12 +6,12 @@ import Logger from '../../functions/logger';
 import { Translation } from '@prisma/client';
 import { confDb } from '../../database/config';
 import { deviceId } from '../../functions/system';
+import { getLanguage } from '../middleware';
 import { isOwner } from '../middleware/permissions';
 
 export default async function (req: Request, res: Response) {
-	const language = req.acceptsLanguages()[0] == 'undefined'
-		? 'en'
-		: req.acceptsLanguages()[0].split('-')[0];
+
+	const language = getLanguage(req);
 
 	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 

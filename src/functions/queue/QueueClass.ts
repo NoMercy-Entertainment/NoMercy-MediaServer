@@ -20,8 +20,8 @@ export class Queue {
 	name: string;
 	keepJobs: boolean;
 	workers: number;
-	pendingRemove: boolean = false;
-	isDisabled: boolean = true;
+	pendingRemove = false;
+	isDisabled = true;
 	runningJobs: number[] = [];
 	forks: {
 		id: number;
@@ -37,28 +37,28 @@ export class Queue {
 	}
 
 	hasFreeWorker() {
-		return this.forks.find((w) => !w.running);
+		return this.forks.find(w => !w.running);
 	}
 
 	createWorker() {
 		Logger.log({
-			name: `queue`,
+			name: 'queue',
 			message: `Starting ${this.name} worker ${this.forks.length}`,
-			level: 'info'
+			level: 'info',
 		});
 		this.forks.push({
 			id: this.forks.length,
 			running: false,
 			worker: fork(`${__dirname}/worker`),
-			job: <QueueJob>{}
+			job: <QueueJob>{},
 		});
 
 		this.run();
 	}
 
 	removeWorker() {
-		if (this.forks.some((w) => !w.running)) {
-			const Worker = this.forks.find((w) => !w.running);
+		if (this.forks.some(w => !w.running)) {
+			const Worker = this.forks.find(w => !w.running);
 			if (!Worker) return;
 
 			this.deleteWorker(Worker);
@@ -67,12 +67,12 @@ export class Queue {
 		}
 	}
 
-	deleteWorker(Worker: Worker){
+	deleteWorker(Worker: Worker) {
 		if (!Worker) return;
 
 		Worker.worker.kill(2);
 
-		this.forks = this.forks.filter((w) => w.id != Worker.id);
+		this.forks = this.forks.filter(w => w.id != Worker.id);
 	}
 
 	setWorkers(workers: number) {
@@ -87,7 +87,7 @@ export class Queue {
 			}
 			this.workers = workers;
 		}
-		
+
 	}
 
 	async jobs() {
@@ -104,7 +104,7 @@ export class Queue {
 		}
 
 		try {
-			const job =  await queDb.queueJob.create({
+			const job = await queDb.queueJob.create({
 				data: {
 					queue: this.name,
 					runAt: null,
@@ -113,9 +113,9 @@ export class Queue {
 					payload: JSON.stringify({ file, fn, args }),
 				},
 			});
-	
-			return job
-			
+
+			return job;
+
 		} catch (error) {
 			console.log(error);
 		}
@@ -141,18 +141,18 @@ export class Queue {
 	}
 
 	async cancel(id: number) {
-		const job =  await queDb.queueJob.delete({
+		const job = await queDb.queueJob.delete({
 			where: {
 				id: id,
 			},
 		});
-		if(!job) return;
-		
-		const Worker = this.forks.find((w) => w.job.id == job.id);
+		if (!job) return;
+
+		const Worker = this.forks.find(w => w.job.id == job.id);
 		if (!Worker) return;
 
 		Worker.worker.kill(2);
-		
+
 		this.deleteWorker(Worker);
 
 		this.createWorker();
@@ -197,34 +197,40 @@ export class Queue {
 	}
 
 	async failed(id: number, error: any) {
-		if(!error?.code) {
+		if (!error?.code) {
 			return await queDb.queueJob.update({
 				where: {
 					id: id,
 				},
 				data: {
 					runAt: null,
-					error: error ? JSON.stringify(error, null,2) : 'unknown',
-				},
-			});
-		} else {
-			return await queDb.queueJob.update({
-				where: {
-					id: id,
-				},
-				data: {
-					failedAt: new Date(),
-					error: error ? JSON.stringify(error, null,2) : 'unknown',
+					error: error
+						? JSON.stringify(error, null, 2)
+						: 'unknown',
 				},
 			});
 		}
+		return await queDb.queueJob.update({
+			where: {
+				id: id,
+			},
+			data: {
+				failedAt: new Date(),
+				error: error
+					? JSON.stringify(error, null, 2)
+					: 'unknown',
+			},
+		});
+
 	}
 
 	async retry(id?: number) {
 		return await queDb.queueJob.updateMany({
-			where: id ? {
-				id: id,
-			} : {},
+			where: id
+				? {
+					id: id,
+				}
+				: {},
 			data: {
 				runAt: null,
 			},
@@ -237,7 +243,7 @@ export class Queue {
 				id: id,
 			},
 			data: {
-				result: JSON.stringify(data, null,2),
+				result: JSON.stringify(data, null, 2),
 				finishedAt: new Date(),
 			},
 		});
@@ -248,7 +254,9 @@ export class Queue {
 	}
 
 	state() {
-		return this.isDisabled ? 'stopped' : 'running';
+		return this.isDisabled
+			? 'stopped'
+			: 'running';
 	}
 
 	start() {
@@ -261,45 +269,45 @@ export class Queue {
 
 	async run() {
 		if (this.isDisabled) return;
-		
-		const Worker = this.forks.find((w) => !w.running);
+
+		const Worker = this.forks.find(w => !w.running);
 		if (!Worker) return;
-		
+
 		const job = await this.next();
-		
+
 		if (!job || this.runningJobs.includes(job.id)) {
 			setTimeout(async () => {
 				await this.run();
 			}, 1500);
 			return;
 		}
-		
+
 		this.runningJobs.push(job.id);
 
 		Worker.running = true;
 		Worker.job = job;
 
 		await this.running(job.id);
-		
-		if(job.taskId){
+
+		if (job.taskId) {
 			try {
 				const runningTask = await confDb.runningTask.findFirst({
 					where: {
-						id: job.taskId
+						id: job.taskId,
 					},
 				});
-				if(runningTask?.id){
+				if (runningTask?.id) {
 					await confDb.runningTask.update({
 						where: {
-							id: runningTask.id
+							id: runningTask.id,
 						},
 						data: {
-							title: `${runningTask?.title?.replace(/\n.+/, '')}\n${JSON.parse(job.payload as string).args.folder}` ?? 'Downloading images'
-						}
+							title: `${runningTask?.title?.replace(/\n.+/u, '')}\n${JSON.parse(job.payload as string).args.folder}` ?? 'Downloading images',
+						},
 					});
 				}
 			} catch (error) {
-				
+				//
 			}
 		}
 
@@ -311,24 +319,24 @@ export class Queue {
 
 			const runningTask = await confDb.runningTask.findFirst({
 				where: {
-					id: message.result?.task?.id
+					id: message.result?.task?.id,
 				},
 			}).catch(e => console.log(e));
 
-			if(runningTask?.value == 100){
+			if (runningTask?.value == 100) {
 				await confDb.runningTask.delete({
 					where: {
-						id: runningTask.id
+						id: runningTask.id,
 					},
 				}).catch(e => console.log(e));
 			}
-			
+
 			socket.emit('tasks', runningTask);
-			
-			if(runningTask?.title.includes('library') && message.job.queue == 'queue'){
+
+			if (runningTask?.title.includes('library') && message.job.queue == 'queue') {
 				socket.emit('update_content', ['libraries']);
 			}
-			
+
 			if (message?.error) {
 				await this.failed(job.id, message.result);
 			} else if (this.keepJobs) {
@@ -352,25 +360,26 @@ export class Queue {
 }
 
 function _getCallerFile() {
-	let originalFunc = Error.prepareStackTrace;
+	const originalFunc = Error.prepareStackTrace;
 
 	let callerFile;
 	try {
-		let error: any = new Error();
-		let currentFile;
+		const error: any = new Error();
 
 		Error.prepareStackTrace = function (err, stack) {
 			return stack;
 		};
 
-		currentFile = error.stack.shift().getFileName();
+		const currentFile = error.stack.shift().getFileName();
 
 		while (error.stack.length) {
 			callerFile = error.stack.shift().getFileName();
 
 			if (currentFile !== callerFile) break;
 		}
-	} catch (e) {}
+	} catch (e) {
+		//
+	}
 
 	Error.prepareStackTrace = originalFunc;
 

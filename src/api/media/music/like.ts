@@ -7,7 +7,7 @@ export default async function (req: Request, res: Response) {
 
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 
-	const {id, value}: { id: string, value: boolean } = req.body;
+	const { id, value }: { id: string, value: boolean } = req.body;
 
 	let query;
 
@@ -49,7 +49,11 @@ export default async function (req: Request, res: Response) {
 				FavoriteTrack: query,
 			},
 			include: {
-				FavoriteTrack: true,
+				FavoriteTrack: {
+					where: {
+						userId: user,
+					},
+				},
 			},
 		});
 

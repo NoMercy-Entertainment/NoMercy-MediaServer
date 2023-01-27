@@ -7,7 +7,6 @@ import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import image from './image';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[]) => {
-	
 	Logger.log({
 		level: 'info',
 		name: 'App',
@@ -19,7 +18,9 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 
 		const personInsert = Prisma.validator<Prisma.PersonUncheckedCreateInput>()({
 			adult: person.adult,
-			alsoKnownAs: person.also_known_as == null ? '' : person.also_known_as.join?.(','),
+			alsoKnownAs: person.also_known_as == null
+				? ''
+				: person.also_known_as.join?.(','),
 			biography: person.biography,
 			birthday: person.birthday,
 			deathday: person.deathday,
@@ -32,7 +33,9 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			placeOfBirth: person.place_of_birth,
 			popularity: person.popularity,
 			profilePath: person.profile_path,
-			blurHash: person.profile_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${person.profile_path}`) : undefined,
+			blurHash: person.profile_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${person.profile_path}`)
+				: undefined,
 		});
 
 		transaction.push(
@@ -43,11 +46,11 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 				update: personInsert,
 				create: personInsert,
 			})
-		);		
+		);
 
 		await image(person, transaction, 'profile', 'person');
 	}
-	
+
 	Logger.log({
 		level: 'info',
 		name: 'App',

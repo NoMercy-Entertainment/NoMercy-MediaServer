@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
-import { exec, execSync } from "child_process";
-import { existsSync, mkdirSync, readdirSync, rmdirSync } from "fs";
+import { Request, Response } from 'express';
+import { exec, execSync } from 'child_process';
+import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
 
-import { transcodesPath } from "../../state";
+import { transcodesPath } from '../../state';
 
-export default async function (req: Request, res: Response) {
+export default function (req: Request, res: Response) {
 
     const { id } = req.params;
 
@@ -15,9 +15,9 @@ export default async function (req: Request, res: Response) {
         execSync(`yt-dlp -F "${url}"`);
 
         mkdirSync(`${basePath}`, { recursive: true });
-        
+
         const cmd = [
-            'yt-dlp', 
+            'yt-dlp',
             `"${url}"`,
             '--write-auto-subs',
             '--write-subs',
@@ -34,11 +34,11 @@ export default async function (req: Request, res: Response) {
             '-segment_time 4',
             '-segment_list_type m3u8',
             `-segment_list "${basePath}video.m3u8"`,
-            `"${basePath}video-%04d.ts"`
+            `"${basePath}video-%04d.ts"`,
         ].join(' ');
-        
-        if(!existsSync(`${basePath}/video.m3u8`)){
-            exec(cmd, { cwd: `${basePath}`});
+
+        if (!existsSync(`${basePath}/video.m3u8`)) {
+            exec(cmd, { cwd: `${basePath}` });
         }
 
         while (!existsSync(`${basePath}video.m3u8`)) {
@@ -48,41 +48,41 @@ export default async function (req: Request, res: Response) {
         const textTracks = readdirSync(`${basePath}`)
             .filter(f => f.endsWith('vtt'))
             .map(f => `/transcodes/${id}/${f}`);
-        
+
         res.status(201).json({
             key: id,
             path: `/transcodes/${id}/video.m3u8`,
             textTracks,
-            command: cmd
+            command: cmd,
         });
-        
+
     } catch (error) {
         res.status(404).json({
             status: 'error',
-            error
+            error,
         });
     }
 
 }
 
-export const deleteTrailer = async (req: Request, res: Response) => {
+export const deleteTrailer = (req: Request, res: Response) => {
 
     const { id } = req.params;
 
     try {
-        rmdirSync(`${transcodesPath}/${id}`, { recursive: true });
-            
+        rmSync(`${transcodesPath}/${id}`, { recursive: true });
+
         res.json({
             status: 'success',
-            message: 'Tailer deleted'
+            message: 'Tailer deleted',
         });
-        
+
     } catch (error) {
 
         res.json({
             status: 'error',
-            error
+            error,
         });
     }
 
-}
+};

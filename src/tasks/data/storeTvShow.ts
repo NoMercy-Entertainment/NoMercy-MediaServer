@@ -3,7 +3,7 @@ import { Jobs, Prisma } from '@prisma/client';
 import {
 	existsSync,
 	readFileSync,
-	writeFileSync,
+	writeFileSync
 } from 'fs';
 import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
 import { join, resolve } from 'path';
@@ -15,14 +15,14 @@ import crew from './crew';
 import fetchTvShow from './fetchTvShow';
 import FileList from '../../tasks/files/getFolders';
 import genre from './genre';
-import image from './image';
+// import image from './image';
 import keyword from './keyword';
 import Logger from '../../functions/logger';
-import person from './person';
-import recommendation from './recommendation';
-import season from './season';
-import similar from './similar';
-import translation from './translation';
+// import person from './person';
+// import recommendation from './recommendation';
+// import season from './season';
+// import similar from './similar';
+// import translation from './translation';
 import {
 	createTitleSort,
 	ParsedFileList
@@ -35,16 +35,22 @@ import {
 import { cachePath } from '../../state';
 import { confDb } from '../../database/config';
 import {
-	getExistingSubtitles,
+	getExistingSubtitles
 } from '../../functions/ffmpeg/subtitles/subtitle';
 import {
-	getQualityTag,
+	getQualityTag
 } from '../../functions/ffmpeg/quality/quality';
 import { jsonToString } from '../../functions/stringArray';
 
 import i18n from '../../loaders/i18n';
 import { AppState, useSelector } from '../../state/redux';
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
+import createBlurHash from '../../functions/createBlurHash';
+import person from './person';
+import image from './image';
+import recommendation from './recommendation';
+import season from './season';
+import similar from './similar';
+import translation from './translation';
 
 export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'manual' } }: { id: number; folder?: string, libraryId: string, job?: Jobs, task?: { id: string } }) => {
 	console.log({ id, folder, libraryId, job, task });
@@ -83,7 +89,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 		const people = await confDb.person.findMany({
 			select: {
 				id: true,
-			}
+			},
 		}).then(d => d.map(e => e.id));
 
 		await creator(tv, transaction, createdByInsert, people);
@@ -109,20 +115,23 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 				for (const data of response.data.data) {
 					if (data.attributes.titles.en?.toLowerCase() == tv.name.toLowerCase()) {
 						Type = 'anime';
-					}
-					else if (data.attributes.titles.en_jp?.toLowerCase() == tv.name.toLowerCase()) {
+					} else if (data.attributes.titles.en_jp?.toLowerCase() == tv.name.toLowerCase()) {
 						Type = 'anime';
-					}
-					else if (data.attributes.titles.en_us?.toLowerCase() == tv.name.toLowerCase()) {
+					} else if (data.attributes.titles.en_us?.toLowerCase() == tv.name.toLowerCase()) {
 						Type = 'anime';
 					}
 				}
-			}).catch(e => console.log(e));
+			})
+			.catch(e => console.log(e));
 
 		const blurHash = {
-			poster: tv.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${tv.poster_path}`) : undefined,
-			backdrop: tv.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`) : undefined,
-		}
+			poster: tv.poster_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${tv.poster_path}`)
+				: undefined,
+			backdrop: tv.backdrop_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`)
+				: undefined,
+		};
 
 		const tvInsert = Prisma.validator<Prisma.TvUncheckedCreateInput>()({
 			backdrop: tv.backdrop_path,
@@ -144,7 +153,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 			popularity: tv.popularity,
 			poster: tv.poster_path,
 			blurHash: JSON.stringify(blurHash),
-			spokenLanguages: tv.spoken_languages.map((sl) => sl.iso_639_1).join(', '),
+			spokenLanguages: tv.spoken_languages.map(sl => sl.iso_639_1).join(', '),
 			status: tv.status,
 			tagline: tv.tagline,
 			title: tv.name,
@@ -277,16 +286,16 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 
 		let haveEpisodes = 0;
 
-		if(folder){
+		if (folder) {
 			await FileList({
 				folder: folder,
 				recursive: true,
 			}).then(async (fileList) => {
 				const fileTransaction: Prisma.PromiseReturnType<any>[] = [];
-	
+
 				const folderFile = join(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
 				// console.log(folderFile);
-	
+
 				let parsedFiles: ParsedFileList[];
 				if (existsSync(folderFile) && fileChangedAgo(folderFile, 'days') < 50 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0) {
 					parsedFiles = JSON.parse(readFileSync(folderFile, 'utf-8'));
@@ -294,12 +303,13 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 					parsedFiles = await fileList.getParsedFiles(true);
 					writeFileSync(folderFile, jsonToString(parsedFiles));
 				}
-	
+
 				for (const file of parsedFiles) {
+
 					if (!file.seasons?.[0] || !file.episodeNumbers?.[0]) {
 						continue;
 					}
-					
+
 					const episode = await confDb.episode.findFirst({
 						where: {
 							Tv: {
@@ -307,37 +317,41 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 							},
 							seasonNumber: file.seasons[0],
 							episodeNumber: file.episodeNumbers[0],
-						}
+						},
 					});
-	
+
 					if (episode?.id) {
 						const newFile: Prisma.FileCreateWithoutMovieInput = Object.keys(file)
 							.filter(key => !['seasons', 'episodeNumbers', 'ep_folder', 'artistFolder', 'musicFolder'].includes(key))
 							.reduce((obj, key) => {
 								obj[key] = file[key];
 								return obj;
-							}, <Prisma.FileCreateWithoutMovieInput>{}
-							);
-						
-						if(file.seasons[0] > 0){
+							}, <Prisma.FileCreateWithoutMovieInput>{});
+
+						if (file.seasons[0] > 0) {
 							haveEpisodes += 1;
 						}
-	
+
 						// @ts-ignore
 						const insertData = Prisma.validator<Prisma.FileCreateWithoutMovieInput>()({
 							...newFile,
 							episodeFolder: file.episodeFolder as string,
-							name: '/' + file.name as string,
-							// @ts-expect-error
-							year: file.year ? parseInt(file.year, 10) : null,
+							name: `/${file.name}` as string,
+							year: file.year
+								? parseInt(file.year.toString(), 10)
+								: null,
 							sources: JSON.stringify(file.sources),
 							revision: JSON.stringify(file.revision),
 							languages: JSON.stringify(file.languages),
 							edition: JSON.stringify(file.edition),
 							seasonNumber: file.seasons[0],
 							episodeNumber: file.episodeNumbers[0],
-							ffprobe: file.ffprobe ? JSON.stringify(file.ffprobe) : null,
-							chapters: (file.ffprobe as VideoFFprobe)?.chapters ? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters) : null,
+							ffprobe: file.ffprobe
+								? JSON.stringify(file.ffprobe)
+								: null,
+							chapters: (file.ffprobe as VideoFFprobe)?.chapters
+								? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters)
+								: null,
 							Library: {
 								connect: {
 									id: libraryId,
@@ -345,11 +359,11 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 							},
 							Episode: {
 								connect: {
-									id: episode?.id!,
+									id: episode.id,
 								},
 							},
 						});
-	
+
 						fileTransaction.push(
 							confDb.file.upsert({
 								where: {
@@ -362,8 +376,8 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 								update: insertData,
 							})
 						);
-	
-						if (file.ffprobe?.format) {
+
+						if (file.ffprobe?.format && insertData.extension != '.mkv') {
 							const videoFileInset = Prisma.validator<Prisma.VideoFileUpdateInput>()({
 								filename: file.ffprobe.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
 								folder: file.folder + file.episodeFolder!,
@@ -377,10 +391,10 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 								Episode: {
 									connect: {
 										id: episode?.id,
-									}
-								}
+									},
+								},
 							});
-	
+
 							fileTransaction.push(
 								confDb.videoFile.upsert({
 									where: {
@@ -404,10 +418,10 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 						},
 					})
 				);
-				
+
 				await confDb.$transaction(fileTransaction).catch(e => console.log(e));
-	
-				return;
+
+
 			});
 		}
 
@@ -416,13 +430,13 @@ export const storeTvShow = async ({ id, folder, libraryId, job, task = { id: 'ma
 		await queue.add({
 			file: resolve(__dirname, '..', 'images', 'downloadTVDBImages'),
 			fn: 'downloadTVDBImages',
-			args: {type: 'tv', task, data: { ...tv, task }},
+			args: { type: 'tv', task, data: { ...tv, task } },
 		});
 
 		await queue.add({
 			file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
 			fn: 'downloadTMDBImages',
-			args: {type: 'tv', task, data: { ...tv, task }},
+			args: { type: 'tv', task, data: { ...tv, task } },
 		});
 
 		// await downloadTVDBImages({ type: 'tv', data: { ...tv, task } });

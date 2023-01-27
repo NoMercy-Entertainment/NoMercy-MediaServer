@@ -8,8 +8,12 @@ export const breakLogoTitle = (str: string, characters = [':', '!', '?']) => {
 	}
 
 	if (str.split('').some((l: string) => characters.includes(l))) {
-		const reg = new RegExp(characters.map(l => (l == '?' ? `\\${l}` : l)).join('|'), 'u');
-		const reg2 = new RegExp(characters.map(l => (l == '?' ? `\\${l}\\s` : `${l}\\s`)).join('|'), 'u');
+		const reg = new RegExp(characters.map(l => (l == '?'
+			? `\\${l}`
+			: l)).join('|'), 'u');
+		const reg2 = new RegExp(characters.map(l => (l == '?'
+			? `\\${l}\\s`
+			: `${l}\\s`)).join('|'), 'u');
 		if (reg && reg2 && str.match(reg2)) {
 			return str.replace(
 				(str.match(reg2) as any)[0],
@@ -49,7 +53,9 @@ export const copyToClipboard = (text: string): void => {
 export const find_most = (array: Array<number>): number => {
 	return array.reduce(
 		(a: number, b: number, _i, arr: any[]) =>
-			(arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b),
+		(arr.filter(v => v === a).length >= arr.filter(v => v === b).length
+			? a
+			: b),
 		array[0]
 	);
 };
@@ -68,7 +74,7 @@ export const formatDuration = (value: number): string => {
 export const generateRandomString = (length: number): string => {
 	let text = '';
 	const possible
-    = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	for (let i = 0; i < length; i++) {
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -232,13 +238,25 @@ export const sortBy = <T>(
 		let x: typeof a;
 		let y: typeof b;
 		if (direction == 'desc') {
-			x = subKey ? b[key]?.[subKey] : b[key];
-			y = subKey ? a[key]?.[subKey] : a[key];
+			x = subKey
+				? b[key]?.[subKey]
+				: b[key];
+			y = subKey
+				? a[key]?.[subKey]
+				: a[key];
 		} else {
-			x = subKey ? a[key]?.[subKey] : a[key];
-			y = subKey ? b[key]?.[subKey] : b[key];
+			x = subKey
+				? a[key]?.[subKey]
+				: a[key];
+			y = subKey
+				? b[key]?.[subKey]
+				: b[key];
 		}
-		return x < y ? -1 : x > y ? 1 : 0;
+		return x < y
+			? -1
+			: x > y
+				? 1
+				: 0;
 	});
 };
 
@@ -250,7 +268,7 @@ export const sortBy = <T>(
  * @param {string} key Sort key
  * @param {string} key Sort direction
  */
- export const sortByPriorityKeyed = (sortingOrder: { [x: string]: any; }, key: PropertyKey, order = 'desc') => {
+export const sortByPriorityKeyed = (sortingOrder: { [x: string]: any; }, key: PropertyKey, order = 'desc') => {
 	if (Array.isArray(sortingOrder)) {
 		sortingOrder = createEnumFromArray(sortingOrder);
 	}
@@ -265,9 +283,13 @@ export const sortBy = <T>(
 		}
 
 		const first
-			= a[key].toString().toLowerCase() in sortingOrder ? sortingOrder[a[key]] : Number.MAX_SAFE_INTEGER;
+			= a[key].toString().toLowerCase() in sortingOrder
+				? sortingOrder[a[key]]
+				: Number.MAX_SAFE_INTEGER;
 		const second
-			= b[key].toString().toLowerCase() in sortingOrder ? sortingOrder[b[key]] : Number.MAX_SAFE_INTEGER;
+			= b[key].toString().toLowerCase() in sortingOrder
+				? sortingOrder[b[key]]
+				: Number.MAX_SAFE_INTEGER;
 
 		let result = 0;
 		if (first > second) {
@@ -275,7 +297,9 @@ export const sortBy = <T>(
 		} else if (first < second) {
 			result = 1;
 		}
-		return order === 'desc' ? ~result : result;
+		return order === 'desc'
+			? ~result
+			: result;
 	};
 };
 
@@ -372,7 +396,7 @@ export const Unique = (value: any, index: any, self: string | any[]) => {
 export const random_string = (length: number) => {
 	let result = '';
 	const characters
-    = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 	const charactersLength = characters.length;
 	for (let i = 0; i < length; i++) {
 		result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -414,10 +438,14 @@ export const sort_updated = (
 	const keyA = new Date(a.updated_at);
 	const keyB = new Date(b.updated_at);
 	if (keyA < keyB) {
-		return direction == 'desc' ? -1 : 1;
+		return direction == 'desc'
+			? -1
+			: 1;
 	}
 	if (keyA > keyB) {
-		return direction == 'desc' ? 1 : -1;
+		return direction == 'desc'
+			? 1
+			: -1;
 	}
 	return 0;
 };
@@ -430,13 +458,15 @@ export const trackSort = function (a: any, b: any) {
 	if (a.disc === b.disc) {
 		return a.track - b.track;
 	}
-	return pad(a.track, 2) > pad(b.track, 2) ? 1 : -1;
+	return pad(a.track, 2) > pad(b.track, 2)
+		? 1
+		: -1;
 };
 
 export const sortByPosterAlphabetized = <T>(
 	data: T[],
 	sort = 'name',
-	uniqued:string|null = null
+	uniqued: string | null = null
 ): T[] => {
 	if (uniqued) {
 		data = unique<T>(data, uniqued);
@@ -490,12 +520,12 @@ export const chunk = (arr: any[], amount: number) => {
 };
 
 declare global {
-  interface String {
-    capitalize: () => string
-    toTitleCase: () => string
-    toPascalCase: (string: any) => string
-    titlecase: (lang: string|'NL'|'FR', withLowers: boolean) => string
-  }
+	interface String {
+		capitalize: () => string
+		toTitleCase: () => string
+		toPascalCase: (string: any) => string
+		titlecase: (lang: string | 'NL' | 'FR', withLowers: boolean) => string
+	}
 }
 
 String.prototype.capitalize = function (): string {
@@ -589,9 +619,9 @@ export const matchPercentage = (strA: string, strB: string): number => {
 	}
 	return (
 		100
-    - ((result + 4 * Math.abs(strA.length - strB.length))
-      / (2 * (strA.length + strB.length)))
-    * 100
+		- ((result + 4 * Math.abs(strA.length - strB.length))
+			/ (2 * (strA.length + strB.length)))
+		* 100
 	);
 };
 
@@ -609,7 +639,11 @@ export const sortByMatchPercentage = (
 	return array.sort((a, b) => {
 		const x = matchPercentage(match, a[key]);
 		const y = matchPercentage(match, b[key]);
-		return x > y ? -1 : x < y ? 1 : 0;
+		return x > y
+			? -1
+			: x < y
+				? 1
+				: 0;
 	});
 };
 
@@ -618,41 +652,47 @@ export const objectsEqual = <T, S>(
 	o2: S | any
 ): boolean => {
 	if (o2 === null && o1 !== null) { return false; }
-	return o1 !== null && typeof o1 === 'object' && Object.keys(o1).length > 0 ? Object.keys(o1).length === Object.keys(o2).length
-		&& Object.keys(o1).every(p => objectsEqual(o1[p], o2[p])) : o1 !== null
+	return o1 !== null && typeof o1 === 'object' && Object.keys(o1).length > 0
+		? Object.keys(o1).length === Object.keys(o2).length
+		&& Object.keys(o1).every(p => objectsEqual(o1[p], o2[p]))
+		: o1 !== null
 			&& Array.isArray(o1)
 			&& Array.isArray(o2)
 			&& !o1.length
-			&& !o2.length ? true : o1 === o2;
+			&& !o2.length
+			? true
+			: o1 === o2;
 };
 
 export const create_UUID = () => {
-    var dt = new Date().getTime();
-    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = (dt + Math.random()*16)%16 | 0;
-        dt = Math.floor(dt/16);
-        return (c=='x' ? r :(r&0x3|0x8)).toString(16);
-    });
-    return uuid;
-}
+	let dt = new Date().getTime();
+	const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/gu, (c) => {
+		const r = (dt + Math.random() * 16) % 16 | 0;
+		dt = Math.floor(dt / 16);
+		return (c == 'x'
+			? r
+			: (r & 0x3 | 0x8)).toString(16);
+	});
+	return uuid;
+};
 
-/** 
+/**
  * @name stringFormat
  * @description Parses the template string with the values given as extra arguments
  * @author: Stoney_Eagle <stoney@nomercy.tv>
- * 
+ *
  * @example stringFormat(
-    "/{0}/{1}/season/{2}/episode/{3}?api_key={4}&language={5}",
-    'tv',
-    1433,
-    1,
-    1,
-    'ABCDEFGHIJK',
-    'en-US'
-    ) // /tv/1433/season/1/episode/1?api_key=ABCDEFGHIJK&language=en-US
+	"/{0}/{1}/season/{2}/episode/{3}?api_key={4}&language={5}",
+	'tv',
+	1433,
+	1,
+	1,
+	'ABCDEFGHIJK',
+	'en-US'
+	) // /tv/1433/season/1/episode/1?api_key=ABCDEFGHIJK&language=en-US
  */
 export const stringFormat = (template: string, ...values: Array<string | number>): string => {
-	const regex = new RegExp(/\{(?<index>\d+)\}/, 'gu');
+	const regex = new RegExp(/\{(?<index>\d+)\}/u, 'gu');
 	const matches = template.match(regex);
 	if (matches?.length == null) return '';
 
@@ -667,74 +707,88 @@ export const stringFormat = (template: string, ...values: Array<string | number>
 
 	return string;
 };
-	
+
 
 export const translate = (t: (arg: string) => string, template: string, ...value: Array<string | number>) => {
 
-    const translatedTemplate = t(template);
+	const translatedTemplate = t(template);
 
-    return stringFormat(translatedTemplate, ...value)
+	return stringFormat(translatedTemplate, ...value);
 
-}
+};
 
 type itemMap = (n: any) => any;
 interface SortConfig<T> {
-    key: keyof T;
-    reverse?: boolean;
-    map?: itemMap;
+	key: keyof T;
+	reverse?: boolean;
+	map?: itemMap;
 }
 export function byObjectValues<T extends object>(keys: ((keyof T) | SortConfig<T>)[]): (a: T, b: T) => 0 | 1 | -1 {
-    return function (a: T, b: T) {
-        const firstKey: keyof T | SortConfig<T> = keys[0];
-        const isSimple = typeof firstKey === 'string';
-        const key: keyof T = isSimple ? (firstKey as keyof T) : (firstKey as SortConfig<T>).key;
-        const reverse: boolean = isSimple ? false : !!(firstKey as SortConfig<T>).reverse;
-        const map: itemMap | null = isSimple ? null : (firstKey as SortConfig<T>).map || null;
+	return function (a: T, b: T) {
+		const firstKey: keyof T | SortConfig<T> = keys[0];
+		const isSimple = typeof firstKey === 'string';
+		const key: keyof T = isSimple
+			? (firstKey as keyof T)
+			: (firstKey as SortConfig<T>).key;
+		const reverse: boolean = isSimple
+			? false
+			: !!(firstKey as SortConfig<T>).reverse;
+		const map: itemMap | null = isSimple
+			? null
+			: (firstKey as SortConfig<T>).map || null;
 
-        const valA = map ? map(a[key]) : a[key];
-        const valB = map ? map(b[key]) : b[key];
-        if (valA === valB) {
-            if (keys.length === 1) {
-                return 0;
-            }
-            return byObjectValues<T>(keys.slice(1))(a, b);
-        }
-        if (reverse) {
-            return valA > valB ? -1 : 1;
-        }
-        return valA > valB ? 1 : -1;
-    };
+		const valA = map
+			? map(a[key])
+			: a[key];
+		const valB = map
+			? map(b[key])
+			: b[key];
+		if (valA === valB) {
+			if (keys.length === 1) {
+				return 0;
+			}
+			return byObjectValues<T>(keys.slice(1))(a, b);
+		}
+		if (reverse) {
+			return valA > valB
+				? -1
+				: 1;
+		}
+		return valA > valB
+			? 1
+			: -1;
+	};
 }
 
 export const jsonToString = (arg: any) => JSON.stringify(arg, null, 2);
 
 export const dualSort = <T>(data: T[], key1: string, key2: string, sortKey: string, uniqued?: string): T[] => {
 
-    if (uniqued) {
-        data = unique<T>(data, uniqued);
-    }
+	if (uniqued) {
+		data = unique<T>(data, uniqued);
+	}
 
-    const current = Object.create(null);
-    const finalArr: any[] = [];
+	const current = Object.create(null);
+	const finalArr: any[] = [];
 
-    data.forEach((o: any) => {
-        if (!current[o.name ?? o.title]) {
-            current[o.name ?? o.title] = [];
-            finalArr.push({ ...o, department: current[o.name ?? o.title] });
-        }
-        current[o.name ?? o.title].push(o.department);
-    });
+	data.forEach((o: any) => {
+		if (!current[o.name ?? o.title]) {
+			current[o.name ?? o.title] = [];
+			finalArr.push({ ...o, department: current[o.name ?? o.title] });
+		}
+		current[o.name ?? o.title].push(o.department);
+	});
 
-    const hasPoster = finalArr
-        .filter((d) => d[key1])
-        .sort((a: { [x: string]: number }, b: { [x: string]: number }) => +(a[sortKey] > b[sortKey]) || -(a[sortKey] < b[sortKey]));
-		
-    const nulled = finalArr
-        .filter((d) => d[key2])
-        .sort((a: { [x: string]: number }, b: { [x: string]: number }) => +(a[sortKey] > b[sortKey]) || -(a[sortKey] < b[sortKey]));
+	const hasPoster = finalArr
+		.filter(d => d[key1])
+		.sort((a: { [x: string]: number }, b: { [x: string]: number }) => +(a[sortKey] > b[sortKey]) || -(a[sortKey] < b[sortKey]));
+
+	const nulled = finalArr
+		.filter(d => d[key2])
+		.sort((a: { [x: string]: number }, b: { [x: string]: number }) => +(a[sortKey] > b[sortKey]) || -(a[sortKey] < b[sortKey]));
 
 	console.log(hasPoster);
 
-    return hasPoster.concat(nulled);
+	return hasPoster.concat(nulled);
 
-} 
+};

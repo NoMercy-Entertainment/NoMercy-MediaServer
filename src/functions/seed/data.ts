@@ -1,12 +1,12 @@
 import {
-  ActivityLog,
-  ConfigData,
-  Device,
-  ServerTask,
+	ActivityLog,
+	ConfigData,
+	Device,
+	ServerTask
 } from 'types/server';
 
 import {
-  byObjectValues,
+	byObjectValues
 } from '../../functions/stringArray';
 import { deviceName } from '../system';
 
@@ -15,7 +15,7 @@ export const configData: ConfigData = {
 	secureInternalPort: process.env.DEFAULT_PORT ?? 7635,
 	secureExternalPort: process.env.DEFAULT_PORT ?? 7635,
 	deviceName: deviceName,
-	queueWorkers: 1,
+	queueWorkers: 2,
 	cronWorkers: 1,
 };
 

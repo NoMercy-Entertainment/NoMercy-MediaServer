@@ -1,12 +1,9 @@
-import { hasOwner, isAllowed, isOwner } from './permissions';
+import { Request } from 'express';
 
-import check from './check';
-import language from './language';
+export const getLanguage = (req: Request) => {
 
-export default {
-	check,
-	hasOwner,
-	isOwner,
-	isAllowed,
-	language,
+	if (!req.acceptsLanguages()[0] || req.acceptsLanguages()[0] == '*' || req.acceptsLanguages()[0] == 'undefined') {
+		return 'en';
+	}
+	return req.acceptsLanguages()[0].split('-')[0];
 };

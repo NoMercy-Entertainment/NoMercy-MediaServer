@@ -1,7 +1,8 @@
+import { AppState, useSelector } from '../../state/redux';
+
 import Logger from '../../functions/logger';
 import ping from '../../loaders/ping';
 import serverRunning from '../../loaders/serverRunning';
-import { AppState, useSelector } from '../../state/redux';
 
 export default () => {
 	const socket = useSelector((state: AppState) => state.system.socket);
@@ -20,7 +21,7 @@ export default () => {
 				level: 'error',
 				name: 'App',
 				color: 'magentaBright',
-				message: 'Sorry Something went wrong starting the secure server: ' + JSON.stringify(error, null,2 ),
+				message: `Sorry Something went wrong starting the secure server: ${JSON.stringify(error, null, 2)}`,
 			});
 			process.exit(1);
 		});

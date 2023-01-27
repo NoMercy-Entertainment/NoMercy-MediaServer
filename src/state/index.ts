@@ -15,6 +15,7 @@ export const configPath = path.resolve(appPath, 'config');
 export const dataPath = path.resolve(appPath, 'data');
 export const collectionsPath = path.resolve(dataPath, 'collections');
 export const playlistsPath = path.resolve(dataPath, 'playlists');
+export const userDataPath = path.resolve(dataPath, 'userData');
 export const ScheduledTasksPath = path.resolve(dataPath, 'ScheduledTasks');
 export const subtitlesPath = path.resolve(dataPath, 'subtitles');
 export const logPath = path.resolve(appPath, 'log');
@@ -37,6 +38,7 @@ export const applicationPaths = {
 	collectionsPath,
 	configPath,
 	dataPath,
+	userDataPath,
 	imagesPath,
 	libraryPath,
 	logPath,
@@ -57,9 +59,12 @@ export const applicationPaths = {
 
 export const tokenFile = path.resolve(configPath, 'token.json');
 export const configFile = path.resolve(configPath, 'config.json');
-export const errorLog = path.resolve(logPath, `errorLog-${new Date().toISOString().split('T')[0].replace(/-/g, '')}.txt`);
-export const winstonLog = path.join(logPath, `serverLog-${new Date().toISOString().split('T')[0].replace(/-/g, '')}.log`)
-export const winstonRejectionLog = path.join(logPath, `rejectionLog-${new Date().toISOString().split('T')[0].replace(/-/g, '')}.log`)
+export const errorLog = path.resolve(logPath, `errorLog-${new Date().toISOString()
+	.split('T')[0].replace(/-/gu, '')}.txt`);
+export const winstonLog = path.join(logPath, `serverLog-${new Date().toISOString()
+	.split('T')[0].replace(/-/gu, '')}.log`);
+export const winstonRejectionLog = path.join(logPath, `rejectionLog-${new Date().toISOString()
+	.split('T')[0].replace(/-/gu, '')}.log`);
 
 export const libraryDb = path.resolve(dataPath, 'library.db');
 export const configDb = path.resolve(dataPath, 'config.db');
@@ -69,17 +74,20 @@ export const sslCA = path.resolve(certPath, 'ca.pem');
 export const sslCert = path.resolve(certPath, 'cert.pem');
 export const sslKey = path.resolve(certPath, 'key.pem');
 
-export const ffmpeg = path.resolve(binariesPath, 'ffmpeg' + executableSuffix);
-export const ffprobe = path.resolve(binariesPath, 'ffprobe' + executableSuffix);
+export const ffmpeg = path.resolve(binariesPath, `ffmpeg${executableSuffix}`);
+export const ffprobe = path.resolve(binariesPath, `ffprobe${executableSuffix}`);
 
-export const fpcalc = path.resolve(binariesPath, 'fpcalc' + executableSuffix);
+export const fingerprintCalc = path.resolve(binariesPath, `fpcalc${executableSuffix}`);
 
 export const languagesFile = path.resolve(dataPath, 'languages.json');
 
 export const makeMkv = path
-	.resolve(process.platform == 'win32' ? execSync('powershell ${env:ProgramFiles(x86)}').toString() : '', 'MakeMKV', `makemkvcon64${executableSuffix}`)
+	.resolve(process.platform == 'win32'
+		// eslint-disable-next-line no-template-curly-in-string
+		? execSync('powershell ${env:ProgramFiles(x86)}').toString()
+		: '', 'MakeMKV', `makemkvcon64${executableSuffix}`)
 	.replace(/[\n\r]/gu, '');
-export const subtitleEdit = path.resolve(binariesPath, 'SubtitleEdit', 'SubtitleEdit' + executableSuffix);
+export const subtitleEdit = path.resolve(binariesPath, 'SubtitleEdit', `SubtitleEdit${executableSuffix}`);
 
 export const setupComplete = existsSync(path.resolve(dataPath, 'setupComplete'));
 
@@ -125,13 +133,15 @@ export enum logNameEnums {
 	'playback',
 }
 
-export const logLevels = Object.keys(logLevelEnums).map(function(type) {
+export const logLevels = Object.keys(logLevelEnums).map((type) => {
 	return logLevelEnums[type];
-}).filter(i => typeof i == 'string');
+})
+	.filter(i => typeof i == 'string');
 
-export const logNames = Object.keys(logNameEnums).map(function(type) {
+export const logNames = Object.keys(logNameEnums).map((type) => {
 	return logNameEnums[type];
-}).filter(i => typeof i == 'string');
+})
+	.filter(i => typeof i == 'string');
 
 
 export default {};

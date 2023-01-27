@@ -1,8 +1,9 @@
 import { existsSync, rmSync } from 'fs';
 import { get_external_ip, get_internal_ip, portMap } from '../networking';
-import { setupComplete, transcodesPath } from '../../state/';
+import { setupComplete, transcodesPath } from '../../state';
 
 import cdn from '../../loaders/cdn/cdn';
+import chromeCast from '../chromeCast';
 import dev from './dev';
 import firstBoot from '../firstBoot';
 import { getKeycloakKeys } from '../keycloak';
@@ -19,8 +20,8 @@ export default async () => {
 	await cdn();
 	logo();
 
-	if(existsSync(transcodesPath)){
-		rmSync(transcodesPath, {recursive: true});
+	if (existsSync(transcodesPath)) {
+		rmSync(transcodesPath, { recursive: true });
 	}
 
 	if (!setupComplete) {
@@ -41,9 +42,11 @@ export default async () => {
 
 	await portMap();
 
-	await require('../../loaders/server').server();
-	
+	await (await import('../../loaders/server')).server();
+
 	queue();
+
+	chromeCast();
 
 	dev();
 

@@ -1,13 +1,15 @@
-import https, { Server } from 'https';
+import https from 'https';
 import {
-  createSlice,
-  PayloadAction,
+	createSlice,
+	PayloadAction
 } from '@reduxjs/toolkit';
 import { existsSync } from 'fs';
 import { Http2SecureServer } from 'http2';
 
 import { libraryDb, makeMkv, subtitleEdit } from '../..';
-import { SocketIoServer } from '../../../loaders/socket';
+import Device from 'chromecast-api/lib/device';
+import { Server } from 'socket.io';
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
 export interface InitialState {
 	database: string;
@@ -20,7 +22,8 @@ export interface InitialState {
 	hasMakeMkv: boolean;
 	hasSubtitleEdit: boolean;
 	server: Http2SecureServer;
-	socket: SocketIoServer;
+	socket: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
+	cast: Device[];
 	clientList: any[];
 }
 export const initialState: InitialState = {
@@ -34,8 +37,9 @@ export const initialState: InitialState = {
 	hasMakeMkv: existsSync(makeMkv),
 	hasSubtitleEdit: existsSync(subtitleEdit),
 	server: new https.Server(),
-	socket: <SocketIoServer>{},
+	socket: <Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>{},
 	clientList: [],
+	cast: new Array<Device>(),
 };
 
 const system = createSlice({
@@ -69,8 +73,11 @@ const system = createSlice({
 		setHttpsServer: (state, action: PayloadAction<Http2SecureServer>) => {
 			state.server = action.payload;
 		},
-		setSocketServer: (state, action: PayloadAction<SocketIoServer>) => {
+		setSocketServer: (state, action: PayloadAction<Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>) => {
 			state.socket = action.payload;
+		},
+		setCast: (state, action: PayloadAction<Device[]>) => {
+			state.cast = action.payload;
 		},
 	},
 });

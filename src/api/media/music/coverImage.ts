@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 
 import { cachePath } from '../../../state';
-import downloadImage from "../../../functions/downloadImage";
+import downloadImage from '../../../functions/downloadImage';
 import { join } from 'path';
-import { storageArtistImageInDatabase } from "../../../functions/artistImage";
+import { storageArtistImageInDatabase } from '../../../functions/artistImage';
 
-export default async function (req: Request, res: Response) {
+export default function (req: Request, res: Response) {
 
 	const { id, image, storagePath } = req.body;
 
 	downloadImage(image, join(cachePath, 'images', 'music', storagePath))
-		.then(async ({dimensions, stats, colorPalette}) => {
+		.then(async ({ colorPalette }) => {
 
 			await storageArtistImageInDatabase(id, colorPalette);
 

@@ -1,22 +1,23 @@
-import path from 'path';
 import { Request, Response } from 'express';
-import { updateEncoderProfilesParams } from 'types/server';
 
 import Logger from '../../functions/logger';
-import storeMovie from '../../tasks/data/storeMovie';
-import storeTvShow from '../../tasks/data/storeTvShow';
 import { confDb } from '../../database/config';
 import {
-  createMediaFolder,
+	createMediaFolder
 } from '../../tasks/files/filenameParser';
+import { encodeInput } from '../../functions/ffmpeg/encodeInput';
+import i18n from '../../loaders/i18n';
 import { movie } from '../../providers/tmdb/movie';
+import path from 'path';
 import { platform } from '../../functions/system';
 import {
-  scanLibrary,
+	scanLibrary
 } from '../../tasks/files/scanLibraries';
+import storeMovie from '../../tasks/data/storeMovie';
+import storeTvShow from '../../tasks/data/storeTvShow';
 import { tv } from '../../providers/tmdb/tv';
+import { updateEncoderProfilesParams } from 'types/server';
 
-import i18n from "../../loaders/i18n";
 export const libraries = async (req: Request, res: Response) => {
 	await confDb.library
 		.findMany({
@@ -37,37 +38,39 @@ export const libraries = async (req: Request, res: Response) => {
 			},
 		})
 		.then((data) => {
-			const lib = data.map((d) => ({
+			const lib = data.map(d => ({
 				...d,
 				extractChaptersDuring: d.extractChaptersDuring,
 				language: d.language,
 				country: d.country,
-				folders: d.Folders.map((f) => f.folder?.path),
+				folders: d.Folders.map(f => f.folder?.path),
 				subtitleLanguages: undefined,
-				encoderProfiles: d.EncoderProfiles.map((e) => e.encoderProfileId),
-				subtitles: d.SubtitleLanguages.map((s) => s.language.iso_639_1),
+				encoderProfiles: d.EncoderProfiles.map(e => e.encoderProfileId),
+				subtitles: d.SubtitleLanguages.map(s => s.language.iso_639_1),
 			}));
 			return res.json(lib);
 		})
 		.catch((error) => {
 			Logger.log({
-				level: "info",
-				name: "access",
-				color: "magentaBright",
+				level: 'info',
+				name: 'access',
+				color: 'magentaBright',
 				message: `Error getting encoder profiles: ${error}`,
 			});
 			return res.json({
-				status: "error",
+				status: 'error',
 				message: `Something went wrong getting encoder profiles: ${error}`,
 			});
 		});
 };
 
-export const createLibrary = async (req: Request, res: Response) => {};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const createLibrary = async (req: Request, res: Response) => {
+	//
+};
 
 export const updateLibrary = async (req: Request, res: Response) => {
 	const {
-		sub_id,
 		autoRefreshInterval,
 		chapterImages,
 		country,
@@ -78,7 +81,6 @@ export const updateLibrary = async (req: Request, res: Response) => {
 		id,
 		image,
 		language,
-		metadata,
 		perfectSubtitleMatch,
 		realtime,
 		specialSeasonName,
@@ -90,7 +92,9 @@ export const updateLibrary = async (req: Request, res: Response) => {
 	const Folders = await confDb.folder.findMany({
 		where: {
 			path: {
-				in: folders.map((f) => (platform == "windows" ? path.resolve(f)?.replace(/\/$/u, "") : f?.replace(/\/$/u, ""))),
+				in: folders.map(f => (platform == 'windows'
+					? path.resolve(f)?.replace(/\/$/u, '')
+					: f?.replace(/\/$/u, ''))),
 			},
 		},
 	});
@@ -130,7 +134,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 				type: type,
 				Folders: {
 					// set: [],
-					connectOrCreate: Folders.map((f) => ({
+					connectOrCreate: Folders.map(f => ({
 						where: {
 							libraryId_folderId: {
 								folderId: f.id,
@@ -144,7 +148,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 				},
 				EncoderProfiles: {
 					// set: [],
-					connectOrCreate: EncoderProfiles.map((f) => ({
+					connectOrCreate: EncoderProfiles.map(f => ({
 						where: {
 							libraryId_encoderProfileId: {
 								encoderProfileId: f.id,
@@ -158,7 +162,7 @@ export const updateLibrary = async (req: Request, res: Response) => {
 				},
 				SubtitleLanguages: {
 					// set: [],
-					connectOrCreate: Languages.map((f) => ({
+					connectOrCreate: Languages.map(f => ({
 						where: {
 							libraryId_languageId: {
 								languageId: f.id,
@@ -181,32 +185,32 @@ export const updateLibrary = async (req: Request, res: Response) => {
 		})
 		.then((data) => {
 			Logger.log({
-				level: "info",
-				name: "access",
-				color: "magentaBright",
+				level: 'info',
+				name: 'access',
+				color: 'magentaBright',
 				message: `Updated ${data.title} library.`,
 			});
 
 			return res.json({
-				status: "error",
+				status: 'ok',
 				message: `Successfully updated ${data.title} library.`,
 			});
 		})
 		.catch((error) => {
 			Logger.log({
-				level: "info",
-				name: "access",
-				color: "magentaBright",
+				level: 'info',
+				name: 'access',
+				color: 'magentaBright',
 				message: `Error updating user permissions: ${error}`,
 			});
 			return res.json({
-				status: "ok",
+				status: 'ok',
 				message: `Something went wrong updating permissions: ${error}`,
 			});
 		});
 };
 
-export const rescanLibrary = async (req: Request, res: Response) => {
+export const rescanLibrary = (req: Request, res: Response) => {
 	const { id } = req.params;
 	const { forceUpdate, synchronous } = req.body;
 
@@ -214,44 +218,44 @@ export const rescanLibrary = async (req: Request, res: Response) => {
 		.then((data) => {
 			if (!data) {
 				Logger.log({
-					level: "info",
-					name: "job",
-					color: "magentaBright",
-					message: `Library does not exist`,
+					level: 'info',
+					name: 'job',
+					color: 'magentaBright',
+					message: 'Library does not exist',
 				});
 				return res.json({
-					status: "ok",
-					message: `Library does not exist`,
+					status: 'error',
+					message: 'Library does not exist',
 				});
 			}
 
 			Logger.log({
-				level: "info",
-				name: "job",
-				color: "magentaBright",
+				level: 'info',
+				name: 'job',
+				color: 'magentaBright',
 				message: `Updated ${data.title} library.`,
 			});
 
 			return res.json({
-				status: "error",
+				status: 'ok',
 				message: `Successfully updated ${data.title} library.`,
 			});
 		})
 		.catch((error) => {
 			Logger.log({
-				level: "info",
-				name: "job",
-				color: "magentaBright",
+				level: 'info',
+				name: 'job',
+				color: 'magentaBright',
 				message: `Error updating the library: ${error}`,
 			});
 			return res.json({
-				status: "ok",
+				status: 'ok',
 				message: `Something went wrong updating the library: ${error}`,
 			});
 		});
 };
 
-export const deleteLibrary = async (req: Request, res: Response) => {
+export const deleteLibrary = (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	confDb.library
@@ -262,26 +266,26 @@ export const deleteLibrary = async (req: Request, res: Response) => {
 		})
 		.then((data) => {
 			Logger.log({
-				level: "info",
-				name: "access",
-				color: "magentaBright",
+				level: 'info',
+				name: 'access',
+				color: 'magentaBright',
 				message: `Deleted ${data.title} library.`,
 			});
 
 			return res.json({
-				status: "error",
+				status: 'error',
 				message: `Successfully deleted ${data.title} library.`,
 			});
 		})
 		.catch((error) => {
 			Logger.log({
-				level: "info",
-				name: "access",
-				color: "magentaBright",
+				level: 'info',
+				name: 'access',
+				color: 'magentaBright',
 				message: `Error deleting the library: ${error}`,
 			});
 			return res.json({
-				status: "ok",
+				status: 'ok',
 				message: `Something went wrong deleting the library: ${error}`,
 			});
 		});
@@ -305,52 +309,64 @@ export const addNewItem = async (req: Request, res: Response) => {
 			},
 		}).catch(e => console.log(e));
 
-	if(!library?.id) {
+	if (!library?.id) {
 		Logger.log({
-			level: "info",
-			name: "access",
-			color: "magentaBright",
-			message: `Library not found`,
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: 'Library not found',
 		});
 		return res.json({
-			status: "error",
-			message: `Library not found`,
+			status: 'error',
+			message: 'Library not found',
 		});
-	};
+	}
 
 	const { type, id: itemId } = req.body;
-	
+
 	await i18n.changeLanguage('en');
 
 	switch (type) {
-		case "movie":
+		case 'movie':
 			const movieData = await movie(itemId);
 
 			await storeMovie({
 				id: movieData.id,
 				folder: createMediaFolder(library, movieData),
 				libraryId: library.id,
-			}).then(data => {
+			}).then((data) => {
 				return res.json(data);
 			});
 
 			break;
-		case "tv":
+		case 'tv':
 			const tvData = await tv(itemId);
-		
+
 			await storeTvShow({
 				id: tvData.id,
 				folder: createMediaFolder(library, tvData),
 				libraryId: library.id,
-			}).then(data => {
+			}).then((data) => {
 				return res.json(data);
 			});
 
 			break;
-		case "music":
+		case 'music':
 			break;
 		default:
 			break;
 	}
-	
+
+};
+
+export const encodeLibrary = async (req: Request, res: Response) => {
+
+	const id = parseInt(req.params.id, 10);
+
+	const data = await encodeInput({ id });
+
+	return res.json({
+		status: 'ok',
+		data,
+	});
 };

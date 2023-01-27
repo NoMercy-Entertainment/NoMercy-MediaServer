@@ -1,38 +1,34 @@
-import axios from 'axios';
-import qs from 'qs';
-import express, { Request, Response } from 'express';
 import {
-  KAuthRequest,
-  KeycloakToken,
-} from 'types/keycloak';
-import { writeFileSync } from 'fs';
-
-import dashboard from './routes/dashboard';
-import Logger from '../functions/logger';
-import media from './routes/media';
-import music from './routes/music';
-import userData from './routes/userData';
-import writeToConfigFile from '../functions/writeToConfigFile';
-import {
-  AppState,
-  store,
-  useSelector,
+	AppState,
+	store,
+	useSelector
 } from '../state/redux';
 import {
-  setAccessToken,
-  setRefreshToken,
+	KAuthRequest,
+	KeycloakToken
+} from 'types/keycloak';
+import express, { Request, Response } from 'express';
+import {
+	setAccessToken,
+	setRefreshToken
 } from '../state/redux/user/actions';
+
+import Logger from '../functions/logger';
+import axios from 'axios';
+import dashboard from './routes/dashboard';
+import expressMon from 'express-status-monitor';
 import { keycloak_key } from '../functions/keycloak/config';
+import media from './routes/media';
+import music from './routes/music';
+import qs from 'qs';
 import { setOwner } from '../state/redux/system/actions';
 import { tokenFile } from '../state';
 import { tokenParser } from '../functions/tokenParser';
+import userData from './routes/userData';
+import { writeFileSync } from 'fs';
+import writeToConfigFile from '../functions/writeToConfigFile';
 
-// import expressMon from 'express-status-monitor';
 const router = express.Router();
-
-router.use('/dashboard', dashboard);
-router.use('/userdata', userData);
-router.use('/music', music);
 
 const monitorConfig = {
 	title: 'NoMercy MediaServer Status Monitor',
@@ -43,19 +39,19 @@ const monitorConfig = {
 	spans: [
 		{
 			interval: 1,
-			retention: 60
-		}, 
-		{
-			interval: 1,
-			retention: 60 * 5
-		}, 
-		{
-			interval: 1,
-			retention: 60 * 10
+			retention: 60,
 		},
 		{
 			interval: 1,
-			retention: 60 * 60
+			retention: 60 * 5,
+		},
+		{
+			interval: 1,
+			retention: 60 * 10,
+		},
+		{
+			interval: 1,
+			retention: 60 * 60,
 		},
 	],
 	chartVisibility: {
@@ -66,24 +62,24 @@ const monitorConfig = {
 		heap: true,
 		responseTime: true,
 		rps: true,
-		statusCodes: true
+		statusCodes: true,
 	},
 	healthChecks: [
 		{
 			protocol: 'https',
 			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
 			path: '/status',
-			port: store.getState().system.secureInternalPort
+			port: store.getState().system.secureInternalPort,
 		}, {
 			protocol: 'https',
 			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
 			path: '/images/status.txt',
-			port: store.getState().system.secureInternalPort
-		}
+			port: store.getState().system.secureInternalPort,
+		},
 	],
-}
+};
 
-// router.use(expressMon(monitorConfig));
+router.use(expressMon(monitorConfig));
 
 router.get('/me', (req: Request, res: Response) => {
 	const token = (req as KAuthRequest).kauth.grant.access_token;
@@ -140,6 +136,10 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 		});
 });
 
+
+router.use('/dashboard', dashboard);
+router.use('/userdata', userData);
+router.use('/music', music);
 router.use('/', media);
 
 export default router;

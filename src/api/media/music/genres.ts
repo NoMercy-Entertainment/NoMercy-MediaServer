@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 
+import type { GenreResponse } from './genres.d';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
 import { generateBlurHash } from '../../../functions/createBlurHash/createBlurHash';
 import { sortBy } from '../../../functions/stringArray';
 
-export default async function (req: Request, res: Response) {
+export default async function (req: Request, res: Response): Promise<Response<GenreResponse>> {
 
 	const music = await confDb.musicGenre.findMany({
 		where: {
@@ -26,14 +27,16 @@ export default async function (req: Request, res: Response) {
 		},
 	});
 
-	if (music) {
+	if (!music) {
+		return res.json({
+			status: 'error',
+			message: 'No genres',
+		});
+	}
 
-		const result: any = {
-			type: 'genres',
-			data: [],
-		};
-
-		result.data = sortBy(music.filter(m => m._count.Track > 10)
+	const result: GenreResponse = {
+		type: 'genres',
+		data: sortBy(music.filter(m => m._count.Track > 10)
 			.map((m) => {
 				return {
 					...m,
@@ -43,13 +46,8 @@ export default async function (req: Request, res: Response) {
 					origin: deviceId,
 					blurHash: generateBlurHash(),
 				};
-			}), 'titleSort');
+			}), 'titleSort'),
+	};
 
-		return res.json(result);
-	}
-
-
-	return res.json({});
-
-
+	return res.json(result);
 }

@@ -150,7 +150,6 @@ const tempServer = (redirect_uri: string, internal_port: number, registerComplet
 
 				registerComplete = true;
 				httpsServer.close();
-				return registerComplete;
 			})
 			.catch(({ response }) => {
 				Logger.log({

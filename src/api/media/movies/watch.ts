@@ -6,13 +6,15 @@ import { Prisma } from '@prisma/client';
 import { confDb } from '../../../database/config';
 import { convertToSeconds } from '../../../functions/dateTime';
 import { deviceId } from '../../../functions/system';
+import { getLanguage } from '../../middleware';
 import i18next from 'i18next';
 import { isOwner } from '../../middleware/permissions';
 import requestCountry from 'request-country';
 import { sortBy } from '../../../functions/stringArray';
 
-export default async function (req: Request, res: Response) {
-	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';
+export default function (req: Request, res: Response) {
+
+	const language = getLanguage(req);
 	const id = req.params.id;
 	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
@@ -27,7 +29,7 @@ export default async function (req: Request, res: Response) {
             const media: any[] = [];
             const progress: any[] = [];
             const files: any[] = [];
-        
+
             await Promise.all([
                 confDb.media.findMany(mediaQuery(id)).then((data: any[]) => media.push(...data)),
                 confDb.translation.findMany(translationQuery({ id, language })).then((data: any[]) => translation.push(...data)),
@@ -41,8 +43,8 @@ export default async function (req: Request, res: Response) {
 
             JSON.parse(movie.VideoFile[0]?.subtitles ?? '[]')
                 .forEach((sub) => {
-                    const {language, type, ext} = sub;
-                    
+                    const { language, type, ext } = sub;
+
                     if (language) {
                         if (ext == 'ass') {
                             search = true;
@@ -67,19 +69,21 @@ export default async function (req: Request, res: Response) {
 			}
 
 			const movieTranslations = translation
-				.find((t) => t.translationableType == 'movie');
+				.find(t => t.translationableType == 'movie');
 
-			const overview = movieTranslations?.overview != '' && movieTranslations?.overview != null 
-				? movieTranslations?.overview 
+			const overview = movieTranslations?.overview != '' && movieTranslations?.overview != null
+				? movieTranslations?.overview
 				: movie.overview;
-				
-			const title = movieTranslations?.title != '' && movieTranslations?.title != null 
-				? movieTranslations?.title 
+
+			const title = movieTranslations?.title != '' && movieTranslations?.title != null
+				? movieTranslations?.title
 				: movie.title;
-			
-			const showTitle = translation.find((t) => t.translationableType == 'movie')?.title;
-			const show = showTitle != '' && showTitle != null ? showTitle : movie.title;
-            
+
+			const showTitle = translation.find(t => t.translationableType == 'movie')?.title;
+			const show = showTitle != '' && showTitle != null
+? showTitle
+: movie.title;
+
 			const data: any = {
 				id,
 				title: title,
@@ -106,13 +110,21 @@ export default async function (req: Request, res: Response) {
 
 				progress: (progress[0]?.time / convertToSeconds(movie.VideoFile[0]?.duration) * 100) ?? null,
 
-				poster: movie.poster ? movie.poster : null,
-				backdrop: movie.backdrop ? movie.backdrop : null,
-				image: movie.poster ?? movie.backdrop ? movie.poster ?? movie.backdrop : null,
+				poster: movie.poster
+? movie.poster
+: null,
+				backdrop: movie.backdrop
+? movie.backdrop
+: null,
+				image: movie.poster ?? movie.backdrop
+? movie.poster ?? movie.backdrop
+: null,
 				sources: [
 					{
 						src: `${baseFolder}${movie.VideoFile[0]?.filename}`,
-						type: movie.VideoFile[0]?.filename.includes('.mp4') ? 'video/mp4' : 'application/x-mpegURL',
+						type: movie.VideoFile[0]?.filename.includes('.mp4')
+? 'video/mp4'
+: 'application/x-mpegURL',
 						languages: JSON.parse(movie.VideoFile[0]?.languages ?? '[]'),
 					},
 				],

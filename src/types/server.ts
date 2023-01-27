@@ -1,7 +1,7 @@
 import { Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '@prisma/client';
 
 import { Movie } from '../providers/tmdb/movie';
-import { Socket } from 'socket.io-client';
+import { Socket } from 'socket.io';
 import { TvShow } from '../providers/tmdb/tv';
 import { Video } from '../providers/tmdb/shared';
 
@@ -227,6 +227,7 @@ export interface InfoResponse {
 	videos: ExtendedVideo[];
 	similar: Similar[];
 	recommendations: Recommendation[];
+	seasons: any[];
 }
 
 export interface Item {

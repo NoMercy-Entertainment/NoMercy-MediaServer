@@ -1,11 +1,12 @@
 import { AppState, useSelector } from '../state/redux';
 import {
-  setHttpsServer,
-  setSocketServer,
+	setHttpsServer,
+	setSocketServer
 } from '../state/redux/system/actions';
 import { sslCA, sslCert, sslKey } from '../state';
 
 import Logger from '../functions/logger';
+import { Server } from 'socket.io';
 import _express from 'express';
 import express from './express';
 import fs from 'fs';
@@ -14,6 +15,7 @@ import https from 'https';
 import ping from './ping';
 import { serverRunning } from './serverRunning';
 import { socket } from './socket';
+import { socketCors } from '../functions/networking';
 
 export const server = async () => {
 	const app = _express();
@@ -48,14 +50,16 @@ export const server = async () => {
 					level: 'error',
 					name: 'App',
 					color: 'magentaBright',
-					message: 'Sorry Something went wrong starting the secure server: ' + JSON.stringify(error, null, 2),
+					message: `Sorry Something went wrong starting the secure server: ${JSON.stringify(error, null, 2)}`,
 				});
 				process.exit(1);
 			});
-		
-		setSocketServer(socket);
 
-		socket.connect(httpsServer);
+		const io = new Server(httpsServer, socketCors);
+
+		setSocketServer(io);
+
+		socket.connect(io);
 	}
 };
 

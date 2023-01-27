@@ -19,7 +19,7 @@ import {
     Prisma,
     SpecialItem,
     UserData,
-    VideoFile,
+    VideoFile
 } from '@prisma/client';
 import { Request, Response } from 'express';
 
@@ -28,11 +28,12 @@ import Logger from '../../../functions/logger';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
+import { getLanguage } from '../..//middleware';
 import { isOwner } from '../../middleware/permissions';
 
-export default async function (req: Request, res: Response) {
-    
-	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';
+export default function (req: Request, res: Response) {
+
+	const language = getLanguage(req);
 
 	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
@@ -45,7 +46,7 @@ export default async function (req: Request, res: Response) {
 				if (!collection) {
 					return res.json({
 						status: 'error',
-						message: `Something went wrong getting library`,
+						message: 'Something went wrong getting library',
 					});
 				}
 				return res.json(await getContent(collection, language, servers));
@@ -69,7 +70,7 @@ export default async function (req: Request, res: Response) {
 				if (!collection) {
 					return res.json({
 						status: 'error',
-						message: `Something went wrong getting library`,
+						message: 'Something went wrong getting library',
 					});
 				}
 				return res.json(await getContent(collection, language, servers));
@@ -127,12 +128,12 @@ type MovieWithInfo = Collection & {
 
 const getContent = async (data: MovieWithInfo, language: string, servers: string[]) => {
 	const translations: any[] = [];
-	await confDb.translation.findMany(translationQuery({ id: data.id, language })).then((data) => translations.push(...data));
+	await confDb.translation.findMany(translationQuery({ id: data.id, language })).then(data => translations.push(...data));
 
-	const title = translations.find((t) => t.translationableType == 'movie' && t.translationableId == data.id)?.title || data.title;
-	const overview = translations.find((t) => t.translationableType == 'movie' && t.translationableId == data.id)?.overview || data.overview;
+	const title = translations.find(t => t.translationableType == 'movie' && t.translationableId == data.id)?.title || data.title;
+	const overview = translations.find(t => t.translationableType == 'movie' && t.translationableId == data.id)?.overview || data.overview;
 
-    const logo = data.Movie[0].Movie.Media.find((m) => m.type == 'logo')?.src ?? null;
+    const logo = data.Movie[0].Movie.Media.find(m => m.type == 'logo')?.src ?? null;
     const userData = data.Movie[0].Movie.UserData?.[0];
 
     const response = {
@@ -147,7 +148,9 @@ const getContent = async (data: MovieWithInfo, language: string, servers: string
         logo: logo,
         favorite: userData?.isFavorite ?? false,
         watched: userData?.played ?? false,
-        blurHash: data.blurHash ? JSON.parse(data.blurHash) : null,
+        blurHash: data.blurHash
+? JSON.parse(data.blurHash)
+: null,
         collection: data.Movie.map(c => ({
             id: c.Movie.id,
             backdrop: c.Movie.backdrop,
@@ -157,9 +160,11 @@ const getContent = async (data: MovieWithInfo, language: string, servers: string
             titleSort: createTitleSort(c.Movie.title, c.Movie.releaseDate),
             type: 'movies',
             logo: c.Movie.Media.find(m => m.type == 'logo')?.src,
-			blurHash: c.Movie.blurHash ? JSON.parse(c.Movie.blurHash) : null,
+			blurHash: c.Movie.blurHash
+? JSON.parse(c.Movie.blurHash)
+: null,
         })),
-    }
+    };
 
 	return response;
 };
@@ -236,18 +241,18 @@ const ownerQuery = (id: string, language: string) => {
                                             type: {
                                                 not: null,
                                             },
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
                                 orderBy: {
                                     voteAverage: 'desc',
-                                }
+                                },
                             },
                             UserData: true,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
 		},
 	});
 };
@@ -322,18 +327,18 @@ const userQuery = (id: string, userId: string, language: string) => {
                                             type: {
                                                 not: null,
                                             },
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
                                 orderBy: {
                                     voteAverage: 'desc',
-                                }
+                                },
                             },
                             UserData: true,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
 		},
 	});
 };

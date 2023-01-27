@@ -1,7 +1,9 @@
 import trailer, { deleteTrailer } from '../media/trailer';
 
+import cast from '../media/cast';
 import collectionInfo from '../media/collection/info';
 import collections from '../media/collection';
+import encodeAndCast from '../media/encodeAndCast';
 import express from 'express';
 import fonts from '../media/fonts';
 import index from '../media';
@@ -10,6 +12,8 @@ import movieInfo from '../media/movies/info';
 import movieWatch from '../media/movies/watch';
 import screensaver from '../media/screensaver';
 import search from '../media/search';
+import specialInfo from '../media/specials/info';
+import specials from '../media/specials';
 import tvInfo from '../media/tv/info';
 import tvWatch from '../media/tv/watch';
 
@@ -25,6 +29,9 @@ router.post('/tv/:id/watch', tvWatch);
 router.post('/collections', collections);
 router.post('/collections/:id', collectionInfo);
 
+router.post('/specials', specials);
+router.post('/specials/:id', specialInfo);
+
 router.post('/libraries', libraries);
 router.post('/libraries/:id', libraries);
 
@@ -35,5 +42,8 @@ router.post('/search', search);
 
 router.get('/trailer/:id', trailer);
 router.delete('/trailer/:id', deleteTrailer);
+
+router.get('/cast/:file', cast);
+router.post('/encodeandcast', encodeAndCast);
 
 export default router;

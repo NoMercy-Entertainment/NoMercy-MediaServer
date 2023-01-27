@@ -8,7 +8,7 @@ export default async () => {
 	await createAppFolders();
 
 	await migrateConfigDatabase();
-	
+
 	await migrateQueueDatabase();
 
 	await registerServer();

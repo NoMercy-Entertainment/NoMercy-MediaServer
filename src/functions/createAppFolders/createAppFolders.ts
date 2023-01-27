@@ -6,10 +6,10 @@ const createAppFolders = () => {
 		const path = Object.values(applicationPaths)[i];
 		mkdirSync(path, { recursive: true });
 	}
-	if(!existsSync(tokenFile)){
+	if (!existsSync(tokenFile)) {
 		writeFileSync(tokenFile, JSON.stringify({}));
 	}
-	if(!existsSync(configFile)){
+	if (!existsSync(configFile)) {
 		writeFileSync(configFile, JSON.stringify({}));
 	}
 };

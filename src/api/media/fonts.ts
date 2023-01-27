@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import fs from 'fs';
 
-export default async function (req: Request, res: Response) {
+export default function (req: Request, res: Response) {
 
 	const fontsFolder = `${__dirname}/public/fonts`;
 

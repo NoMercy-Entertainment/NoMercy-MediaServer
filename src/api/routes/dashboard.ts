@@ -1,53 +1,54 @@
 import {
-  AddUser,
-  notificationSettings,
-  removeUser,
-  updateUserPermissions,
-  userPermissions,
+	AddUser,
+	notificationSettings,
+	removeUser,
+	updateUserPermissions,
+	userPermissions
 } from '../dashboard/users';
 import {
-  addNewItem,
-  createLibrary,
-  deleteLibrary,
-  libraries,
-  rescanLibrary,
-  updateLibrary,
+	addNewItem,
+	createLibrary,
+	deleteLibrary,
+	encodeLibrary,
+	libraries,
+	rescanLibrary,
+	updateLibrary
 } from '../dashboard/library';
 import {
-  configuration,
-  createConfiguration,
-  updateConfiguration,
+	configuration,
+	createConfiguration,
+	updateConfiguration
 } from '../dashboard/configuration';
 import { countries, languages } from '../dashboard/general';
 import {
-  createEncoderProfiles,
-  encoderProfiles,
-  updateEncoderProfiles,
+	createEncoderProfiles,
+	encoderProfiles,
+	updateEncoderProfiles
 } from '../dashboard/encoder';
 import {
-  deleteLogs,
-  logOptions,
-  logs,
+	deleteLogs,
+	logOptions,
+	logs
 } from '../dashboard/logs';
 import {
-  deleteTask,
-  pauseTasks,
-  resumeTasks,
-  runningTaskWorkers,
-  tasks,
+	deleteTask,
+	pauseTasks,
+	resumeTasks,
+	runningTaskWorkers,
+	tasks
 } from '../dashboard/tasks';
 import {
-  editMiddleware,
-  permissions,
+	editMiddleware,
+	permissions
 } from '../middleware/permissions';
 import {
-  metadata,
-  serverInfo,
-  serverPaths,
+	metadata,
+	serverInfo,
+	serverPaths
 } from '../dashboard/serverInfo';
 import {
-  startServer,
-  stopServer,
+	startServer,
+	stopServer
 } from '../dashboard/server';
 
 import deleteDevices from '../userData/devices/delete';
@@ -58,7 +59,7 @@ import express from 'express';
 import { group } from '../routeGroup';
 import serverActivity from '../userData/activity/get';
 import {
-  storeServerActivity,
+	storeServerActivity
 } from '../userData/activity/post';
 
 // import addDevices from '../userData/devices/post';
@@ -99,6 +100,7 @@ router.use(
 		route.post('/libraries/:id/rescan', rescanLibrary);
 		route.post('/libraries/:id/delete', deleteLibrary);
 		route.post('/libraries/:id/add', addNewItem);
+		route.post('/encode/:id', encodeLibrary);
 
 		route.post('/directorytree', directoryTree);
 
@@ -112,7 +114,7 @@ router.use(
 		route.post('/serveractivity', serverActivity);
 		route.post('/serveractivity/create', storeServerActivity);
 		route.post('/serveractivity/delete', deleteServerActivity);
-		
+
 		route.post('/devices', devices);
 		// route.post('/devices', addDevices);
 		route.post('/devices/delete', deleteDevices);

@@ -1,20 +1,20 @@
 import {
-  AddUserParams,
-  NotificationsParams,
-  removeUserParams,
-  ResponseStatus,
-  userPermissionsParams,
+	AddUserParams,
+	NotificationsParams,
+	ResponseStatus,
+	removeUserParams,
+	userPermissionsParams
 } from 'types/server';
+import { AppState, useSelector } from '../../state/redux';
 import { Request, Response } from 'express';
 
 import Logger from '../../functions/logger';
-import { AppState, useSelector } from '../../state/redux';
 import { confDb } from '../../database/config';
 import {
-  defaultUserOptions,
+	defaultUserOptions
 } from '../../state/redux/config';
 import {
-  setAllowedUsers,
+	setAllowedUsers
 } from '../../state/redux/config/actions';
 
 export const AddUser = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
@@ -60,7 +60,7 @@ export const AddUser = async (req: Request, res: Response): Promise<Response<any
 				color: 'magentaBright',
 				message: `User ${data.name} added.`,
 			});
-			
+
 			return res.json({
 				status: 'ok',
 				message: `User ${data.name} added.`,
@@ -95,7 +95,7 @@ export const removeUser = async (req: Request, res: Response): Promise<Response<
 			},
 		})
 		.then((data) => {
-			const newAllowedUsers = [...allowedUsers.filter((u) => u.sub_id != sub_id)];
+			const newAllowedUsers = [...allowedUsers.filter(u => u.sub_id != sub_id)];
 
 			setAllowedUsers(newAllowedUsers);
 
@@ -135,7 +135,7 @@ export const userPermissions = async (req: Request, res: Response): Promise<Resp
 				include: {
 					Libraries: true,
 				},
-		  })
+		})
 		: await confDb.user
 				.findMany({
 					include: {
@@ -144,10 +144,10 @@ export const userPermissions = async (req: Request, res: Response): Promise<Resp
 				})
 				.then((data) => {
 					return res.json(
-						data.map((d) => ({
+						data.map(d => ({
 							...d,
 							Libraries: undefined,
-							libraries: d.Libraries.map((f) => f.libraryId),
+							libraries: d.Libraries.map(f => f.libraryId),
 						}))
 					);
 				})
@@ -196,7 +196,7 @@ export const updateUserPermissions = async (req: Request, res: Response): Promis
 				videoTranscoding: videoTranscoding,
 				noTranscoding: noTranscoding,
 				Libraries: {
-					connectOrCreate: libs.map((lib) => ({
+					connectOrCreate: libs.map(lib => ({
 						create: {
 							libraryId: lib.id,
 						},
@@ -216,9 +216,9 @@ export const updateUserPermissions = async (req: Request, res: Response): Promis
 		.then((data: { name: string }) => {
 
 			const newAllowedUsers = [
-				...allowedUsers.filter((u) => u.sub_id != sub_id),
+				...allowedUsers.filter(u => u.sub_id != sub_id),
 				{
-					...allowedUsers.find((u) => u.sub_id == sub_id)!,
+					...allowedUsers.find(u => u.sub_id == sub_id)!,
 					sub_id,
 					allowed,
 					manage,
@@ -268,7 +268,7 @@ export const notificationSettings = async (req: Request, res: Response): Promise
 			},
 			data: {
 				Notifications: {
-					set: notificationIds.map((id) => ({
+					set: notificationIds.map(id => ({
 						notificationId_userId: {
 							notificationId: id,
 							userId: sub_id,
@@ -290,7 +290,7 @@ export const notificationSettings = async (req: Request, res: Response): Promise
 
 			return res.json({
 				status: 'ok',
-				message: `Successfully updated notification settings.`,
+				message: 'Successfully updated notification settings.',
 			});
 		})
 		.catch((error) => {

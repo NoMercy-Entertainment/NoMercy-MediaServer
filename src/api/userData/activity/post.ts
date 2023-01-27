@@ -36,45 +36,49 @@ export const storeServerActivity = ({ sub_id, device_id, type, device_os, time, 
 	const socket = useSelector((state: AppState) => state.system.socket);
 
     return new Promise((resolve, reject) => {
-        confDb.activityLog
-            .create({
-                data: {
-                    time,
-                    type,
-                    user: {
-                        connect: {
-                            sub_id,
-                        },
-                    },
-                    device: {
-                        connectOrCreate: {
-                            where: {
-                                id: device_id,
-                            },
-                            create: {
-                                id: device_id,
-                                ip: from,
-                                deviceId: device_id,
-                                title: device_name.toTitleCase(),
-                                type: device_os,
-                                version,
+        try {
+            confDb.activityLog
+                .create({
+                    data: {
+                        time,
+                        type,
+                        user: {
+                            connect: {
+                                sub_id,
                             },
                         },
+                        device: {
+                            connectOrCreate: {
+                                where: {
+                                    id: device_id,
+                                },
+                                create: {
+                                    id: device_id,
+                                    ip: from,
+                                    deviceId: device_id,
+                                    title: device_name.toTitleCase(),
+                                    type: device_os,
+                                    version,
+                                },
+                            },
+                        },
                     },
-                },
-                include: {
-                    device: true,
-                    user: true,
-                },
-            })
-            .then(async (data) => {
-                socket.emit('addActivityLog', data);
-                const devices = await confDb.device.findMany();
-                socket.emit('setDevices', devices);
-                resolve(data);
-            })
-            .catch((error) => {
-                reject(error);
-            });
+                    include: {
+                        device: true,
+                        user: true,
+                    },
+                })
+                .then(async (data) => {
+                    socket.emit('addActivityLog', data);
+                    const devices = await confDb.device.findMany();
+                    socket.emit('setDevices', devices);
+                    resolve(data);
+                })
+                .catch((error) => {
+                    //
+                });
+        } catch (error) {
+            //
+        }
     });
 };

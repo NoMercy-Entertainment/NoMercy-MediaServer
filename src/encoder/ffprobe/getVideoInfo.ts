@@ -1,16 +1,15 @@
-import { VideoFFprobe } from './ffprobe';
-import fffmpeg from 'fluent-ffmpeg';
-import fs from 'fs';
-import Logger from '../../functions/logger';
-import { sortByPriorityKeyed } from '../../functions/stringArray';
 import { AppState, useSelector } from '../../state/redux';
-import { errorLog, ffprobe } from '../../state';
+import { ExecException, exec } from 'child_process';
+
+import Logger from '../../functions/logger';
+import { VideoFFprobe } from './ffprobe';
+import { errorLog } from '../../state';
+import fs from 'fs';
+import { sortByPriorityKeyed } from '../../functions/stringArray';
 
 export default (file: string): Promise<VideoFFprobe> => {
-	return new Promise(async (resolve, reject) => {
-		const prefferedOrder = useSelector((state: AppState) => state.config.prefferedOrder);
-
-		fffmpeg.setFfprobePath(ffprobe);
+	return new Promise((resolve, reject) => {
+		const preferredOrder = useSelector((state: AppState) => state.config.preferredOrder);
 
 		Logger.log({
 			level: 'verbose',
@@ -19,11 +18,17 @@ export default (file: string): Promise<VideoFFprobe> => {
 			message: `Getting file info from: ${file}`,
 		});
 
-		fffmpeg.ffprobe(file, ['-show_chapters'], async (error, videoInfo) => {
-			if (error || !videoInfo || !videoInfo.streams) {
-				fs.appendFileSync(errorLog, `${error.toString().replace(/[\w\s\d\W\D\S\n\r]*\n/u, '')}\n`);
-				resolve(error);
+		exec(`ffprobe -v quiet -show_format -show_streams -show_chapters -print_format json "${file}"`,
+		async (error: ExecException | null, stdout: string, stderr: string) => {
+
+			if (error || !stdout) {
+				fs.appendFileSync(errorLog, `${(error ?? stderr)?.toString().replace(/[\w\s\d\W\D\S\n\r]*\n/u, '')}\n`);
+				reject(error);
 			}
+			if (error || stderr) reject(error ?? stderr);
+
+			const videoInfo = JSON.parse(stdout.toString());
+
 			const video: any[] = [];
 			const audio: any[] = [];
 			const subtitle: any[] = [];
@@ -154,13 +159,12 @@ export default (file: string): Promise<VideoFFprobe> => {
 				reject(`${file} has no video stream`);
 			}
 
-			const sortFn: any = sortByPriorityKeyed(prefferedOrder, 'language');
+			const sortFn: any = sortByPriorityKeyed(preferredOrder, 'language');
 
 			resolve({
 				streams: {
 					video,
 					audio: audio.sort(sortFn),
-					// audio: audio.sort(sortByPriorityKeyed(channelOrder, 'channels')).sort(sortByPriorityKeyed(JSON.parse((process.env.CONFIG as string)).prefferedOrder, 'language')),
 					subtitle,
 					attachments,
 				},

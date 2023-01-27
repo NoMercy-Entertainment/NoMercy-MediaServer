@@ -25,7 +25,7 @@ import lyricsFinder from 'lyrics-finder';
 
 export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }: { id: number | string; folder: string; libraryId: string; job?: Jobs, task?: { id: string } }) => {
 
-	// console.log({ folder, libraryId, task });
+	console.log({ folder, libraryId, task });
 
 	await i18n.changeLanguage('en');
 
@@ -349,13 +349,14 @@ const createTrack = async (
 		response = await recording(recordingID)
 			.then(res => res)
 			.catch((e) => {
-				console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc='artist-credits+artists+releases+tags+genres`);
+				console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc=artist-credits+artists+releases+tags+genres`);
 				return null;
 			});
 
 		if (response?.id) {
 			writeFileSync(recordingInfoFile, JSON.stringify(response, null, 2));
 		}
+		sleep(2000);
 	}
 
 	response?.genres.map((genre) => {
@@ -381,7 +382,7 @@ const createTrack = async (
 	});
 };
 
-const getArtistImage = async (folder: string, artist: Artist): Promise<{ colorPalette: PaletteColors | null; image: string | null; blurHash: string | null }> => {
+const getArtistImage = async (folder: string, artist: Artist) => {
 	let image: string | null = null;
 	let palette: PaletteColors | null = null;
 	let blurHash: string | null = null;
@@ -450,7 +451,7 @@ const getArtistImage = async (folder: string, artist: Artist): Promise<{ colorPa
 	};
 };
 
-const getTrackImage = async (file: ParsedFileList, id): Promise<{ colorPalette: PaletteColors | null; image: string | null, blurHash: string | null }> => {
+const getTrackImage = async (file: ParsedFileList, id) => {
 	let image: string | null = null;
 	let colorPalette: PaletteColors | null = null;
 	let blurHash: string | null = null;
@@ -584,7 +585,7 @@ const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList
 	};
 };
 
-const findRelease = (data: Release[], file: ParsedFileList, parsedFiles: ParsedFileList[]): Release | undefined => {
+const findRelease = (data: Release[], file: ParsedFileList, parsedFiles: ParsedFileList[]) => {
 	const matches = /.+[\\\/]((?<album>\d{1,2})-)?(?<track>\d{1,2})(\.)?\s(?<title>.+)\.(?<ext>\w{3,4})$/u.exec(file.path)?.groups;
 	const albumName = file.musicFolder?.replace(/[\\\/]\[\d{4}\]\s|\[\w+\]/u, '');
 	// Number((file.ffprobe as AudioFFprobe)?.format?.duration.toFixed(0))
@@ -623,7 +624,7 @@ const findRelease = (data: Release[], file: ParsedFileList, parsedFiles: ParsedF
 	// throw to db for manual review
 };
 
-const filterRecordings = (data: Recording[], file: ParsedFileList, parsedFiles: ParsedFileList[]): Recording | undefined => {
+const filterRecordings = (data: Recording[], file: ParsedFileList, parsedFiles: ParsedFileList[]) => {
 	let recording: Recording | undefined;
 
 	for (const _recording of data) {

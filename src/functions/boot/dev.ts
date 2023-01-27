@@ -1,13 +1,33 @@
 // import { imagesPath } from "../../state";
-// import { musicGenres } from "../../providers/musicbrainz/genre";
-// import storeTvShow from "../../tasks/data/storeTvShow";
 
-import { matchPercentage } from "../../functions/stringArray";
-import { searchTv } from "../../providers/tmdb/search";
+// import axios from 'axios';
 
-export default async () => {
+// import { AppState, useSelector } from '../../state/redux';
 
-    // await storeTvShow({ 
+// import ChromecastAPI from 'chromecast-api';
+// import Device from 'chromecast-api/lib/device';
+// import { OnDemand } from '../ffmpeg/onDemand';
+
+export default () => {
+
+    // await onDemand.fromFile(file, title);
+    // await onDemand.open(file);
+    // await onDemand.fromDatabase(Episode as unknown as EP);
+
+    // onDemand
+    //     .makeStack()
+    //     .check()
+    //     .start();
+
+    // onDemand.check();
+
+//     const client = new ChromecastAPI();
+
+    // console.log(ffmpeg);
+    // console.log(ffmpeg.buildCommand());
+    // ffmpeg.start();
+
+    // await storeTvShow({
     //     id: 30980,
     //     folder: 'M:/Anime/Anime/A.Certain.Magical.Index.(2008)',
     //     libraryId: 'cl7i4km1o0004qwef9472dy2t',
@@ -19,10 +39,10 @@ export default async () => {
     // });
 
     // const files = readdirSync(`${imagesPath}`);
-    
+
     // for (const image of files) {
     //     const stat = statSync(`${imagesPath}/${image}`);
-        
+
     //     if(stat.isDirectory()) continue;
 
     //     if(stat.size == 0){
@@ -43,62 +63,4 @@ export default async () => {
     //     }
     // }
 
-    // const genres = await musicGenres();
-    // console.log(genres);
-
-    // const response = await track('44dc19cb-fe11-4e79-9d52-b5866812f2e0');
-    // console.log(response);
-
-
-    // await confDb.track.findMany({
-    //     where: {
-    //         folder: {
-    //             contains: '/Music',
-    //         }
-    //     },
-    // }).then(async (tracks) => {
-
-    //     for (const track of tracks) {
-
-    //         const newFolder = track.folder.replace('/Music','');
-            
-    //         await confDb.track.update({
-    //             where: {
-    //                 id: track.id
-    //             },
-    //             data: {
-    //                 folder: newFolder
-    //             }
-    //         });
-    //     }
-
-    // });
-
-
-    // for (const image of images) {
-    //     console.log(`Z:/mnt/m/Music${image.folder}${image.cover}`);
-    //     try {
-    //         rmSync(`Z:/mnt/m/Music${image.folder}${image.cover}`);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
-
-    const result = await searchTv('Another', 2012)
-        .then((tvs) => {
-            let show = tvs[0];
-            let match = 0;
-            if (tvs.length > 1) {
-                for (const tv of tvs) {
-                    if (matchPercentage(tv.name, 'Another') > match) {
-                        match = matchPercentage(tvs[0].name, 'Another');
-                        show = tv;
-                    }
-                }
-            }
-            return show;
-        })
-
-        console.log(result)
-    
-}
+};

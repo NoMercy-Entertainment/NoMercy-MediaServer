@@ -1,20 +1,20 @@
-import { activityLog, configData, devices, encoderProfiles, folders, libraries, notificationData, serverTasks } from "./data";
-import { countries, languages } from "../../providers/tmdb/config/index";
+import { activityLog, configData, devices, encoderProfiles, folders, libraries, notificationData, serverTasks } from './data';
+import { countries, languages } from '../../providers/tmdb/config/index';
 
-import Logger from "../../functions/logger";
-import { Prisma } from "@prisma/client";
-import certifications from "../../providers/tmdb/certification/index";
-import { confDb } from "../../database/config";
-import genres from "../../providers/tmdb/genres/index";
-import { musicGenres } from "../../providers/musicbrainz/genre";
-import storeConfig from "../storeConfig";
+import Logger from '../../functions/logger';
+import { Prisma } from '@prisma/client';
+import certifications from '../../providers/tmdb/certification/index';
+import { confDb } from '../../database/config';
+import genres from '../../providers/tmdb/genres/index';
+import { musicGenres } from '../../providers/musicbrainz/genre';
+import storeConfig from '../storeConfig';
 
 export const seed = async () => {
 	Logger.log({
-		level: "info",
-		name: "setup",
-		color: "blueBright",
-		message: "Seeding database",
+		level: 'info',
+		name: 'setup',
+		color: 'blueBright',
+		message: 'Seeding database',
 	});
 
 	const transaction: Prisma.PromiseReturnType<any>[] = [];
@@ -107,7 +107,7 @@ export const seed = async () => {
 			})
 		);
 	}
-	
+
 	const MusicGenres = await musicGenres();
 	for (const genre of MusicGenres) {
 		transaction.push(
@@ -256,9 +256,9 @@ export const seed = async () => {
 	}
 
 	const users = await confDb.user.findMany();
-	
+
 	for (const library of libraries) {
-		
+
 		const libraryInsert = Prisma.validator<Prisma.LibraryUpdateInput>()({
 			id: library.id,
 			title: library.title,
@@ -272,7 +272,7 @@ export const seed = async () => {
 			specialSeasonName: library.specialSeasonName,
 			type: library.type,
 			Folders: {
-				connectOrCreate: library.folders.map((folder) => ({
+				connectOrCreate: library.folders.map(folder => ({
 					create: {
 						folderId: folder.id,
 					},
@@ -281,11 +281,11 @@ export const seed = async () => {
 							folderId: folder.id,
 							libraryId: library.id,
 						},
-					}
+					},
 				})),
 			},
 			User: {
-				connectOrCreate: users.map((user) => ({
+				connectOrCreate: users.map(user => ({
 					create: {
 						userId: user.sub_id,
 					},
@@ -294,11 +294,11 @@ export const seed = async () => {
 							userId: user.sub_id,
 							libraryId: library.id,
 						},
-					}
+					},
 				})),
 			},
-			country: "NL",
-			language: "nl",
+			country: 'NL',
+			language: 'nl',
 		});
 
 		transaction.push(
@@ -313,8 +313,8 @@ export const seed = async () => {
 	}
 
 	await confDb.$transaction(transaction)
-		.catch((error) => console.log(error));
-		
+		.catch(error => console.log(error));
+
 };
 
 export default seed;

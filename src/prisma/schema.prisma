@@ -1,7 +1,7 @@
 datasource db {
   provider = "sqlite"
-  // url      = env("DATABASE_URL")
-  url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
+  url      = env("DATABASE_URL")
+  // url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
   // url      = "file:/home/stoney/.local/share/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
 }
 

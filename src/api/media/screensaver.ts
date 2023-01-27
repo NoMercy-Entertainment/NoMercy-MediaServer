@@ -1,4 +1,4 @@
-import { Keyword, KeywordMovie, KeywordTv, Media, Movie, Tv } from '@prisma/client'
+import { Keyword, KeywordMovie, KeywordTv, Media, Movie, Tv } from '@prisma/client';
 import { Request, Response } from 'express';
 import { shuffle, unique } from '../../functions/stringArray';
 
@@ -7,7 +7,7 @@ import { LogoResponse } from 'types/server';
 import { confDb } from '../../database/config';
 
 export default async function (req: Request, res: Response) {
-	let backdrops: (Media & {
+	const backdrops: (Media & {
 		Movie:
 		| (Movie & {
 			Keyword: (KeywordMovie & {
@@ -24,9 +24,9 @@ export default async function (req: Request, res: Response) {
 		| null;
 	})[] = [];
 
-	let logos: Media[] = [];
-	let tvLogos: Media[] = [];
-	let movieLogos: Media[] = [];
+	const logos: Media[] = [];
+	const tvLogos: Media[] = [];
+	const movieLogos: Media[] = [];
 
 	await confDb.media
 		.findMany({
@@ -61,13 +61,13 @@ export default async function (req: Request, res: Response) {
 				},
 			},
 		})
-		.then((data) => backdrops.push(...data))
+		.then(data => backdrops.push(...data))
 		.catch((error) => {
 			Logger.log({
 				level: 'error',
 				name: 'moviedb',
 				color: 'redBright',
-				message: 'Error fetching backdrops ' + error,
+				message: `Error fetching backdrops ${error}`,
 			});
 		});
 
@@ -89,11 +89,11 @@ export default async function (req: Request, res: Response) {
 	})[] = [];
 
 	unique(
-		backdrops.filter((i) => i.Tv),
+		backdrops.filter(i => i.Tv),
 		'tvId'
-	).map((data) => tvCollection.push(data));
+	).map(data => tvCollection.push(data));
 
-	const movieollection: (Media & {
+	const movieCollection: (Media & {
 		Movie:
 		| (Movie & {
 			Keyword: (KeywordMovie & {
@@ -111,9 +111,9 @@ export default async function (req: Request, res: Response) {
 	})[] = [];
 
 	unique(
-		backdrops.filter((i) => i.Movie),
+		backdrops.filter(i => i.Movie),
 		'movieId'
-	).map((data) => movieollection.push(data));
+	).map(data => movieCollection.push(data));
 
 	await confDb.media
 		.findMany({
@@ -122,40 +122,40 @@ export default async function (req: Request, res: Response) {
 					{
 						type: 'logo',
 						tvId: {
-							in: tvCollection.map((b) => b.tvId!),
+							in: tvCollection.map(b => b.tvId!),
 						},
 					},
 					{
 						type: 'logo',
 						movieId: {
-							in: movieollection.map((b) => b.movieId!),
+							in: movieCollection.map(b => b.movieId!),
 						},
 					},
 				],
 			},
 		})
-		.then((data) => logos.push(...data))
+		.then(data => logos.push(...data))
 		.catch((error) => {
 			Logger.log({
 				level: 'error',
 				name: 'moviedb',
 				color: 'redBright',
-				message: 'Error fetching logos ' + error,
+				message: `Error fetching logos ${error}`,
 			});
 		});
 
 	unique(
-		logos.filter((i) => i.movieId),
+		logos.filter(i => i.movieId),
 		'movieId'
-	).map((data) => movieLogos.push(data));
+	).map(data => movieLogos.push(data));
 
 	unique(
-		logos.filter((i) => i.tvId),
+		logos.filter(i => i.tvId),
 		'tvId'
-	).map((data) => tvLogos.push(data));
+	).map(data => tvLogos.push(data));
 
 	const tv: LogoResponse[] = tvCollection.map((r) => {
-		const logo = tvLogos.find((l) => l.tvId == r.tvId);
+		const logo = tvLogos.find(l => l.tvId == r.tvId);
 
 		return {
 			aspectRatio: r.aspectRatio,
@@ -175,10 +175,10 @@ export default async function (req: Request, res: Response) {
 					: null,
 			},
 		};
-	}).filter((r) => r?.meta?.logo);
+	}).filter(r => r?.meta?.logo);
 
-	const movie: LogoResponse[] = movieollection.map((r) => {
-		const logo = movieLogos.find((l) => l.movieId == r.movieId);
+	const movie: LogoResponse[] = movieCollection.map((r) => {
+		const logo = movieLogos.find(l => l.movieId == r.movieId);
 
 		return {
 			aspectRatio: r.aspectRatio,
@@ -198,7 +198,7 @@ export default async function (req: Request, res: Response) {
 					: null,
 			},
 		};
-	}).filter((r) => r?.meta?.logo);
+	}).filter(r => r?.meta?.logo);
 
 	const response: LogoResponse[] = shuffle([...tv, ...movie]);
 

@@ -1,0 +1,8 @@
+{
+    "include": [
+        ".eslintrc.js", 
+        "tailwind.config.cjs", 
+        "addPreloadLinks.js",
+        "deploy.js"
+    ]
+}

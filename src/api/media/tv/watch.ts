@@ -1,4 +1,4 @@
-import { Media, Prisma } from '@prisma/client'
+import { Media, Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
 import { existsSync, readFileSync } from 'fs';
 
@@ -6,13 +6,17 @@ import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
 import { convertToSeconds } from '../../../functions/dateTime';
 import { deviceId } from '../../../functions/system';
+import { getLanguage } from '../../middleware';
 import i18next from 'i18next';
 import { isOwner } from '../../middleware/permissions';
 import requestCountry from 'request-country';
 import { sortBy } from '../../../functions/stringArray';
 
-export default async function (req: Request, res: Response) {
-	const language = req.acceptsLanguages()[0] != 'undefined' ? req.acceptsLanguages()[0].split('-')[0] : 'en';
+export default function (req: Request, res: Response) {
+
+	const language = getLanguage(req);
+	console.log(language);
+
 	const id = req.params.id;
 	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
@@ -29,12 +33,12 @@ export default async function (req: Request, res: Response) {
 
 	confDb.tv.findFirst(tvQuery({ id, language, country })).then(async (tv) => {
 		if (
-			!tv ||
-			!tv.Season ||
-			(tv?.Season?.map((s) => s.Episode?.flat())
+			!tv
+			|| !tv.Season
+			|| (tv?.Season?.map(s => s.Episode?.flat())
 				.flat()
-				.flat().length == 0 &&
-				external?.[0])
+				.flat().length == 0
+				&& external?.[0])
 		) {
 			if (external.length > 0) {
 				return external;
@@ -43,10 +47,10 @@ export default async function (req: Request, res: Response) {
 		}
 
 		const seasonIds = tv.Season.map((s: { id: any }) => s.id);
-		const episodeIds = tv.Season.map((s) => s.Episode.map((ep) => ep.id)).flat();
+		const episodeIds = tv.Season.map(s => s.Episode.map(ep => ep.id)).flat();
 
 		await Promise.all([
-			confDb.media.findMany(mediaQuery(id)).then((data) => media.push(...data)),
+			confDb.media.findMany(mediaQuery(id)).then(data => media.push(...data)),
 
 			confDb.translation
 				.findMany(
@@ -64,11 +68,11 @@ export default async function (req: Request, res: Response) {
 
 		tv.Season.map((season) => {
 			let navigationY = 0;
-			const seasonTranslations = translation.find((t) => t.translationableType == 'season' && t.translationableId == season.id);
+			const seasonTranslations = translation.find(t => t.translationableType == 'season' && t.translationableId == season.id);
 
 			season?.Episode.map((episode) => {
 				// console.log(episode)
-				const externalFile = external?.find((external) => external.id == episode.id && external.duration != null);
+				const externalFile = external?.find(external => external.id == episode.id && external.duration != null);
 
 				const videoFile = episode.VideoFile?.[0] ?? externalFile;
 
@@ -84,18 +88,20 @@ export default async function (req: Request, res: Response) {
 				if (!videoFile) return;
 
 				const episodeTranslations = translation
-					.find((t) => t.translationableType == 'episode' && t.translationableId == episode.id);
+					.find(t => t.translationableType == 'episode' && t.translationableId == episode.id);
 
-				const overview = episodeTranslations?.overview != '' && episodeTranslations?.overview != null 
-					? episodeTranslations?.overview 
+				const overview = episodeTranslations?.overview != '' && episodeTranslations?.overview != null
+					? episodeTranslations?.overview
 					: episode.overview;
-					
-				const title = episodeTranslations?.title != '' && episodeTranslations?.title != null 
-					? episodeTranslations?.title 
+
+				const title = episodeTranslations?.title != '' && episodeTranslations?.title != null
+					? episodeTranslations?.title
 					: episode.title;
 
-				const showTitle = translation.find((t) => t.translationableType == 'tv')?.title;
-				const show = showTitle != '' && showTitle != null ? showTitle : tv.title;
+				const showTitle = translation.find(t => t.translationableType == 'tv')?.title;
+				const show = showTitle != '' && showTitle != null
+					? showTitle
+					: tv.title;
 
 				const textTracks: any[] = [];
 				let search = false;
@@ -122,9 +128,9 @@ export default async function (req: Request, res: Response) {
 				});
 
 				let fonts: any[] = [];
-				let fontsfile = '';
+				let fontsFile = '';
 				if (search && existsSync(`${videoFile?.folder}fonts.json`)) {
-					fontsfile = `${baseFolder}fonts.json`;
+					fontsFile = `${baseFolder}fonts.json`;
 					fonts = JSON.parse(readFileSync(`${videoFile?.folder}fonts.json`, 'utf8')).map((f: { file: string; mimeType: string }) => {
 						return {
 							...f,
@@ -133,31 +139,35 @@ export default async function (req: Request, res: Response) {
 					});
 				}
 
-				// console.log(
-				// 	progress.find((p) => p.videoFileId == videoFile?.id)?.time, 
-				// 	videoFile, 
-				// 	convertToSeconds(videoFile?.duration)
-				// );
-
 				const data: any = {
 					id: episode.id,
 					title: title,
 					description: overview,
 					duration: videoFile?.duration,
 
-					poster: tv.poster ? tv.poster : null,
-					backdrop: tv.backdrop ? tv.backdrop : null,
+					poster: tv.poster
+						? tv.poster
+						: null,
+					backdrop: tv.backdrop
+						? tv.backdrop
+						: null,
 
-					image: episode.still ?? tv.poster ? episode.still ?? tv.poster : null,
+					image: episode.still ?? tv.poster
+						? episode.still ?? tv.poster
+						: null,
 
 					year: tv.firstAirDate?.split('-')[0] ?? null,
-					season_image: season.poster ? season.poster : null,
+					season_image: season.poster
+						? season.poster
+						: null,
 					video_type: 'tv',
 					production: tv.status != 'Ended',
 					season: episode.seasonNumber,
 					episode: episode.episodeNumber,
 					navigationY,
-					season_title: episode.seasonNumber == 0 ? tv.Library.specialSeasonName : seasonTranslations?.title ?? season.title,
+					season_title: episode.seasonNumber == 0
+						? tv.Library.specialSeasonName
+						: seasonTranslations?.title ?? season.title,
 					season_overview: seasonTranslations?.overview ?? season.overview,
 					season_id: season.id,
 					episode_id: episode.id,
@@ -179,39 +189,46 @@ export default async function (req: Request, res: Response) {
 							};
 						})?.[0] ?? {},
 
-					progress: progress.some((p) => p.videoFileId == videoFile?.id)
-						? (progress.find((p) => p.videoFileId == videoFile?.id).time / convertToSeconds(videoFile?.duration)) * 100
+					progress: progress.some(p => p.videoFileId == videoFile?.id)
+						? (progress.find(p => p.videoFileId == videoFile?.id).time / convertToSeconds(videoFile?.duration)) * 100
 						: null,
 
 					textTracks: sortBy(textTracks, 'language'),
 					fonts,
-					fontsfile,
+					fontsFile,
 					sources: [
 						{
 							src: `${baseFolder}${videoFile?.filename}`,
-							type: videoFile?.filename.includes('.mp4') ? 'video/mp4' : 'application/x-mpegURL',
+							// src: '/cl7i4km1o0008qwef7qwdapxe/2.Broke.Girls.(2011)/2.Broke.Girls.S01E01/2.Broke.Girls.S01E01.Pilot.m3u8',
+							type: videoFile?.filename.includes('.mp4')
+								? 'video/mp4'
+								: 'application/x-mpegURL',
 							languages: JSON.parse(videoFile?.languages ?? '[]'),
 						},
-					].filter((s) => !s.src.includes('undefined')),
+					].filter(s => !s.src.includes('undefined')),
 
 					tracks: [
 						{
 							file: `${baseFolder}/previews.vtt`,
+							// file: '/cl7i4km1o0008qwef7qwdapxe/2.Broke.Girls.(2011)/2.Broke.Girls.S01E01/previews.vtt',
 							kind: 'thumbnails',
 						},
 						{
 							file: `${baseFolder}/chapters.vtt`,
+							// file: '/cl7i4km1o0008qwef7qwdapxe/2.Broke.Girls.(2011)/2.Broke.Girls.S01E01/chapters.vtt',
 							kind: 'chapters',
 						},
 						{
 							file: `${baseFolder}/sprite.webp`,
+							// file: '/cl7i4km1o0008qwef7qwdapxe/2.Broke.Girls.(2011)/2.Broke.Girls.S01E01/sprite.webp',
 							kind: 'sprite',
 						},
 						{
 							file: `${baseFolder}/fonts.json`,
+							// file: '/cl7i4km1o0008qwef7qwdapxe/2.Broke.Girls.(2011)/2.Broke.Girls.S01E01/fonts.json',
 							kind: 'fonts',
 						},
-					].filter((t) => !t.file.includes('undefined')),
+					].filter(t => !t.file.includes('undefined')),
 				};
 
 				files.push(data);
@@ -221,7 +238,7 @@ export default async function (req: Request, res: Response) {
 
 		// console.log(convertToHuman(length));
 
-		return res.json(files.filter((f) => f.season != 0).concat(...files.filter((f) => f.season == 0)));
+		return res.json(files.filter(f => f.season != 0).concat(...files.filter(f => f.season == 0)));
 	});
 }
 

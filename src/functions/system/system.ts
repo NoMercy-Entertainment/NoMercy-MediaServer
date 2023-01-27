@@ -65,21 +65,22 @@ const getServiceStatus = (): ServiceStatus => {
 	let status: ServiceStatus = ServiceStatus.unknown;
 	switch (getPlatform()) {
 		case 'windows':
-			let service: string = '';
+			let service = '';
 
 			try {
 				service = execSync(`Get-Service ${serviceName} | Select-Object -Property Status | Format-List`, {
-					shell:'powershell.exe',
-					stdio: 'pipe'
-				}).toString().replace(/[\n\r]/gu, '');
+					shell: 'powershell.exe',
+					stdio: 'pipe',
+				}).toString()
+					.replace(/[\n\r]/gu, '');
 
-			} catch(error) {
+			} catch (error) {
 				return ServiceStatus.notInstalled;
 			}
 
-			let newService = service.match(/Status : (\w+)/) ?? [];
+			const newService = service.match(/Status : (\w+)/u) ?? [];
 
-			if(newService?.length > 0){
+			if (newService?.length > 0) {
 				switch (newService![1]) {
 					case 'Running':
 						status = ServiceStatus.running;
@@ -92,7 +93,7 @@ const getServiceStatus = (): ServiceStatus => {
 						break;
 				}
 			}
-			
+
 			break;
 		case 'mac':
 			// status = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercy');
@@ -109,14 +110,15 @@ const getServiceStatus = (): ServiceStatus => {
 export const serviceStatus = getServiceStatus();
 
 const getNpxPath = (): string => {
-	let path: string = '';
+	let path = '';
 	switch (getPlatform()) {
 		case 'windows':
 			path = join(process.env.APPDATA!, 'npm', 'node_modules', 'npm', 'bin', 'npx-cli.js');
 			break;
 		case 'mac':
 		case 'linux':
-			path = join(execSync('which npx').toString().replace(/(.+)npx.*$/u, '$1'), 'npm', 'node_modules', 'npm', 'bin', 'npx-cli.js');
+			path = join(execSync('which npx').toString()
+				.replace(/(.+)npx.*$/u, '$1'), 'npm', 'node_modules', 'npm', 'bin', 'npx-cli.js');
 			break;
 	}
 
@@ -144,7 +146,7 @@ const getInstallPath = (): string => {
 export const installPath = getInstallPath();
 
 const getExecutableSuffix = () => {
-	let executableSuffix: string = '';
+	let executableSuffix = '';
 	switch (getPlatform()) {
 		case 'windows':
 			executableSuffix = '.exe';
@@ -182,25 +184,24 @@ export const uptime = () => process.uptime();
 export const deviceId = machineIdSync(true);
 export const deviceName = process.env.COMPUTERNAME ?? process.env.NAME ?? os.hostname() as string;
 export const clientName = process.env.eventName as string;
-export const cpuCores = (parseInt(process.env.NUMBER_OF_PROCESSORS as string), 10);
+export const cpuCores = parseInt((process.env.NUMBER_OF_PROCESSORS as string), 10);
 export const arch = process.arch as string;
 
 export const hasElevatedPermissions = (): boolean => {
 	switch (platform) {
 		case 'windows':
 			try {
-				execFileSync( "net", ["session"], { "stdio": "ignore" } );
+				execFileSync('net', ['session'], { 'stdio': 'ignore' });
 				return true;
-			}
-			catch ( e ) {
+			} catch (e) {
 				return false;
 			}
 		case 'mac':
 		case 'linux':
-			return process.env.USER == 'root';	
+			return process.env.USER == 'root';
 		default:
 			return false;
 	}
-}
+};
 
 // console.log(npxPath);

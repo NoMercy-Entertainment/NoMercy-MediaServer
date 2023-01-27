@@ -1,12 +1,12 @@
-import { ParsedFileList } from "../../tasks/files/filenameParser";
-import axios from "axios";
+import { ParsedFileList } from '../../tasks/files/filenameParser';
+import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import { execSync } from "child_process";
-import { fpcalc } from "../../state";
+import { execSync } from 'child_process';
+import { fingerprintCalc } from '../../state';
 
 export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileList): Promise<void | Result> => {
 
-    const fingerprintData = JSON.parse(execSync(`${fpcalc} -json "${file.path}"`).toString() ?? "{}");
+    const fingerprintData = JSON.parse(execSync(`${fingerprintCalc} -json "${file.path}"`).toString() ?? '{}');
 
     const meta = [
         'recordings',
@@ -14,7 +14,7 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
         'tracks',
         'compress',
     ].join('+');
-    
+
     axiosRetry(axios, {
         retries: 2,
         retryDelay: axiosRetry.exponentialDelay,
@@ -22,12 +22,12 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
 
     return await axios.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
         params: {
-            client: "pXzJ7uXskB",
+            client: 'pXzJ7uXskB',
             duration: parseInt(fingerprintData.duration, 10),
             fingerprint: fingerprintData.fingerprint,
         },
     })
-        .then(response => {
+        .then((response) => {
             return response.data.results[0];
         })
         .catch(error => console.log(error.response.data.error));
@@ -37,73 +37,73 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
 
 export interface FingerprintLookup {
     results: Result[];
-    status:  string;
+    status: string;
 }
 
 export interface Result {
-    id:         string;
+    id: string;
     recordings: Recording[];
-    score:      Score;
+    score: Score;
 }
 
 export interface Recording {
-    artists:  Artist[];
+    artists: Artist[];
     duration: number;
-    id:       string;
+    id: string;
     releases: Release[];
-    title:    string;
+    title: string;
 }
 
 export interface Artist {
-    id:   string;
+    id: string;
     name: string;
 }
 
 export interface Release {
-    artists?:      Artist[];
-    country:       string;
-    date:          DateClass;
-    id:            string;
-    medium_count:  number;
-    mediums:       Medium[];
+    artists?: Artist[];
+    country: string;
+    date: DateClass;
+    id: string;
+    medium_count: number;
+    mediums: Medium[];
     releaseevents: ReleaseEvent[];
-    title:         string;
-    track_count:   number;
+    title: string;
+    track_count: number;
 }
 
 export interface DateClass {
-    day?:   number;
+    day?: number;
     month?: number;
-    year:   number;
+    year: number;
 }
 
 export interface Medium {
-    format:      Format;
-    position:    number;
+    format: Format;
+    position: number;
     track_count: number;
-    tracks:      Track[];
+    tracks: Track[];
 }
 
 export enum Format {
-    CD = "CD",
-    CopyControlCD = "Copy Control CD",
-    DigitalMedia = "Digital Media",
-    The12Vinyl = "12\" Vinyl",
+    CD = 'CD',
+    CopyControlCD = 'Copy Control CD',
+    DigitalMedia = 'Digital Media',
+    The12Vinyl = '12" Vinyl',
 }
 
 export interface Track {
     artists?: Artist[];
-    id:       string;
+    id: string;
     position: number;
-    title?:   string;
+    title?: string;
 }
 
 export interface ReleaseEvent {
     country: string;
-    date:    DateClass;
+    date: DateClass;
 }
 
 export interface Score {
     value: string;
-    type:  string;
+    type: string;
 }

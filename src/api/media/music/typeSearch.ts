@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { sortBy, uniqBy, unique } from '../../../functions/stringArray';
+import { sortBy, unique } from '../../../functions/stringArray';
 
 import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
@@ -10,7 +10,6 @@ export default async function (req: Request, res: Response) {
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 	const { query, type } = req.params;
 
-	let data;
 	let result;
 
 	switch (type) {
@@ -74,16 +73,17 @@ export default async function (req: Request, res: Response) {
 		break;
 	}
 
-
-	data = {
+	const data = {
 		data: sortBy(unique(result?.map((t) => {
 			return {
 				...t,
 				type,
-				year: t.description?.match?.(/\((\d{4})\)/)?.[1] ?? 9999,
+				year: t.description?.match?.(/\((\d{4})\)/u)?.[1] ?? 9999,
 				title_sort: createTitleSort(t.title ?? t.name),
 				origin: JSON.parse((process.env.CONFIG as string)).server_id,
-				cover: t.cover ? t.cover : t.album?.[0]?.cover ?? null,
+				cover: t.cover
+					? t.cover
+					: t.album?.[0]?.cover ?? null,
 			};
 		}) ?? [], 'name'), 'year'),
 		type: `${type}s`,

@@ -1,14 +1,14 @@
 import { AppState, useSelector } from '../state/redux';
 import { Server, Socket } from 'socket.io';
 
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import Logger from '../functions/logger';
 import base from '../api/sockets/base';
 import { confDb } from '../database/config';
-import { socketCors } from '../functions/networking';
 import socketioJwt from 'socketio-jwt';
 import { storeServerActivity } from '../api/userData/activity/post';
 
-let io: any = null;
+const io: any = null;
 export let myClientList: any[] = [];
 
 process.setMaxListeners(300);
@@ -54,26 +54,25 @@ export const socket = {
 			io.once(event, values);
 		}
 	},
-	connect(server: any) {
-		io = new Server(server, socketCors);
+	connect(io: Server<DefaultEventsMap, any>) {
 
 		io.use(
 			socketioJwt.authorize({
 				secret: useSelector((state: AppState) => state.config.keycloakCertificate),
-				timeout: 15000,
+				// timeout: 15000,
 				handshake: true,
-				auth_header_required: true,
+				auth_header_required: false,
 			})
 		);
 
-		io.use((socket: { decoded_token: { email: string; }; }, next: (arg0?: Error) => void) => {
+		io.use((socket, next) => {
 			const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-			if (!allowedUsers.some(u => u.email == socket.decoded_token.email)) {
-				next(new Error('thou shall not pass'));
+			if (allowedUsers.some(u => u.email == (socket as any).decoded_token.email)) {
+				return next();
 			}
 
-			next();
+			next(new Error('thou shall not pass'));
 		});
 
 		io.once('connection', (socket: { emit: (arg0: any, arg1?: any) => void }) => {
@@ -112,10 +111,10 @@ export const socket = {
 				connected: socket.connected,
 				disconnected: socket.disconnected,
 				secure_connection: socket.handshake.secure,
-				client_id: socket.handshake.headers.device_id,
-				client_name: socket.handshake.headers.device_name,
-				client_type: socket.handshake.headers.device_type,
-				client_os: socket.handshake.headers.device_os,
+				client_id: socket.handshake.query.device_id,
+				client_name: socket.handshake.query.device_name,
+				client_type: socket.handshake.query.device_type,
+				client_os: socket.handshake.query.device_os,
 				rooms: socket.adapter.rooms,
 				socket,
 			});
@@ -123,11 +122,11 @@ export const socket = {
 			const data: any = {};
 			data.sub_id = socket.decoded_token.sub;
 			data.time = new Date();
-			data.device_id = socket.handshake.headers.device_id;
+			data.device_id = socket.handshake.query.device_id;
 			data.from = socket.request.connection.remoteAddress;
-			data.device_name = socket.handshake.headers.device_name;
-			data.device_type = socket.handshake.headers.device_type;
-			data.device_os = socket.handshake.headers.device_os;
+			data.device_name = socket.handshake.query.device_name;
+			data.device_type = socket.handshake.query.device_type;
+			data.device_os = socket.handshake.query.device_os;
 			data.version = '0.0.5';
 			data.type = 'Connected';
 			await storeServerActivity(data);
@@ -153,23 +152,23 @@ export const socket = {
 
 			await confDb.device.upsert({
 				where: {
-					id: socket.handshake.headers.device_id,
+					id: socket.handshake.query.device_id,
 				},
 				update: {
-					id: socket.handshake.headers.device_id,
-					deviceId: socket.handshake.headers.device_id,
+					id: socket.handshake.query.device_id,
+					deviceId: socket.handshake.query.device_id,
 					ip: socket.request.connection.remoteAddress,
-					title: socket.handshake.headers.device_name,
-					type: socket.handshake.headers.device_os,
+					title: socket.handshake.query.device_name,
+					type: socket.handshake.query.device_os,
 					version: '0.0.5',
 					updated_at: new Date(),
 				},
 				create: {
-					id: socket.handshake.headers.device_id,
-					deviceId: socket.handshake.headers.device_id,
+					id: socket.handshake.query.device_id,
+					deviceId: socket.handshake.query.device_id,
 					ip: socket.request.connection.remoteAddress,
-					title: socket.handshake.headers.device_name,
-					type: socket.handshake.headers.device_os,
+					title: socket.handshake.query.device_name,
+					type: socket.handshake.query.device_os,
 					version: '0.0.5',
 					updated_at: new Date(),
 				},
@@ -182,21 +181,25 @@ export const socket = {
 				//
             });
 
+			socket.on('connect_error', (err) => {
+				console.log(`connect_error due to ${err.message}`);
+			});
+
 			socket.on('disconnect', async () => {
 				if (uniqueFilter == 'connection') {
 					myClientList = myClientList.filter(s => s.id != socket.id);
 				} else if (uniqueFilter == 'device') {
-					myClientList = myClientList.filter(s => s.client_id != socket.handshake.headers.device_id);
+					myClientList = myClientList.filter(s => s.client_id != socket.handshake.query.device_id);
 				}
 
 				const data: any = {};
 				data.sub_id = socket.decoded_token.sub;
 				data.time = new Date();
-				data.device_id = socket.handshake.headers.device_id;
+				data.device_id = socket.handshake.query.device_id;
 				data.from = socket.request.connection.remoteAddress;
-				data.device_name = socket.handshake.headers.device_name;
-				data.device_type = socket.handshake.headers.device_type;
-				data.device_os = socket.handshake.headers.device_os;
+				data.device_name = socket.handshake.query.device_name;
+				data.device_type = socket.handshake.query.device_type;
+				data.device_os = socket.handshake.query.device_os;
 				data.version = '0.0.5';
 				data.type = 'Disconnected';
 				await storeServerActivity(data);

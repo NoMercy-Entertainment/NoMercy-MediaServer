@@ -1,17 +1,6 @@
 import { AppState, useSelector } from '../state/redux';
-import express, {
-	Application,
-	NextFunction,
-	Request,
-	Response,
-} from 'express';
-import {
-	serveImagesPath,
-	serveLibraryPaths,
-	servePublicPath,
-	serveSubtitlesPath,
-	serveTranscodePath,
-} from '../api/routes/files';
+import express, { Application, NextFunction, Request, Response } from 'express';
+import { serveImagesPath, serveLibraryPaths, servePublicPath, serveSubtitlesPath, serveTranscodePath } from '../api/routes/files';
 
 import Logger from '../functions/logger';
 import { allowedOrigins } from '../functions/networking';
@@ -22,91 +11,88 @@ import cors from 'cors';
 import { initKeycloak } from '../functions/keycloak';
 import routes from '../api/index';
 import session from 'express-session';
-import {
-	session_config
-} from '../functions/keycloak/config';
+import { session_config } from '../functions/keycloak/config';
 import { setupComplete } from '../state';
-import {
-	staticPermissions,
-} from '../api/middleware/permissions';
+import { staticPermissions } from '../api/middleware/permissions';
 
 export default async (app: Application) => {
-	const owner = useSelector((state: AppState) => state.system.owner);
+  const owner = useSelector((state: AppState) => state.system.owner);
 
-	const KC = initKeycloak();
+  const KC = initKeycloak();
 
-	app.use(
-		cors({
-			origin: allowedOrigins,
-		})
-	);
+  app.use(
+    cors({
+      origin: allowedOrigins,
+    //   origin: '*',
+    })
+  );
 
-	app.use((req: Request, res: Response, next: NextFunction) => {
-		res.set('X-Powered-By', 'NoMercy MediaServer');
-		res.set('Access-Control-Allow-Private-Network', 'true');
-		res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
+  const shouldCompress = (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  };
+  app.use(compression({ filter: shouldCompress }));
 
-		if (allowedOrigins.some(o => o == req.headers.origin)) {
-			res.set('Access-Control-Allow-Origin', req.headers.origin as string);
-		}
+  app.enable('trust proxy');
+  app.use(changeLanguage);
+  app.use(express.json());
 
-		next();
-	});
-	
-	const shouldCompress = (req, res) => {
-		if (req.headers['x-no-compression']) {
-			return false
-		}
-		return compression.filter(req, res)
-	}
-	app.use(compression({ filter: shouldCompress }));
-	
-	await serveLibraryPaths(app);
+  app.get('/status', (req: Request, res: Response) => {
+    res.status(200).end();
+  });
+  app.head('/status', (req: Request, res: Response) => {
+    res.status(200).end();
+  });
 
-	app.get('/images/*', staticPermissions, serveImagesPath);
-	app.get('/transcodes/*', staticPermissions, serveTranscodePath);
-	app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
-	
-	app.enable('trust proxy');
-	app.use(changeLanguage);
-	app.use(express.json());
+  app.use(session(session_config));
+  app.use(KC.middleware());
 
-	app.get('/status', (req: Request, res: Response) => {
-		res.status(200).end();
-	});
-	app.head('/status', (req: Request, res: Response) => {
-		res.status(200).end();
-	});
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.set('X-Powered-By', 'NoMercy MediaServer');
+    res.set('Access-Control-Allow-Private-Network', 'true');
+    res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
 
-	app.use(session(session_config));
-	app.use(KC.middleware());
+    if (allowedOrigins.some(o => o == req.headers.origin)) {
+      res.set('Access-Control-Allow-Origin', req.headers.origin as string);
+    }
 
-	app.use((req: Request, res: Response, next: NextFunction) => {
-		res.set('owner', owner);
-		next();
-	});
+    next();
+  });
 
-	app.get('/api/ping', check, (req: Request, res: Response) => {
-		return res.json({
-			message: 'pong',
-			setupComplete: setupComplete || false,
-		});
-	});
+  await serveLibraryPaths(app);
 
-	app.use('/api', KC.checkSso(), check, changeLanguage, routes);
+  app.get('/images/*', staticPermissions, serveImagesPath);
+  app.get('/transcodes/*', staticPermissions, serveTranscodePath);
+  app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
 
-	app.get('/', (req: Request, res: Response) => {
-		res.redirect('https://app.nomercy.tv');
-	});
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.set('owner', owner);
+    next();
+  });
 
-	app.get('/*', staticPermissions, servePublicPath);
-	
-	Logger.log({
-		level: 'info',
-		name: 'setup',
-		color: 'blueBright',
-		message: 'Express loaded',
-	});
+  app.get('/api/ping', check, (req: Request, res: Response) => {
+    return res.json({
+      message: 'pong',
+      setupComplete: setupComplete || false,
+    });
+  });
 
-	return app;
+  app.use('/api', KC.checkSso(), check, changeLanguage, routes);
+
+  app.get('/', (req: Request, res: Response) => {
+    res.redirect('https://app.nomercy.tv');
+  });
+
+  app.get('/*', staticPermissions, servePublicPath);
+
+  Logger.log({
+    level: 'info',
+    name: 'setup',
+    color: 'blueBright',
+    message: 'Express loaded',
+  });
+
+  return app;
 };

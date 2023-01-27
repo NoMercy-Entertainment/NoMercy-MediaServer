@@ -113,7 +113,7 @@ const music = createSlice({
 			state.backLog = [...state.backLog, ...action.payload];
 		},
 		removeFromBackLog: (state, action: PayloadAction<Song>) => {
-			state.backLog = state.backLog?.filter(q => q.id != action.payload?.id);
+			state.backLog = state.backLog?.filter(q => q?.id != action.payload?.id);
 		},
 		addToBackLogNext: (state, action: PayloadAction<Song>) => {
 			state.backLog = [action.payload, ...state.backLog];
