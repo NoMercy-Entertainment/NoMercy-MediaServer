@@ -77,7 +77,7 @@ export default function (socket) {
 		cast[0].close();
 	});
 
-	cast[0].on('connected', () => {
+	cast?.[0]?.on('connected', () => {
 		socket.emit('cast_connected', cast[0].friendlyName);
 	});
 

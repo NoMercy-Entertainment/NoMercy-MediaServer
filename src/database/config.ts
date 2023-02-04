@@ -1,19 +1,19 @@
 import { configDb, queueDb } from '../state';
+import { PrismaClient as configDbModel, PrismaClient as configPrismaClient } from './config/client';
+import { PrismaClient as queueDbModel, PrismaClient as queuePrismaClient } from './queue/client';
 
-import { PrismaClient } from '@prisma/client';
 import { convertPath } from '../functions/system';
 import { execSync } from 'child_process';
-import { PrismaClient as queueDbModel } from './queue/client';
 
 export const configDatabaseString = `file:${configDb.replace(/\\/gu, '/')}?socket_timeout=99999&connection_limit=1&timeout=99999&busy_timeout=99999`;
 export const queueDatabaseString = `file:${queueDb.replace(/\\/gu, '/')}?socket_timeout=99999&connection_limit=1&timeout=99999&busy_timeout=99999`;
 
-let client: PrismaClient;
+let client: configPrismaClient;
 
 process.env.DATABASE_URL = configDatabaseString;
 
 try {
-	client = new PrismaClient({
+	client = new configDbModel({
 		datasources: {
 			db: {
 				url: configDatabaseString,
@@ -29,7 +29,7 @@ try {
 	});
 } catch (error) {
 
-	execSync('yarn prisma migrate dev --name dev --schema src/prisma/schema.prisma', {
+	execSync(`yarn prisma migrate dev --name dev --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
 		shell: 'powershell.exe',
 	});
 
@@ -37,7 +37,7 @@ try {
 		shell: 'powershell.exe',
 	});
 
-	client = new PrismaClient({
+	client = new configDbModel({
 		datasources: {
 			db: {
 				url: configDatabaseString,
@@ -53,10 +53,10 @@ try {
 	});
 }
 
-export const confDb: PrismaClient = client;
+export const confDb: configPrismaClient = client;
 
 
-let client2: PrismaClient;
+let client2: queuePrismaClient;
 
 try {
 	client2 = new queueDbModel({
@@ -68,11 +68,11 @@ try {
 	});
 } catch (error) {
 
-	execSync('yarn prisma migrate dev --name dev --schema src/prisma/schema.prisma', {
+	execSync(`npx prisma migrate deploy --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`, {
 		shell: 'powershell.exe',
 	});
 
-	execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+	execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`, {
 		shell: 'powershell.exe',
 	});
 
@@ -85,4 +85,4 @@ try {
 	});
 }
 
-export const queDb: PrismaClient = client2;
+export const queDb: queuePrismaClient = client2;
