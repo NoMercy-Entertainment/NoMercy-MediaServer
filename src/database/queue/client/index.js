@@ -144,7 +144,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Projects\\Electron\\NoMercyMediaServer\\src\\database\\queue\\client",
+      "value": "C:\\Projects\\NoMercy\\MediaServer\\src\\database\\queue\\client",
       "fromEnvVar": null
     },
     "config": {

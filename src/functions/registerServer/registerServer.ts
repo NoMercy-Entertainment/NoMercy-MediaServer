@@ -19,6 +19,8 @@ import { tokenFile } from '../../state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
 
+let registerComplete = false;
+
 const registerServer = async () => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const external_ip = useSelector((state: AppState) => state.system.external_ip);
@@ -29,7 +31,6 @@ const registerServer = async () => {
 	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
 		: 7635;
-	let registerComplete = false;
 
 	const redirect_uri = `http://${internal_ip}:${internal_port}/sso-callback`;
 
@@ -54,9 +55,9 @@ const registerServer = async () => {
 	let success = true;
 
 	await axios
-		.post<ServerRegisterResponse>('https://api.nomercy.tv/server/register', serverData, {
-			headers: { Accept: 'application/json' },
-		})
+		.post<ServerRegisterResponse>('https://api.nomercy.tv/server/register',
+			serverData,
+			{ headers: { Accept: 'application/json' } })
 		.catch((error) => {
 			success = false;
 			if (error.response) {
@@ -73,7 +74,7 @@ const registerServer = async () => {
 		const detected = DetectBrowsers();
 
 		if (detected) {
-			await tempServer(redirect_uri, internal_port, registerComplete);
+			await tempServer(redirect_uri, internal_port);
 
 			Logger.log({
 				level: 'info',
@@ -102,14 +103,50 @@ const registerServer = async () => {
 			while (!registerComplete) {
 				// /
 			}
+
 			resolve(true);
 		});
+
+		const external_ip = useSelector((state: AppState) => state.system.external_ip);
+		const access_token = useSelector((state: AppState) => state.user.access_token);
+		const serverData = {
+			server_id: deviceId,
+			external_ip: external_ip,
+		};
+
+		await axios
+			.post(
+				'https://api.nomercy.tv/server/assign',
+				serverData,
+				{
+					headers: {
+						Accept: 'application/json',
+						Authorization: `Bearer ${access_token}`,
+					},
+				}
+			)
+			.then(() => {
+				Logger.log({
+					level: 'info',
+					name: 'register',
+					color: 'blueBright',
+					message: 'Server assigned',
+				});
+			})
+			.catch(({ response }) => {
+				Logger.log({
+					level: 'error',
+					name: 'register',
+					color: 'red',
+					message: JSON.stringify(response?.data ?? response, null, 2),
+				});
+			});
 	}
 };
 
 export default registerServer;
 
-const tempServer = (redirect_uri: string, internal_port: number, registerComplete: boolean) => {
+const tempServer = (redirect_uri: string, internal_port: number) => {
 	const app = express();
 	const httpsServer = http.createServer(app);
 
@@ -130,13 +167,6 @@ const tempServer = (redirect_uri: string, internal_port: number, registerComplet
 				keycloakData
 			)
 			.then(({ data }) => {
-				Logger.log({
-					level: 'info',
-					name: 'keycloak',
-					color: 'blueBright',
-					message: 'Server authenticated',
-				});
-
 				setAccessToken(data.access_token);
 				setRefreshToken(data.refresh_token);
 
@@ -147,6 +177,13 @@ const tempServer = (redirect_uri: string, internal_port: number, registerComplet
 				writeFileSync(tokenFile, JSON.stringify(data, null, 2));
 
 				res.send('<script>window.close();</script>').end();
+
+				Logger.log({
+					level: 'info',
+					name: 'keycloak',
+					color: 'blueBright',
+					message: 'Server authenticated',
+				});
 
 				registerComplete = true;
 				httpsServer.close();
@@ -210,6 +247,36 @@ const login = ({ email, password, totp }) => {
 				writeToConfigFile('user_id', userId);
 
 				writeFileSync(tokenFile, JSON.stringify(data));
+			})
+			.then(async () => {
+
+				const external_ip = useSelector((state: AppState) => state.system.external_ip);
+				const access_token = useSelector((state: AppState) => state.user.access_token);
+				const serverData = {
+					server_id: deviceId,
+					external_ip: external_ip,
+				};
+
+				await axios
+					.post(
+						'https://api.nomercy.tv/server/assign',
+						serverData,
+						{
+							headers: {
+								Accept: 'application/json',
+								Authorization: `Bearer ${access_token}`,
+							},
+						}
+					)
+					.catch(({ response }) => {
+						Logger.log({
+							level: 'error',
+							name: 'register',
+							color: 'red',
+							message: JSON.stringify(response?.data ?? response, null, 2),
+						});
+					});
+
 				resolve(true);
 			})
 			.catch(({ response }) => {
@@ -255,9 +322,9 @@ const loginPrompt = () => {
 			})
 			.catch((error) => {
 				if (error.isTtyError) {
-				// Prompt couldn't be rendered in the current environment
+					// Prompt couldn't be rendered in the current environment
 				} else {
-				// Something else went wrong
+					// Something else went wrong
 				}
 			});
 	});

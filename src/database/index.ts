@@ -1,7 +1,7 @@
 import { configDatabaseString, queueDatabaseString } from './config';
+import { configDb, queueDb } from '../state';
 
 import Logger from '../functions/logger';
-import { configDb } from '../state';
 import { convertPath } from '../functions/system';
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
@@ -17,12 +17,20 @@ export const migrateConfigDatabase = async() => {
 			message: 'Migrating config database',
 		});
 
+		process.env.DATABASE_URL = configDatabaseString;
+
 		try {
-			execSync(`npx prisma migrate dev --name init --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`);
+			execSync(`npx prisma migrate dev --name init --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+				shell: 'powershell.exe',
+			});
 		} catch (error) {
-			execSync(`npx prisma migrate deploy --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`);
+			execSync(`npx prisma migrate deploy --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+				shell: 'powershell.exe',
+			});
 		}
-		execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`);
+		execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+			shell: 'powershell.exe',
+		});
 
 		const { confDb } = require('./config');
 		await confDb.$queryRaw`PRAGMA journal_mode=WAL;`;
@@ -31,7 +39,7 @@ export const migrateConfigDatabase = async() => {
 };
 
 export const migrateQueueDatabase = async () => {
-	if (!existsSync(configDb)) {
+	if (!existsSync(queueDb)) {
 		process.env.DATABASE_URL = convertPath(queueDatabaseString);
 
 		Logger.log({
@@ -42,11 +50,17 @@ export const migrateQueueDatabase = async () => {
 		});
 
 		try {
-			execSync(`npx prisma migrate dev --name init --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`);
+			execSync(`npx prisma migrate dev --name init --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`, {
+				shell: 'powershell.exe',
+			});
 		} catch (error) {
-			execSync(`npx prisma migrate deploy --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`);
+			execSync(`npx prisma migrate deploy --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`, {
+				shell: 'powershell.exe',
+			});
 		}
-		execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`);
+		execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/queue/schema.prisma`)}`, {
+			shell: 'powershell.exe',
+		});
 
 		const { queDb } = require('./config');
 		await queDb.$queryRaw`PRAGMA journal_mode=WAL;`;

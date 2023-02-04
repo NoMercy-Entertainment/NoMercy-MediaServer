@@ -2,11 +2,12 @@ import { AppState, useSelector } from '../../state/redux';
 
 import { deviceName } from '../../functions/system';
 import fs from 'fs';
-// import progress from '../../controllers/encoder/ffmpeg/progress';
 import i18next from 'i18next';
 import {
 	storeServerActivity
 } from '../../api/userData/activity/post';
+
+// import progress from '../../controllers/encoder/ffmpeg/progress';
 
 const watchDir = `${__dirname}/../../cache/working/`;
 
@@ -42,7 +43,7 @@ export default function (socket) {
 		socket.emit('cast_clients', cast.map(c => c.friendlyName));
 	});
 
-	if (typeof cast[0].on == 'function') {
+	if (typeof cast?.[0]?.on == 'function') {
 		cast[0].on('status', (status) => {
 			socket.emit('cast_status', status);
 		});
