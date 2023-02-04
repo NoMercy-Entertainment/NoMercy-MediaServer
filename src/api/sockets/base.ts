@@ -35,13 +35,13 @@ export default function (socket, io) {
 			name: 'log',
 			color: 'yellow',
 			user: socket.decoded_token.name,
-			message: data.value,
+			message: data?.value ?? data,
 		});
 	});
 
-	audio(socket, io);
+	audio(socket);
 	// content(socket, io);
-	dashboard(socket, io);
+	dashboard(socket);
 	// progress(socket, io);
 	video(socket, io);
 	// cpuStats(socket, io);

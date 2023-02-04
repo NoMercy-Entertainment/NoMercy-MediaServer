@@ -1,4 +1,4 @@
-import { ListItem, MutedState, PlayState, Song, State } from 'types/music';
+import { DisplayList, MutedState, PlayState, Song, State } from 'types/music';
 
 import music from './music';
 import { store } from '..';
@@ -35,7 +35,7 @@ export const setLikedSongs = (payload: any) => store.dispatch(music.actions.setL
 
 export const setPlaylists = (payload: any) => store.dispatch(music.actions.setPlaylists(payload));
 
-export const setDisplayList = (payload: ListItem) => store.dispatch(music.actions.setDisplayList(payload));
+export const setDisplayList = (payload: DisplayList) => store.dispatch(music.actions.setDisplayList(payload));
 
 export const setCurrentItem = (payload: Song) => store.dispatch(music.actions.setCurrentItem(payload));
 

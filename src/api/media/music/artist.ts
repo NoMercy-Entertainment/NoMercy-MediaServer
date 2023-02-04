@@ -90,11 +90,11 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 				origin: deviceId,
 				Artist: artists,
 				cover: (albums[0] ?? t).cover ?? null,
-				folder: (albums[0] ?? t).folder,
 				FavoriteTrack: undefined,
 				libraryId: music.libraryId,
 				colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? '{}'),
 				Album: albums,
+				album: albums[0],
 			};
 		}),
 	};

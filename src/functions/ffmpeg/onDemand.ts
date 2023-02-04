@@ -77,9 +77,9 @@ export class OnDemand extends FFMpeg {
 
         this.addCommand('-map', `0:${stream.index}`);
 
-        if (stream.codec_name == 'h264') {
-            this.addCommand('-c:v', 'copy');
-        } else {
+        // if (stream.codec_name == 'h264') {
+        //     this.addCommand('-c:v', 'copy');
+        // } else {
             this.addCommand('-c:v', 'h264')
                 .addCommand('-movflags', 'faststart')
                 .addCommand('-map_metadata', '0')
@@ -95,7 +95,7 @@ export class OnDemand extends FFMpeg {
                 .addCommand('-profile:v', 'high')
                 .addCommand('-preset', 'ultrafast')
                 .addCommand('-level', '3.1');
-        }
+        // }
 
         this.addStreamMap('v:0');
 
@@ -114,15 +114,15 @@ export class OnDemand extends FFMpeg {
 
         this.addCommand('-map', `0:${stream.index}`);
 
-        if (stream.codec_name == 'aac' && stream.channels == 2) {
-            this.addCommand('-c:a', 'copy');
-        } else {
+        // if (stream.codec_name == 'aac' && stream.channels == 2) {
+        //     this.addCommand('-c:a', 'copy');
+        // } else {
             this
                 .addCommand('-c:a', 'aac')
                 .addCommand('-strict', 2)
                 .addCommand('-ac', 2)
                 .addAudioFilters();
-        }
+        // }
 
         this.addStreamMap('a:0');
 

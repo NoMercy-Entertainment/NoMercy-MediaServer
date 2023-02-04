@@ -46,13 +46,14 @@ export default async (req: Request, res: Response) => {
     } catch (error) {
         return res.status(404).json({
             status: 'error',
-            error: 'File does not exist.',
+            error: error,
         });
     }
 
     onDemand
         .setPreferredAudioLanguage(audioLang)
         .setPreferredSubtitleLanguage(subLang)
+        .toDisk(path)
         .makeStack()
         // .check()
         .start();

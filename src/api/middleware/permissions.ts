@@ -1,11 +1,11 @@
-import crypto from 'crypto';
-import { NextFunction, Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
-import { readFileSync } from 'fs';
-
-import Logger from '../../functions/logger';
 import { AppState, useSelector } from '../../state/redux';
+import { NextFunction, Request, Response } from 'express';
+
+import { KAuthRequest } from 'types/keycloak';
+import Logger from '../../functions/logger';
 import { confDb } from '../../database/config';
+import crypto from 'crypto';
+import { readFileSync } from 'fs';
 import { sleep } from '../../functions/dateTime';
 import { sslCert } from '../../state';
 
@@ -75,6 +75,7 @@ export const isTestAccount = (req: KAuthRequest): boolean => {
 	const token = req.kauth.grant.access_token;
 	return token.content.email == 'test@nomercy.tv';
 };
+
 export const testAccountMiddleware = (req: KAuthRequest, res: Response, next: NextFunction) => {
 	if (isTestAccount(req as KAuthRequest)) {
 		return next();
@@ -88,9 +89,10 @@ export const testAccountMiddleware = (req: KAuthRequest, res: Response, next: Ne
 export const isModerator = (req: KAuthRequest): boolean => {
 	const token = req.kauth.grant.access_token;
 	const moderators = useSelector((state: AppState) => state.config.moderators);
-	
-	return moderators.some((m) => m.id == token.content.sub);
+
+	return moderators.some(m => m.id == token.content.sub);
 };
+
 export const moderatorMiddleware = (req: Request, res: Response, next: NextFunction) => {
 	if (isModerator(req as KAuthRequest)) {
 		return next();
@@ -105,8 +107,9 @@ export const hasEditPermissions = (req: KAuthRequest): boolean => {
 	const token = req.kauth.grant.access_token;
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-	return isOwner(req) || isModerator(req) || (allowedUsers.find((m) => m.sub_id == token.content.sub)?.manage ?? false);
+	return isOwner(req) || isModerator(req) || (allowedUsers.find(m => m.sub_id == token.content.sub)?.manage ?? false);
 };
+
 export const editMiddleware = (req: Request, res: Response, next: NextFunction) => {
 	if (hasEditPermissions(req as KAuthRequest)) {
 		return next();
@@ -123,12 +126,12 @@ export const isAllowed = (req: KAuthRequest): boolean => {
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
 	// const allowedUsers = await confDb.user.findMany({
-	// 	where:{ 
+	// 	where:{
 	// 		allowed: true,
 	// 	}
 	// });
-	
-	if(!allowedUsers.some((u) => u.email == token.content.email)){
+
+	if (!allowedUsers.some(u => u.email == token.content.email)) {
 		Logger.log({
 			level: 'http',
 			name: 'http',
@@ -137,8 +140,9 @@ export const isAllowed = (req: KAuthRequest): boolean => {
 		});
 	}
 
-	return isOwner(req) || isModerator(req) || allowedUsers.some((u) => u.email == token.content.email) || openServer;
+	return isOwner(req) || isModerator(req) || allowedUsers.some(u => u.email == token.content.email) || openServer;
 };
+
 export const allowedMiddleware = (req: Request, res: Response, next: NextFunction) => {
 	if (isAllowed(req as KAuthRequest)) {
 		return next();
@@ -153,9 +157,9 @@ export const staticPermissions = (req: Request, res: Response, next: NextFunctio
 	return next();
 };
 
-export const permissions = async (req: Request, res: Response) => {
+export const permissions = (req: Request, res: Response) => {
 
-	if(isOwner(req as KAuthRequest) || isModerator(req as KAuthRequest)){
+	if (isOwner(req as KAuthRequest) || isModerator(req as KAuthRequest)) {
 		return res.json({
 			edit: true,
 		});
@@ -166,12 +170,12 @@ export const permissions = async (req: Request, res: Response) => {
 	confDb.user.findFirst({
 		where: {
 			sub_id: user,
-		}
-	}).then((data => {
+		},
+	}).then((data) => {
 		return res.json({
 			edit: data?.manage ?? false,
 		});
-	}))
+	})
 	.catch((error) => {
 		Logger.log({
 			level: 'info',

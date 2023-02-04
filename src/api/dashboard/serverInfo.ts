@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { arch, deviceName, platform } from '../../functions/system';
+import { arch, deviceName, platform, version } from '../../functions/system';
 import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '../../state';
 
 import Logger from '../../functions/logger';
@@ -8,19 +8,19 @@ import osu from 'os-utils';
 import path from 'path';
 import { readFileSync } from 'fs';
 
-export const serverInfo = async (req: Request, res: Response) => {
+export const serverInfo = (req: Request, res: Response) => {
 	const json = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
 
 	return res.json({
 		server: deviceName,
-		os: platform.toTitleCase(),
+		os: `${platform.toTitleCase()} ${version}`,
 		arch: arch,
 		version: json.version,
 		bootTime: Math.round(new Date().getTime() - osu.processUptime() * 1000),
 	});
 };
 
-export const serverPaths = async (req: Request, res: Response) => {
+export const serverPaths = (req: Request, res: Response) => {
 	return res.json([
 		{
 			key: 'Cache',
@@ -45,7 +45,7 @@ export const serverPaths = async (req: Request, res: Response) => {
 	]);
 };
 
-export const serverActivity = async (req: Request, res: Response) => {
+export const serverActivity = (req: Request, res: Response) => {
 	confDb.activityLog
 		.findMany({
 			include: {
@@ -58,7 +58,7 @@ export const serverActivity = async (req: Request, res: Response) => {
 		})
 		.then((data) => {
 			return res.json(
-				data.map((d) => ({
+				data.map(d => ({
 					...d,
 					user: d.user.name,
 					device: d.device.title,
@@ -79,12 +79,12 @@ export const serverActivity = async (req: Request, res: Response) => {
 		});
 };
 
-export const devices = async (req: Request, res: Response) => {
+export const devices = (req: Request, res: Response) => {
 	confDb.device
 		.findMany({})
 		.then((data) => {
 			return res.json(
-				data.map((d) => ({
+				data.map(d => ({
 					...d,
 				}))
 			);
@@ -103,12 +103,12 @@ export const devices = async (req: Request, res: Response) => {
 		});
 };
 
-export const metadata = async (req: Request, res: Response) => {
+export const metadata = (req: Request, res: Response) => {
 	confDb.metadata
 		.findMany({})
 		.then((data) => {
 			return res.json(
-				data.map((d) => ({
+				data.map(d => ({
 					...d,
 				}))
 			);

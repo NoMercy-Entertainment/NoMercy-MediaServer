@@ -1,4 +1,5 @@
 import { BrowserWindow, Menu, Tray, app, ipcMain, screen } from 'electron';
+import { deviceName, platform, version } from './functions/system';
 
 import boot from './functions/boot';
 import env from 'dotenv';
@@ -60,7 +61,12 @@ function mainWindow() {
 		return screen.getAllDisplays();
 	});
 
-	win.loadURL('https://dev.nomercy.tv');
+	const brand = '';
+	const model = '';
+
+	win.loadURL('https://dev.nomercy.tv', {
+		userAgent: `${platform.toTitleCase()} ${version}; NoMercy TV; ${deviceName}; ${brand}; ${model}`,
+	});
 
 	win.on('closed', () => {
 		//

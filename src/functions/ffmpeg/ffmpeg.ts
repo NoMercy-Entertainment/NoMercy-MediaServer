@@ -67,7 +67,8 @@ export class FFMpeg {
 	}
 
 	async open(file: string) {
-		if (!existsSync(file)) {
+		console.log(!file.includes('http') && !existsSync(file));
+		if (!file.includes('http') && !existsSync(file)) {
 			throw new Error('File does not exist');
 		}
         this.file = file;

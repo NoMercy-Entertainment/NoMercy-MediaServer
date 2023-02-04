@@ -42,9 +42,11 @@ export default function (socket) {
 		socket.emit('cast_clients', cast.map(c => c.friendlyName));
 	});
 
-	cast[0].on('status', (status) => {
-		socket.emit('cast_status', status);
-	});
+	if (typeof cast[0].on == 'function') {
+		cast[0].on('status', (status) => {
+			socket.emit('cast_status', status);
+		});
+	}
 
 	socket.on('cast_resume', () => {
 		cast[0].resume(e => socket.emit('cast_error', e));

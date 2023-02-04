@@ -22,8 +22,8 @@ export default async (app: Application) => {
 
   app.use(
     cors({
-      origin: allowedOrigins,
-    //   origin: '*',
+      // origin: allowedOrigins,
+      origin: '*',
     })
   );
 

@@ -1,15 +1,31 @@
-import { AppState, useSelector } from '../state/redux';
+import { AppState, store, useSelector } from '../state/redux';
 import { Server, Socket } from 'socket.io';
 
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import Logger from '../functions/logger';
+import { PlayState } from '../types/music';
 import base from '../api/sockets/base';
 import { confDb } from '../database/config';
+import { emitData } from '../api/sockets/helpers';
+import { setPlayState } from '../state/redux/music/actions';
 import socketioJwt from 'socketio-jwt';
 import { storeServerActivity } from '../api/userData/activity/post';
 
 const io: any = null;
-export let myClientList: any[] = [];
+export let myClientList: {
+    sub: string;
+    email: string;
+    id: string;
+    address: string;
+    connected: boolean;
+    disconnected: boolean;
+    secure_connection: boolean;
+    client_id: string;
+    client_name: string;
+    client_type: string;
+    client_os: string;
+    socket: Socket;
+}[] = [];
 
 process.setMaxListeners(300);
 
@@ -95,7 +111,8 @@ export const socket = {
 
 		const uniqueFilter = 'connection';
 
-		io.on('connection', async (socket: any) => {
+		io.on('connection', async (socket) => {
+			const toAll = socket.nsp.to((socket as any).decoded_token.sub);
 
 			if (uniqueFilter == 'connection') {
 				myClientList = myClientList.filter(s => s.id != socket.id);
@@ -104,26 +121,25 @@ export const socket = {
 			}
 
 			myClientList.push({
-				sub: socket.decoded_token.sub,
-				email: socket.decoded_token.email,
+				sub: (socket as any).decoded_token.sub,
+				email: (socket as any).decoded_token.email,
 				id: socket.id,
 				address: socket.handshake.address,
 				connected: socket.connected,
 				disconnected: socket.disconnected,
 				secure_connection: socket.handshake.secure,
-				client_id: socket.handshake.query.device_id,
-				client_name: socket.handshake.query.device_name,
-				client_type: socket.handshake.query.device_type,
-				client_os: socket.handshake.query.device_os,
-				rooms: socket.adapter.rooms,
+				client_id: socket.handshake.query.device_id as string,
+				client_name: socket.handshake.query.device_name as string,
+				client_type: socket.handshake.query.device_type as string,
+				client_os: socket.handshake.query.device_os as string,
 				socket,
 			});
 
 			const data: any = {};
-			data.sub_id = socket.decoded_token.sub;
+			data.sub_id = (socket as any).decoded_token.sub;
 			data.time = new Date();
 			data.device_id = socket.handshake.query.device_id;
-			data.from = socket.request.connection.remoteAddress;
+			data.from = socket.request.socket.remoteAddress;
 			data.device_name = socket.handshake.query.device_name;
 			data.device_type = socket.handshake.query.device_type;
 			data.device_os = socket.handshake.query.device_os;
@@ -131,7 +147,7 @@ export const socket = {
 			data.type = 'Connected';
 			await storeServerActivity(data);
 
-			socket.join(socket.decoded_token.sub);
+			socket.join((socket as any).decoded_token.sub);
 
 			// setClientList(myClientList);
 
@@ -139,7 +155,7 @@ export const socket = {
 				level: 'http',
 				name: 'socket',
 				color: 'yellow',
-				user: socket.decoded_token.name,
+				user: (socket as any).decoded_token.name,
 				message: `connected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
 					? ''
 					: 's'} ${
@@ -148,27 +164,27 @@ export const socket = {
 						: 'connected'
 				}.`,
 			});
-			socket.nsp.to(socket.decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
+			socket.nsp.to((socket as any).decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
 
 			await confDb.device.upsert({
 				where: {
-					id: socket.handshake.query.device_id,
+					id: socket.handshake.query.device_id as string,
 				},
 				update: {
-					id: socket.handshake.query.device_id,
-					deviceId: socket.handshake.query.device_id,
-					ip: socket.request.connection.remoteAddress,
-					title: socket.handshake.query.device_name,
-					type: socket.handshake.query.device_os,
+					id: socket.handshake.query.device_id as string,
+					deviceId: socket.handshake.query.device_id as string,
+					ip: socket.request.socket.remoteAddress as string,
+					title: socket.handshake.query.device_name as string,
+					type: socket.handshake.query.device_os as string,
 					version: '0.0.5',
 					updated_at: new Date(),
 				},
 				create: {
-					id: socket.handshake.query.device_id,
-					deviceId: socket.handshake.query.device_id,
-					ip: socket.request.connection.remoteAddress,
-					title: socket.handshake.query.device_name,
-					type: socket.handshake.query.device_os,
+					id: socket.handshake.query.device_id as string,
+					deviceId: socket.handshake.query.device_id as string,
+					ip: socket.request.socket.remoteAddress as string,
+					title: socket.handshake.query.device_name as string,
+					type: socket.handshake.query.device_os as string,
 					version: '0.0.5',
 					updated_at: new Date(),
 				},
@@ -192,14 +208,22 @@ export const socket = {
 					myClientList = myClientList.filter(s => s.client_id != socket.handshake.query.device_id);
 				}
 
+				if (myClientList.length == 0 || store.getState().music.currentDevice == socket.handshake.query.device_id) {
+					toAll.emit('setPlayState', emitData(PlayState.paused));
+					setPlayState(PlayState.paused);
+				} else {
+					toAll.emit('setCurrentDevice',
+						emitData(myClientList.filter(s => s.client_id != socket.handshake.headers.device_id)[myClientList.length - 1]?.client_id));
+				}
+
 				const data: any = {};
-				data.sub_id = socket.decoded_token.sub;
+				data.sub_id = (socket as any).decoded_token.sub;
 				data.time = new Date();
-				data.device_id = socket.handshake.query.device_id;
-				data.from = socket.request.connection.remoteAddress;
-				data.device_name = socket.handshake.query.device_name;
-				data.device_type = socket.handshake.query.device_type;
-				data.device_os = socket.handshake.query.device_os;
+				data.device_id = socket.handshake.query.device_id as string;
+				data.from = socket.request.socket.remoteAddress as string;
+				data.device_name = socket.handshake.query.device_name as string;
+				data.device_type = socket.handshake.query.device_type as string;
+				data.device_os = socket.handshake.query.device_os as string;
 				data.version = '0.0.5';
 				data.type = 'Disconnected';
 				await storeServerActivity(data);
@@ -208,7 +232,7 @@ export const socket = {
 					level: 'http',
 					name: 'socket',
 					color: 'yellow',
-					user: socket.decoded_token.name,
+					user: (socket as any).decoded_token.name,
 					message: `disconnected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
 						? ''
 						: 's'} ${
@@ -218,7 +242,7 @@ export const socket = {
 					}.`,
 				});
 
-				socket.nsp.to(socket.decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
+				socket.nsp.to((socket as any).decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
 			});
 
 			await base(socket, io);
@@ -240,33 +264,4 @@ export const socket = {
 		// 	}
 		// });
 	},
-};
-
-/**
- * @param  {import('express').Request} req
- * @param  {String} event
- * @param  {String} message
- * @description Send a custom socket event on the requestee socket connection.
- */
-
-export const sendTo = (to: any, event: any, message = null) => {
-	myClientList.filter(c => c.sub == to).forEach(c => c.io.sockets.emit(event, message));
-};
-
-/**
- * @param  {String} to User id or email
- * @param  {String} message
- * @description Send a message to a user on their socket connection.
- */
-export const sendMessageTo = (to: any, message: any) => {
-	myClientList.filter(c => c.email == to || c.sub == to).forEach(c => c.io.sockets.emit('message', message));
-};
-
-/**
- * @param  {String} to User id or email
- * @param  {String} message
- * @description Send a notification to a user on their socket connection.
- */
-export const sendNotificationTo = (to: any, message: any) => {
-	myClientList.filter(c => c.email == to || c.sub == to).forEach(c => c.io.sockets.emit('notification', message));
 };

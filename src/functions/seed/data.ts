@@ -158,38 +158,38 @@ interface Folder {
 	path: string;
 }
 export const folders: Folder[] = [
-	// {
-	// 	id: 'cl7i4km1n0000qwefaltp4913',
-	// 	path: 'M:\\Anime\\Anime',
-	// },
-	// {
-	// 	id: 'cl7i4km1o0001qwefarqd8r0q',
-	// 	path: 'M:\\Films\\Films',
-	// },
-	// {
-	// 	id: 'cl7i4km1o0002qwef0xv15b15',
-	// 	path: 'M:\\TV.Shows\\TV.Shows',
-	// },
-	// {
-	// 	id: 'cl7i4km1o0003qwef44qpen9z',
-	// 	path: 'M:\\Music',
-	// },
 	{
 		id: 'cl7i4km1n0000qwefaltp4913',
-		path: 'Z:\\mnt\\m\\Anime\\Anime',
+		path: 'M:\\Anime\\Anime',
 	},
 	{
 		id: 'cl7i4km1o0001qwefarqd8r0q',
-		path: 'Z:\\mnt\\m\\Films\\Films',
+		path: 'M:\\Films\\Films',
 	},
 	{
 		id: 'cl7i4km1o0002qwef0xv15b15',
-		path: 'Z:\\mnt\\m\\TV.Shows\\TV.Shows',
+		path: 'M:\\TV.Shows\\TV.Shows',
 	},
 	{
 		id: 'cl7i4km1o0003qwef44qpen9z',
-		path: 'Z:\\mnt\\m\\Music',
+		path: 'M:\\Music',
 	},
+	// {
+	// 	id: 'cl7i4km1n0000qwefaltp4913',
+	// 	path: 'Z:\\mnt\\m\\Anime\\Anime',
+	// },
+	// {
+	// 	id: 'cl7i4km1o0001qwefarqd8r0q',
+	// 	path: 'Z:\\mnt\\m\\Films\\Films',
+	// },
+	// {
+	// 	id: 'cl7i4km1o0002qwef0xv15b15',
+	// 	path: 'Z:\\mnt\\m\\TV.Shows\\TV.Shows',
+	// },
+	// {
+	// 	id: 'cl7i4km1o0003qwef44qpen9z',
+	// 	path: 'Z:\\mnt\\m\\Music',
+	// },
 ];
 
 interface LibrarySeed {

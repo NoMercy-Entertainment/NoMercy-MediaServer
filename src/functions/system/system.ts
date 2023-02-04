@@ -186,6 +186,7 @@ export const deviceName = process.env.COMPUTERNAME ?? process.env.NAME ?? os.hos
 export const clientName = process.env.eventName as string;
 export const cpuCores = parseInt((process.env.NUMBER_OF_PROCESSORS as string), 10);
 export const arch = process.arch as string;
+export const version = os.type().split('.')[0];
 
 export const hasElevatedPermissions = (): boolean => {
 	switch (platform) {
@@ -203,5 +204,31 @@ export const hasElevatedPermissions = (): boolean => {
 			return false;
 	}
 };
+
+	// si.get({
+	// 	cpu: 'manufacturer, brand, cores, processors',
+	// 	osInfo: 'platform, distro, release, arch, hostname, build, uefi, hypervisor, remoteSession',
+	// 	baseboard: 'manufacturer, model',
+	// 	chassis: 'type',
+	// 	uuid: 'os, hardware',
+	// 	graphics: 'controllers',
+	// 	network: '*',
+	// 	diskLayout: '*',
+	// 	networkStats: '*',
+	// 	networkInterfaces: '*',
+	// 	fsSize: '*',
+	// 	users: '*',
+	// }, (info) => {
+	// 	writeFileSync('systeminfo.json', JSON.stringify(info, null, 2));
+	// });
+
+	// si.getAllData('*', '*', (info) => {
+	// 	writeFileSync('systeminfo_all.json', JSON.stringify(info, null, 2));
+	// });
+
+	// si.dockerAll((info) => {
+	// 	writeFileSync('docker.json', JSON.stringify(info, null, 2));
+	// });
+
 
 // console.log(npxPath);
