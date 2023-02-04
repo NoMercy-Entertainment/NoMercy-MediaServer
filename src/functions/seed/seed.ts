@@ -1,10 +1,11 @@
-import { activityLog, configData, devices, encoderProfiles, folders, libraries, notificationData, serverTasks } from './data';
+import { configData, encoderProfiles, libraries, notificationData } from './data';
 import { countries, languages } from '../../providers/tmdb/config/index';
 
 import Logger from '../../functions/logger';
 import { Prisma } from '@prisma/client';
 import certifications from '../../providers/tmdb/certification/index';
 import { confDb } from '../../database/config';
+import { folders } from '../../../folderRoots';
 import genres from '../../providers/tmdb/genres/index';
 import { musicGenres } from '../../providers/musicbrainz/genre';
 import storeConfig from '../storeConfig';
@@ -160,78 +161,6 @@ export const seed = async () => {
 					name: profile.name,
 					container: profile.container,
 					param: JSON.stringify(profile.params, null, 2),
-				},
-			})
-		);
-	}
-
-	for (const task of serverTasks) {
-		transaction.push(
-			confDb.runningTask.upsert({
-				where: {
-					id: task.id,
-				},
-				update: {
-					id: task.id,
-					title: task.title,
-					type: task.type,
-					value: task.value,
-				},
-				create: {
-					id: task.id,
-					title: task.title,
-					type: task.type,
-					value: task.value,
-				},
-			})
-		);
-	}
-
-	for (const device of devices) {
-		transaction.push(
-			confDb.device.upsert({
-				where: {
-					id: device.id,
-				},
-				update: {
-					id: device.id,
-					deviceId: device.deviceId,
-					ip: device.ip,
-					title: device.title,
-					type: device.type,
-					version: device.version,
-				},
-				create: {
-					id: device.id,
-					deviceId: device.deviceId,
-					ip: device.ip,
-					title: device.title,
-					type: device.type,
-					version: device.version,
-				},
-			})
-		);
-	}
-
-	const logs = await activityLog();
-
-	for (const activity of logs) {
-		transaction.push(
-			confDb.activityLog.create({
-				data: {
-					// from: activity.from,
-					type: activity.type,
-					time: new Date(activity.time),
-					device: {
-						connect: {
-							id: activity.deviceId,
-						},
-					},
-					user: {
-						connect: {
-							sub_id: activity.sub_id,
-						},
-					},
 				},
 			})
 		);
