@@ -8,10 +8,9 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		fmt: 'json',
 		...config.params,
 	};
-	
-	config.headers = { 
+
+	config.headers = {
 		'User-Agent': `NoMercy MediaServer v${appVersion}`,
-		"Accept": "application/json",
 	};
 
 	config.timeout = 2000;
@@ -24,7 +23,7 @@ const onRequestError = (error: AxiosError): Promise<AxiosError> => {
 		level: 'error',
 		name: 'musicBrainz',
 		color: 'red',
-		message: JSON.stringify(error, null,2 ),
+		message: JSON.stringify(error, null, 2),
 	});
 
 	return Promise.reject(error);
@@ -41,7 +40,7 @@ const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 		level: 'error',
 		name: 'musicBrainz',
 		color: 'red',
-		message: JSON.stringify(error, null,2),
+		message: JSON.stringify(error, null, 2),
 	});
 
 	return Promise.reject(error);
@@ -55,10 +54,9 @@ export const setupInterceptorsTo = (axiosInstance: AxiosInstance): AxiosInstance
 
 const mbApiClient = setupInterceptorsTo(
 	axios.create({
-		baseURL: 'http://musicbrainz.org/ws/2/',
+		baseURL: 'https://musicbrainz.org/ws/2/',
 		headers: {
 			'User-Agent': `NoMercy MediaServer v${appVersion}`,
-			"Accept": "application/json",
 		},
 	})
 );
