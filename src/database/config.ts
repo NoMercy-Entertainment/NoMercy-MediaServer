@@ -29,11 +29,11 @@ try {
 	});
 } catch (error) {
 
-	execSync(`yarn prisma migrate dev --name dev --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+	execSync(`yarn prisma migrate dev --name dev --schema ${convertPath(`${__dirname}/config/schema.prisma`)}`, {
 		shell: 'powershell.exe',
 	});
 
-	execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+	execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/config/schema.prisma`)}`, {
 		shell: 'powershell.exe',
 	});
 

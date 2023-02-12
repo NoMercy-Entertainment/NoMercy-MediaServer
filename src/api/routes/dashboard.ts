@@ -95,6 +95,7 @@ router.use(
 		route.post('/encoderprofiles/update', updateEncoderProfiles);
 
 		route.post('/libraries', libraries);
+		route.patch('/libraries', updateLibrary);
 		route.post('/libraries/create', createLibrary);
 		route.post('/libraries/update', updateLibrary);
 		route.post('/libraries/:id/rescan', rescanLibrary);

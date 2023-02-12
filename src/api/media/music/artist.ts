@@ -44,9 +44,9 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 	const results: ArtistResponse = {
 		...music,
 		type: 'artist',
-		cover: music.cover
+		cover: (music.cover
 			?? music.Track?.find(t => t.cover)?.cover
-			?? music.Track?.[0]?.Artist.find(t => t.cover)?.cover,
+			?? music.Track?.[0]?.Artist.find(t => t.cover)?.cover)?.replace('http://', 'https://'),
 
 		colorPalette: JSON.parse(music.colorPalette
 			?? music.Track?.find(t => t.cover)?.colorPalette
@@ -59,7 +59,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 				id: a.id,
 				name: a?.name,
 				folder: a?.folder,
-				cover: a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null,
+				cover: (a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null)?.replace('http://', 'https://'),
 				description: a?.description,
 				libraryId: music.libraryId,
 				origin: deviceId,
@@ -68,7 +68,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 			const artists = t.Artist.filter(a => a.id != '89ad4ac3-39f7-470e-963a-56509c546377').map(a => ({
 				id: a.id,
 				name: a.name,
-				cover: a.cover ?? t.Album.find(t => t.cover)?.cover ?? t.Artist.find(t => t.cover)?.cover ?? null,
+				cover: (a.cover ?? t.Album.find(t => t.cover)?.cover ?? t.Artist.find(t => t.cover)?.cover ?? null)?.replace('http://', 'https://'),
 				description: a.description,
 				folder: a.folder,
 				libraryId: a.libraryId,
@@ -89,7 +89,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 				favorite_track: t.FavoriteTrack.length > 0,
 				origin: deviceId,
 				Artist: artists,
-				cover: (albums[0] ?? t).cover ?? null,
+				cover: ((albums[0] ?? t).cover ?? null)?.replace('http://', 'https://'),
 				FavoriteTrack: undefined,
 				libraryId: music.libraryId,
 				colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? '{}'),

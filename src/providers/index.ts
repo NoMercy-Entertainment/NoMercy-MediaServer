@@ -14,8 +14,8 @@ export async function findLyrics(info: any): Promise<string> {
 	const userToken = '200501593b603a3fdc5c9b4a696389f6589dd988e5a1cf02dfdce1';
 
 	const params = {
-		q_album: info.Album[0].name ?? info.Album[0].title,
-		q_artist: info.Artist[0].name,
+		q_album: info.Album?.[0]?.name ?? info.Album?.[0].title,
+		q_artist: info.Artist?.[0]?.name,
 		q_artists: info.Artist.map(a => a.name),
 		q_track: info.name,
 		q_duration: duration,

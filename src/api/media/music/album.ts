@@ -44,25 +44,28 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 	const results: AlbumResponse = {
 		...music,
 		type: 'album',
-		cover: music.cover,
+		cover: music.cover?.replace('http://', 'https://'),
 		colorPalette: JSON.parse(music.colorPalette ?? '{}'),
 		Track: uniqBy<typeof music.Track>(music.Track.sort(trackSort), 'name').map((t) => {
 
-			const artists = t.Artist.filter(a => a.id != '89ad4ac3-39f7-470e-963a-56509c546377').map(a => ({
-				id: a.id,
-				name: a.name,
-				cover: a.cover ?? t.Artist.find(t => t.cover)?.cover ?? null,
-				description: a.description,
-				folder: a.folder,
-				libraryId: a.libraryId,
-				origin: deviceId,
-				colorPalette: a.colorPalette,
-			}));
+			const artists = t.Artist
+				.filter(a => a.id != '89ad4ac3-39f7-470e-963a-56509c546377')
+				.map(a => ({
+					id: a.id,
+					name: a.name,
+					cover: (a.cover ?? t.Artist.find(t => t.cover)?.cover ?? null)?.replace('http://', 'https://'),
+					description: a.description,
+					folder: a.folder,
+					libraryId: a.libraryId,
+					origin: deviceId,
+					colorPalette: a.colorPalette,
+				}));
+
 			const albums = t.Album.map(a => ({
 				id: a.id,
 				name: a?.name,
 				folder: a?.folder,
-				cover: a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null,
+				cover: (a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null)?.replace('http://', 'https://'),
 				description: a?.description,
 				libraryId: music.libraryId,
 				origin: deviceId,
@@ -82,9 +85,9 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 				favorite_track: t.FavoriteTrack.length > 0,
 				artistId: music.Artist[0]?.id,
 				origin: deviceId,
-				cover: (albums[0] ?? t).cover,
+				cover: (albums.find(a => a.id == req.params.id) ?? t).cover?.replace('http://', 'https://'),
 				libraryId: music.libraryId,
-				colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? '{}'),
+				colorPalette: JSON.parse((albums.find(a => a.id == req.params.id) ?? t).colorPalette ?? '{}'),
 				FavoriteTrack: undefined,
 				Artist: artists,
 			};
@@ -96,6 +99,7 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 				return {
 					...a,
 					origin: deviceId,
+					cover: a.cover?.replace('http://', 'https://'),
 				};
 			}),
 	};

@@ -1,5 +1,3 @@
-// import { imagesPath } from "../../state";
-
 // import axios from 'axios';
 
 // import { AppState, useSelector } from '../../state/redux';
@@ -8,7 +6,7 @@
 // import Device from 'chromecast-api/lib/device';
 // import { OnDemand } from '../ffmpeg/onDemand';
 
-export default () => {
+export default async () => {
 
     // await onDemand.fromFile(file, title);
     // await onDemand.open(file);
@@ -61,6 +59,102 @@ export default () => {
     //     } catch (error) {
     //         console.log(error);
     //     }
+    // }
+
+    // const tv = await confDb.videoFile.findMany();
+
+    // const transaction: any[] = [];
+
+    // for (const video of tv) {
+    //     const newHostFolder = video.hostFolder.replace('Z:/mnt/m/', 'M:/');
+
+    //     transaction.push(confDb.videoFile.update({
+    //         where: {
+    //             id: video.id,
+    //         },
+    //         data: {
+    //             hostFolder: newHostFolder,
+    //         },
+    //     }));
+
+    // }
+
+    // await confDb.$transaction(transaction);
+
+    // const tv = await confDb.videoFile.findMany({
+    //     where: {
+    //         subtitles: {
+    //             contains: 'ass',
+    //         },
+    //     },
+    //     include: {
+    //         Episode: {
+    //             select: {
+    //                 id: true,
+    //                 tvId: true,
+    //                 title: true,
+    //             },
+    //         },
+    //     },
+    // });
+
+    // try {
+    //     const result = tv.map((t) => {
+    //         return {
+    //             episodeId: t.Episode?.id,
+    //             tvId: t.Episode?.tvId,
+    //             folder: `${t.hostFolder}/fonts`,
+    //             title: t.Episode?.title,
+    //         };
+    //     }).filter((t) => {
+    //         try {
+    //             return existsSync(t.folder) && !existsSync(`${t.folder}.json`);
+    //         } catch (error) {
+    //             return false;
+    //         }
+    //     });
+
+    //     for (const file of result) {
+    //         console.log(file.folder);
+    //         const files = readdirSync(file.folder)
+    //             .filter(f => f.endsWith('.ttf') || f.endsWith('.otf'));
+
+    //         const res = files.map((f) => {
+    //             return {
+    //                 file: f,
+    //                 mimeType: f.endsWith('.ttf')
+    //                     ? 'application/x-font-truetype'
+    //                     : 'application/x-font-opentype',
+    //             };
+    //         });
+
+    //         writeFileSync(`${file.folder}.json`, JSON.stringify(res));
+    //     }
+    // } catch (error) {
+    //     console.log(error);
+    // };
+
+    // const tv = await confDb.videoFile.findMany();
+
+    // try {
+    //     tv.forEach((t) => {
+    //         console.log(`${t.hostFolder}`);
+    //         // if (existsSync(`${t.hostFolder}/metadata`)) {
+    //         //     rmSync(`${t.hostFolder}/metadata`, { recursive: true });
+    //         // }
+
+    //         const files = readdirSync(`${t.hostFolder}`)
+    //             .filter(f => f.endsWith('.nfo') || f == 'metadata');
+
+    //         for (const file of files) {
+    //             console.log(`${t.hostFolder}/${file}`);
+    //             if (existsSync(`${t.hostFolder}/${file}`)) {
+    //                 rmSync(`${t.hostFolder}/${file}`, { recursive: true });
+    //             }
+    //         }
+    //     });
+    // } catch (error) {
+    //     console.log(error);
     // }
 
 };

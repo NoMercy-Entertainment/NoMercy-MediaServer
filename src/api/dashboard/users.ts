@@ -112,13 +112,13 @@ export const removeUser = async (req: Request, res: Response): Promise<Response<
 		})
 		.catch((error) => {
 			Logger.log({
-				level: 'info',
+				level: 'error',
 				name: 'access',
-				color: 'magentaBright',
+				color: 'red',
 				message: `Error deleting user: ${error}`,
 			});
 			return res.json({
-				status: 'ok',
+				status: 'error',
 				message: `Something went wrong deleting user: ${error}`,
 			});
 		});

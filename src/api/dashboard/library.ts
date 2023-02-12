@@ -38,16 +38,22 @@ export const libraries = async (req: Request, res: Response) => {
 			},
 		})
 		.then((data) => {
-			const lib = data.map(d => ({
-				...d,
-				extractChaptersDuring: d.extractChaptersDuring,
-				language: d.language,
-				country: d.country,
-				folders: d.Folders.map(f => f.folder?.path),
-				subtitleLanguages: undefined,
-				encoderProfiles: d.EncoderProfiles.map(e => e.encoderProfileId),
-				subtitles: d.SubtitleLanguages.map(s => s.language.iso_639_1),
-			}));
+			const lib = data.map((d) => {
+				return {
+					...d,
+					extractChaptersDuring: d.extractChaptersDuring,
+					language: d.language,
+					country: d.country,
+					folders: d.Folders.map(f => f.folder?.path),
+					subtitleLanguages: undefined,
+					encoderProfiles: d.EncoderProfiles.map(e => e.encoderProfileId),
+					subtitles: d.SubtitleLanguages.map(s => s.language.iso_639_1),
+					EncoderProfiles: undefined,
+					SubtitleLanguages: undefined,
+					Metadata: undefined,
+					Folders: undefined,
+				};
+			});
 			return res.json(lib);
 		})
 		.catch((error) => {

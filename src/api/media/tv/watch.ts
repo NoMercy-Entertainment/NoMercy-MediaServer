@@ -129,9 +129,9 @@ export default function (req: Request, res: Response) {
 
 				let fonts: any[] = [];
 				let fontsFile = '';
-				if (search && existsSync(`${videoFile?.folder}fonts.json`)) {
-					fontsFile = `${baseFolder}fonts.json`;
-					fonts = JSON.parse(readFileSync(`${videoFile?.folder}fonts.json`, 'utf8')).map((f: { file: string; mimeType: string }) => {
+				if (search && existsSync(`${videoFile?.hostFolder}/fonts.json`)) {
+					fontsFile = `${baseFolder}/fonts.json`;
+					fonts = JSON.parse(readFileSync(`${videoFile?.hostFolder}/fonts.json`, 'utf8')).map((f: { file: string; mimeType: string }) => {
 						return {
 							...f,
 							file: `${baseFolder}/fonts/${f.file}`,

@@ -4,15 +4,18 @@ import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '..
 
 import Logger from '../../functions/logger';
 import { confDb } from '../../database/config';
+import nosu from 'node-os-utils';
 import osu from 'os-utils';
 import path from 'path';
 import { readFileSync } from 'fs';
 
-export const serverInfo = (req: Request, res: Response) => {
+export const serverInfo = async (req: Request, res: Response) => {
 	const json = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
+	const cpu = await nosu.cpu;
 
 	return res.json({
 		server: deviceName,
+		cpu: cpu.model().replace(/\s{2,}/gu, ''),
 		os: `${platform.toTitleCase()} ${version}`,
 		arch: arch,
 		version: json.version,

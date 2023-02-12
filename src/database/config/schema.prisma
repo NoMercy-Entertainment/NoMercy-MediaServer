@@ -1,7 +1,7 @@
 datasource db {
   provider = "sqlite"
-  // url      = env("DATABASE_URL")
-  url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
+  url      = env("DATABASE_URL")
+  // url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
   // url      = "file:/home/stoney/.local/share/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
 }
 
@@ -57,10 +57,10 @@ model Library {
 
 model EncoderProfileLibrary {
   libraryId String
-  Library   Library @relation(fields: [libraryId], references: [id])
+  Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   encoderProfileId String
-  EncoderProfile   EncoderProfile @relation(fields: [encoderProfileId], references: [id])
+  EncoderProfile   EncoderProfile @relation(fields: [encoderProfileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([libraryId, encoderProfileId])
   @@unique([libraryId, encoderProfileId])
@@ -103,16 +103,16 @@ model Metadata {
   id        String     @id @default(cuid())
   title     String
   Provider  Provider[]
-  library   Library?   @relation(fields: [libraryId], references: [id])
+  library   Library?   @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   libraryId String?
 }
 
 model LibraryFolder {
   libraryId String
-  library   Library? @relation(fields: [libraryId], references: [id])
+  library   Library? @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   folderId String
-  folder   Folder? @relation(fields: [folderId], references: [id])
+  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([libraryId, folderId])
   @@index([folderId])
@@ -155,10 +155,10 @@ model ActivityLog {
   updated_at DateTime? @updatedAt
 
   deviceId String
-  device   Device @relation(fields: [deviceId], references: [id])
+  device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   sub_id String
-  user   User   @relation(fields: [sub_id], references: [sub_id])
+  user   User   @relation(fields: [sub_id], references: [sub_id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Device {
@@ -187,10 +187,10 @@ model RunningTask {
 
 model LibraryUser {
   libraryId String
-  library   Library? @relation(fields: [libraryId], references: [id])
+  library   Library? @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   userId String
-  user   User?  @relation(fields: [userId], references: [sub_id])
+  user   User?  @relation(fields: [userId], references: [sub_id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([libraryId, userId])
   @@index([userId])
@@ -226,10 +226,10 @@ model NotificationTypes {
 
 model UserNotification {
   notificationId String
-  notification   NotificationTypes @relation(fields: [notificationId], references: [id])
+  notification   NotificationTypes @relation(fields: [notificationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   userId String
-  user   User   @relation(fields: [userId], references: [sub_id])
+  user   User   @relation(fields: [userId], references: [sub_id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([notificationId, userId])
   @@index([userId])
@@ -279,13 +279,13 @@ model File {
   uid             Float
 
   libraryId String
-  Library   Library  @relation(fields: [libraryId], references: [id])
+  Library   Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   albumId   String?
-  Album     Album?   @relation(fields: [albumId], references: [id])
+  Album     Album?   @relation(fields: [albumId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   episodeId Int?
-  Episode   Episode? @relation(fields: [episodeId], references: [id])
+  Episode   Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   movieId   Int?
-  Movie     Movie?   @relation(fields: [movieId], references: [id])
+  Movie     Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   MediaAttachments MediaAttachments[]
   Mediastreams     Mediastreams[]
@@ -302,7 +302,7 @@ model MediaAttachments {
   Value      String
   CleanValue String
 
-  file   File   @relation(fields: [fileId], references: [id])
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   fileId String
 
   createdAt DateTime @default(now())
@@ -359,7 +359,7 @@ model Mediastreams {
   DvBlSignalCompatibilityId Int
   KeyFrames                 String
 
-  file   File   @relation(fields: [fileId], references: [id])
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   fileId String
 
   createdAt DateTime @default(now())
@@ -382,19 +382,19 @@ model UserData {
   time                  Int?
 
   sub_id String
-  User   User   @relation(fields: [sub_id], references: [sub_id])
+  User   User   @relation(fields: [sub_id], references: [sub_id], onDelete: Cascade, onUpdate: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   movieId Int?
-  Movie   Movie? @relation(fields: [movieId], references: [id])
+  Movie   Movie? @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   tvId Int?
-  Tv   Tv?  @relation(fields: [tvId], references: [id])
+  Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   videoFileId Int?
-  VideoFile   VideoFile? @relation(fields: [videoFileId], references: [id])
+  VideoFile   VideoFile? @relation(fields: [videoFileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([tvId, videoFileId, sub_id])
   @@unique([movieId, videoFileId, sub_id])
@@ -437,7 +437,7 @@ model Cast {
   Tv      CastTv[]
 
   personId Int
-  Person   Person? @relation(fields: [personId], references: [id])
+  Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([id, creditId])
   @@index([id])
@@ -567,7 +567,7 @@ model Creator {
   Tv CreatorTv[]
 
   personId Int
-  Person   Person? @relation(fields: [personId], references: [id])
+  Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([id])
 }
@@ -604,7 +604,7 @@ model Crew {
   Tv      CrewTv[]
 
   personId Int
-  Person   Person? @relation(fields: [personId], references: [id])
+  Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([id])
 }
@@ -748,7 +748,7 @@ model GuestStar {
   Episode EpisodeGuestStar?
 
   personId Int
-  Person   Person? @relation(fields: [personId], references: [id])
+  Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([episodeId])
 }
@@ -855,7 +855,7 @@ model Movie {
   Image             Image[]
 
   libraryId String
-  Library   Library @relation(fields: [libraryId], references: [id])
+  Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   File      File[]
 
   @@unique([id])
@@ -1113,10 +1113,10 @@ model Image {
   blurHash     String?   @default("S1423toNIVof00R$_1WB")
 
   tvId Int?
-  Tv   Tv?  @relation(fields: [tvId], references: [id])
+  Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   movieId Int?
-  Movie   Movie? @relation(fields: [movieId], references: [id])
+  Movie   Movie? @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([site, type, filePath, width, height])
 }

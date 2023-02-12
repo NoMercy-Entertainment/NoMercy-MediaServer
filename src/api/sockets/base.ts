@@ -1,7 +1,7 @@
-// import progress from '../../controllers/encoder/ffmpeg/progress';
-// import cpuStats from '../../controllers/monitor/cpu';
 import Logger from '../../functions/logger';
 import audio from './audio';
+// import progress from '../../controllers/encoder/ffmpeg/progress';
+import cpuStats from './cpu';
 // import content from './content';
 import dashboard from './dashboard';
 import video from './video';
@@ -44,6 +44,7 @@ export default function (socket, io) {
 	dashboard(socket);
 	// progress(socket, io);
 	video(socket, io);
-	// cpuStats(socket, io);
+	cpuStats(socket, io);
 
 }
+

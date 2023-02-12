@@ -5719,6 +5719,11 @@ lzma-native@^8.0.5:
     node-gyp-build "^4.2.1"
     readable-stream "^3.6.0"
 
+m3u8-file-parser@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/m3u8-file-parser/-/m3u8-file-parser-0.2.4.tgz#a7e9eea5decc25d0b85ce00e6de767b8e24740e7"
+  integrity sha512-l18rzGyfbodX0XDlQsBjZg4HYCqeBKScQq/UzsCyNZginAzCYMTNyzTrw1TTFPrlFI1UkCmmKbpq7FZBAkYljw==
+
 m3u8-parser@4.7.1:
   version "4.7.1"
   resolved "https://registry.npmjs.org/m3u8-parser/-/m3u8-parser-4.7.1.tgz"
@@ -6207,6 +6212,11 @@ node-machine-id@^1.1.12:
   version "1.1.12"
   resolved "https://registry.npmjs.org/node-machine-id/-/node-machine-id-1.1.12.tgz"
   integrity sha512-QNABxbrPa3qEIfrE6GOJ7BYIuignnJw7iQ2YPbc3Nla1HzRJjXzZOiikfF8m7eAMfichLt3M4VgLOetqgDmgGQ==
+
+node-os-utils@^1.3.7:
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/node-os-utils/-/node-os-utils-1.3.7.tgz#77cc341ae39584e12d3aadf6046fe420ff4c9340"
+  integrity sha512-fvnX9tZbR7WfCG5BAy3yO/nCLyjVWD6MghEq0z5FDfN+ZXpLWNITBdbifxQkQ25ebr16G0N7eRWJisOcMEHG3Q==
 
 node-ssdp@0.2.0:
   version "0.2.0"

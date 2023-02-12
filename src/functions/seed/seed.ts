@@ -22,23 +22,25 @@ export const seed = async () => {
 
 	await storeConfig(configData, null, transaction);
 
-	const Genres = await genres();
-	for (const genre of Genres) {
-		transaction.push(
-			confDb.genre.upsert({
-				where: {
-					id: genre.id,
-				},
-				create: {
-					id: genre.id,
-					name: genre.name,
-				},
-				update: {
-					id: genre.id,
-					name: genre.name,
-				},
-			})
-		);
+	if (!confDb.genre.findFirst()) {
+		const Genres = await genres();
+		for (const genre of Genres) {
+			transaction.push(
+				confDb.genre.upsert({
+					where: {
+						id: genre.id,
+					},
+					create: {
+						id: genre.id,
+						name: genre.name,
+					},
+					update: {
+						id: genre.id,
+						name: genre.name,
+					},
+				})
+			);
+		}
 	}
 
 	const Certifications = await certifications();
@@ -109,23 +111,25 @@ export const seed = async () => {
 		);
 	}
 
-	const MusicGenres = await musicGenres();
-	for (const genre of MusicGenres) {
-		transaction.push(
-			confDb.musicGenre.upsert({
-				where: {
-					id: genre.id,
-				},
-				create: {
-					id: genre.id,
-					name: genre.name,
-				},
-				update: {
-					id: genre.id,
-					name: genre.name,
-				},
-			})
-		);
+	if (!confDb.musicGenre.findFirst()) {
+		const MusicGenres = await musicGenres();
+		for (const genre of MusicGenres) {
+			transaction.push(
+				confDb.musicGenre.upsert({
+					where: {
+						id: genre.id,
+					},
+					create: {
+						id: genre.id,
+						name: genre.name,
+					},
+					update: {
+						id: genre.id,
+						name: genre.name,
+					},
+				})
+			);
+		}
 	}
 
 	for (const [name, manage] of Object.entries(notificationData)) {
