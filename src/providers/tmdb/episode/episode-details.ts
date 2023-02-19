@@ -1,11 +1,10 @@
 import { EpisodeChanges } from '../episode/changes';
 import { Crew, GuestStar } from '../shared';
-import { ExternalIDS } from './external_ids';
-import { Credits } from './episode-credits';
 import { Episode } from './episode';
+import { Credits } from './episode-credits';
+import { ExternalIDS } from './external_ids';
 import { EpisodeImages } from './images';
 import { EpisodeTranslations } from './translations';
-import { Videos } from './videos';
 
 export interface EpisodeDetails extends Episode {
 	crew: Crew[];

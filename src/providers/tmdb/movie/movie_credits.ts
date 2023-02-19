@@ -1,4 +1,4 @@
-import { Cast, Crew } from "../../../providers/tmdb/shared";
+import { Cast, Crew } from '../../../providers/tmdb/shared';
 
 export interface MovieCredits {
     cast: Cast[];

@@ -18,7 +18,7 @@ export default createBlurHash;
 
 
 const digitCharacters = [
-    '0',
+	'0',
 	'1',
 	'2',
 	'3',
@@ -104,38 +104,38 @@ const digitCharacters = [
 ];
 
 export const decode83 = (str: string) => {
-    let value = 0;
-    for (let i = 0; i < str.length; i++) {
-        const c = str[i];
-        const digit = digitCharacters.indexOf(c);
-        value = value * 83 + digit;
-    }
-    return value;
+	let value = 0;
+	for (let i = 0; i < str.length; i++) {
+		const c = str[i];
+		const digit = digitCharacters.indexOf(c);
+		value = value * 83 + digit;
+	}
+	return value;
 };
 
 export const makeId = (length: number) => {
-    let result = '';
-    const characters = '1234567890';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return parseInt(result, 10);
+	let result = '';
+	const characters = '1234567890';
+	const charactersLength = characters.length;
+	for (let i = 0; i < length; i++) {
+		result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	}
+	return parseInt(result, 10);
 };
 
 export const generateBlurHash = () => {
-    const number = Math.ceil(Math.random() * 265);
-    const n = makeId(number);
+	const number = Math.ceil(Math.random() * 265);
+	const n = makeId(number);
 
-    let result = '';
-    for (let i = 1; i <= (number * 1024); i++) {
-        const digit = (Math.floor(n) / 83 ** ((number / 128) - i)) % 83;
-        result += digitCharacters[Math.floor(digit)];
-    }
+	let result = '';
+	for (let i = 1; i <= (number * 1024); i++) {
+		const digit = (Math.floor(n) / 83 ** ((number / 128) - i)) % 83;
+		result += digitCharacters[Math.floor(digit)];
+	}
 
-    const sizeFlag = decode83(result[0]);
-    const numY = Math.floor(sizeFlag / 9) + 1;
-    const numX = (sizeFlag % 9) + 1;
+	const sizeFlag = decode83(result[0]);
+	const numY = Math.floor(sizeFlag / 9) + 1;
+	const numX = (sizeFlag % 9) + 1;
 
-    return result.slice(0, 4 + 2 * numX * numY);
+	return result.slice(0, 4 + 2 * numX * numY);
 };

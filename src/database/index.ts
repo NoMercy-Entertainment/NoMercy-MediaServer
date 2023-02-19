@@ -1,10 +1,11 @@
-import { configDatabaseString, queueDatabaseString } from './config';
-import { configDb, queueDb } from '../state';
+import { execSync } from 'child_process';
+import { existsSync } from 'fs';
 
 import Logger from '../functions/logger';
 import { convertPath } from '../functions/system';
-import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { configDb, queueDb } from '../state';
+/* eslint-disable @typescript-eslint/no-var-requires */
+import { configDatabaseString, queueDatabaseString } from './config';
 
 export const migrateConfigDatabase = async() => {
 	if (!existsSync(configDb)) {
@@ -77,7 +78,7 @@ export const commitConfigTransaction = async (transaction) => {
 			await confDb.$transaction(transaction);
 		} catch (error) {
 			// try {
-				await confDb.$transaction(transaction);
+			await confDb.$transaction(transaction);
 			// } catch (error) {
 			// 	Logger.log({
 			// 		level: 'error',

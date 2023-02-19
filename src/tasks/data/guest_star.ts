@@ -1,16 +1,16 @@
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../database/config/client';
 import { confDb } from '../../database/config';
 import { unique } from '../../functions/stringArray';
 
-export default async (
+export default (
 	episode: EpisodeAppend,
 	transaction: Prisma.PromiseReturnType<any>[],
 	guestStarArray: Prisma.CastEpisodeCreateOrConnectWithoutEpisodeInput[],
 	people: number[]
 ) => {
 	for (const guest_star of unique(episode.credits.guest_stars, 'credit_id')) {
-		if(!people.includes(guest_star.id)) continue;
+		if (!people.includes(guest_star.id)) continue;
 
 		const guestStarInsert = Prisma.validator<Prisma.GuestStarUncheckedCreateInput>()({
 			id: guest_star.credit_id,

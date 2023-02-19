@@ -14,7 +14,7 @@ import {
 } from 'image-size/dist/types/interface';
 import Logger from '../../functions/logger';
 import { PaletteColors } from 'types/server';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';
 import { imagesPath } from '../../state';
@@ -25,14 +25,11 @@ interface DownloadTVDBImages {
 	data: (CompleteMovieAggregate | CompleteTvAggregate) & { task?: { id: string } };
 }
 
-export const downloadTVDBImages = async ({ type, data }: DownloadTVDBImages) => {
+export const downloadTVDBImages = ({ type, data }: DownloadTVDBImages) => {
 
 	return new Promise<void>(async (resolve, reject) => {
 
 		try {
-			const transaction: Prisma.PromiseReturnType<any>[] = [];
-			const promises: any[] = [];
-
 			Logger.log({
 				level: 'info',
 				name: 'App',
@@ -60,6 +57,7 @@ export const downloadTVDBImages = async ({ type, data }: DownloadTVDBImages) => 
 				if (existsSync(`${imagesPath}/cast/${image.credit_id}.webp`) && query?.id) continue;
 
 				await downloadImage(image.img, path.resolve(`${imagesPath}/cast/${image.credit_id}.webp`))
+					// eslint-disable-next-line no-loop-func
 					.then(async ({ dimensions, stats, colorPalette, blurHash }) => {
 						// transaction.push(
 						await confDb.image.upsert({
@@ -73,13 +71,6 @@ export const downloadTVDBImages = async ({ type, data }: DownloadTVDBImages) => 
 					})
 					.catch(e => console.log(e));
 			}
-
-			// const promiseChunks = chunk(promises, 10);
-			// for (const promise of promiseChunks) {
-			// 	await Promise.all(promise.map(p => p())).catch(e => console.log(e));
-			// }
-
-			// await commitConfigTransaction(transaction);
 
 			Logger.log({
 				level: 'info',

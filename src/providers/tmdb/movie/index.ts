@@ -68,7 +68,7 @@ export const movie = async (id: number) => {
 		params: {
 			append_to_response: movieAppend.join(','),
 			include_image_language: `en,null,${i18next.language}`,
-			include_video_language : `en,null,${i18next.language}`,
+			include_video_language: `en,null,${i18next.language}`,
 		},
 	};
 
@@ -91,7 +91,8 @@ export const movieChanges = async (id: number, daysBack = 1): Promise<MovieChang
 
 	const params = {
 		params: {
-			start_date: moment().subtract(daysBack, 'days').format('YYYY-MM-DD'),
+			start_date: moment().subtract(daysBack, 'days')
+				.format('YYYY-MM-DD'),
 			end_date: moment().format('YYYY-MM-DD'),
 		},
 	};
@@ -106,7 +107,7 @@ export const movieDiscover = async (params?: DiscoverMovieParams, limit = 10) =>
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Fetching Movie Discover`,
+		message: 'Fetching Movie Discover',
 	});
 
 	const arr: Movie[] = [];
@@ -127,7 +128,7 @@ export const movieDiscover = async (params?: DiscoverMovieParams, limit = 10) =>
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Movie>>(`discover/movie`, {
+			tmdbApiClient.get<PaginatedResponse<Movie>>('discover/movie', {
 				params: { page: i },
 			})
 		);
@@ -180,7 +181,7 @@ export const movieLatest = async () => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Fetching Movie Lastest`,
+		message: 'Fetching Movie Lastest',
 	});
 
 	const { data } = await tmdbApiClient.get<MovieLatest>('movie/latest');
@@ -193,7 +194,7 @@ export const movieNowPlaying = async (limit = 10) => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Fetching Movie Now Playing`,
+		message: 'Fetching Movie Now Playing',
 	});
 
 	const arr: Movie[] = [];
@@ -210,7 +211,7 @@ export const movieNowPlaying = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Movie>>(`discover/movie`, {
+			tmdbApiClient.get<PaginatedResponse<Movie>>('discover/movie', {
 				params: { page: i },
 			})
 		);
@@ -232,13 +233,13 @@ export const moviePopular = async (limit = 10) => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `fetching Movie Popular`,
+		message: 'fetching Movie Popular',
 	});
 
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/popular', { 
-		params: { page: 1 } 
+	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/popular', {
+		params: { page: 1 },
 	});
 
 	for (let j = 0; j < data.results.length; j++) {
@@ -275,8 +276,8 @@ export const movieRecommendations = async (id: number, limit = 10) => {
 	});
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<Recommendations<Movie>>(`movie/${id}/recommendations`, { 
-		params: { page: 1 } 
+	const { data } = await tmdbApiClient.get<Recommendations<Movie>>(`movie/${id}/recommendations`, {
+		params: { page: 1 },
 	});
 
 	for (let j = 0; j < data.results.length; j++) {
@@ -348,7 +349,7 @@ export const movieTopRated = async (limit = 10) => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Fetching Movie Top Rated`,
+		message: 'Fetching Movie Top Rated',
 	});
 
 	const arr: Movie[] = [];
@@ -376,7 +377,7 @@ export const movieTrending = async (window = 'day', limit = 10) => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Fetching Movie Trending id`,
+		message: 'Fetching Movie Trending id',
 	});
 
 	const arr: Movie[] = [];
@@ -413,7 +414,7 @@ export const movieUpcomming = async (limit = 10) => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Fetching Movie Upcomming`,
+		message: 'Fetching Movie Upcomming',
 	});
 
 	const arr: Movie[] = [];
@@ -427,8 +428,8 @@ export const movieUpcomming = async (limit = 10) => {
 	}
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
-		const { data: data2 } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/upcomming', { 
-			params: { page: i } 
+		const { data: data2 } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/upcomming', {
+			params: { page: i },
 		});
 
 		for (let j = 0; j < data2.results.length; j++) {

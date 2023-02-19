@@ -1,18 +1,22 @@
-import { AlternativeTitles } from '../../providers/tmdb/tv/index';
+import { Prisma } from '../../database/config/client';
+import {
+	MovieAlternativeTitles
+} from '../../providers/tmdb/movie/index';
+import {
+	AlternativeTitles
+} from '../../providers/tmdb/tv/index';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
-import { MovieAlternativeTitles } from '../../providers/tmdb/movie/index';
-import { Prisma } from '@prisma/client'
 
-export default async (
+export default (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
 	alternative_titleArray: Array<
 		Prisma.AlternativeTitlesCreateOrConnectWithoutTvInput | Prisma.AlternativeTitlesCreateOrConnectWithoutMovieInput
 	>,
 	table: 'movie' | 'tv'
 ) => {
-	for (const alternative_title of (req.alternative_titles as AlternativeTitles)?.results ??
-		(req.alternative_titles as MovieAlternativeTitles)?.titles) {
+	for (const alternative_title of (req.alternative_titles as AlternativeTitles)?.results
+		?? (req.alternative_titles as MovieAlternativeTitles)?.titles ?? []) {
 		alternative_titleArray.push({
 			where: {
 				[`alternative_titles_${table}_unique`]: {

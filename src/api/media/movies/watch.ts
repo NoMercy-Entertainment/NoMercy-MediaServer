@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { existsSync, readFileSync } from 'fs';
 
 import { KAuthRequest } from 'types/keycloak';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../../database/config/client';
 import { confDb } from '../../../database/config';
 import { convertToSeconds } from '../../../functions/dateTime';
 import { deviceId } from '../../../functions/system';
@@ -25,41 +25,41 @@ export default function (req: Request, res: Response) {
 		.then(async (movie) => {
 			if (!movie?.VideoFile) { return; }
 
-            const translation: any[] = [];
-            const media: any[] = [];
-            const progress: any[] = [];
-            const files: any[] = [];
+			const translation: any[] = [];
+			const media: any[] = [];
+			const progress: any[] = [];
+			const files: any[] = [];
 
-            await Promise.all([
-                confDb.media.findMany(mediaQuery(id)).then((data: any[]) => media.push(...data)),
-                confDb.translation.findMany(translationQuery({ id, language })).then((data: any[]) => translation.push(...data)),
-                confDb.userData.findMany(progressQuery({ id, user_id: user })).then((data: any[]) => progress.push(...data)),
-            ]);
+			await Promise.all([
+				confDb.media.findMany(mediaQuery(id)).then((data: any[]) => media.push(...data)),
+				confDb.translation.findMany(translationQuery({ id, language })).then((data: any[]) => translation.push(...data)),
+				confDb.userData.findMany(progressQuery({ id, user_id: user })).then((data: any[]) => progress.push(...data)),
+			]);
 
 			const textTracks: any[] = [];
 			let search = false;
 
-            const baseFolder = `/${movie.VideoFile[0]?.share}${movie.VideoFile[0]?.folder}`;
+			const baseFolder = `/${movie.VideoFile[0]?.share}${movie.VideoFile[0]?.folder}`;
 
-            JSON.parse(movie.VideoFile[0]?.subtitles ?? '[]')
-                .forEach((sub) => {
-                    const { language, type, ext } = sub;
+			JSON.parse(movie.VideoFile[0]?.subtitles ?? '[]')
+				.forEach((sub) => {
+					const { language, type, ext } = sub;
 
-                    if (language) {
-                        if (ext == 'ass') {
-                            search = true;
-                        }
-                        textTracks.push({
-                            label: type,
-                            type: type,
-                            src: `${baseFolder}/subtitles${movie.VideoFile[0]?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
-                            srclang: i18next.t(`languages:${language}`),
-                            ext: ext,
-                            language: language,
-                            kind: 'subtitles',
-                        });
-                    }
-                }) ?? [];
+					if (language) {
+						if (ext == 'ass') {
+							search = true;
+						}
+						textTracks.push({
+							label: type,
+							type: type,
+							src: `${baseFolder}/subtitles${movie.VideoFile[0]?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
+							srclang: i18next.t(`languages:${language}`),
+							ext: ext,
+							language: language,
+							kind: 'subtitles',
+						});
+					}
+				}) ?? [];
 
 			let fonts: any[] = [];
 			let fontsfile = '';
@@ -81,8 +81,8 @@ export default function (req: Request, res: Response) {
 
 			const showTitle = translation.find(t => t.translationableType == 'movie')?.title;
 			const show = showTitle != '' && showTitle != null
-? showTitle
-: movie.title;
+				? showTitle
+				: movie.title;
 
 			const data: any = {
 				id,
@@ -111,20 +111,20 @@ export default function (req: Request, res: Response) {
 				progress: (progress[0]?.time / convertToSeconds(movie.VideoFile[0]?.duration) * 100) ?? null,
 
 				poster: movie.poster
-? movie.poster
-: null,
+					? movie.poster
+					: null,
 				backdrop: movie.backdrop
-? movie.backdrop
-: null,
+					? movie.backdrop
+					: null,
 				image: movie.poster ?? movie.backdrop
-? movie.poster ?? movie.backdrop
-: null,
+					? movie.poster ?? movie.backdrop
+					: null,
 				sources: [
 					{
 						src: `${baseFolder}${movie.VideoFile[0]?.filename}`,
 						type: movie.VideoFile[0]?.filename.includes('.mp4')
-? 'video/mp4'
-: 'application/x-mpegURL',
+							? 'video/mp4'
+							: 'application/x-mpegURL',
 						languages: JSON.parse(movie.VideoFile[0]?.languages ?? '[]'),
 					},
 				],
@@ -153,8 +153,8 @@ export default function (req: Request, res: Response) {
 				production: movie.status != 'Ended' && movie.status != 'Released',
 			};
 
-            return res.json([data]);
-        });
+			return res.json([data]);
+		});
 }
 
 interface movieQueryInterface {
@@ -165,23 +165,23 @@ interface movieQueryInterface {
 
 const movieQuery = ({ id, language, country }: movieQueryInterface) => {
 	return Prisma.validator<Prisma.MovieFindFirstArgs>()({
-        where: {
-            id: parseInt(id, 10),
-        },
-        include: {
-            Certification: {
-                where: {
-                    iso31661: {
-                        in: [country, language.toUpperCase()],
-                    },
-                },
-                include: {
-                    Certification: true,
-                },
-            },
-            VideoFile: true,
-        },
-    });
+		where: {
+			id: parseInt(id, 10),
+		},
+		include: {
+			Certification: {
+				where: {
+					iso31661: {
+						in: [country, language.toUpperCase()],
+					},
+				},
+				include: {
+					Certification: true,
+				},
+			},
+			VideoFile: true,
+		},
+	});
 };
 
 const translationQuery = ({ id, language }: { id: string; language: string }) => {

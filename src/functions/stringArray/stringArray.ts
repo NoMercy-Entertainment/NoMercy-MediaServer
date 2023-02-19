@@ -53,9 +53,9 @@ export const copyToClipboard = (text: string): void => {
 export const find_most = (array: Array<number>): number => {
 	return array.reduce(
 		(a: number, b: number, _i, arr: any[]) =>
-		(arr.filter(v => v === a).length >= arr.filter(v => v === b).length
-			? a
-			: b),
+			(arr.filter(v => v === a).length >= arr.filter(v => v === b).length
+				? a
+				: b),
 		array[0]
 	);
 };

@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 
 // import Logger from '../../../functions/logger';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../../database/config/client';
+
 // import { sortBy, unique } from '../../../functions/stringArray';
 
 // import { confDb } from '../../../database/config';
@@ -11,7 +12,7 @@ import { Prisma } from '@prisma/client';
 
 // import { createTitleSort } from '../../functions/stringArray';
 
-export default async function (req: Request, res: Response) {
+export default function (req: Request, res: Response) {
 
 	// const language = getLanguage(req);
 

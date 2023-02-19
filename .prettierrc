@@ -3,16 +3,14 @@
 	"bracketSpacing": true,
 	"embeddedLanguageFormatting": "auto",
 	"htmlWhitespaceSensitivity": "css",
-	"insertPragma": false,
-	"jsxBracketSameLine": false,
-	"jsxSingleQuote": false,
-	"printWidth": 140,
+	"insertPragma": true,
+	"jsxBracketSameLine": true,
+	"jsxSingleQuote": true,
+	"printWidth": 150,
 	"proseWrap": "preserve",
-	"quoteProps": "as-needed",
-	"requirePragma": false,
+	"requirePragma": true,
 	"semi": true,
 	"singleQuote": true,
-	"tabWidth": 2,
-	"trailingComma": "all",
-	"useTabs": false
+	"tabWidth": 4,
+	"useTabs": true
 }

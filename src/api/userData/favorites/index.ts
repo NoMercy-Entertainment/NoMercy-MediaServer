@@ -61,7 +61,9 @@ export default async function (req: Request, res: Response) {
 		logo: d.Media.find(m => m.type == 'logo')?.src ?? null,
 		title: d.title[0].toUpperCase() + d.title.slice(1),
 		titleSort: createTitleSort(d.title),
-		blurHash: d.blurHash ? JSON.parse(d.blurHash) : null,
+		blurHash: d.blurHash
+			? JSON.parse(d.blurHash)
+			: null,
 		type: d.mediaType
 			? 'tv'
 			: 'movies',

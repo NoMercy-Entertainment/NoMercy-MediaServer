@@ -3,7 +3,7 @@ import { getContent, ownerQuery, userQuery } from './data';
 
 import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../functions/logger';
-import { Translation } from '@prisma/client';
+import { Translation } from '../../database/config/client';
 import { confDb } from '../../database/config';
 import { deviceId } from '../../functions/system';
 import { getLanguage } from '../middleware';

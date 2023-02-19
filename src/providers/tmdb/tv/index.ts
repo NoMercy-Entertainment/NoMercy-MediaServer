@@ -93,7 +93,7 @@ export const tvChanges = async (id: number, daysBack = 1): Promise<TvChange[]> =
 	const params = {
 		params: {
 			start_date: moment().subtract(daysBack, 'days')
-.format('YYYY-MM-DD'),
+				.format('YYYY-MM-DD'),
 			end_date: moment().format('YYYY-MM-DD'),
 		},
 	};
@@ -116,8 +116,8 @@ export const tvDiscover = async (params?: DiscoverTvShowParams, limit = 10) => {
 	params = {
 		page: 1,
 		with_networks: params?.with_networks
-? params.with_networks
-: '213',
+			? params.with_networks
+			: '213',
 	};
 
 	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('discover/tv', {

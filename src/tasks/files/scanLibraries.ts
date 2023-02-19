@@ -1,14 +1,3 @@
-import { AppState, useSelector } from '../../state/redux';
-import {
-	Folder,
-	Library,
-	LibraryFolder,
-	Movie
-} from '@prisma/client';
-import {
-	FolderList,
-	ParsedFileList
-} from './filenameParser';
 import {
 	existsSync,
 	readFileSync,
@@ -16,13 +5,24 @@ import {
 } from 'fs';
 import { join, resolve } from 'path';
 
+import getFolders from './getFolders';
+import { confDb } from '../../database/config';
+import {
+	Folder,
+	Library,
+	LibraryFolder,
+	Movie
+} from '../../database/config/client';
 import { TvShow } from '../../providers/tmdb/tv/index';
 import { cachePath } from '../../state';
-import { confDb } from '../../database/config';
-import { fallbackSearch } from '../data/search';
+import { AppState, useSelector } from '../../state/redux';
 import { fullUpdate } from '../../tasks/data/fullUpdate';
-import getFolders from './getFolders';
 import { needsUpdate } from '../data/needsUpdate';
+import { fallbackSearch } from '../data/search';
+import {
+	FolderList,
+	ParsedFileList
+} from './filenameParser';
 
 export interface FolderInfo {
 	lib: Lib;
@@ -85,7 +85,15 @@ export const scanLibraries = async (forceUpdate = false, synchronous = false) =>
 	for (const title of jobs) {
 		const index = jobs.indexOf(title);
 
-		await process((title.parsedFolder as FolderList ?? title.parsedFile as ParsedFileList), title.lib, forceUpdate, synchronous, jobs, task, index);
+		await process(
+			(title.parsedFolder as FolderList ?? title.parsedFile as ParsedFileList),
+			title.lib,
+			forceUpdate,
+			synchronous,
+			jobs,
+			task,
+			index
+		);
 	}
 
 	return libs;
@@ -124,11 +132,11 @@ export const scanLibrary = async (id: string, forceUpdate = false, synchronous =
 			id: id,
 		},
 	})
-	.then(async (lib) => {
-		if (!lib) return;
-		await scan(lib, jobs);
-		return lib;
-	});
+		.then(async (lib) => {
+			if (!lib) return;
+			await scan(lib, jobs);
+			return lib;
+		});
 
 	const task = await confDb.runningTask.create({
 		data: {

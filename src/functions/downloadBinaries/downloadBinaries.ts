@@ -1,12 +1,12 @@
-import { AppState, useSelector } from '../../state/redux';
-
-import Logger from '../../functions/logger';
-import { binariesPath } from '../../state';
-import { fileLastModified } from '../dateTime';
 import fs from 'fs';
 import path from 'path';
 import request from 'request';
 import unzipper from 'unzipper';
+
+import Logger from '../../functions/logger';
+import { binariesPath } from '../../state';
+import { AppState, useSelector } from '../../state/redux';
+import { fileLastModified } from '../dateTime';
 
 export default async () => {
 	const downloads = useSelector((state: AppState) => state.config.downloads);
@@ -38,14 +38,14 @@ export default async () => {
 								const buffer = fs.readFileSync(`${binariesPath}/../${name}`);
 								const directory = await unzipper.Open.buffer(buffer);
 
-								let folders = directory.files.filter((f) => f.type === 'Directory');
-								let files = directory.files.filter((f) => f.type === 'File');
+								let folders = directory.files.filter(f => f.type === 'Directory');
+								let files = directory.files.filter(f => f.type === 'File');
 
 								if (program.filter) {
-									folders = directory.files.filter((f) => f.type === 'Directory').filter((f) => f.path.includes(program.filter));
+									folders = directory.files.filter(f => f.type === 'Directory').filter(f => f.path.includes(program.filter));
 									files = directory.files
-										.filter((f) => f.type === 'File')
-										.filter((f) => f.path.includes(program.filter))
+										.filter(f => f.type === 'File')
+										.filter(f => f.path.includes(program.filter))
 										.map((f) => {
 											return {
 												...f,
@@ -74,7 +74,7 @@ export default async () => {
 								try {
 									fs.rmSync(`${binariesPath}/../${name}`);
 								} catch (error) {
-									
+									//
 								}
 
 								resolve();

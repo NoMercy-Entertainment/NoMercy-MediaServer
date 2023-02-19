@@ -2,14 +2,15 @@ export const notReact = (function () {
 	let _root: Element;
 	let _templateCallback: ITemplateCallback;
 
-	let hooks: Array<any> = [];
-	let idx: number = 0;
+	const hooks: Array<any> = [];
+	let idx = 0;
 
 	const _eventArray: IEventArray = [];
 
 	function useState(initValue: any) {
-		let state;
-		state = hooks[idx] !== undefined ? hooks[idx] : initValue;
+		const state = hooks[idx] === undefined
+			? initValue
+			: hooks[idx];
 		const _idx = idx;
 		const setState = (newValue: any) => {
 			hooks[_idx] = newValue;
@@ -38,9 +39,9 @@ export const notReact = (function () {
 		_eventArray.length = 0;
 		_root.innerHTML = _templateCallback();
 	}
-	//event Listeners
-	//@ts-ignore
-	document.addEventListener('click', (e) => handleEventListeners(e));
+	// event Listeners
+	// @ts-ignore
+	document.addEventListener('click', e => handleEventListeners(e));
 	function handleEventListeners(e: any) {
 		_eventArray.forEach((target: any) => {
 			if (e.target.id === target.id) {

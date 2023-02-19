@@ -4,7 +4,7 @@ import { CDNInfoResponse, Files } from '../../../types/cdn';
 import { deviceName } from '../../../functions/system';
 import { LibraryWithFolders } from '../../../database/data';
 import { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
-import { User } from '@prisma/client';
+import { User } from '../../../database/config/client';
 
 export const keepOriginal: { [arg: string]: boolean } = {
 	audio: true,

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Jobs, Prisma } from '@prisma/client';
+import { Jobs, Prisma } from '../../database/config/client';
 import {
 	existsSync,
 	readFileSync,

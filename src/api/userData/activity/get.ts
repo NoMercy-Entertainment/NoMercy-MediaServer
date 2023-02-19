@@ -1,22 +1,22 @@
-import { ActivityLog, Device, User } from '@prisma/client';
 import { Request, Response } from 'express';
 
-import Logger from '../../../functions/logger';
 import { confDb } from '../../../database/config';
+import { ActivityLog, Device, User } from '../../../database/config/client';
+import Logger from '../../../functions/logger';
 
-export default async (req: Request, res: Response) => {
+export default (req: Request, res: Response) => {
 
-    getServerActivity()
-        .then((data) => {
+	getServerActivity()
+		.then((data) => {
 			return res.json(
-				data.map((d) => ({
+				data.map(d => ({
 					...d,
 					user: d.user.name,
 					device: d.device.title,
 				}))
 			);
-        })
-        .catch((error) => {
+		})
+		.catch((error) => {
 			Logger.log({
 				level: 'info',
 				name: 'access',
@@ -27,7 +27,7 @@ export default async (req: Request, res: Response) => {
 				status: 'error',
 				message: `Something went wrong getting server activities: ${error}`,
 			});
-        });
+		});
 };
 
 type data = (ActivityLog & {
@@ -35,25 +35,25 @@ type data = (ActivityLog & {
     user: User;
 })[];
 
-export const getServerActivity = async (): Promise<data> => {
+export const getServerActivity = (): Promise<data> => {
 
-    return new Promise((resolve, reject) => {
-        confDb.activityLog
-            .findMany({
-                include: {
-                    device: true,
-                    user: true,
-                },
-                orderBy: {
-                    time: 'desc',
-                },
-            })
-            .then((data) => {
-                resolve(data);
-            })
-            .catch((error) => {
-                reject(error);
-            });
-    });
+	return new Promise((resolve, reject) => {
+		confDb.activityLog
+			.findMany({
+				include: {
+					device: true,
+					user: true,
+				},
+				orderBy: {
+					time: 'desc',
+				},
+			})
+			.then((data) => {
+				resolve(data);
+			})
+			.catch((error) => {
+				reject(error);
+			});
+	});
 
-}
+};

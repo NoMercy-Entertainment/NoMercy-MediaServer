@@ -1,26 +1,26 @@
 import {
-    AlternativeTitles,
-    Cast,
-    CastMovie,
-    Certification,
-    CertificationMovie,
-    Collection,
-    CollectionMovie,
-    Crew,
-    CrewMovie,
-    Genre,
-    GenreMovie,
-    Keyword,
-    KeywordMovie,
-    Library,
-    Media,
-    Movie,
-    Person,
-    Prisma,
-    SpecialItem,
-    UserData,
-    VideoFile
-} from '@prisma/client';
+	AlternativeTitles,
+	Cast,
+	CastMovie,
+	Certification,
+	CertificationMovie,
+	Collection,
+	CollectionMovie,
+	Crew,
+	CrewMovie,
+	Genre,
+	GenreMovie,
+	Keyword,
+	KeywordMovie,
+	Library,
+	Media,
+	Movie,
+	Person,
+	Prisma,
+	SpecialItem,
+	UserData,
+	VideoFile
+} from '../../../database/config/client';
 import { Request, Response } from 'express';
 
 import { KAuthRequest } from 'types/keycloak';
@@ -133,38 +133,38 @@ const getContent = async (data: MovieWithInfo, language: string, servers: string
 	const title = translations.find(t => t.translationableType == 'movie' && t.translationableId == data.id)?.title || data.title;
 	const overview = translations.find(t => t.translationableType == 'movie' && t.translationableId == data.id)?.overview || data.overview;
 
-    const logo = data.Movie[0].Movie.Media.find(m => m.type == 'logo')?.src ?? null;
-    const userData = data.Movie[0].Movie.UserData?.[0];
+	const logo = data.Movie[0].Movie.Media.find(m => m.type == 'logo')?.src ?? null;
+	const userData = data.Movie[0].Movie.UserData?.[0];
 
-    const response = {
-        id: data.id,
-        overview: overview,
-        backdrop: data.backdrop,
-        poster: data.poster,
-        title: title[0].toUpperCase() + title.slice(1),
-        titleSort: createTitleSort(title),
-        type: 'collections',
-        mediaType: 'collections',
-        logo: logo,
-        favorite: userData?.isFavorite ?? false,
-        watched: userData?.played ?? false,
-        blurHash: data.blurHash
-? JSON.parse(data.blurHash)
-: null,
-        collection: data.Movie.map(c => ({
-            id: c.Movie.id,
-            backdrop: c.Movie.backdrop,
-            mediaType: 'movies',
-            poster: c.Movie.poster,
-            title: c.Movie.title[0].toUpperCase() + c.Movie.title.slice(1),
-            titleSort: createTitleSort(c.Movie.title, c.Movie.releaseDate),
-            type: 'movies',
-            logo: c.Movie.Media.find(m => m.type == 'logo')?.src,
+	const response = {
+		id: data.id,
+		overview: overview,
+		backdrop: data.backdrop,
+		poster: data.poster,
+		title: title[0].toUpperCase() + title.slice(1),
+		titleSort: createTitleSort(title),
+		type: 'collections',
+		mediaType: 'collections',
+		logo: logo,
+		favorite: userData?.isFavorite ?? false,
+		watched: userData?.played ?? false,
+		blurHash: data.blurHash
+			? JSON.parse(data.blurHash)
+			: null,
+		collection: data.Movie.map(c => ({
+			id: c.Movie.id,
+			backdrop: c.Movie.backdrop,
+			mediaType: 'movies',
+			poster: c.Movie.poster,
+			title: c.Movie.title[0].toUpperCase() + c.Movie.title.slice(1),
+			titleSort: createTitleSort(c.Movie.title, c.Movie.releaseDate),
+			type: 'movies',
+			logo: c.Movie.Media.find(m => m.type == 'logo')?.src,
 			blurHash: c.Movie.blurHash
-? JSON.parse(c.Movie.blurHash)
-: null,
-        })),
-    };
+				? JSON.parse(c.Movie.blurHash)
+				: null,
+		})),
+	};
 
 	return response;
 };
@@ -184,75 +184,75 @@ const ownerQuery = (id: string, language: string) => {
 			id: parseInt(id, 10),
 		},
 		include: {
-            Movie: {
-                include: {
-                    Movie: {
-                        include: {
-                            AlternativeTitles: true,
-                            CollectionMovie: {
-                                include: {
-                                    Movie: true,
-                                },
-                            },
-                            Cast: {
-                                include: {
-                                    Cast: {
-                                        include: {
-                                            Person: true,
-                                        },
-                                    },
-                                },
-                            },
-                            Certification: {
-                                include: {
-                                    Certification: true,
-                                },
-                            },
-                            Crew: {
-                                include: {
-                                    Crew: {
-                                        include: {
-                                            Person: true,
-                                        },
-                                    },
-                                },
-                            },
-                            Genre: {
-                                include: {
-                                    Genre: true,
-                                },
-                            },
-                            SpecialItem: true,
-                            VideoFile: true,
-                            Keyword: {
-                                include: {
-                                    Keyword: true,
-                                },
-                            },
-                            Library: true,
-                            Media: {
-                                where: {
-                                    OR: [
-                                        {
-                                            iso6391: null,
-                                        },
-                                        {
-                                            iso6391: 'en',
-                                            type: {
-                                                not: null,
-                                            },
-                                        },
-                                    ],
-                                },
-                                orderBy: {
-                                    voteAverage: 'desc',
-                                },
-                            },
-                            UserData: true,
-                        },
-                    },
-                },
-            },
+			Movie: {
+				include: {
+					Movie: {
+						include: {
+							AlternativeTitles: true,
+							CollectionMovie: {
+								include: {
+									Movie: true,
+								},
+							},
+							Cast: {
+								include: {
+									Cast: {
+										include: {
+											Person: true,
+										},
+									},
+								},
+							},
+							Certification: {
+								include: {
+									Certification: true,
+								},
+							},
+							Crew: {
+								include: {
+									Crew: {
+										include: {
+											Person: true,
+										},
+									},
+								},
+							},
+							Genre: {
+								include: {
+									Genre: true,
+								},
+							},
+							SpecialItem: true,
+							VideoFile: true,
+							Keyword: {
+								include: {
+									Keyword: true,
+								},
+							},
+							Library: true,
+							Media: {
+								where: {
+									OR: [
+										{
+											iso6391: null,
+										},
+										{
+											iso6391: 'en',
+											type: {
+												not: null,
+											},
+										},
+									],
+								},
+								orderBy: {
+									voteAverage: 'desc',
+								},
+							},
+							UserData: true,
+						},
+					},
+				},
+			},
 		},
 	});
 };
@@ -270,75 +270,75 @@ const userQuery = (id: string, userId: string, language: string) => {
 			},
 		},
 		include: {
-            Movie: {
-                include: {
-                    Movie: {
-                        include: {
-                            AlternativeTitles: true,
-                            CollectionMovie: {
-                                include: {
-                                    Movie: true,
-                                },
-                            },
-                            Cast: {
-                                include: {
-                                    Cast: {
-                                        include: {
-                                            Person: true,
-                                        },
-                                    },
-                                },
-                            },
-                            Certification: {
-                                include: {
-                                    Certification: true,
-                                },
-                            },
-                            Crew: {
-                                include: {
-                                    Crew: {
-                                        include: {
-                                            Person: true,
-                                        },
-                                    },
-                                },
-                            },
-                            Genre: {
-                                include: {
-                                    Genre: true,
-                                },
-                            },
-                            SpecialItem: true,
-                            VideoFile: true,
-                            Keyword: {
-                                include: {
-                                    Keyword: true,
-                                },
-                            },
-                            Library: true,
-                            Media: {
-                                where: {
-                                    OR: [
-                                        {
-                                            iso6391: null,
-                                        },
-                                        {
-                                            iso6391: 'en',
-                                            type: {
-                                                not: null,
-                                            },
-                                        },
-                                    ],
-                                },
-                                orderBy: {
-                                    voteAverage: 'desc',
-                                },
-                            },
-                            UserData: true,
-                        },
-                    },
-                },
-            },
+			Movie: {
+				include: {
+					Movie: {
+						include: {
+							AlternativeTitles: true,
+							CollectionMovie: {
+								include: {
+									Movie: true,
+								},
+							},
+							Cast: {
+								include: {
+									Cast: {
+										include: {
+											Person: true,
+										},
+									},
+								},
+							},
+							Certification: {
+								include: {
+									Certification: true,
+								},
+							},
+							Crew: {
+								include: {
+									Crew: {
+										include: {
+											Person: true,
+										},
+									},
+								},
+							},
+							Genre: {
+								include: {
+									Genre: true,
+								},
+							},
+							SpecialItem: true,
+							VideoFile: true,
+							Keyword: {
+								include: {
+									Keyword: true,
+								},
+							},
+							Library: true,
+							Media: {
+								where: {
+									OR: [
+										{
+											iso6391: null,
+										},
+										{
+											iso6391: 'en',
+											type: {
+												not: null,
+											},
+										},
+									],
+								},
+								orderBy: {
+									voteAverage: 'desc',
+								},
+							},
+							UserData: true,
+						},
+					},
+				},
+			},
 		},
 	});
 };

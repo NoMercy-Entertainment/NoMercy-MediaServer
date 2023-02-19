@@ -4,7 +4,7 @@ import {
 	setMakeMKVKey,
 	setOmdbApiKey,
 	setQuote,
-	setTmdbApiKey,
+	setTmdbApiKey
 } from '../../state/redux/config/actions';
 
 import Logger from '../../functions/logger';
@@ -17,7 +17,7 @@ const cdn = async () => {
 			level: 'error',
 			name: 'setup',
 			color: 'red',
-			message: 'Something went wrong while fetching the CDN info: ' + JSON.stringify(error, null,2 ),
+			message: `Something went wrong while fetching the CDN info: ${JSON.stringify(error, null, 2)}`,
 		});
 
 		process.exit(1);

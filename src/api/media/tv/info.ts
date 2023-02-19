@@ -24,7 +24,7 @@ import {
 	Tv,
 	UserData,
 	VideoFile
-} from '@prisma/client';
+} from '../../../database/config/client';
 import { ExtendedVideo, InfoResponse, MediaItem } from '../../../types/server';
 import { Request, Response } from 'express';
 

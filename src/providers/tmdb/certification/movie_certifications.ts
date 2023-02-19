@@ -51,6 +51,6 @@ export interface MovieCertification {
 
 export interface MovieCert {
 	certification: string;
-	meaning:       string;
-	order:         number;
+	meaning: string;
+	order: number;
 }

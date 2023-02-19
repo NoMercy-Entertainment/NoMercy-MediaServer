@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { confDb } from "../../../../database/config";
+import { confDb } from '../../../../database/config';
 
 export default async function (req: Request, res: Response) {
 

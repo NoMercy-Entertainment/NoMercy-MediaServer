@@ -22,7 +22,7 @@ import {
 	SpecialItem,
 	UserData,
 	VideoFile
-} from '@prisma/client';
+} from '../../../database/config/client';
 import { ExtendedVideo, InfoResponse, MediaItem } from '../../../types/server';
 import { Request, Response } from 'express';
 
@@ -202,26 +202,23 @@ const getContent = async (
 			tvdbId: data.tvdbId,
 		},
 		creators: [],
-		directors:
-			data.Crew.filter(c => c.Crew.department == 'Directing')
-				.slice(0, 10)
-				.map(c => ({
-					id: c.Crew.personId,
-					name: c.Crew.name,
-				})) ?? [],
-		writers:
-			data.Crew.filter(c => c.Crew.department == 'Writing')
-				.slice(0, 10)
-				.map(c => ({
-					id: c.Crew.personId,
-					name: c.Crew.name,
-				})) ?? [],
-
-		genres:
-			data.Genre.map(g => ({
-				id: g.Genre.id,
-				name: g.Genre.name,
+		directors: data.Crew.filter(c => c.Crew.department == 'Directing')
+			.slice(0, 10)
+			.map(c => ({
+				id: c.Crew.personId,
+				name: c.Crew.name,
 			})) ?? [],
+		writers: data.Crew.filter(c => c.Crew.department == 'Writing')
+			.slice(0, 10)
+			.map(c => ({
+				id: c.Crew.personId,
+				name: c.Crew.name,
+			})) ?? [],
+
+		genres: data.Genre.map(g => ({
+			id: g.Genre.id,
+			name: g.Genre.name,
+		})) ?? [],
 		keywords: data.Keyword.map(c => c.Keyword.name),
 		type: 'movies',
 		mediaType: 'movies',
@@ -261,6 +258,7 @@ const getContent = async (
 				name: c.name,
 				blurHash: c.blurHash,
 			})),
+		seasons: [],
 	};
 
 	return response;
@@ -517,25 +515,22 @@ const getMovieData = async (id: string) => {
 			imdbId: data.external_ids.imdb_id as string | null,
 			tvdbId: data.external_ids.tvdb_id as number | null,
 		},
-		directors:
-			data.credits.crew.filter(c => c.department == 'Directing')
-				.slice(0, 10)
-				.map(c => ({
-					id: c.id,
-					name: c.name,
-				})) ?? [],
-		writers:
-			data.credits.crew.filter(c => c.department == 'Writing')
-				.slice(0, 10)
-				.map(c => ({
-					id: c.id,
-					name: c.name,
-				})) ?? [],
-		genres:
-			data.genres.map(g => ({
-				id: g.id,
-				name: g.name,
+		directors: data.credits.crew.filter(c => c.department == 'Directing')
+			.slice(0, 10)
+			.map(c => ({
+				id: c.id,
+				name: c.name,
 			})) ?? [],
+		writers: data.credits.crew.filter(c => c.department == 'Writing')
+			.slice(0, 10)
+			.map(c => ({
+				id: c.id,
+				name: c.name,
+			})) ?? [],
+		genres: data.genres.map(g => ({
+			id: g.id,
+			name: g.name,
+		})) ?? [],
 		keywords: data.keywords.keywords.map(c => c.name),
 		type: 'movies',
 		mediaType: 'movies',
@@ -574,6 +569,7 @@ const getMovieData = async (id: string) => {
 				name: c.name,
 				// blurHash: c.blurHash,
 			})),
+		seasons: [],
 	};
 
 	return response;

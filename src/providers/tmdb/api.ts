@@ -30,7 +30,7 @@ export class Api {
 		this.isMocked = !!options?.mock;
 	}
 
-	async get<T>(uri: string, params: Record<string, unknown>): Promise<AxiosResponse<T>> {
+	get<T>(uri: string, params: Record<string, unknown>): Promise<AxiosResponse<T>> {
 		return this.axios.get<T>(uri, params);
 	}
 }

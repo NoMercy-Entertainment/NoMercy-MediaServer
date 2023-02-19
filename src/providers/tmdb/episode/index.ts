@@ -54,7 +54,8 @@ export const episodeChanges = async (id: number, season: number, episode: number
 
 	const params = {
 		params: {
-			start_date: moment().subtract(daysback, 'days').format('md'),
+			start_date: moment().subtract(daysback, 'days')
+				.format('md'),
 			end_date: moment().format('md'),
 		},
 	};

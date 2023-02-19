@@ -333,34 +333,34 @@ export const addNewItem = async (req: Request, res: Response) => {
 	await i18n.changeLanguage('en');
 
 	switch (type) {
-		case 'movie':
-			const movieData = await movie(itemId);
+	case 'movie':
+		const movieData = await movie(itemId);
 
-			await storeMovie({
-				id: movieData.id,
-				folder: createMediaFolder(library, movieData),
-				libraryId: library.id,
-			}).then((data) => {
-				return res.json(data);
-			});
+		await storeMovie({
+			id: movieData.id,
+			folder: createMediaFolder(library, movieData),
+			libraryId: library.id,
+		}).then((data) => {
+			return res.json(data);
+		});
 
-			break;
-		case 'tv':
-			const tvData = await tv(itemId);
+		break;
+	case 'tv':
+		const tvData = await tv(itemId);
 
-			await storeTvShow({
-				id: tvData.id,
-				folder: createMediaFolder(library, tvData),
-				libraryId: library.id,
-			}).then((data) => {
-				return res.json(data);
-			});
+		await storeTvShow({
+			id: tvData.id,
+			folder: createMediaFolder(library, tvData),
+			libraryId: library.id,
+		}).then((data) => {
+			return res.json(data);
+		});
 
-			break;
-		case 'music':
-			break;
-		default:
-			break;
+		break;
+	case 'music':
+		break;
+	default:
+		break;
 	}
 
 };

@@ -1,7 +1,15 @@
-import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '../../state';
 import fs, { existsSync } from 'fs';
 
 import { pad } from '../../functions/stringArray';
+import {
+	ffmpeg,
+	ffprobe,
+	makeMkv,
+	sslCA,
+	sslCert,
+	sslKey,
+	subtitleEdit
+} from '../../state';
 
 export const convertToHumanReact = (t: (arg: string) => string, time: number, zeroPad = false): string => {
 	if (!time) {
@@ -10,7 +18,9 @@ export const convertToHumanReact = (t: (arg: string) => string, time: number, ze
 
 	const hours = Math.floor(time / 3600);
 	time %= 3600;
-	const minutes = pad(Math.floor(time / 60), zeroPad && hours > 0 ? 2 : 0);
+	const minutes = pad(Math.floor(time / 60), zeroPad && hours > 0
+		? 2
+		: 0);
 
 	if (hours === 0 && parseInt(minutes, 10) === 0) {
 		return `${minutes} ${t('minutes').slice(0, 3)}`;
@@ -88,8 +98,8 @@ export const humanTime = function (time: any) {
 	} else {
 		minutes = `${minutes}:`;
 	}
-	
-	if(hours == '00:') {
+
+	if (hours == '00:') {
 		hours = '';
 	}
 
@@ -159,7 +169,7 @@ export const convertToSeconds = (hms: string | null) => {
 	if (!hms) {
 		return 0;
 	}
-	const a: number[] = hms.split(':').map((n) => parseInt(n, 10));
+	const a: number[] = hms.split(':').map(n => parseInt(n, 10));
 	if (a.length < 3) {
 		a.unshift(0);
 	}
@@ -196,21 +206,21 @@ export const fileChangedAt = function (file: string) {
 export const fileChangedAgo = function (file: any, notation = 'hours', method = 'floor') {
 	let time;
 	switch (notation) {
-		case 'days':
-			time = 24 * 60 * 60 * 1000;
-			break;
-		case 'hours':
-			time = 60 * 60 * 1000;
-			break;
-		case 'minutes':
-			time = 60 * 1000;
-			break;
-		case 'seconds':
-			time = 1000;
-			break;
-		default:
-			time = 1;
-			break;
+	case 'days':
+		time = 24 * 60 * 60 * 1000;
+		break;
+	case 'hours':
+		time = 60 * 60 * 1000;
+		break;
+	case 'minutes':
+		time = 60 * 1000;
+		break;
+	case 'seconds':
+		time = 1000;
+		break;
+	default:
+		time = 1;
+		break;
 	}
 
 	const fileTime: any = fs.statSync(file).mtime;
@@ -240,21 +250,21 @@ export const fileChangedAgo = function (file: any, notation = 'hours', method = 
 export const dateAgo = function (date: any, notation = 'hours', method = 'floor') {
 	let time;
 	switch (notation) {
-		case 'days':
-			time = 24 * 60 * 60 * 1000;
-			break;
-		case 'hours':
-			time = 60 * 60 * 1000;
-			break;
-		case 'minutes':
-			time = 60 * 1000;
-			break;
-		case 'seconds':
-			time = 1000;
-			break;
-		default:
-			time = 1;
-			break;
+	case 'days':
+		time = 24 * 60 * 60 * 1000;
+		break;
+	case 'hours':
+		time = 60 * 60 * 1000;
+		break;
+	case 'minutes':
+		time = 60 * 1000;
+		break;
+	case 'seconds':
+		time = 1000;
+		break;
+	default:
+		time = 1;
+		break;
 	}
 
 	const now: any = new Date();
@@ -303,18 +313,18 @@ export const time_ago = (time: any) => {
 	time = Date.now() - (Date.now() - time);
 
 	switch (typeof time) {
-		case 'number':
-			break;
-		case 'string':
-			time = +new Date(time);
-			break;
-		case 'object':
-			if (time.constructor === Date) {
-				time = time.getTime();
-			}
-			break;
-		default:
-			time = +new Date();
+	case 'number':
+		break;
+	case 'string':
+		time = +new Date(time);
+		break;
+	case 'object':
+		if (time.constructor === Date) {
+			time = time.getTime();
+		}
+		break;
+	default:
+		time = +new Date();
 	}
 	const time_formats = [
 		[60, 'seconds', 1], // 60
@@ -361,7 +371,7 @@ export const time_ago = (time: any) => {
 (() => {
 	// @ts-expect-error
 	Date.prototype.getMonthName = function () {
-		let month_names = [
+		const month_names = [
 			'January',
 			'February',
 			'March',
@@ -382,7 +392,7 @@ export const time_ago = (time: any) => {
 	// Provide month abbreviation
 	// @ts-expect-error
 	Date.prototype.getMonthAbbr = function () {
-		let month_abbrs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+		const month_abbrs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 		return month_abbrs[this.getMonth()];
 	};
@@ -390,21 +400,21 @@ export const time_ago = (time: any) => {
 	// Provide full day of week name
 	// @ts-expect-error
 	Date.prototype.getDayFull = function () {
-		let days_full = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		const days_full = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		return days_full[this.getDay()];
 	};
 
 	// Provide full day of week name
 	// @ts-expect-error
 	Date.prototype.getDayAbbr = function () {
-		let days_abbr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
+		const days_abbr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
 		return days_abbr[this.getDay()];
 	};
 
 	// Provide the day of year 1-365
 	// @ts-expect-error
 	Date.prototype.getDayOfYear = function () {
-		let onejan = new Date(this.getFullYear(), 0, 1);
+		const onejan = new Date(this.getFullYear(), 0, 1);
 		// @ts-expect-error
 		return Math.ceil((this - onejan) / 86400000);
 	};
@@ -412,9 +422,9 @@ export const time_ago = (time: any) => {
 	// Provide the day suffix (st,nd,rd,th)
 	// @ts-expect-error
 	Date.prototype.getDaySuffix = function () {
-		let d = this.getDate();
-		let sfx = ['th', 'st', 'nd', 'rd'];
-		let val = d % 100;
+		const d = this.getDate();
+		const sfx = ['th', 'st', 'nd', 'rd'];
+		const val = d % 100;
 
 		return sfx[(val - 20) % 10] || sfx[val] || sfx[0];
 	};
@@ -422,7 +432,7 @@ export const time_ago = (time: any) => {
 	// Provide Week of Year
 	// @ts-expect-error
 	Date.prototype.getWeekOfYear = function () {
-		let onejan = new Date(this.getFullYear(), 0, 1);
+		const onejan = new Date(this.getFullYear(), 0, 1);
 		// @ts-expect-error
 		return Math.ceil(((this - onejan) / 86400000 + onejan.getDay() + 1) / 7);
 	};
@@ -430,7 +440,7 @@ export const time_ago = (time: any) => {
 	// Provide if it is a leap year or not
 	// @ts-expect-error
 	Date.prototype.isLeapYear = function () {
-		let yr = this.getFullYear().toString();
+		const yr = this.getFullYear().toString();
 
 		if (parseInt(yr, 10) % 4 == 0) {
 			if (parseInt(yr, 10) % 100 == 0) {
@@ -453,8 +463,12 @@ export const time_ago = (time: any) => {
 	// Provide Number of Days in a given month
 	// @ts-expect-error
 	Date.prototype.getMonthDayCount = function () {
-		// @ts-expect-error
-		let month_day_counts = [31, this.isLeapYear() ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+		const month_day_counts = [
+			// @ts-expect-error
+			31, this.isLeapYear()
+				? 29
+				: 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+		];
 
 		return month_day_counts[this.getMonth()];
 	};
@@ -462,36 +476,41 @@ export const time_ago = (time: any) => {
 	// format provided date into this.format format
 	// @ts-expect-error
 	Date.prototype.format = function (dateFormat: any) {
-        const joins = dateFormat.match(/[-/:\s]/gu);
+		const joins = dateFormat.match(/[-/:\s]/gu);
 		dateFormat = dateFormat.split(/[-/:\s]/u);
 
 		const pad = (number: string | number, places = 2): string => {
 			if (typeof number !== 'undefined') {
 				const zero = places - number.toString().length + 1;
-		
+
 				return Array(+(zero > 0 && zero)).join('0') + number;
 			}
 			return '';
 		};
 
-		const date = this.getDate(),
-			month = this.getMonth(),
-			hours = this.getHours(),
-			minutes = this.getMinutes(),
-			seconds = this.getSeconds();
+		const date = this.getDate();
+		const month = this.getMonth();
+		const hours = this.getHours();
+		const minutes = this.getMinutes();
+		const seconds = this.getSeconds();
 		const date_props = {
 
-			Y: this.getFullYear().toString().substring(2, 4),
+			Y: this.getFullYear().toString()
+				.substring(2, 4),
 			YY: this.getFullYear(),
 
 			M: month + 1,
-			MM: month < 10 ? '0' + (month + 1) : month + 1,
+			MM: month < 10
+				? `0${month + 1}`
+				: month + 1,
 			// @ts-expect-error
 			MMM: this.getMonthAbbr(),
 			// @ts-expect-error
 			MMMM: this.getMonthName(),
 
-			D: date < 10 ? '0' + date : date,
+			D: date < 10
+				? `0${date}`
+				: date,
 			// @ts-expect-error
 			DD: this.getDayAbbr(),
 			// @ts-expect-error
@@ -506,23 +525,35 @@ export const time_ago = (time: any) => {
 			// @ts-expect-error
 			MD: this.getMonthDayCount(),
 			// @ts-expect-error
-			L: this.isLeapYear() ? '1' : '0',
+			L: this.isLeapYear()
+				? '1'
+				: '0',
 
-			a: hours > 12 ? 'pm' : 'am',
-			aa: hours > 12 ? 'PM' : 'AM',
+			a: hours > 12
+				? 'pm'
+				: 'am',
+			aa: hours > 12
+				? 'PM'
+				: 'AM',
 
-			h: hours % 12 > 0 ? pad(hours % 12, 2) : 12,
-			hh: pad(hours,2),
-			
+			h: hours % 12 > 0
+				? pad(hours % 12, 2)
+				: 12,
+			hh: pad(hours, 2),
+
 			m: pad(minutes, 2),
 			s: pad(seconds, 2),
 		};
 
 		let date_string = '';
 		for (let i = 0; i < dateFormat.length; i++) {
-			let f = dateFormat[i];
-			if (f.match(/[a-zA-Z]/g)) {
-				date_string += date_props[f] ? (i != dateFormat.length -1) ? date_props[f] + joins[i] :  date_props[f] : '';
+			const f = dateFormat[i];
+			if (f.match(/[a-zA-Z]/gu)) {
+				date_string += date_props[f]
+					? (i == dateFormat.length - 1)
+						? date_props[f]
+						: date_props[f] + joins[i]
+					: '';
 			} else {
 				date_string += f;
 			}
@@ -543,35 +574,35 @@ export const dateFormat = (date: Date | number, format: string) => {
  * @author: Stoney_Eagle <stoney@nomercy.tv>
  * @example fileChangedAgo("ffmpeg",'days') // 5
  */
- export const fileLastModified = (name: string) => {
+export const fileLastModified = (name: string) => {
 	let file;
 	switch (name) {
-		case 'ffmpeg':
-			file = ffmpeg;
-			break;
-		case 'ffprobe':
-			file = ffprobe;
-			break;
-		case 'makemkv':
-			file = makeMkv;
-			break;
-		case 'subtitleedit':
-			file = subtitleEdit;
-			break;
-		case 'sslCA':
-			file = sslCA;
-			break;
-		case 'sslCert':
-			file = sslCert;
-			break;
-		case 'sslKey':
-			file = sslKey;
-			break;
-		default:
-			return Number.MAX_SAFE_INTEGER;
+	case 'ffmpeg':
+		file = ffmpeg;
+		break;
+	case 'ffprobe':
+		file = ffprobe;
+		break;
+	case 'makemkv':
+		file = makeMkv;
+		break;
+	case 'subtitleedit':
+		file = subtitleEdit;
+		break;
+	case 'sslCA':
+		file = sslCA;
+		break;
+	case 'sslCert':
+		file = sslCert;
+		break;
+	case 'sslKey':
+		file = sslKey;
+		break;
+	default:
+		return Number.MAX_SAFE_INTEGER;
 	}
 
-	if(!existsSync(file)){
+	if (!existsSync(file)) {
 		return Number.MAX_SAFE_INTEGER;
 	}
 

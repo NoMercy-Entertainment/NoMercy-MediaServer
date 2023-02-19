@@ -50,6 +50,6 @@ export interface TvCertification {
 
 export interface TvCert {
 	certification: string;
-	meaning:       string;
-	order:         number;
+	meaning: string;
+	order: number;
 }

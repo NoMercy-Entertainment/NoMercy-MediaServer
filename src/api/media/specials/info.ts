@@ -13,6 +13,6 @@ export default function (req: Request, res: Response) {
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 	const owner = isOwner(req as KAuthRequest);
 
-    return res.json({});
+	return res.json({});
 
 }

@@ -1,12 +1,19 @@
-import { CompleteMovieAggregate } from './fetchMovie';
-import { Prisma } from '@prisma/client';
-import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash/createBlurHash';
-import { createTitleSort } from '../../tasks/files/filenameParser';
+import { confDb } from '../../database/config';
+import { Prisma } from '../../database/config/client';
+import {
+	createTitleSort
+} from '../../tasks/files/filenameParser';
+import { CompleteMovieAggregate } from './fetchMovie';
 
-const collection = async (movie: CompleteMovieAggregate, libraryId: string, transaction: any[], collectionMovieInsert: Prisma.CollectionMovieCreateOrConnectWithoutMovieInput[]) => {
+const collection = async (
+	movie: CompleteMovieAggregate,
+	libraryId: string,
+	transaction: any[],
+	collectionMovieInsert: Prisma.CollectionMovieCreateOrConnectWithoutMovieInput[]
+) => {
 	const collection = movie.collection;
-	
+
 	collectionMovieInsert.push({
 		where: {
 			collectionId_movieId: {
@@ -20,9 +27,13 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 	});
 
 	const blurHash = {
-		poster: collection.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.poster_path}`) : undefined,
-		backdrop: collection.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`) : undefined,
-	}
+		poster: collection.poster_path
+			? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.poster_path}`)
+			: undefined,
+		backdrop: collection.backdrop_path
+			? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`)
+			: undefined,
+	};
 
 	const collectionInsert = Prisma.validator<Prisma.CollectionUncheckedCreateInput>()({
 		backdrop: collection.backdrop_path,
@@ -47,7 +58,7 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 	);
 
 	for (const p of collection.parts) {
-		
+
 		// collectionMovieInsert.push({
 		// 	where: {
 		// 		collectionId_movieId: {
@@ -63,21 +74,25 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 		const genresCollectionInsert = p.genre_ids!.map((g) => {
 			return {
 				create: {
-					genreId: g
+					genreId: g,
 				},
 				where: {
 					genre_movie_unique: {
 						genreId: g,
 						movieId: p.id,
-					}
-				}
-			}
+					},
+				},
+			};
 		});
 
 		const blurHash = {
-			poster: p.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.poster_path}`) : undefined,
-			backdrop: p.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`) : undefined,
-		}
+			poster: p.poster_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.poster_path}`)
+				: undefined,
+			backdrop: p.backdrop_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`)
+				: undefined,
+		};
 
 		const movieCollectionInsert = Prisma.validator<Prisma.MovieUncheckedCreateWithoutCollectionMovieInput>()({
 			adult: p.adult,
@@ -113,15 +128,19 @@ const collection = async (movie: CompleteMovieAggregate, libraryId: string, tran
 		);
 	};
 	for (const tr of collection.translations.translations) {
-		
+
 		const collectionTranslationsInsert = Prisma.validator<Prisma.TranslationUncheckedCreateInput>()({
 			englishName: tr.english_name,
 			homepage: tr.homepage,
 			iso31661: tr.iso_3166_1,
 			iso6391: tr.iso_639_1,
 			name: tr.name,
-			overview: tr.data && tr.data?.overview ? tr.data?.overview : null,
-			title: tr.data && tr.data?.name ? tr.data?.name : null,
+			overview: tr.data && tr.data?.overview
+				? tr.data?.overview
+				: null,
+			title: tr.data && tr.data?.name
+				? tr.data?.name
+				: null,
 			translationableId: collection.id,
 			translationableType: 'collection',
 		});

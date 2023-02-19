@@ -169,14 +169,14 @@ export interface RecordingAppend extends Recording {
 }
 
 export const recordingAppend = [
-    'aliases',
-    'annotation',
-    'artist-credit',
-    'genres',
-    'rating',
-    'relations',
-    'releases',
-    'tags',
+	'aliases',
+	'annotation',
+	'artist-credit',
+	'genres',
+	'rating',
+	'relations',
+	'releases',
+	'tags',
 ] as const;
 
 export type RecordingWithAppends<T extends keyof RecordingAppend> = Recording & Pick<RecordingAppend, T>;
@@ -196,7 +196,7 @@ export const recording = async (id: string) => {
 				'artists',
 				'releases',
 				'tags',
-                'genres',
+				'genres',
 			].join('+'),
 		},
 	};

@@ -5,7 +5,7 @@ import { tvChanges } from '../../providers/tmdb/tv/index';
 import { writeFileSync } from 'fs';
 
 export const needsUpdate = async (data: FolderInfo) => {
-	let daysCount = Math.round((Date.now() - data.lastUpdate) / 24 / 60 / 60 / 1000);
+	const daysCount = Math.round((Date.now() - data.lastUpdate) / 24 / 60 / 60 / 1000);
 
 	data.lastUpdate = Date.now();
 	writeFileSync(data.jsonFile, JSON.stringify(data, null, 4));
@@ -17,19 +17,19 @@ export const needsUpdate = async (data: FolderInfo) => {
 		needsUpdate = false;
 	} else {
 		switch (data.type) {
-			case 'tv':
-				needsUpdate = (await tvChanges(data.id as number, daysCount)).length > 0;
-				break;
-			case 'movie':
-				needsUpdate = (await movieChanges(data.id as number, daysCount)).length > 0;
-				break;
-			case 'music':
-				needsUpdate = false;
-				break;
+		case 'tv':
+			needsUpdate = (await tvChanges(data.id as number, daysCount)).length > 0;
+			break;
+		case 'movie':
+			needsUpdate = (await movieChanges(data.id as number, daysCount)).length > 0;
+			break;
+		case 'music':
+			needsUpdate = false;
+			break;
 
-			default:
-				needsUpdate = false;
-				break;
+		default:
+			needsUpdate = false;
+			break;
 		}
 	}
 
@@ -41,7 +41,7 @@ export const needsUpdate = async (data: FolderInfo) => {
 			message: `Refreshing ${data.type} with id: ${data.id}`,
 		});
 	} else {
-		
+
 		Logger.log({
 			level: 'info',
 			name: 'App',

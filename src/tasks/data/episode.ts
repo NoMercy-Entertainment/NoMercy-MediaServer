@@ -1,18 +1,17 @@
-import { AppState, useSelector } from '../../state/redux';
-
-import { CombinedSeasons } from './fetchTvShow';
-import Logger from '../../functions/logger';
-import { Prisma } from '@prisma/client';
 import cast from './cast';
-import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import crew from './crew';
 import guest_star from './guest_star';
 import image from './image';
+import Logger from '../../functions/logger';
 import translation from './translation';
+import { AppState, useSelector } from '../../state/redux';
+import { CombinedSeasons } from './fetchTvShow';
+import { Prisma } from '../../database/config/client';
+import { confDb } from '../../database/config';
 
 const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.PromiseReturnType<any>[],
-	people: number[], task?: {id: string}) => {
+	people: number[]) => {
 
 	Logger.log({
 		level: 'info',
@@ -20,10 +19,10 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 		color: 'magentaBright',
 		message: `Adding episodes for season: ${season.season_number}`,
 	});
-	
+
 	for (const episode of season.episodes) {
-		if(!episode.id) continue;
-		
+		if (!episode.id) continue;
+
 		const guestStarInsert: any[] = [];
 		const crewInsert: any[] = [];
 		const castInsert: any[] = [];
@@ -58,19 +57,21 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 			productionCode: episode.production_code,
 			seasonNumber: episode.season_number,
 			still: episode.still_path,
-			blurHash: episode.still_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${episode.still_path}`) : undefined,
+			blurHash: episode.still_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${episode.still_path}`)
+				: undefined,
 			voteAverage: episode.vote_average,
 			voteCount: episode.vote_count,
 			imdbId: episode?.external_ids.imdb_id,
 			Season: {
-				connect:{
-					id: season.id
-				}
+				connect: {
+					id: season.id,
+				},
 			},
 			Tv: {
-				connect:{
-					id: id
-				}
+				connect: {
+					id: id,
+				},
 			},
 			GuestStar: {
 				connectOrCreate: guestStarInsert,
@@ -92,12 +93,12 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 				create: episodesInsert,
 			})
 		);
-		
+
 		await translation(episode, transaction, 'episode');
 
 
 		const queue = useSelector((state: AppState) => state.config.dataWorker);
-		
+
 		// await queue.add({
 		// 	file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
 		// 	fn: 'downloadTMDBImages',

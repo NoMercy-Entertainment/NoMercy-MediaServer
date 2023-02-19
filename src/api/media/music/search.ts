@@ -1,4 +1,4 @@
-import { Album, Artist, Track } from '@prisma/client';
+import { Album, Artist, Track } from '../../../database/config/client';
 import { Request, Response } from 'express';
 import { shuffle, uniqBy } from '../../../functions/stringArray';
 

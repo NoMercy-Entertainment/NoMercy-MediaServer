@@ -23,7 +23,7 @@ export const setHasSubtitleEdit = (payload: boolean) => store.dispatch(system.ac
 export const setHttpsServer = (payload: Http2SecureServer) => store.dispatch(system.actions.setHttpsServer(payload));
 
 export const setSocketServer = (payload: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) =>
-    store.dispatch(system.actions.setSocketServer(payload));
+	store.dispatch(system.actions.setSocketServer(payload));
 
 export const setClientList = (payload: any[]) => store.dispatch(system.actions.setClientList(payload));
 

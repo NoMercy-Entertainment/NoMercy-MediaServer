@@ -129,40 +129,40 @@ export const userPermissions = async (req: Request, res: Response): Promise<Resp
 
 	sub_id
 		? await confDb.user.findMany({
-				where: {
-					sub_id: sub_id,
-				},
+			where: {
+				sub_id: sub_id,
+			},
+			include: {
+				Libraries: true,
+			},
+		})
+		: await confDb.user
+			.findMany({
 				include: {
 					Libraries: true,
 				},
-		})
-		: await confDb.user
-				.findMany({
-					include: {
-						Libraries: true,
-					},
-				})
-				.then((data) => {
-					return res.json(
-						data.map(d => ({
-							...d,
-							Libraries: undefined,
-							libraries: d.Libraries.map(f => f.libraryId),
-						}))
-					);
-				})
-				.catch((error) => {
-					Logger.log({
-						level: 'info',
-						name: 'access',
-						color: 'magentaBright',
-						message: `Error getting user permissions: ${error}`,
-					});
-					return res.json({
-						status: 'ok',
-						message: `Something went wrong getting permissions: ${error}`,
-					});
+			})
+			.then((data) => {
+				return res.json(
+					data.map(d => ({
+						...d,
+						Libraries: undefined,
+						libraries: d.Libraries.map(f => f.libraryId),
+					}))
+				);
+			})
+			.catch((error) => {
+				Logger.log({
+					level: 'info',
+					name: 'access',
+					color: 'magentaBright',
+					message: `Error getting user permissions: ${error}`,
 				});
+				return res.json({
+					status: 'ok',
+					message: `Something went wrong getting permissions: ${error}`,
+				});
+			});
 };
 
 export const updateUserPermissions = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {

@@ -1,13 +1,14 @@
-import { confDb } from '../../database/config';
 import { Request, Response } from 'express';
-import Logger from '../../functions/logger';
-import { ConfigData, ConfigParams, ResponseStatus } from 'types/server';
-import storeConfig from '../../functions/storeConfig';
 import { KAuthRequest } from 'types/keycloak';
+import { ConfigData, ConfigParams, ResponseStatus } from 'types/server';
+
+import { confDb } from '../../database/config';
+import Logger from '../../functions/logger';
+import reboot from '../../functions/reboot/reboot';
+import storeConfig from '../../functions/storeConfig';
 import { AppState, useSelector } from '../../state/redux';
 import { setDeviceName } from '../../state/redux/config/actions';
 import { setSecureExternalPort, setSecureInternalPort } from '../../state/redux/system/actions';
-import reboot from '../../functions/reboot/reboot';
 
 export const configuration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
 	await confDb.configuration
@@ -43,17 +44,17 @@ export const createConfiguration = async (req: Request, res: Response): Promise<
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 
 	await storeConfig(req.body, user)
-		.then(async (data) => {
+		.then(() => {
 			Logger.log({
 				level: 'info',
 				name: 'configuration',
 				color: 'magentaBright',
-				message: `Created configuration.`,
+				message: 'Created configuration.',
 			});
 
 			return res.json({
 				status: 'ok',
-				message: `Successfully created configuration.`,
+				message: 'Successfully created configuration.',
 			});
 		})
 		.catch(() => {
@@ -61,12 +62,12 @@ export const createConfiguration = async (req: Request, res: Response): Promise<
 				level: 'info',
 				name: 'configuration',
 				color: 'magentaBright',
-				message: `Error creating configuration`,
+				message: 'Error creating configuration',
 			});
 
 			return res.json({
 				status: 'ok',
-				message: `Something went wrong creating configuration`,
+				message: 'Something went wrong creating configuration',
 			});
 		});
 };
@@ -83,7 +84,7 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 	const cron = useSelector((state: AppState) => state.config.cronWorker);
 
 	await storeConfig(body as unknown as ConfigData, user)
-		.then(async () => {
+		.then(() => {
 			queue.setWorkers(body.queueWorkers);
 			cron.setWorkers(body.cronWorkers);
 			setDeviceName(body.deviceName);
@@ -99,7 +100,7 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 				level: 'info',
 				name: 'configuration',
 				color: 'magentaBright',
-				message: `Updated configuration.`,
+				message: 'Updated configuration.',
 			});
 
 			if (needsReboot) {
@@ -107,7 +108,7 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 					level: 'info',
 					name: 'configuration',
 					color: 'magentaBright',
-					message: `Changes require restart, restarting...`,
+					message: 'Changes require restart, restarting...',
 				});
 
 				reboot();
@@ -115,7 +116,7 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 
 			return res.json({
 				status: 'ok',
-				message: `Successfully updated configuration.`,
+				message: 'Successfully updated configuration.',
 			});
 		})
 		.catch(() => {
@@ -123,12 +124,12 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 				level: 'info',
 				name: 'configuration',
 				color: 'magentaBright',
-				message: `Error updating configuration`,
+				message: 'Error updating configuration',
 			});
 
 			return res.json({
 				status: 'ok',
-				message: `Something went wrong updating configuration`,
+				message: 'Something went wrong updating configuration',
 			});
 		});
 };

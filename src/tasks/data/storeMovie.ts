@@ -1,9 +1,9 @@
-import { Jobs, Prisma } from '@prisma/client';
+import { Jobs, Prisma } from '../../database/config/client';
 import { join, resolve } from 'path';
 import {
 	existsSync,
 	readFileSync,
-	writeFileSync,
+	writeFileSync
 } from 'fs';
 import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
 
@@ -24,19 +24,19 @@ import translation from './translation';
 import { confDb } from '../../database/config';
 import {
 	createTitleSort,
-	ParsedFileList,
+	ParsedFileList
 } from '../../tasks/files/filenameParser';
 import { cachePath } from '../../state';
 import {
 	fileChangedAgo,
-	humanTime,
+	humanTime
 } from '../../functions/dateTime';
 import { jsonToString } from '../../functions/stringArray';
 import {
-	getQualityTag,
+	getQualityTag
 } from '../../functions/ffmpeg/quality/quality';
 import {
-	getExistingSubtitles,
+	getExistingSubtitles
 } from '../../functions/ffmpeg/subtitles/subtitle';
 
 import i18n from '../../loaders/i18n';
@@ -77,7 +77,7 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		const people = await confDb.person.findMany({
 			select: {
 				id: true,
-			}
+			},
 		}).then(d => d.map(e => e.id));
 
 		if (movie.belongs_to_collection) {
@@ -91,9 +91,13 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		await keyword(movie, transaction, keywordsInsert, 'movie');
 
 		const blurHash = {
-			poster: movie.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${movie.poster_path}`) : undefined,
-			backdrop: movie.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${movie.backdrop_path}`) : undefined,
-		}
+			poster: movie.poster_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${movie.poster_path}`)
+				: undefined,
+			backdrop: movie.backdrop_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${movie.backdrop_path}`)
+				: undefined,
+		};
 
 		const movieInsert = Prisma.validator<Prisma.MovieUncheckedCreateInput>()({
 			adult: movie.adult,
@@ -110,7 +114,9 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 			poster: movie.poster_path,
 			blurHash: JSON.stringify(blurHash),
 			releaseDate: movie.release_date,
-			revenue: isNaN(movie.revenue / 1000) ? null : Math.floor(movie.revenue / 1000),
+			revenue: isNaN(movie.revenue / 1000)
+				? null
+				: Math.floor(movie.revenue / 1000),
 			runtime: movie.runtime,
 			status: movie.status,
 			tagline: movie.tagline,
@@ -175,14 +181,14 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 			);
 		}
 
-		for (const rating of movie.release_dates?.results) {
+		for (const rating of movie.release_dates?.results ?? []) {
 
 			for (const rate of rating.release_dates) {
 
 				const cert = await confDb.certification.findFirst({
 					where: {
 						iso31661: rating.iso_3166_1,
-						rating: rate.certification
+						rating: rate.certification,
 					},
 				});
 
@@ -245,7 +251,7 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 			color: 'magentaBright',
 			message: `Adding recommendations and similar for: ${movie.title}`,
 		});
-		
+
 		await recommendation(movie, transaction, 'movie');
 		await similar(movie, transaction, 'movie');
 		await translation(movie, transaction, 'movie');
@@ -260,14 +266,14 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		await image(movie, transaction, 'backdrop', 'movie');
 		await image(movie, transaction, 'logo', 'movie');
 		await image(movie, transaction, 'poster', 'movie');
-		
+
 		Logger.log({
 			level: 'info',
 			name: 'App',
 			color: 'magentaBright',
 			message: `Committing data to the database for: ${movie.title}`,
 		});
-		
+
 		await confDb.$transaction(transaction);
 
 		Logger.log({
@@ -299,7 +305,7 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 				const movie = (await confDb.movie.findFirst({
 					where: {
 						folder: file.folder,
-					}
+					},
 				}));
 
 				const newFile: Prisma.FileCreateWithoutEpisodeInput = Object.keys(file)
@@ -307,19 +313,26 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 					.reduce((obj, key) => {
 						obj[key] = file[key];
 						return obj;
-					}, <Prisma.FileCreateWithoutEpisodeInput>{}
-					);
+					}, <Prisma.FileCreateWithoutEpisodeInput>{});
 
 				// @ts-ignore
 				const insertData = Prisma.validator<Prisma.FileCreateWithoutEpisodeInput>()({
 					...newFile,
-					year: file.year ? typeof file.year == 'string' ? parseInt(file.year, 10) : file.year : undefined,
+					year: file.year
+						? typeof file.year == 'string'
+							? parseInt(file.year, 10)
+							: file.year
+						: undefined,
 					sources: JSON.stringify(file.sources),
 					revision: JSON.stringify(file.revision),
 					languages: JSON.stringify(file.languages),
 					edition: JSON.stringify(file.edition),
-					ffprobe: file.ffprobe ? JSON.stringify(file.ffprobe) : null,
-					chapters: (file.ffprobe as VideoFFprobe)?.chapters ? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters) : null,
+					ffprobe: file.ffprobe
+						? JSON.stringify(file.ffprobe)
+						: null,
+					chapters: (file.ffprobe as VideoFFprobe)?.chapters
+						? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters)
+						: null,
 					Library: {
 						connect: {
 							id: libraryId,
@@ -327,9 +340,9 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 					},
 					Movie: {
 						connect: {
-							id: id
+							id: id,
 						},
-					}
+					},
 				});
 
 				fileTransaction.push(
@@ -359,14 +372,14 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 						Movie: {
 							connect: {
 								id: id,
-							}
-						}
+							},
+						},
 					});
 
 					fileTransaction.push(
 						confDb.videoFile.upsert({
 							where: {
-								movieId: id
+								movieId: id,
 							},
 							create: videoFileInset,
 							update: videoFileInset,
@@ -374,10 +387,10 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 					);
 				}
 			}
-			
+
 			await confDb.$transaction(fileTransaction);
 
-			return;
+
 		});
 
 		Logger.log({
@@ -433,6 +446,6 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		};
 	}
 
-}
+};
 
 export default storeMovie;

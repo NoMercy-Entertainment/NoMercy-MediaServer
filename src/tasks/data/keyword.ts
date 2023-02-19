@@ -1,11 +1,11 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import { MovieKeywords } from '../../providers/tmdb/movie/index';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../database/config/client';
 import { TvKeywords } from '../../providers/tmdb/tv/index';
 import { confDb } from '../../database/config';
 
-export default async (
+export default (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
 	keywordsInsert: Array<Prisma.KeywordMovieCreateOrConnectWithoutMovieInput | Prisma.KeywordTvCreateOrConnectWithoutTvInput>,

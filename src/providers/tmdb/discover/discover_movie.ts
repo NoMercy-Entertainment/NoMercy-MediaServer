@@ -26,6 +26,7 @@ export enum DiscoverMovieSortOrder {
 }
 
 export interface DiscoverMovieParams {
+
 	/**
 	 * certification_country
 	 ** Choose from one of the many available sort options. */

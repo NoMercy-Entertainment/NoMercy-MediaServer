@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 
-import { KAuthRequest } from "../../../../types/keycloak";
-import { confDb } from "../../../../database/config";
-import { deviceId } from "../../../../functions/system";
+import { KAuthRequest } from '../../../../types/keycloak';
+import { confDb } from '../../../../database/config';
+import { deviceId } from '../../../../functions/system';
 
 export default async function (req: Request, res: Response) {
 	try {
@@ -18,13 +18,13 @@ export default async function (req: Request, res: Response) {
 						Track: {
 							include: {
 								Album: {
-									include: { 
+									include: {
 										Library: true,
-									}
-								}
-							}
-						}
-					}
+									},
+								},
+							},
+						},
+					},
 				},
 				_count: {
 					select: {
@@ -44,13 +44,13 @@ export default async function (req: Request, res: Response) {
 					Folders: {
 						include: {
 							folder: true,
-						}
+						},
 					},
-				}
+				},
 			});
-			
+
 			const result = {
-				type: "playlists",
+				type: 'playlists',
 				data: music.map((m) => {
 
 					// TODO: playlist image data url
@@ -63,7 +63,7 @@ export default async function (req: Request, res: Response) {
 					return {
 						...m,
 						origin: deviceId,
-						type: "playlist",
+						type: 'playlist',
 						// path: 'images/',
 						cover: m.cover,
 					};

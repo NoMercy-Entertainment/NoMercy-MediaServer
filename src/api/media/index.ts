@@ -1,4 +1,4 @@
-import { Genre, Translation } from '@prisma/client';
+import { Genre, Translation } from '../../database/config/client';
 import { Request, Response } from 'express';
 import { getContent, ownerQuery, userQuery } from './data';
 
@@ -61,7 +61,7 @@ export default async function (req: Request, res: Response) {
 			}),
 	]);
 
-	const body = {};
+	const body:any = [];
 
 	genres.map((g) => {
 		const x: LibraryResponseContent[] = response
@@ -87,9 +87,12 @@ export default async function (req: Request, res: Response) {
 			.slice(0, 35);
 
 		if (x.length > 0) {
-			body[g.name] = x;
+			body.push({
+				title: g.name,
+				moreLink: '',
+				items: x,
+			});
 		}
-
 	});
 
 	return res.json(body);

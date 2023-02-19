@@ -1,11 +1,11 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import {
-	EpisodeAppend,
+	EpisodeAppend
 } from '../../providers/tmdb/episode/index';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import {
-	SeasonAppend,
+	SeasonAppend
 } from '../../providers/tmdb/season/index';
 import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash/createBlurHash';
@@ -28,7 +28,7 @@ export default async (
 	// 	message: `Adding cast for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
 	// });
 	for (const cast of req.credits.cast) {
-		if(!people.includes(cast.id)) continue;
+		if (!people.includes(cast.id)) continue;
 
 		const castsInsert = Prisma.validator<Prisma.CastUncheckedCreateInput>()({
 			id: cast.credit_id,
@@ -43,9 +43,11 @@ export default async (
 			originalName: cast.original_name,
 			popularity: cast.popularity,
 			profilePath: cast.profile_path,
-			blurHash: cast.profile_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${cast.profile_path}`) : undefined,
+			blurHash: cast.profile_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${cast.profile_path}`)
+				: undefined,
 		});
-		
+
 		// await downloadTMDBImages('cast', cast);
 
 		transaction.push(
@@ -67,7 +69,7 @@ export default async (
 			},
 		});
 	}
-	
+
 	// Logger.log({
 	// 	level: 'info',
 	// 	name: 'App',

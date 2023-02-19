@@ -40,64 +40,64 @@ export type ParsedFilename = ParsedMovie | ParsedShow;
  * @param isTV
  */
 export function filenameParse(name: string, isTv = false): ParsedFilename {
-  let title: ParsedFilename['title'] = '';
-  let year: ParsedFilename['year'] = null;
+	let title: ParsedFilename['title'] = '';
+	let year: ParsedFilename['year'] = null;
 
-  if (!isTv) {
-    const titleAndYear = parseTitleAndYear(name);
-    title = titleAndYear.title;
-    year = Number(titleAndYear.year);
-  }
+	if (!isTv) {
+		const titleAndYear = parseTitleAndYear(name);
+		title = titleAndYear.title;
+		year = Number(titleAndYear.year);
+	}
 
-  const edition = parseEdition(name);
-  const { codec: videoCodec } = parseVideoCodec(name);
-  const { codec: audioCodec } = parseAudioCodec(name);
-  const { channels: audioChannels } = parseAudioChannels(name);
-  const group = parseGroup(name);
-  const languages = parseLanguage(name);
-  const quality = parseQuality(name);
-  const multi = isMulti(name);
-  const complete = isComplete(name);
+	const edition = parseEdition(name);
+	const { codec: videoCodec } = parseVideoCodec(name);
+	const { codec: audioCodec } = parseAudioCodec(name);
+	const { channels: audioChannels } = parseAudioChannels(name);
+	const group = parseGroup(name);
+	const languages = parseLanguage(name);
+	const quality = parseQuality(name);
+	const multi = isMulti(name);
+	const complete = isComplete(name);
 
-  const result: BaseParsed = {
-    title,
-    year,
-    resolution: quality.resolution,
-    sources: quality.sources,
-    videoCodec,
-    audioCodec,
-    audioChannels,
-    revision: quality.revision,
-    group,
-    edition,
-    languages,
-    multi,
-    complete,
-  };
+	const result: BaseParsed = {
+		title,
+		year,
+		resolution: quality.resolution,
+		sources: quality.sources,
+		videoCodec,
+		audioCodec,
+		audioChannels,
+		revision: quality.revision,
+		group,
+		edition,
+		languages,
+		multi,
+		complete,
+	};
 
-  if (isTv) {
-    const season = parseSeason(name);
-    if (season !== null) {
-      const seasonResult: ParsedTvInfo = {
-        seasons: season.seasons,
-        episodeNumbers: season.episodeNumbers,
-        airDate: season.airDate,
-        fullSeason: season.fullSeason,
-        isPartialSeason: season.isPartialSeason,
-        isMultiSeason: season.isMultiSeason,
-        isSeasonExtra: season.isSeasonExtra,
-        isSpecial: season.isSpecial,
-        seasonPart: season.seasonPart,
-      };
+	if (isTv) {
+		const season = parseSeason(name);
+		if (season !== null) {
+			const seasonResult: ParsedTvInfo = {
+				seasons: season.seasons,
+				episodeNumbers: season.episodeNumbers,
+				airDate: season.airDate,
+				fullSeason: season.fullSeason,
+				isPartialSeason: season.isPartialSeason,
+				isMultiSeason: season.isMultiSeason,
+				isSeasonExtra: season.isSeasonExtra,
+				isSpecial: season.isSpecial,
+				seasonPart: season.seasonPart,
+			};
 
-      return {
-        ...result,
-        title: season.seriesTitle ?? title,
-        ...seasonResult,
-        isTv: true,
-      };
-    }
-  }
+			return {
+				...result,
+				title: season.seriesTitle ?? title,
+				...seasonResult,
+				isTv: true,
+			};
+		}
+	}
 
-  return removeEmpty(result);
+	return removeEmpty(result);
 }

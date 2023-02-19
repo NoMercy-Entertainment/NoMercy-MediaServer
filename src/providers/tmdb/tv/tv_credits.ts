@@ -1,4 +1,4 @@
-import { Cast, Crew } from "../shared";
+import { Cast, Crew } from '../shared';
 
 export interface TvCredits {
 	cast: Cast[];

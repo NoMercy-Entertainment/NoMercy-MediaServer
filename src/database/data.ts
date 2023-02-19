@@ -1,4 +1,4 @@
-import { LibraryFolder } from '@prisma/client';
+import { LibraryFolder } from './config/client';
 import { confDb } from './config';
 
 export interface LibraryWithFolders {
@@ -39,7 +39,7 @@ export const getLibrariesWithFolders = async (): Promise<LibraryWithFolders[]> =
 	const libraries = libraryDB.map((l) => {
 		return {
 			...l,
-			folders: l.Folders.map((f) => f.folder!) ?? [],
+			folders: l.Folders.map(f => f.folder!) ?? [],
 		};
 	});
 	return libraries;

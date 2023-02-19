@@ -34,15 +34,15 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 	const result: ArtistsResponse = {
 		type: 'artists',
 		data: sortBy(music.filter(m => m._count.Track > 0)
-		.map((m) => {
-			return {
-				...m,
-				type: 'artist',
-				name: m.name.replace(/["'\[\]*]/gu, ''),
-				titleSort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
-				origin: deviceId,
-			};
-		}), 'titleSort'),
+			.map((m) => {
+				return {
+					...m,
+					type: 'artist',
+					name: m.name.replace(/["'\[\]*]/gu, ''),
+					titleSort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
+					origin: deviceId,
+				};
+			}), 'titleSort'),
 	};
 
 	return res.json(result);

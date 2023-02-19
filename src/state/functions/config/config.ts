@@ -71,7 +71,7 @@ export const createLibraryFile = () => {
 		],
 	};
 
-	return;
+
 };
 
 export default {};

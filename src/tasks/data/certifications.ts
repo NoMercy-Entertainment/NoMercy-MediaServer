@@ -1,6 +1,6 @@
 import { Certification } from '../../providers/tmdb/movie/index';
 import { ContentRating } from '../../providers/tmdb/shared/index';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import { commitConfigTransaction } from '../../database';
 import { confDb } from '../../database/config';
 

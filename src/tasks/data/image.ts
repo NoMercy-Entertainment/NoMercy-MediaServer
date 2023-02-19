@@ -1,5 +1,5 @@
 import { confDb } from '../../database/config';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
 import { Image } from '../../providers/tmdb/shared/index';
@@ -17,16 +17,16 @@ export default async (
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile',
 	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video'
 ) => {
-	if(!req.images[`${type}s`]) return;
-	
+	if (!req.images[`${type}s`]) return;
+
 	for (const image of req.images[`${type}s`] as Array<Image>) {
-		
-		let blurHash: string | undefined = undefined;
+
+		let blurHash: string | undefined;
 		let pallette: PaletteColors | null = <PaletteColors>{};
 
-		if(image.file_path){
+		if (image.file_path) {
 			pallette = await colorPalette(`https://image.tmdb.org/t/p/w185${image.file_path}`)
-				.then((data) => data)
+				.then(data => data)
 				.catch(() => null);
 
 			blurHash = await createBlurHash(`https://image.tmdb.org/t/p/w185${image.file_path}`);
@@ -43,12 +43,24 @@ export default async (
 			width: image.width,
 			colorPalette: JSON.stringify(pallette),
 			blurHash: blurHash,
-			episodeId: table == 'episode' ? req.id : undefined,
-			movieId: table == 'movie' ? req.id : undefined,
-			personId: table == 'person' ? req.id : undefined,
-			seasonId: table == 'season' ? req.id : undefined,
-			tvId: table == 'tv' ? req.id : undefined,
-			videoFileId: table == 'video' ? req.id : undefined,
+			episodeId: table == 'episode'
+				? req.id
+				: undefined,
+			movieId: table == 'movie'
+				? req.id
+				: undefined,
+			personId: table == 'person'
+				? req.id
+				: undefined,
+			seasonId: table == 'season'
+				? req.id
+				: undefined,
+			tvId: table == 'tv'
+				? req.id
+				: undefined,
+			videoFileId: table == 'video'
+				? req.id
+				: undefined,
 		});
 
 		transaction.push(
@@ -60,7 +72,7 @@ export default async (
 				create: mediaInsert,
 			})
 		);
-		
+
 	}
 
-}
+};

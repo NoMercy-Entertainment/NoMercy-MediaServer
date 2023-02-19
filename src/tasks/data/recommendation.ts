@@ -1,7 +1,7 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import { Movie } from '../../providers/tmdb/movie/index';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import { TvShow } from '../../providers/tmdb/tv/index';
 import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash/createBlurHash';
@@ -11,9 +11,13 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 	for (const recommendation of req.recommendations.results as Array<Movie | TvShow>) {
 
 		const blurHash = {
-			poster: recommendation.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.poster_path}`) : undefined,
-			backdrop: recommendation.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`) : undefined,
-		}
+			poster: recommendation.poster_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.poster_path}`)
+				: undefined,
+			backdrop: recommendation.backdrop_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`)
+				: undefined,
+		};
 
 		const recommendationInsert = Prisma.validator<Prisma.RecommendationUncheckedCreateInput>()({
 			backdrop: recommendation.backdrop_path,

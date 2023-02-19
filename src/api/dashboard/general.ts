@@ -12,7 +12,7 @@ export const languages = async (req: Request, res: Response): Promise<Response<a
 		})
 		.then((data) => {
 			return res.json(
-				data.map((d) => ({
+				data.map(d => ({
 					...d,
 				}))
 			);
@@ -40,7 +40,7 @@ export const countries = async (req: Request, res: Response): Promise<Response<a
 		})
 		.then((data) => {
 			return res.json(
-				data.map((d) => ({
+				data.map(d => ({
 					...d,
 				}))
 			);

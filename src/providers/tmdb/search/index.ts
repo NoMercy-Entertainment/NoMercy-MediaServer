@@ -1,27 +1,27 @@
+import Logger from '../../../functions/logger';
+import tmdbApiClient from '../tmdbApiClient';
+import {
+	sortByMatchPercentage
+} from '../../../functions/stringArray';
 import { Collection } from '../collection/collection';
 import { Company } from '../company/company';
-import { Keyword } from '../keywords/keyword';
-import Logger from '../../../functions/logger';
-import { Movie } from '../movie/movie';
 import { PaginatedResponse } from '../helpers';
+import { Keyword } from '../keywords/keyword';
+import { Movie } from '../movie/movie';
 import { Person } from '../people/person';
 import { TvShow } from '../tv/tv';
-import {
-	sortByMatchPercentage,
-} from '../../../functions/stringArray';
-import tmdbApiClient from '../tmdbApiClient';
 
 export * from './search';
 export * from './search-result';
 
 export const searchCollection = async (query: string): Promise<Collection[]> => {
 
-	if(!query) {
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
 
 		return [];
@@ -48,12 +48,12 @@ export const searchCollection = async (query: string): Promise<Collection[]> => 
 
 export const searchCompany = async (query: string): Promise<Company[]> => {
 
-	if(!query) {
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
 
 		return [];
@@ -79,12 +79,12 @@ export const searchCompany = async (query: string): Promise<Company[]> => {
 
 export const searchKeyword = async (query: string): Promise<Keyword[]> => {
 
-	if(!query) {
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
 
 		return [];
@@ -110,17 +110,17 @@ export const searchKeyword = async (query: string): Promise<Keyword[]> => {
 
 export const searchMovie = async (query: string, year: number | null = null): Promise<Movie[]> => {
 	query = query?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
-		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
-		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
-		
-	if(!query) {
+		.split('.(')[0].replace(/([a-z])\./gu, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/gu, '$1 $2');
+
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
-		
+
 		return [];
 	}
 
@@ -143,7 +143,7 @@ export const searchMovie = async (query: string, year: number | null = null): Pr
 
 	return sortByMatchPercentage(
 		data.results?.filter(
-			(d) => !d.title.includes('OVA') || !d.title.includes('ova') || !d.title.includes('Making of') || !d.title.includes('making of')
+			d => !d.title.includes('OVA') || !d.title.includes('ova') || !d.title.includes('Making of') || !d.title.includes('making of')
 		) || [],
 		'title',
 		query
@@ -153,15 +153,15 @@ export const searchMovie = async (query: string, year: number | null = null): Pr
 export const searchMulti = async (query: string, year: number | string | null = null): Promise<(Person | Movie | TvShow)[]> => {
 
 	query = query
-		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
-		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+		.split('.(')[0].replace(/([a-z])\./gu, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/gu, '$1 $2');
 
-	if(!query) {
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
 
 		return [];
@@ -189,21 +189,21 @@ export const searchMulti = async (query: string, year: number | string | null = 
 
 export const searchPeople = async (query: string): Promise<Person[]> => {
 
-	query = query.
-		split('.(')[0].replace(/([a-z])\./g, '$1 ')
-		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+	query = query
+		.split('.(')[0].replace(/([a-z])\./gu, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/gu, '$1 $2');
 
-	if(!query) {
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
 
 		return [];
 	}
-	
+
 
 	Logger.log({
 		level: 'info',
@@ -226,26 +226,26 @@ export const searchPeople = async (query: string): Promise<Person[]> => {
 
 export const searchTv = async (query: string, year: number | null = null): Promise<TvShow[]> => {
 	query = query?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
-		.split('.(')[0].replace(/([a-z])\./g, '$1 ')
-		.replace(/([A-Z])\.([A-Z][^A-Z.])/g, '$1 $2');
+		.split('.(')[0].replace(/([a-z])\./gu, '$1 ')
+		.replace(/([A-Z])\.([A-Z][^A-Z.])/gu, '$1 $2');
 
-	if(!query) {
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
 
 		return [];
 	}
 
-	if(!query) {
+	if (!query) {
 		Logger.log({
 			level: 'info',
 			name: 'moviedb',
 			color: 'red',
-			message: `No query given`,
+			message: 'No query given',
 		});
 	}
 
@@ -265,7 +265,7 @@ export const searchTv = async (query: string, year: number | null = null): Promi
 
 	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('search/tv', params);
 
-	return sortByMatchPercentage(data.results?.filter((d) => !d.name.includes('OVA') || !d.name.includes('ova')) || [], 'name', query);
+	return sortByMatchPercentage(data.results?.filter(d => !d.name.includes('OVA') || !d.name.includes('ova')) || [], 'name', query);
 };
 
 export default {

@@ -15,7 +15,7 @@ import {
 	Tv,
 	UserData,
 	VideoFile
-} from '@prisma/client';
+} from '../../database/config/client';
 
 import { LibraryResponseContent } from 'types/server';
 import { createTitleSort } from '../../tasks/files/filenameParser';

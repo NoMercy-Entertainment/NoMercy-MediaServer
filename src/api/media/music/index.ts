@@ -1,4 +1,4 @@
-import { Album, Artist, MusicGenre, Playlist, Prisma, Track, UserData } from '@prisma/client';
+import { Album, Artist, MusicGenre, Playlist, Prisma, Track, UserData } from '../../../database/config/client';
 import { Request, Response } from 'express';
 import { shuffle, unique } from '../../../functions/stringArray';
 

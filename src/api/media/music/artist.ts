@@ -8,7 +8,6 @@ import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
 
 export default async function (req: Request, res: Response): Promise<Response<ArtistResponse>> {
-
 	const language = getLanguage(req);
 
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
@@ -44,17 +43,19 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 	const results: ArtistResponse = {
 		...music,
 		type: 'artist',
-		cover: (music.cover
-			?? music.Track?.find(t => t.cover)?.cover
-			?? music.Track?.[0]?.Artist.find(t => t.cover)?.cover)?.replace('http://', 'https://'),
+		cover: (music.cover ?? music.Track?.find(t => t.cover)?.cover ?? music.Track?.[0]?.Artist.find(t => t.cover)?.cover)?.replace(
+			'http://',
+			'https://'
+		),
 
-		colorPalette: JSON.parse(music.colorPalette
-			?? music.Track?.find(t => t.cover)?.colorPalette
-			?? music.Track?.[0]?.Artist.find(t => t.cover)?.colorPalette
-			?? '{}'),
+		colorPalette: JSON.parse(
+			music.colorPalette
+        ?? music.Track?.find(t => t.cover)?.colorPalette
+        ?? music.Track?.[0]?.Artist.find(t => t.cover)?.colorPalette
+        ?? '{}'
+		),
 
 		Track: uniqBy<typeof music.Track>(music.Track.sort(trackSort), 'name').map((t) => {
-
 			const albums = t.Album.map(a => ({
 				id: a.id,
 				name: a?.name,
@@ -63,7 +64,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 				description: a?.description,
 				libraryId: music.libraryId,
 				origin: deviceId,
-				colorPalette: a.colorPalette,
+				colorPalette: undefined,
 			}));
 			const artists = t.Artist.filter(a => a.id != '89ad4ac3-39f7-470e-963a-56509c546377').map(a => ({
 				id: a.id,
@@ -73,26 +74,28 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 				folder: a.folder,
 				libraryId: a.libraryId,
 				origin: deviceId,
-				colorPalette: a.colorPalette,
+				colorPalette: undefined,
 			}));
 
 			return {
 				...t,
-				date: t.date && new Date(t.date)
-					.toLocaleDateString(language, {
-						year: 'numeric',
-						month: 'short',
-						day: '2-digit',
-					}),
+				date:
+          t.date
+          && language
+          && new Date(t.date).toLocaleDateString(language, {
+          	year: 'numeric',
+          	month: 'short',
+          	day: '2-digit',
+          }),
 				type: 'artist',
 				lyrics: undefined,
 				favorite_track: t.FavoriteTrack.length > 0,
 				origin: deviceId,
 				Artist: artists,
-				cover: ((albums[0] ?? t).cover ?? null)?.replace('http://', 'https://'),
+				cover: (t.cover ?? null)?.replace('http://', 'https://'),
 				FavoriteTrack: undefined,
 				libraryId: music.libraryId,
-				colorPalette: JSON.parse((albums[0] ?? t).colorPalette ?? '{}'),
+				colorPalette: JSON.parse(t.colorPalette ?? '{}'),
 				Album: albums,
 				album: albums[0],
 			};

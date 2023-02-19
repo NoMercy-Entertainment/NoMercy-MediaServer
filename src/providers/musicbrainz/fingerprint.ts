@@ -6,31 +6,31 @@ import { fingerprintCalc } from '../../state';
 
 export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileList): Promise<void | Result> => {
 
-    const fingerprintData = JSON.parse(execSync(`${fingerprintCalc} -json "${file.path}"`).toString() ?? '{}');
+	const fingerprintData = JSON.parse(execSync(`${fingerprintCalc} -json "${file.path}"`).toString() ?? '{}');
 
-    const meta = [
-        'recordings',
-        'releases',
-        'tracks',
-        'compress',
-    ].join('+');
+	const meta = [
+		'recordings',
+		'releases',
+		'tracks',
+		'compress',
+	].join('+');
 
-    axiosRetry(axios, {
-        retries: 2,
-        retryDelay: axiosRetry.exponentialDelay,
-    });
+	axiosRetry(axios, {
+		retries: 2,
+		retryDelay: axiosRetry.exponentialDelay,
+	});
 
-    return await axios.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
-        params: {
-            client: 'pXzJ7uXskB',
-            duration: parseInt(fingerprintData.duration, 10),
-            fingerprint: fingerprintData.fingerprint,
-        },
-    })
-        .then((response) => {
-            return response.data.results[0];
-        })
-        .catch(error => console.log(error.response.data.error));
+	return await axios.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
+		params: {
+			client: 'pXzJ7uXskB',
+			duration: parseInt(fingerprintData.duration, 10),
+			fingerprint: fingerprintData.fingerprint,
+		},
+	})
+		.then((response) => {
+			return response.data.results[0];
+		})
+		.catch(error => console.log(error.response.data.error));
 
 };
 

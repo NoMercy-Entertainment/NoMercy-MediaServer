@@ -1,8 +1,8 @@
 import { CompleteTvAggregate } from './fetchTvShow';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../database/config/client';
 import { confDb } from '../../database/config';
 
-export default async (
+export default (
 	req: CompleteTvAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
 	createdByArray: Prisma.CastTvCreateOrConnectWithoutTvInput[],
@@ -10,7 +10,7 @@ export default async (
 ) => {
 
 	for (const created_by of req.created_by) {
-		if(!people.includes(created_by.id)) continue;
+		if (!people.includes(created_by.id)) continue;
 
 		const createdInsert = Prisma.validator<Prisma.CreatorUncheckedCreateInput>()({
 			creditId: created_by.credit_id,

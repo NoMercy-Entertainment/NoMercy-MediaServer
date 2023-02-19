@@ -11,7 +11,7 @@ export default async function genres(): Promise<Genre[]> {
 
 	await Promise.all([
 		movieGenre().then(movie => data.push(...movie)),
-		tvGenre().then(tv => data.push(...tv))
+		tvGenre().then(tv => data.push(...tv)),
 	]);
 
 	return unique(data, 'id');

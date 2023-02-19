@@ -1,7 +1,7 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import Logger from '../../functions/logger/logger';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import image from './image';

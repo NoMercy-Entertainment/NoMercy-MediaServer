@@ -4,11 +4,12 @@ env:
 extends:
   - eslint:recommended
   - plugin:@typescript-eslint/recommended
+  - prettier
 parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaVersion: latest
   sourceType: module
-  project: 
+  project:
     - './tsconfig.json'
     - './tsconfig.eslint.json'
 plugins:
@@ -16,14 +17,20 @@ plugins:
   - '@typescript-eslint'
   - 'prettier'
 
+ignorePatterns: [
+  "src/database/config/client/*",
+  "src/database/queue/client/*",
+  "src/**/*.js",
+  "*.js"
+]
 rules:
   "@typescript-eslint/no-non-null-assertion":
     - off
   "@typescript-eslint/no-this-alias":
     - off
-  "@typescript-eslint/no-explicit-any": 
+  "@typescript-eslint/no-explicit-any":
     - off
-  "@typescript-eslint/ban-ts-comment": 
+  "@typescript-eslint/ban-ts-comment":
     - off
   no-useless-escape:
     - off
@@ -32,7 +39,7 @@ rules:
   no-case-declarations:
     - off
   indent:
-    - off
+    - error
     - tab
   linebreak-style:
     - off
@@ -396,7 +403,7 @@ rules:
     - error
   unicode-bom:
     - error
-  wrap-iife: 
+  wrap-iife:
     - error
     - inside
   wrap-regex:

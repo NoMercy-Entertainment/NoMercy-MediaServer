@@ -10,7 +10,7 @@ export default (ffprobe: VideoFFprobe, outputFolder: string, fileName: string) =
 	const subtitle: any[] = [];
 	// let subEdit = false;
 
-	const keepOriginal = useSelector((state: AppState) => state.config.keepOriginal);	
+	const keepOriginal = useSelector((state: AppState) => state.config.keepOriginal);
 
 	const dir = `${outputFolder}subtitles/`;
 	fs.mkdirSync(dir, { recursive: true });
@@ -62,9 +62,9 @@ export default (ffprobe: VideoFFprobe, outputFolder: string, fileName: string) =
 		const subFile = `${dir + fileName}.${stream.language}.${type}.${ext}`;
 
 		if (
-			ext == 'sup' &&
-			keepOriginal.subtitles &&
-			!fs.existsSync(subFile.replace('/subtitles', '/original'))
+			ext == 'sup'
+			&& keepOriginal.subtitles
+			&& !fs.existsSync(subFile.replace('/subtitles', '/original'))
 		) {
 			subtitleMap.push(`-map 0:${stream.index}`);
 			subtitleMap.push('-c:s copy');
@@ -112,8 +112,8 @@ export default (ffprobe: VideoFFprobe, outputFolder: string, fileName: string) =
 	// }
 
 	const log = subtitle
-		.filter((l) => l.audio !== null)
-		.map((l) => ` s:${l.stream}:${l.lang}.${l.type} `)
+		.filter(l => l.audio !== null)
+		.map(l => ` s:${l.stream}:${l.lang}.${l.type} `)
 		.join(' ');
 
 	return {
@@ -141,7 +141,7 @@ export const getSubtitleFiles = function (ffprobe: VideoFFprobe, outputFolder: s
 };
 
 export const rename = (dir: string, fileName: string, callback = () => null) => {
-	const files = fs.readdirSync(dir).filter((f) => !f.match(/full|sign|sdh|forced/iu));
+	const files = fs.readdirSync(dir).filter(f => !f.match(/full|sign|sdh|forced/iu));
 	let arr: any[] = [];
 	files.forEach((f) => {
 		const reg = /(?<lang>\w{3})\.\w{3}$/u.exec(f);
@@ -187,21 +187,21 @@ export const rename = (dir: string, fileName: string, callback = () => null) => 
 export const getExtension = function (codec_name: string) {
 	let extension;
 	switch (codec_name) {
-		case 'ass':
-		case 'ssa':
-			extension = 'ass';
-			break;
-		case 'hdmv_pgs_subtitle':
-		case 'pgs_subtitle':
-			extension = 'sup';
-			break;
-		case 'dvdsub':
-		case 'dvd_subtitle':
-			extension = 'sub';
-			break;
-		default:
-			extension = 'vtt';
-			break;
+	case 'ass':
+	case 'ssa':
+		extension = 'ass';
+		break;
+	case 'hdmv_pgs_subtitle':
+	case 'pgs_subtitle':
+		extension = 'sup';
+		break;
+	case 'dvdsub':
+	case 'dvd_subtitle':
+		extension = 'sub';
+		break;
+	default:
+		extension = 'vtt';
+		break;
 	}
 	return extension;
 };
@@ -229,20 +229,20 @@ export const getSubType = function (title: string, index = 0) {
 };
 
 export const convertSubToVtt = async function (folder: string) {
-	
+
 	const assToVtt = useSelector((state: AppState) => state.config.assToVtt);
 	const keepOriginal = useSelector((state: AppState) => state.config.keepOriginal);
-	
+
 	if (fs.existsSync(folder)) {
 		// TODO: convert sup first and then convert ass if sup doesnt exist.
 		const files = fs.readdirSync(folder);
 		for (let i = 0; i < files.length; i++) {
 			const s = files[i];
 			if (
-				(!s.match(/.ass$|.vtt$/u) && !fs.existsSync(folder + s.replace(/\.\w{3}$/u, '.vtt'))) ||
-				(assToVtt &&
-					!s.endsWith('.vtt') &&
-					!fs.existsSync(folder + s.replace(/\.\w{3}$/u, '.vtt')))
+				(!s.match(/.ass$|.vtt$/u) && !fs.existsSync(folder + s.replace(/\.\w{3}$/u, '.vtt')))
+				|| (assToVtt
+					&& !s.endsWith('.vtt')
+					&& !fs.existsSync(folder + s.replace(/\.\w{3}$/u, '.vtt')))
 			) {
 				try {
 					await execSync(`${subtitleEdit} /convert "${`${folder}/${s}`}" WebVtt`);
@@ -275,8 +275,8 @@ export const getExistingSubtitles = function (folder: string) {
 	const files = fs.readdirSync(folder);
 	const arr: any[] = [];
 	files
-		.filter((f) => !f.match(/-\w{5,}\.\w{3}$/u))
-		.filter((f) => f.match(/.ass$|.vtt$/u))
+		.filter(f => !f.match(/-\w{5,}\.\w{3}$/u))
+		.filter(f => f.match(/.ass$|.vtt$/u))
 		.forEach((f) => {
 			const reg = /(?<lang>\w{3}).(?<type>\w{3,4}).(?<ext>\w{3})$/u.exec(f);
 			if (reg?.groups) {

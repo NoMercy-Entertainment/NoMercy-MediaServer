@@ -1,6 +1,6 @@
-import { Prisma } from '@prisma/client'
-import { CompleteTvAggregate } from './fetchTvShow';
 import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
+import { Prisma } from '../../database/config/client';
 
 export default function (
 	req: CompleteTvAggregate | CompleteMovieAggregate,

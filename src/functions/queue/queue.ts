@@ -1,6 +1,6 @@
 import { AppState, useSelector } from '../../state/redux';
 
-import { Configuration } from '@prisma/client';
+import { Configuration } from '../../database/config/client';
 import { confDb } from '../../database/config';
 
 export default async () => {

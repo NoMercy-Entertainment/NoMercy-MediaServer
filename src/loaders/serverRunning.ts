@@ -1,6 +1,6 @@
-import { AppState, useSelector } from '../state/redux';
-
 import chalk from 'chalk';
+
+import { AppState, useSelector } from '../state/redux';
 
 export const serverRunning = () => {
 	const secureInternalPort = useSelector((state: AppState) => state.system.secureInternalPort);
@@ -12,10 +12,10 @@ export const serverRunning = () => {
 	const link = () => chalk.bold.underline.hex('#c3c3c3');
 
 	console.log(
-		g()`╔══════════════════════════════════════════════╗\n` +
-		g()`║     `+		a7()`Secure server running: on port: `	+		c3()`${secureInternalPort}`.replace(', ', '')	+		g()`     ║\n` +
-		g()`║       `+		cc()`visit: `							+	  link()`https://app.nomercy.tv`					+		g()`          ║\n` +
-		g()`╚══════════════════════════════════════════════╝`
+		g()`╔══════════════════════════════════════════════╗\n`
+		+ g()`║     ` +		a7()`Secure server running: on port: `	+		c3()`${secureInternalPort}`.replace(', ', '')	+		g()`     ║\n`
+		+ g()`║       ` +		cc()`visit: `							+ link()`https://app.nomercy.tv`					+		g()`          ║\n`
+		+ g()`╚══════════════════════════════════════════════╝`
 	);
 };
 

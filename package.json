@@ -13,8 +13,10 @@
     "make": "tsc && electron-forge make",
     "publish": "tsc && electron-forge publish",
     "pm2": "tsc && pm2 start ./dist/index.js --watch",
-    "lint": "eslint --ext .ts .",
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "test": "jest",
+    "lint": "eslint 'src/**/*.{js,ts}'",
+    "format": "eslint 'src/**/*.{js,ts}' --fix"
   },
   "keywords": [],
   "author": {
@@ -50,13 +52,14 @@
     "@types/os-utils": "^0.0.1",
     "@types/spdy": "^3.4.5",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
+    "@typescript-eslint/parser": "^5.52.0",
     "electron": "^21.1.0",
     "electron-installer-dmg": "^3.0.0",
     "electron-packager": "^16.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-winstaller": "^5.0.0",
     "eslint": "^8.26.0",
+    "eslint-config-prettier": "^8.6.0",
     "eslint-import-resolver-typescript": "^3.5.1",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
@@ -73,7 +76,7 @@
     "@prisma/client": "^4.7.1",
     "@reduxjs/toolkit": "^1.8.5",
     "@runonflux/nat-upnp": "^1.0.2",
-    "axios": "1.1.2",
+    "axios": "latest",
     "axios-retry": "^3.3.1",
     "blurhash": "^2.0.4",
     "canvas": "^2.11.0",
@@ -124,5 +127,6 @@
     "unzipper": "^0.10.11",
     "video.js": "^7.20.3",
     "winston": "^3.8.1"
-  }
+  },
+  "packageManager": "yarn@3.4.1"
 }

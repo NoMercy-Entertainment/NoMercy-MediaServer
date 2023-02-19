@@ -1,7 +1,7 @@
-import tmdbApiClient from '../tmdbApiClient';
-import i18next from 'i18next';
-import { TvCertifications } from './tv_certifications';
 import { MovieCertifications } from './movie_certifications';
+import { TvCertifications } from './tv_certifications';
+import i18next from 'i18next';
+import tmdbApiClient from '../tmdbApiClient';
 
 export * from './movie_certifications';
 export * from './tv_certifications';
@@ -17,38 +17,38 @@ export default async function certifications(): Promise<Array<CertificationList>
 	const data: Array<CertificationList> = [];
 
 	await Promise.all([
-		movieCertifications().then((movie) => {
-            for (let i = 0; i < Object.keys(movie).length; i++) {
-                const key = Object.keys(movie)[i];
-                const certification = movie[key];
+		movieCertifications().then((certs) => {
+			for (let i = 0; i < Object.keys(certs).length; i++) {
+				const key = Object.keys(certs)[i];
+				const certification = certs[key];
 
-                for (let j = 0; j < certification.length; j++) {
-                    const cert = certification[j];
-                    data.push({
-                        iso_3166_1: key,
-                        meaning: cert.meaning,
-                        order: cert.order,
-                        certification: cert.certification,
-                    });
-                }
-            }
-        }),
-		tvCertifications().then((tv) => {
-            for (let i = 0; i < Object.keys(tv).length; i++) {
-                const key = Object.keys(tv)[i];
-                const certification = tv[key];
+				for (let j = 0; j < certification.length; j++) {
+					const cert = certification[j];
+					data.push({
+						iso_3166_1: key,
+						meaning: cert.meaning,
+						order: cert.order,
+						certification: cert.certification,
+					});
+				}
+			}
+		}),
+		tvCertifications().then((certs) => {
+			for (let i = 0; i < Object.keys(certs).length; i++) {
+				const key = Object.keys(certs)[i];
+				const certification = certs[key];
 
-                for (let j = 0; j < certification.length; j++) {
-                    const cert = certification[j];
-                    data.push({
-                        iso_3166_1: key,
-                        meaning: cert.meaning,
-                        order: cert.order,
-                        certification: cert.certification,
-                    });
-                }
-            }
-        }),
+				for (let j = 0; j < certification.length; j++) {
+					const cert = certification[j];
+					data.push({
+						iso_3166_1: key,
+						meaning: cert.meaning,
+						order: cert.order,
+						certification: cert.certification,
+					});
+				}
+			}
+		}),
 	]);
 
 	return data;

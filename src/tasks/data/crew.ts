@@ -1,7 +1,7 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
 import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash/createBlurHash';
@@ -24,7 +24,7 @@ export default async (
 	// 	message: `Adding crew for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
 	// });
 	for (const crew of req.credits.crew) {
-		if(!people.includes(crew.id)) continue;
+		if (!people.includes(crew.id)) continue;
 
 		const crewsInsert = Prisma.validator<Prisma.CrewUncheckedCreateInput>()({
 			id: crew.credit_id,
@@ -39,7 +39,9 @@ export default async (
 			originalName: crew.original_name,
 			popularity: crew.popularity,
 			profilePath: crew.profile_path,
-			blurHash: crew.profile_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${crew.profile_path}`) : undefined,
+			blurHash: crew.profile_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${crew.profile_path}`)
+				: undefined,
 		});
 
 		transaction.push(
@@ -61,7 +63,7 @@ export default async (
 			},
 		});
 	}
-	
+
 	// Logger.log({
 	// 	level: 'info',
 	// 	name: 'App',

@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 
-import { KAuthRequest } from "types/keycloak";
-import { confDb } from "../../../../database/config";
-import { deviceId } from "../../../../functions/system";
+import { KAuthRequest } from 'types/keycloak';
+import { confDb } from '../../../../database/config';
+import { deviceId } from '../../../../functions/system';
 
 export default async function (req: Request, res: Response) {
-	
+
 	try {
 		const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 
@@ -32,7 +32,7 @@ export default async function (req: Request, res: Response) {
 						},
 					},
 					orderBy: {
-						updated_at: "asc",
+						updated_at: 'asc',
 					},
 				},
 			},
@@ -40,11 +40,11 @@ export default async function (req: Request, res: Response) {
 
 		if (music) {
 			const results: any = {
-				type: "playlist",
+				type: 'playlist',
 				...music,
-				colorPalette: JSON.parse(music.colorPalette ?? "{}"),
+				colorPalette: JSON.parse(music.colorPalette ?? '{}'),
 				track: music.PlaylistTrack.map((t) => {
-					
+
 					const albums = t.Track.Album.map(a => ({
 						id: a.id,
 						name: a?.name,
@@ -87,28 +87,28 @@ export default async function (req: Request, res: Response) {
 			delete results.playlistTrack;
 
 			return res.json(results);
-		} else {
-			const lists = await confDb.playlist
-				.findMany({
-					where: {
-						userId: user,
-					},
-					include: {
-						_count: true,
-					},
-				});
-
-			const playlist = await confDb.playlist
-				.create({
-					data: {
-						name: req.body.name ?? `My playlist ${lists.length + 1}`,
-						description: "",
-						userId: user,
-					},
-				});
-
-			return res.status(400).json(playlist);
 		}
+		const lists = await confDb.playlist
+			.findMany({
+				where: {
+					userId: user,
+				},
+				include: {
+					_count: true,
+				},
+			});
+
+		const playlist = await confDb.playlist
+			.create({
+				data: {
+					name: req.body.name ?? `My playlist ${lists.length + 1}`,
+					description: '',
+					userId: user,
+				},
+			});
+
+		return res.status(400).json(playlist);
+
 	} catch (error) {
 		console.log(error);
 	}

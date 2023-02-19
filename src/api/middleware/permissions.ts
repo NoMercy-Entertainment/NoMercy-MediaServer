@@ -176,16 +176,16 @@ export const permissions = (req: Request, res: Response) => {
 			edit: data?.manage ?? false,
 		});
 	})
-	.catch((error) => {
-		Logger.log({
-			level: 'info',
-			name: 'access',
-			color: 'magentaBright',
-			message: `Error getting user permissions: ${error}`,
+		.catch((error) => {
+			Logger.log({
+				level: 'info',
+				name: 'access',
+				color: 'magentaBright',
+				message: `Error getting user permissions: ${error}`,
+			});
+			return res.json({
+				status: 'error',
+				message: `Something went wrong getting user permissions: ${error}`,
+			});
 		});
-		return res.json({
-			status: 'error',
-			message: `Something went wrong getting user permissions: ${error}`,
-		});
-	});
 };

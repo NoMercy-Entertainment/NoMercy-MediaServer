@@ -1,4 +1,4 @@
-import { Collection, Prisma } from '@prisma/client';
+import { Collection, Prisma } from '../../../database/config/client';
 import { Request, Response } from 'express';
 import { sortBy, unique } from '../../../functions/stringArray';
 
@@ -18,7 +18,7 @@ export default async function (req: Request, res: Response) {
 	let collections: any[] = [];
 
 	await confDb.collection.findMany(collectionQuery)
-			.then(data => collections.push(...data));
+		.then(data => collections.push(...data));
 
 	await Promise.all([
 		confDb.translation.findMany(translationQuery({ ids: collections.map(d => d.id), language }))

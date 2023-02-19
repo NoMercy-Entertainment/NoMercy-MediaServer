@@ -1,10 +1,11 @@
-import { Movie } from '../movie';
+import { Movie, MovieImages } from '../movie';
+import { Credits } from '../movie/credits';
+import { ContentRatings } from '../shared';
 import { ExternalIds } from '../shared/external_ids';
 import { Collection } from './collection';
-import { ContentRatings } from '../shared';
-import { Credits } from '../movie/credits';
-import { MovieImages } from '../movie';
-import { CollectionTranslations } from './collection_translations';
+import {
+	CollectionTranslations
+} from './collection_translations';
 
 export interface CollectionDetails extends Collection {
 	parts: Movie[];

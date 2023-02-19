@@ -1,4 +1,4 @@
-import { sleep } from "../functions/dateTime";
+import { sleep } from '../functions/dateTime';
 
 export const sum = ({ a, b, jid }: { a: number; b: number; jid: null }) => {
 	if (jid) {

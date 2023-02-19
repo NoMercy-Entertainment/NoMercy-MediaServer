@@ -16,9 +16,9 @@ export const serveImagesPath = (req: Request, res: Response) => {
 	try {
 		if (existsSync(`${imagesPath}/${req.params[0]}`)) {
 			return res.sendFile(`${imagesPath}/${req.params[0]}`);
-		} else {
-			return res.status(404).end();
 		}
+		return res.status(404).end();
+
 	} catch (error) {
 		return res.status(404).end();
 	};
@@ -34,9 +34,9 @@ export const serveTranscodePath = (req: Request, res: Response) => {
 	try {
 		if (existsSync(`${transcodesPath}/${req.params[0]}`)) {
 			return res.sendFile(`${transcodesPath}/${req.params[0]}`);
-		} else {
-			return res.status(404).end();
 		}
+		return res.status(404).end();
+
 	} catch (error) {
 		return res.status(404).end();
 	}
@@ -52,9 +52,9 @@ export const serveSubtitlesPath = (req: Request, res: Response) => {
 	try {
 		if (existsSync(`${subtitlesPath}/${req.params[0]}`)) {
 			return res.sendFile(`${subtitlesPath}/${req.params[0]}`);
-		} else {
-			return res.status(404).end();
 		}
+		return res.status(404).end();
+
 	} catch (error) {
 		return res.status(404).end();
 	}
@@ -70,9 +70,9 @@ export const servePublicPath = (req: Request, res: Response) => {
 	try {
 		if (existsSync(`${publicPath}/${req.params[0]}`)) {
 			return res.sendFile(`${publicPath}/${req.params[0]}`);
-		} else {
-			return res.status(404).end();
 		}
+		return res.status(404).end();
+
 	} catch (error) {
 		return res.status(404).end();
 	}

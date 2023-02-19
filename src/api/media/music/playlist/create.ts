@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from "types/keycloak";
-import { confDb } from "../../../../database/config";
+import { KAuthRequest } from 'types/keycloak';
+import { confDb } from '../../../../database/config';
 
 export default async function (req: Request, res: Response) {
 

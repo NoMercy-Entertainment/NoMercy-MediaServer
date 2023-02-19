@@ -1,7 +1,7 @@
-import { PaletteColors } from "types/server";
-import axios from "axios";
-import colorThief from "pure-color-thief-node";
-import { readFileSync } from "fs";
+import axios from 'axios';
+import { readFileSync } from 'fs';
+import colorThief from 'pure-color-thief-node';
+import { PaletteColors } from 'types/server';
 
 export default async (data: string| Buffer): Promise<PaletteColors | null> => {
 
@@ -10,27 +10,26 @@ export default async (data: string| Buffer): Promise<PaletteColors | null> => {
 		if (typeof data == 'string') {
 			imageBuffer = await axios
 				.get(data, {
-					responseType: "arraybuffer",
+					responseType: 'arraybuffer',
 				});
-		} 
-		else {
+		} else {
 			imageBuffer = data;
 		}
-		
-		if(!imageBuffer?.headers['content-type']){
+
+		if (!imageBuffer?.headers['content-type']) {
 			return null;
 		}
-	
+
 		const img = new colorThief();
-	
-		if(!['image/png', 'image/jpeg', 'image/jpg'].includes(imageBuffer.headers['content-type'])){
+
+		if (!['image/png', 'image/jpeg', 'image/jpg'].includes(imageBuffer.headers['content-type'])) {
 			return null;
 		}
-	
+
 		await img.loadImage(Buffer.from(imageBuffer.data), imageBuffer.headers['content-type']);
-	
+
 		const pallette = img.getColorPalette(5);
-	
+
 		return {
 			primary: `rgb(${pallette[0]})`,
 			lightVibrant: `rgb(${pallette[1]})`,
@@ -38,19 +37,19 @@ export default async (data: string| Buffer): Promise<PaletteColors | null> => {
 			lightMuted: `rgb(${pallette[3]})`,
 			darkMuted: `rgb(${pallette[4]})`,
 		};
-		
+
 	} catch (error) {
 		return null;
 	}
 };
 
 export const colorPaletteFromFile = async (path: string): Promise<PaletteColors|null> => {
-	
+
 	const img = new colorThief();
-	const file = path.replace(/[\\\/]undefined/gu,'');
+	const file = path.replace(/[\\\/]undefined/gu, '');
 	console.log(file);
 
-	await img.loadImage(readFileSync(file), path.replace(/.*\.(\w{3,4})$/, 'image/$1').replace('jpg', 'jpeg'));
+	await img.loadImage(readFileSync(file), path.replace(/.*\.(\w{3,4})$/u, 'image/$1').replace('jpg', 'jpeg'));
 	const palette = img.getColorPalette(5);
 
 	return {

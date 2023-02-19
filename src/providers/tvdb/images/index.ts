@@ -1,9 +1,9 @@
-import TVDBImageCrawler from "./imageCrawler";
+import TVDBImageCrawler from './imageCrawler';
 
 export * from './imageCrawler';
 
 export const imageCrawler = async (url: string) => {
-    const tmdb = new TVDBImageCrawler(url);
+	const tmdb = new TVDBImageCrawler(url);
 
-    return await tmdb.getData();
-}
+	return await tmdb.getData();
+};

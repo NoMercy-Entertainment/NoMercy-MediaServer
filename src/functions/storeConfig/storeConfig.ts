@@ -1,10 +1,10 @@
 import { ConfigData } from 'types/server';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../database/config/client';
 import { confDb } from '../../database/config';
 import loadConfigs from '../loadConfigs';
 
 export default async (data: ConfigData, user: string | null, transaction?: Prisma.PromiseReturnType<any>[]) => {
-	let hasTransaction = !!transaction;
+	const hasTransaction = !!transaction;
 	if (!transaction) {
 		transaction = [];
 	}
@@ -20,14 +20,14 @@ export default async (data: ConfigData, user: string | null, transaction?: Prism
 				},
 				update: user
 					? {
-							key: key.toString(),
-							value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
-							modified_by: user,
+						key: key.toString(),
+						value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
+						modified_by: user,
 					}
 					: {
-							key: key.toString(),
-							value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
-							modified_by: null,
+						key: key.toString(),
+						value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
+						modified_by: null,
 					},
 				create: {
 					key: key.toString(),

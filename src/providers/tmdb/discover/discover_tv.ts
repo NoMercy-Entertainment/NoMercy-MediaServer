@@ -18,6 +18,7 @@ export enum DiscoverTvShowSortOrder {
 }
 
 export interface DiscoverTvShowParams {
+
 	/**
 	 * sort_by
 	 ** Choose from one of the many available sort options.

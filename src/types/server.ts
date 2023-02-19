@@ -1,4 +1,4 @@
-import { Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '@prisma/client';
+import { Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '../database/config/client';
 
 import { Movie } from '../providers/tmdb/movie';
 import { Socket } from 'socket.io';
@@ -7,7 +7,7 @@ import { Video } from '../providers/tmdb/shared';
 
 export interface MediaServer {
 	connected: boolean;
-	currentServer: Server;
+	currentServer: Server | null;
 	servers: Server[];
 	loading: boolean;
 	error: string | null;

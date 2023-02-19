@@ -1,7 +1,7 @@
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import { Movie } from '../../providers/tmdb/movie/index';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import { TvShow } from '../../providers/tmdb/tv/index';
 import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash/createBlurHash';
@@ -13,9 +13,13 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 	for (const similar of unique<Movie | TvShow>(req.similar.results, 'id')) {
 
 		const blurHash = {
-			poster: similar.poster_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${similar.poster_path}`) : undefined,
-			backdrop: similar.backdrop_path ? await createBlurHash(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`) : undefined,
-		}
+			poster: similar.poster_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${similar.poster_path}`)
+				: undefined,
+			backdrop: similar.backdrop_path
+				? await createBlurHash(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`)
+				: undefined,
+		};
 
 		const similarInsert = Prisma.validator<Prisma.SimilarCreateInput>()({
 			backdrop: similar.backdrop_path,
@@ -44,4 +48,4 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			})
 		);
 	}
-}
+};

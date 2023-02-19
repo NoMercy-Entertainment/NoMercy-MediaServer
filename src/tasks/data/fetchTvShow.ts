@@ -2,38 +2,37 @@ import {
 	AlternativeTitles,
 	ExternalIDS,
 	Recommendations,
+	TvCast,
 	TvContentRatings,
+	TvCredits,
+	TvCrew,
 	TvImages,
 	TvKeywords,
 	TvShowTranslations,
 	TvSimilar,
 	TvVideos,
 	TvWatchProviders,
-	tv,
+	tv
 } from '../../providers/tmdb/tv/index';
 import { Cast, Country, CreatedBy, Crew, Genre, Language } from '../../providers/tmdb/shared/index';
 import { Episode, EpisodeAppend, episodes } from '../../providers/tmdb/episode/index';
 import { PersonAppend, person } from '../../providers/tmdb/people/index';
 import { SeasonAppend, seasons } from '../../providers/tmdb/season/index';
-import { chunk, unique } from '../../functions/stringArray';
+import { chunk, jsonToString, unique } from '../../functions/stringArray';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 import { Company } from '../../providers/tmdb/company/company';
 import { Network } from '../../providers/tmdb/networks/network';
-import { TvCast } from '../../providers/tmdb/tv/index';
-import { TvCredits } from '../../providers/tmdb/tv/index';
-import { TvCrew } from '../../providers/tmdb/tv/index';
 import { cachePath } from '../../state';
 import { fileChangedAgo } from '../../functions/dateTime';
-import { jsonToString } from '../../functions/stringArray';
 import path from 'path';
 
 export default (id: number) => {
 	return new Promise<CompleteTvAggregate>((resolve, reject) => {
-		
+
 		try {
 			const showFile = path.resolve(cachePath, 'temp', `tv_${id}.json`);
-			
+
 			if (existsSync(showFile) && fileChangedAgo(showFile, 'days') < 50) {
 				try {
 					const data = JSON.parse(readFileSync(showFile, 'utf-8')) as CompleteTvAggregate;
@@ -44,7 +43,7 @@ export default (id: number) => {
 			}
 
 			tv(id).then(async (show) => {
-				
+
 				const people: Array<TvCast | TvCrew | Cast | Crew | PersonAppend> = [];
 				const newCast: Array<any> = [];
 				const newCrew: Array<any> = [];
@@ -58,43 +57,44 @@ export default (id: number) => {
 
 				await seasons(
 					show.id,
-					show.seasons.map((s) => s.season_number)
+					show.seasons.map(s => s.season_number)
 				).then(async (Seasons) => {
 
-					data.seasons.push(...Seasons.map((s) => ({ ...s, episodes: [] })));
+					data.seasons.push(...Seasons.map(s => ({ ...s, episodes: [] })));
 
 					for (let i = 0; i < Seasons.length; i++) {
 						const Season = Seasons[i];
-						
-						Season.credits.cast.map((c) => people.push(c));
-						Season.credits.crew.map((c) => people.push(c));
 
-						await episodes(show.id,Season.season_number,Season.episodes.map((e) => e.episode_number))
-							.then(async (Episodes) => {
-									
-								(data.seasons.find((s) => s.season_number == Season.season_number) as SeasonAppend).episodes.push(...Episodes);
+						Season.credits.cast.map(c => people.push(c));
+						Season.credits.crew.map(c => people.push(c));
+
+						await episodes(show.id, Season.season_number, Season.episodes.map(e => e.episode_number))
+							.then((Episodes) => {
+
+								(data.seasons.find(s => s.season_number == Season.season_number) as SeasonAppend).episodes.push(...Episodes);
 
 								for (let j = 0; j < Episodes.length; j++) {
 									const Episode = Episodes[j];
 
-									Episode.credits.cast.map((c) => people.push(c));
-									Episode.credits.crew.map((c) => people.push(c));
+									Episode.credits.cast.map(c => people.push(c));
+									Episode.credits.crew.map(c => people.push(c));
 								}
-							}).catch(() => {
+							})
+							.catch(() => {
 								//
 							});
 					}
 				});
 
 
-				data.aggregate_credits.cast.map((c) => people.push(c));
-				data.aggregate_credits.crew.map((c) => people.push(c));
+				data.aggregate_credits.cast.map(c => people.push(c));
+				data.aggregate_credits.crew.map(c => people.push(c));
 
 				for (const Pers of unique(people, 'id')) {
 					personPromise.push(
 						person(Pers.id).then((p) => {
 							data.aggregate_credits.cast
-								.filter((c) => c.id == p.id)
+								.filter(c => c.id == p.id)
 								.map((c) => {
 									newCast.push({
 										...c,
@@ -103,7 +103,7 @@ export default (id: number) => {
 								});
 
 							data.aggregate_credits.crew
-								.filter((c) => c.id == p.id)
+								.filter(c => c.id == p.id)
 								.map((c) => {
 									newCrew.push({
 										...c,
@@ -189,7 +189,7 @@ export interface CompleteTvAggregate {
 	translations: TvShowTranslations;
 }
 
-export interface CombinedPeople extends Array<CompleteCast | CompleteCrew> {}
+export type CombinedPeople = Array<CompleteCast | CompleteCrew>
 
 export interface CombinedSeasons extends SeasonAppend {
 	episodes: EpisodeAppend[];

@@ -45,7 +45,7 @@ export const getAvailableCodecOptions = (argument = 'encoder', encoder: CodecInf
 		arg_type: string | null;
 		arg_description: string | null;
 		args: Array<string>;
-	}> = new Array();
+	}> = [];
 
 	if (!ffEncodercheck.match(regex)) {
 		const matches = /(En|De)coder\s(?<command>[\w\d_-]+)\s\[(?<description>.+)\]/u.exec(ffEncodercheck);
@@ -70,7 +70,7 @@ export const getAvailableCodecOptions = (argument = 'encoder', encoder: CodecInf
 	while ((m = regex.exec(ffEncodercheck)) !== null) {
 		// if (m.index === regex.lastIndex) regex.lastIndex++;
 
-		const [command, type, description, ...args] = Object.entries<string>(m.groups).filter((g) => g[1] != undefined);
+		const [command, type, description, ...args] = Object.entries<string>(m.groups).filter(g => g[1] != undefined);
 
 		encoderOptions.push({
 			codec: encoder[argument],
@@ -103,13 +103,13 @@ export interface CodecInfo {
 }
 
 export const getCodecInfo = (argument = 'encoder', type: string | null = null, filter: string[] = []): CodecInfo[] => {
-	const reg =
-		'(?<type>[VAS])(?<frame>[F\\.])(?<slice>[S\\.])(?<experimental>[X\\.])(?<draw>[B\\.])(?<direct>[D\\.])\\s(?<encoder>[\\w-]+)\\s+(?<description>.+)';
+	const reg
+		= '(?<type>[VAS])(?<frame>[F\\.])(?<slice>[S\\.])(?<experimental>[X\\.])(?<draw>[B\\.])(?<direct>[D\\.])\\s(?<encoder>[\\w-]+)\\s+(?<description>.+)';
 	const regex = new RegExp(reg, 'gu');
 
 	const ffcheck = execSync(`ffmpeg -hide_banner -${argument}s`).toString();
 
-	const encoderOptions: Array<CodecInfo> = new Array();
+	const encoderOptions: Array<CodecInfo> = [];
 
 	let m;
 	while ((m = regex.exec(ffcheck)) !== null) {
@@ -118,39 +118,44 @@ export const getCodecInfo = (argument = 'encoder', type: string | null = null, f
 		const [type, frame, slice, experimental, draw, direct, encoder, description] = Object.entries<any>(m.groups);
 
 		encoderOptions.push({
-			type: type[1] == 'V' ? 'video' : type[1] == 'A' ? 'audio' : 'subtitle',
-			frame: frame[1] != '.' ? true : false,
-			slice: slice[1] != '.' ? true : false,
-			experimental: experimental[1] != '.' ? true : false,
-			draw: draw[1] != '.' ? true : false,
-			direct: direct[1] != '.' ? true : false,
+			type: type[1] == 'V'
+				? 'video'
+				: type[1] == 'A'
+					? 'audio'
+					: 'subtitle',
+			frame: frame[1] != '.',
+			slice: slice[1] != '.',
+			experimental: experimental[1] != '.',
+			draw: draw[1] != '.',
+			direct: direct[1] != '.',
 			[argument]: encoder[1],
 			description: description[1],
 		});
 	}
 
 	const result = encoderOptions
-		.filter((encoder) => (type != null ? encoder.type.toLocaleLowerCase() == (type as string).toLocaleLowerCase() : encoder.type != null))
-		.filter((encoder) =>
-			filter.length > 0
-				? filter.some((f) => encoder[argument].toLocaleLowerCase().includes(f)) ||
-				  filter.some((f) => encoder.description.toLocaleLowerCase().includes(f))
-				: encoder.description != null
-		);
+		.filter(encoder => (type != null
+			? encoder.type.toLocaleLowerCase() == (type as string).toLocaleLowerCase()
+			: encoder.type != null))
+		.filter(encoder =>
+			(filter.length > 0
+				? filter.some(f => encoder[argument].toLocaleLowerCase().includes(f))
+				  || filter.some(f => encoder.description.toLocaleLowerCase().includes(f))
+				: encoder.description != null));
 
 	return result;
 };
 
 export const getEncoderOptions = (type: string | null = null, filter: string[] = []) => {
 	return getCodecInfo('encoder', type, filter)
-		.filter((encoder) => encoder.encoder != null)
-		.map((encoder) => getAvailableCodecOptions('encoder', encoder))
-		.filter((encoder) => Object.values(encoder)[0].length > 0);
+		.filter(encoder => encoder.encoder != null)
+		.map(encoder => getAvailableCodecOptions('encoder', encoder))
+		.filter(encoder => Object.values(encoder)[0].length > 0);
 };
 
 export const getDecoderOptions = (type: string | null = null, filter: string[] = []) => {
 	return getCodecInfo('decoder', type, filter)
-		.filter((decoder) => decoder.decoder != null)
-		.map((decoder) => getAvailableCodecOptions('decoder', decoder))
-		.filter((decoder) => Object.values(decoder)[0].length > 0);
+		.filter(decoder => decoder.decoder != null)
+		.map(decoder => getAvailableCodecOptions('decoder', decoder))
+		.filter(decoder => Object.values(decoder)[0].length > 0);
 };

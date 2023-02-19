@@ -40,7 +40,7 @@ export const person = async (id: number) => {
 export const peoplePopular = async (limit = 10) => {
 	const arr: Person[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Person>>(`popular/person`, { params: { page: 1 } });
+	const { data } = await tmdbApiClient.get<PaginatedResponse<Person>>('popular/person', { params: { page: 1 } });
 
 	for (let j = 0; j < data.results.length; j++) {
 		arr.push(data.results[j]);
@@ -50,7 +50,7 @@ export const peoplePopular = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Person>>(`popular/person`, {
+			tmdbApiClient.get<PaginatedResponse<Person>>('popular/person', {
 				params: { page: i },
 			})
 		);

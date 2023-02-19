@@ -1,13 +1,17 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-
-import { PaletteColors } from 'types/server';
 import axios from 'axios';
-import { cachePath } from '../../state';
-import colorPalette from '../colorPalette';
-import { confDb } from '../../database/config';
-import downloadImage from '../downloadImage';
-import { jsonToString } from '../stringArray';
 import { load } from 'cheerio';
+import {
+	existsSync,
+	readFileSync,
+	writeFileSync
+} from 'fs';
+import { PaletteColors } from 'types/server';
+
+import colorPalette from '../colorPalette';
+import downloadImage from '../downloadImage';
+import { confDb } from '../../database/config';
+import { cachePath } from '../../state';
+import { jsonToString } from '../stringArray';
 
 export interface Urls {
 	page: string;
@@ -112,14 +116,14 @@ export const artistImages = async (artist: string) => {
 									//
 								}
 							})
-							.catch((error) => {
+							.catch(() => {
 								// console.log(error);
 								null;
 							})
 					);
 				}
 			})
-			.catch((error) => {
+			.catch(() => {
 				// console.log(error);
 				null;
 			});
@@ -133,22 +137,22 @@ export const artistImages = async (artist: string) => {
 		//
 	}
 
-	const result = urls
-		.filter(a => !!a.type)
-		.filter(async u => (await axios
-			.head<any>(u.url, { timeout: 5000 })
-			.catch(() => ({ status: 500 }))
-		).status < 400)
-		.filter(a => !a.type.includes('gif'))
-		.filter(a => a.average > 40)
-		.sort((a, b) => b.up - a.up)
-		.concat(
-			urls
-				.filter(a => a.average <= 40)
-				.filter(a => !a.type.includes('gif'))
-				.sort((a, b) => b.up - a.up)
-		)
-		.concat(urls.filter(a => a.type.includes('gif')).sort((a, b) => b.average - a.average));
+	// const result = urls
+	// 	.filter(a => !!a.type)
+	// 	.filter(async u => (await axios
+	// 		.head<any>(u.url, { timeout: 5000 })
+	// 		.catch(() => ({ status: 500 }))
+	// 	).status < 400)
+	// 	.filter(a => !a.type.includes('gif'))
+	// 	.filter(a => a.average > 40)
+	// 	.sort((a, b) => b.up - a.up)
+	// 	.concat(
+	// 		urls
+	// 			.filter(a => a.average <= 40)
+	// 			.filter(a => !a.type.includes('gif'))
+	// 			.sort((a, b) => b.up - a.up)
+	// 	)
+	// 	.concat(urls.filter(a => a.type.includes('gif')).sort((a, b) => b.average - a.average));
 
 
 	const promises2: any[] = [];

@@ -12,7 +12,7 @@ import { TvAppend, TvShowTranslation } from '../../providers/tmdb/tv';
 import { DBLibraryWithFolders } from '../../database/data';
 import getAudioInfo from '../../encoder/ffprobe/getAudioInfo';
 import { Channels } from '../../functions/videoFilenameParser/audioChannels';
-import { EncoderProfile, EncoderProfileLibrary, Episode, Folder, Library, LibraryFolder, Movie, Season, Tv } from '@prisma/client';
+import { EncoderProfile, EncoderProfileLibrary, Episode, Folder, Library, LibraryFolder, Movie, Season, Tv } from '../../database/config/client';
 
 interface IObj {
 	[key: string]: any;

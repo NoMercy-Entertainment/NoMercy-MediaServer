@@ -54,7 +54,7 @@ const cpuILoad = function (info: any[]) {
 	}
 	return function () {
 		const res: any = [];
-			const cpus = os.cpus();
+		const cpus = os.cpus();
 		for (let i = 0, len = cpus.length; i < len; i++) {
 			res.push(info[i]());
 		}

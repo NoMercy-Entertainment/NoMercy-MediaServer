@@ -3,6 +3,11 @@
         ".eslintrc.js", 
         "tailwind.config.cjs", 
         "addPreloadLinks.js",
-        "deploy.js"
+        "deploy.js",
+    ],
+    "exclude": [
+        "./src/database/config/client/*",
+        "./src/database/queue/client/*",
+        "/src/**/*.js",
     ]
 }

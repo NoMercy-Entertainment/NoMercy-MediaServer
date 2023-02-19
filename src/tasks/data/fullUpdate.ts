@@ -23,21 +23,21 @@ export const fullUpdate = async (data: FolderInfo) => {
 	// }
 
 	switch (data.type) {
-		case 'tv':
-				await storeTvShow({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
-			break;
-		case 'movie':
-				await storeMovie({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
-			break;
-		case 'music':
-				await storeMusic({ id: data.id as string, folder: data.folder, libraryId: data.libraryId, task: data.task });
-			break;
-		default:
-			break;
+	case 'tv':
+		await storeTvShow({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
+		break;
+	case 'movie':
+		await storeMovie({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
+		break;
+	case 'music':
+		await storeMusic({ id: data.id as string, folder: data.folder, libraryId: data.libraryId, task: data.task });
+		break;
+	default:
+		break;
 	}
 
-    data.lastUpdate = Date.now();
-    writeFileSync(data.jsonFile, JSON.stringify(data, null, 4));
+	data.lastUpdate = Date.now();
+	writeFileSync(data.jsonFile, JSON.stringify(data, null, 4));
 
 	return data;
 };

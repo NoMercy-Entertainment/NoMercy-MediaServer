@@ -1,3 +1,3 @@
 
 
-//user-collections (includes private collections, requires authentication)
+// user-collections (includes private collections, requires authentication)

@@ -1,4 +1,4 @@
-import { Keyword, KeywordMovie, KeywordTv, Media, Movie, Tv } from '@prisma/client';
+import { Keyword, KeywordMovie, KeywordTv, Media, Movie, Tv } from '../../database/config/client';
 import { Request, Response } from 'express';
 import { shuffle, unique } from '../../functions/stringArray';
 

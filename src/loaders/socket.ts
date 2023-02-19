@@ -3,11 +3,11 @@ import { Server, Socket } from 'socket.io';
 
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import Logger from '../functions/logger';
-import { PlayState } from '../types/music';
+import { DisplayList, MutedState, PlayState, Song, State } from '../types/music';
 import base from '../api/sockets/base';
 import { confDb } from '../database/config';
 import { emitData } from '../api/sockets/helpers';
-import { setPlayState } from '../state/redux/music/actions';
+import { setBackLog, setCurrentDevice, setCurrentItem, setCurrentItemIndex, setDisplayList, setDurationState, setIsCurrentDevice, setLyrics, setMutedState, setPlaylists, setPlayState, setPositionState, setQueue, setShowLyrics, setState, setVolumeState } from '../state/redux/music/actions';
 import socketioJwt from 'socketio-jwt';
 import { storeServerActivity } from '../api/userData/activity/post';
 
@@ -189,13 +189,13 @@ export const socket = {
 					updated_at: new Date(),
 				},
 			})
-            .then(async () => {
-                const devices = await confDb.device.findMany();
-                socket.broadcast.emit('setDevices', devices);
-            })
-            .catch(() => {
+				.then(async () => {
+					const devices = await confDb.device.findMany();
+					socket.broadcast.emit('setDevices', devices);
+				})
+				.catch(() => {
 				//
-            });
+				});
 
 			socket.on('connect_error', (err) => {
 				console.log(`connect_error due to ${err.message}`);
@@ -214,6 +214,25 @@ export const socket = {
 				} else {
 					toAll.emit('setCurrentDevice',
 						emitData(myClientList.filter(s => s.client_id != socket.handshake.headers.device_id)[myClientList.length - 1]?.client_id));
+				}
+
+				if (myClientList.length == 0) {
+					setCurrentDevice('');
+					setState(State.idle);
+					setCurrentItemIndex(-1);
+					setCurrentItem(<Song>{});
+					setIsCurrentDevice(true);
+					setPlayState(PlayState.paused);
+					setMutedState(MutedState.unmuted);
+					setVolumeState(0.8);
+					setPositionState(0);
+					setDurationState(0);
+					setLyrics('');
+					setShowLyrics(false);
+					setPlaylists(null);
+					setQueue([]);
+					setBackLog([]);
+					setDisplayList(<DisplayList>{});
 				}
 
 				const data: any = {};

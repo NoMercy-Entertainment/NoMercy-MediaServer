@@ -16,83 +16,83 @@ import { setupComplete } from '../state';
 import { staticPermissions } from '../api/middleware/permissions';
 
 export default async (app: Application) => {
-  const owner = useSelector((state: AppState) => state.system.owner);
+	const owner = useSelector((state: AppState) => state.system.owner);
 
-  const KC = initKeycloak();
+	const KC = initKeycloak();
 
-  app.use(
-    cors({
-      // origin: allowedOrigins,
-      origin: '*',
-    })
-  );
+	app.use(
+		cors({
+			origin: allowedOrigins,
+			// origin: '*',
+		})
+	);
 
-  const shouldCompress = (req, res) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  };
-  app.use(compression({ filter: shouldCompress }));
+	const shouldCompress = (req, res) => {
+		if (req.headers['x-no-compression']) {
+			return false;
+		}
+		return compression.filter(req, res);
+	};
+	app.use(compression({ filter: shouldCompress }));
 
-  app.enable('trust proxy');
-  app.use(changeLanguage);
-  app.use(express.json());
+	app.enable('trust proxy');
+	app.use(changeLanguage);
+	app.use(express.json());
 
-  app.get('/status', (req: Request, res: Response) => {
-    res.status(200).end();
-  });
-  app.head('/status', (req: Request, res: Response) => {
-    res.status(200).end();
-  });
+	app.get('/status', (req: Request, res: Response) => {
+		res.status(200).end();
+	});
+	app.head('/status', (req: Request, res: Response) => {
+		res.status(200).end();
+	});
 
-  app.use(session(session_config));
-  app.use(KC.middleware());
+	app.use(session(session_config));
+	app.use(KC.middleware());
 
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    res.set('X-Powered-By', 'NoMercy MediaServer');
-    res.set('Access-Control-Allow-Private-Network', 'true');
-    res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		res.set('X-Powered-By', 'NoMercy MediaServer');
+		res.set('Access-Control-Allow-Private-Network', 'true');
+		res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
 
-    if (allowedOrigins.some(o => o == req.headers.origin)) {
-      res.set('Access-Control-Allow-Origin', req.headers.origin as string);
-    }
+		if (allowedOrigins.some(o => o == req.headers.origin)) {
+			res.set('Access-Control-Allow-Origin', req.headers.origin as string);
+		}
 
-    next();
-  });
+		next();
+	});
 
-  await serveLibraryPaths(app);
+	await serveLibraryPaths(app);
 
-  app.get('/images/*', staticPermissions, serveImagesPath);
-  app.get('/transcodes/*', staticPermissions, serveTranscodePath);
-  app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
+	app.get('/images/*', staticPermissions, serveImagesPath);
+	app.get('/transcodes/*', staticPermissions, serveTranscodePath);
+	app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
 
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    res.set('owner', owner);
-    next();
-  });
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		res.set('owner', owner);
+		next();
+	});
 
-  app.get('/api/ping', check, (req: Request, res: Response) => {
-    return res.json({
-      message: 'pong',
-      setupComplete: setupComplete || false,
-    });
-  });
+	app.get('/api/ping', check, (req: Request, res: Response) => {
+		return res.json({
+			message: 'pong',
+			setupComplete: setupComplete || false,
+		});
+	});
 
-  app.use('/api', KC.checkSso(), check, changeLanguage, routes);
+	app.use('/api', KC.checkSso(), check, changeLanguage, routes);
 
-  app.get('/', (req: Request, res: Response) => {
-    res.redirect('https://app.nomercy.tv');
-  });
+	app.get('/', (req: Request, res: Response) => {
+		res.redirect('https://app.nomercy.tv');
+	});
 
-  app.get('/*', staticPermissions, servePublicPath);
+	app.get('/*', staticPermissions, servePublicPath);
 
-  Logger.log({
-    level: 'info',
-    name: 'setup',
-    color: 'blueBright',
-    message: 'Express loaded',
-  });
+	Logger.log({
+		level: 'info',
+		name: 'setup',
+		color: 'blueBright',
+		message: 'Express loaded',
+	});
 
-  return app;
+	return app;
 };

@@ -298,7 +298,7 @@ export const releaseAppend = [
 	'relations',
 	'release-group',
 	'tags',
-    'genres',
+	'genres',
 ] as const;
 
 export const release = async (id: string) => {

@@ -49,7 +49,8 @@ export const seasonChanges = async (id: number, season: number, daysback = 1) =>
 	});
 	const params = {
 		params: {
-			start_date: moment().subtract(daysback, 'days').format('md'),
+			start_date: moment().subtract(daysback, 'days')
+				.format('md'),
 			end_date: moment().format('md'),
 		},
 	};

@@ -1,4 +1,4 @@
-import { Media, Prisma } from '@prisma/client';
+import { Media, Prisma } from '../../../database/config/client';
 import { Request, Response } from 'express';
 import { existsSync, readFileSync } from 'fs';
 

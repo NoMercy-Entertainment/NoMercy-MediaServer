@@ -1,6 +1,7 @@
-import { Message } from "./server";
 import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
-import { Request, Response } from "express"
+
+import { Message } from './server';
+import { Request } from 'express';
 
 export interface KeycloakToken {
 	access_token: string
@@ -63,7 +64,7 @@ export interface KAuthRequest extends Request {
 			id_token: string | undefined;
 			token_type: string | undefined;
 			expires_in: string | undefined;
-			__raw: string;	  
+			__raw: string;
 		}
 	};
 }

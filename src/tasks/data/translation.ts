@@ -2,12 +2,12 @@ import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
 import { MovieTranslation } from '../../providers/tmdb/movie/index';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../database/config/client';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
 import { TvShowTranslation } from '../../providers/tmdb/tv/index';
 import { confDb } from '../../database/config';
 
-export default async (
+export default (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
 	table: 'movie' | 'tv' | 'season' | 'episode'

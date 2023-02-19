@@ -1,33 +1,33 @@
 export interface Covers {
-    images:  Image[];
+    images: Image[];
     release: string;
 }
 
 export interface Image {
-    approved:   boolean;
-    back:       boolean;
-    comment:    string;
-    edit:       number;
-    front:      boolean;
-    id:         number;
-    image:      string;
+    approved: boolean;
+    back: boolean;
+    comment: string;
+    edit: number;
+    front: boolean;
+    id: number;
+    image: string;
     thumbnails: Thumbnails;
-    types:      CoverType[];
+    types: CoverType[];
 }
 
 export interface Thumbnails {
-    "250":  string;
-    "500":  string;
-    "1200": string;
-    large:  string;
-    small:  string;
+    '250': string;
+    '500': string;
+    '1200': string;
+    large: string;
+    small: string;
 }
 
 export enum CoverType{
     'Matrix/Runout',
     'Raw/Unedited',
     Back,
-    BackSpine ,
+    BackSpine,
     Booklet,
     Bottom,
     Front,

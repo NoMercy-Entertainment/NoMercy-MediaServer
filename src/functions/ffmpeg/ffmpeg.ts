@@ -8,17 +8,17 @@ import { existsSync, mkdirSync } from 'fs';
 import osu from 'os-utils';
 
 export class FFMpeg {
-    file = '';
-    path = '';
-    title = '';
-    version: string | null = null;
-    lutFile: string | null = null;
-    frameRate: number | null = null;
-    cmd: any;
+	file = '';
+	path = '';
+	title = '';
+	version: string | null = null;
+	lutFile: string | null = null;
+	frameRate: number | null = null;
+	cmd: any;
 	isHDR = false;
 	#wantsSDR = false;
 	#reEncode = false;
-    burnSubs = false;
+	burnSubs = false;
 	index = Math.floor(Math.random() * 2000000000);
 
 	streams: VideoFFprobe['streams'] = <VideoFFprobe['streams']>{};
@@ -42,15 +42,15 @@ export class FFMpeg {
 
 	threads = osu.cpuCount();
 
-    baseFolder = '';
-    episodeFolder = '';
-    fileName = '';
+	baseFolder = '';
+	episodeFolder = '';
+	fileName = '';
 	debug = false;
 
-    constructor() {
+	constructor() {
 		this.version = this.#getVersion();
 		return this;
-    }
+	}
 
 	#getVersion() {
 		const res = execSync(`${ffmpeg} -version`);
@@ -71,7 +71,7 @@ export class FFMpeg {
 		if (!file.includes('http') && !existsSync(file)) {
 			throw new Error('File does not exist');
 		}
-        this.file = file;
+		this.file = file;
 
 		const info = await getVideoInfo(file);
 		if (info.error) {
@@ -82,7 +82,7 @@ export class FFMpeg {
 		this.chapters = info.chapters;
 		this.format = info.format;
 
-        this.getHDRFilter();
+		this.getHDRFilter();
 		this.getCropFilter();
 
 		return this;
@@ -90,7 +90,7 @@ export class FFMpeg {
 
 	toDisk(path: string) {
 		mkdirSync(path, { recursive: true });
-        this.path = path;
+		this.path = path;
 		return this;
 	}
 
@@ -134,16 +134,16 @@ export class FFMpeg {
 		console.log(duration);
 	}
 
-    setTitle(title: string) {
+	setTitle(title: string) {
 		this.title = title;
 
-        return this;
-    }
+		return this;
+	}
 
-    setReEncode(value: boolean) {
+	setReEncode(value: boolean) {
 		this.#reEncode = value;
-        return this;
-    }
+		return this;
+	}
 
 	enableDebug() {
 		this.debug = true;
@@ -151,7 +151,7 @@ export class FFMpeg {
 		return this;
 	}
 
-    start() {
+	start() {
 		if (this.commands.length == 0) {
 			return this;
 		}
@@ -178,7 +178,7 @@ export class FFMpeg {
 		// });
 
 		return this;
-    }
+	}
 
 	addPreInputCommand(key: string, val?: string | number) {
 		this.beforeInputCommands.push([key, val?.toString() ?? '']);
@@ -385,21 +385,21 @@ export class FFMpeg {
 	getExtension (stream: ArrayElementType<VideoFFprobe['streams']['subtitle']>) {
 		let extension;
 		switch (stream.codec_name) {
-			case 'ass':
-			case 'ssa':
-				extension = 'ass';
-				break;
-			case 'hdmv_pgs_subtitle':
-			case 'pgs_subtitle':
-				extension = 'sup';
-				break;
-			case 'dvdsub':
-			case 'dvd_subtitle':
-				extension = 'sub';
-				break;
-			default:
-				extension = 'vtt';
-				break;
+		case 'ass':
+		case 'ssa':
+			extension = 'ass';
+			break;
+		case 'hdmv_pgs_subtitle':
+		case 'pgs_subtitle':
+			extension = 'sup';
+			break;
+		case 'dvdsub':
+		case 'dvd_subtitle':
+			extension = 'sub';
+			break;
+		default:
+			extension = 'vtt';
+			break;
 		}
 		return extension;
 	}
@@ -415,44 +415,44 @@ export class FFMpeg {
 		return 'full';
 	}
 
-    #burnSubTitle(stream: ArrayElementType<VideoFFprobe['streams']['subtitle']>, externalFile?: string) {
+	#burnSubTitle(stream: ArrayElementType<VideoFFprobe['streams']['subtitle']>, externalFile?: string) {
 
-        const ext = this.getExtension(stream);
+		const ext = this.getExtension(stream);
 
-        if (externalFile) {
-            this.addCommand('-map "0:v:0"');
+		if (externalFile) {
+			this.addCommand('-map "0:v:0"');
 
-            if (ext == 'srt' || ext == 'vtt') {
-                this.addVideoFilter('subtitles', `${externalFile}`);
-            } else {
-                this.addVideoFilter('ass', `"${externalFile}"`);
-            }
+			if (ext == 'srt' || ext == 'vtt') {
+				this.addVideoFilter('subtitles', `${externalFile}`);
+			} else {
+				this.addVideoFilter('ass', `"${externalFile}"`);
+			}
 
-            return this;
-        }
+			return this;
+		}
 
 		this.addFilterComplex('[0:v]');
-        if (ext == 'srt' || ext == 'vtt') {
-                this.addFilterComplex(`[0:${stream.index}]overlay`);
-                this.addCommand('-map "[v]"');
-        } else if (ext == 'ass') {
-                this.addFilterComplex(`[0:${stream.index}]overlay`);
-                this.addCommand('-map [v]"');
-        } else if (ext == 'sup') {
-            this.addFilterComplex(`[0:${stream.index}]overlay`);
-            this.addCommand('-map "[v]"');
-        }
+		if (ext == 'srt' || ext == 'vtt') {
+			this.addFilterComplex(`[0:${stream.index}]overlay`);
+			this.addCommand('-map "[v]"');
+		} else if (ext == 'ass') {
+			this.addFilterComplex(`[0:${stream.index}]overlay`);
+			this.addCommand('-map [v]"');
+		} else if (ext == 'sup') {
+			this.addFilterComplex(`[0:${stream.index}]overlay`);
+			this.addCommand('-map "[v]"');
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    burnSubtitle(index: number, file: string) {
+	burnSubtitle(index: number, file: string) {
 
-        if (!this.streams.subtitle.length) return this;
+		if (!this.streams.subtitle.length) return this;
 
-        this.#burnSubTitle(this.streams.subtitle[index], file);
-        this.burnSubs = true;
+		this.#burnSubTitle(this.streams.subtitle[index], file);
+		this.burnSubs = true;
 
-        return this;
-    }
+		return this;
+	}
 }

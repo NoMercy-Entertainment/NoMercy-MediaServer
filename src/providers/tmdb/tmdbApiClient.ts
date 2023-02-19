@@ -10,8 +10,8 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		...config.params,
 	};
 
-	config.headers = { 
-		"Accept": "application/json"
+	config.headers = {
+		'Accept': 'application/json',
 	};
 
 	config.timeout = 20000;
@@ -24,7 +24,7 @@ const onRequestError = (error: AxiosError): Promise<AxiosError> => {
 		level: 'error',
 		name: 'moviedb',
 		color: 'red',
-		message: JSON.stringify(error, null,2 ),
+		message: JSON.stringify(error, null, 2),
 	});
 
 	return Promise.reject(error);
@@ -41,7 +41,7 @@ const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 		level: 'error',
 		name: 'moviedb',
 		color: 'red',
-		message: JSON.stringify(error, null,2),
+		message: JSON.stringify(error, null, 2),
 	});
 
 	return Promise.reject(error);

@@ -1,7 +1,7 @@
 import { setAllowedUsers, setUsers } from '../../state/redux/config/actions';
 
 import Logger from '../../functions/logger';
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../database/config/client';
 import { UserResponse } from 'types/api';
 import axios from '../axios';
 import { commitConfigTransaction } from '../../database';
@@ -50,14 +50,14 @@ export const getUsers = async () => {
 					updated_at: new Date(d.created_at).getTime(),
 				};
 			});
-			
+
 			setAllowedUsers(newAllowedUsers);
 
 			Logger.log({
 				level: 'info',
 				name: 'permisson',
 				color: 'magentaBright',
-				message: 'Users ' + data.map((d) => d.name).join(', ') + ' added to the database',
+				message: `Users ${data.map(d => d.name).join(', ')} added to the database`,
 			});
 		})
 		.catch((error) => {

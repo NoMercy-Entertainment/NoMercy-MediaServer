@@ -1,7 +1,7 @@
 import { CDNInfoResponse, Files } from 'types/cdn';
 import config, { AllowedUser } from '.';
 
-import { User } from '@prisma/client';
+import { User } from '../../../database/config/client';
 import { store } from '..';
 
 export const setTmdbApiKey = (payload: string) => store.dispatch(config.actions.setTmdbApiKey(payload));

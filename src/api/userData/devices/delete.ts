@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 
-import Logger from '../../../functions/logger';
 import { confDb } from '../../../database/config';
+import Logger from '../../../functions/logger';
 
-export const devices = async (req: Request, res: Response) => {
+export const devices = (req: Request, res: Response) => {
 	confDb.device
 		.deleteMany()
 		.then(() => {

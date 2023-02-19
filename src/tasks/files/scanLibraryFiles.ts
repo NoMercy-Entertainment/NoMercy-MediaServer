@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../../database/config/client';
 import { confDb } from '../../database/config';
 import FileList from './getFolders';
 import Logger from '../../functions/logger';
@@ -33,7 +33,7 @@ export default () => {
 					// }
 				})
 				.then(async (folders) => {
-					
+
 					for (const folder of folders) {
 						await FileList({
 							folder: folder.path,
@@ -46,12 +46,12 @@ export default () => {
 
 							let parsedFiles: ParsedFileList[] = new Array<ParsedFileList>();
 
-							if(existsSync(folderFile) && fileChangedAgo(folderFile, 'days') < 50 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0){
-								parsedFiles = parsedFiles.sort((a,b) => b.name.localeCompare(a.name));
+							if (existsSync(folderFile) && fileChangedAgo(folderFile, 'days') < 50 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0) {
+								parsedFiles = parsedFiles.sort((a, b) => b.name.localeCompare(a.name));
 								parsedFiles = JSON.parse(readFileSync(folderFile, 'utf-8'));
 							} else {
 								parsedFiles = await fileList.getParsedFiles(folder.Libraries[0].library?.type == 'tv');
-								parsedFiles = parsedFiles.sort((a,b) => b.name.localeCompare(a.name));
+								parsedFiles = parsedFiles.sort((a, b) => b.name.localeCompare(a.name));
 								writeFileSync(folderFile, jsonToString(parsedFiles));
 							}
 
@@ -60,7 +60,7 @@ export default () => {
 								const movieId = (await confDb.movie.findFirst({
 									where: {
 										folder: file.folder,
-									}
+									},
 								}))?.id;
 								// console.log(movieId);
 
@@ -71,17 +71,15 @@ export default () => {
 										},
 										seasonNumber: file.seasons[0],
 										episodeNumber: file.episodeNumbers[0],
-									}
+									},
 								}))?.id;
 
 								const newFile: Prisma.FileCreateWithoutMovieInput = Object.keys(file)
-									.filter(key => !['seasons','episodeNumbers'].includes(key))
-									.reduce((obj, key) =>
-										{
-											obj[key] = file[key];
-											return obj;
-										}, <Prisma.FileCreateWithoutMovieInput>{}
-									);
+									.filter(key => !['seasons', 'episodeNumbers'].includes(key))
+									.reduce((obj, key) => {
+										obj[key] = file[key];
+										return obj;
+									}, <Prisma.FileCreateWithoutMovieInput>{});
 
 								const insertData = {
 									...newFile,
@@ -91,8 +89,12 @@ export default () => {
 									edition: JSON.stringify(file.edition),
 									seasonNumber: file.seasons[0],
 									episodeNumber: file.episodeNumbers[0],
-									ffprobe: file.ffprobe ? JSON.stringify(file.ffprobe) : null,
-									chapters: (file.ffprobe as VideoFFprobe)?.chapters ? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters) : null,
+									ffprobe: file.ffprobe
+										? JSON.stringify(file.ffprobe)
+										: null,
+									chapters: (file.ffprobe as VideoFFprobe)?.chapters
+										? JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters)
+										: null,
 									Library: {
 										connect: {
 											id: folder.Libraries[0].libraryId,
@@ -100,7 +102,7 @@ export default () => {
 									},
 									Movie: {
 										connect: {
-											id: movieId
+											id: movieId,
 										},
 									},
 									Episode: {
@@ -110,34 +112,34 @@ export default () => {
 									},
 								};
 
-								if(!movieId) {
+								if (!movieId) {
 									// @ts-expect-error
-									delete insertData.Movie
+									delete insertData.Movie;
 								}
-								if(!episodeId) {
+								if (!episodeId) {
 									// @ts-expect-error
-									delete insertData.Episode
+									delete insertData.Episode;
 								}
 								// if(!(insertData.Movie ?? insertData.Episode)){
-										// console.log(insertData);
+								// console.log(insertData);
 								// }
 
 								// promises.push(
 								await	confDb.file.upsert({
-										where: {
-											path_libraryId: {
-												libraryId: folder.Libraries[0].libraryId,
-												path: file.path,
-											},
+									where: {
+										path_libraryId: {
+											libraryId: folder.Libraries[0].libraryId,
+											path: file.path,
 										},
-										create: insertData,
-										update: insertData,
-									})
+									},
+									create: insertData,
+									update: insertData,
+								});
 								// );
 
-								if(file.ffprobe?.format && (movieId || episodeId)){
+								if (file.ffprobe?.format && (movieId || episodeId)) {
 									const videoFileInset = Prisma.validator<Prisma.VideoFileUncheckedUpdateInput>()({
-										filename: file.ffprobe.format.filename.replace(/.+[\\\/](.+)/u,'/$1'),
+										filename: file.ffprobe.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
 										folder: file.episodeFolder!,
 										hostFolder: file.ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
 										duration: humanTime(file.ffprobe.format.duration),
@@ -149,16 +151,16 @@ export default () => {
 										languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
 										Chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
 									});
-	
+
 									// promises.push(
 									await	confDb.videoFile.upsert({
-											where: {
-												episodeId: episodeId,
-												movieId: movieId
-											},
-											create: videoFileInset,
-											update: videoFileInset,
-										})
+										where: {
+											episodeId: episodeId,
+											movieId: movieId,
+										},
+										create: videoFileInset,
+										update: videoFileInset,
+									});
 									// );
 								}
 							}
@@ -170,7 +172,7 @@ export default () => {
 						level: 'info',
 						name: 'job',
 						color: 'magentaBright',
-						message: `Files table updated`,
+						message: 'Files table updated',
 					});
 					resolve;
 				});

@@ -1,8 +1,5 @@
 import { AppState, useSelector } from '../state/redux';
-import {
-	setHttpsServer,
-	setSocketServer
-} from '../state/redux/system/actions';
+import { setHttpsServer, setSocketServer } from '../state/redux/system/actions';
 import { sslCA, sslCert, sslKey } from '../state';
 
 import Logger from '../functions/logger';
@@ -25,10 +22,10 @@ export const server = async () => {
 	const secureInternalPort = useSelector((state: AppState) => state.system.secureInternalPort);
 
 	let credentials: {
-		key: string;
-		cert: string;
-		ca: string;
-	};
+    key: string;
+    cert: string;
+    ca: string;
+  };
 
 	if (fs.existsSync(sslKey) && fs.existsSync(sslCert)) {
 		credentials = {

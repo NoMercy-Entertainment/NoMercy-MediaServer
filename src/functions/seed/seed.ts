@@ -2,7 +2,7 @@ import { configData, encoderProfiles, libraries, notificationData } from './data
 import { countries, languages } from '../../providers/tmdb/config/index';
 
 import Logger from '../../functions/logger';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../database/config/client';
 import certifications from '../../providers/tmdb/certification/index';
 import { confDb } from '../../database/config';
 import { folders } from '../../../folderRoots';

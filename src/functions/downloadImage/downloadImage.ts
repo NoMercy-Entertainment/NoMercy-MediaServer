@@ -104,11 +104,11 @@ export const fetch = (url: string, path: string, tempName: string): Promise<numb
 				responseType: 'stream',
 				timeout: 30000,
 			})
-			.then((response) => {
-				size = parseInt(response?.headers?.['content-length'] ?? '0', 10);
-				response.data.pipe(writer);
-			})
-			.catch(error => reject(error));
+				.then((response) => {
+					size = parseInt(response?.headers?.['content-length'] ?? '0', 10);
+					response.data.pipe(writer);
+				})
+				.catch(error => reject(error));
 
 			writer.on('finish', () => resolve(size));
 			writer.on('error', reject);

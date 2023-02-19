@@ -1,28 +1,64 @@
-import { Folder, Jobs, Prisma } from '@prisma/client';
-import { Artist, getAcousticFingerprintFromParsedFileList, Medium, Recording, Release } from '../../providers/musicbrainz/fingerprint';
-import { cachePath, imagesPath } from '../../state';
-import { copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
-import { fileChangedAgo, humanTime, sleep } from '../../functions/dateTime';
-import { jsonToString } from '../../functions/stringArray';
+import lyricsFinder from 'lyrics-finder';
+import {
+	copyFileSync,
+	existsSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	statSync,
+	writeFileSync
+} from 'fs';
+import { join } from 'path';
+import { PaletteColors } from 'types/server';
 
-import { AudioFFprobe } from '../../encoder/ffprobe/ffprobe';
+import createBlurHash from '../../functions/createBlurHash';
+import downloadImage from '../../functions/downloadImage';
 import FileList from '../../tasks/files/getFolders';
 import Logger from '../../functions/logger';
-import { ParsedFileList } from '../../tasks/files/filenameParser';
-import { getBestArtistImag } from '../../functions/artistImage';
-import i18n from '../../loaders/i18n';
-import { join } from 'path';
+import colorPalette, {
+	colorPaletteFromFile
+} from '../../functions/colorPalette';
 import { confDb } from '../../database/config';
-import colorPalette, { colorPaletteFromFile } from '../../functions/colorPalette';
-import { PaletteColors } from 'types/server';
-import { recording, recordingAppend, RecordingWithAppends } from '../../providers/musicbrainz/recording';
-import { releaseCover } from '../../providers/musicbrainz/release';
-import { Image } from '../../providers/musicbrainz/cover';
-import downloadImage from '../../functions/downloadImage';
-import createBlurHash from '../../functions/createBlurHash';
+import {
+	Folder,
+	Jobs,
+	Prisma
+} from '../../database/config/client';
+import {
+	AudioFFprobe
+} from '../../encoder/ffprobe/ffprobe';
+import {
+	getBestArtistImag
+} from '../../functions/artistImage';
+import {
+	fileChangedAgo,
+	humanTime,
+	sleep
+} from '../../functions/dateTime';
+import { jsonToString } from '../../functions/stringArray';
 import { findLyrics } from '../../providers';
-import lyricsFinder from 'lyrics-finder';
+import { Image } from '../../providers/musicbrainz/cover';
+import {
+	Artist,
+	getAcousticFingerprintFromParsedFileList,
+	Medium,
+	Recording,
+	Release
+} from '../../providers/musicbrainz/fingerprint';
+import {
+	recording,
+	recordingAppend,
+	RecordingWithAppends
+} from '../../providers/musicbrainz/recording';
+import {
+	releaseCover
+} from '../../providers/musicbrainz/release';
+import { cachePath, imagesPath } from '../../state';
+import {
+	ParsedFileList
+} from '../../tasks/files/filenameParser';
 
+import i18n from '../../loaders/i18n';
 export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }: { id: number | string; folder: string; libraryId: string; job?: Jobs, task?: { id: string } }) => {
 
 	console.log({ folder, libraryId, task });
@@ -124,14 +160,14 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 
 				for (const artist of match.artists ?? []) {
 					await createArtist(libraryId, artist, transaction)
-						.catch((e) => {
+						.catch(() => {
 							// console.log(e);
 
 						});
 				}
 
 				await createAlbum(libraryId, file, match.releases[0], match.id, match.title, match.artists, transaction)
-					.catch((e) => {
+					.catch(() => {
 						// console.log(e);
 
 					});
@@ -348,7 +384,7 @@ const createTrack = async (
 	} else {
 		response = await recording(recordingID)
 			.then(res => res)
-			.catch((e) => {
+			.catch(() => {
 				console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc=artist-credits+artists+releases+tags+genres`);
 				return null;
 			});
@@ -498,7 +534,7 @@ const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList
 	if (existsSync(releaseInfoFile)) {
 		release = JSON.parse(readFileSync(releaseInfoFile, 'utf8'));
 	} else {
-		release = await releaseCover(id).catch(e => null);
+		release = await releaseCover(id).catch(() => null);
 		writeFileSync(releaseInfoFile, JSON.stringify(release, null, 2));
 	}
 
@@ -641,7 +677,12 @@ const filterRecordings = (data: Recording[], file: ParsedFileList, parsedFiles: 
 	return recording;
 };
 
-const createFile = (data: Recording, file: ParsedFileList, libraryId: string, transaction: Prisma.PromiseReturnType<any>[]) => {
+const createFile = (
+	data: Recording,
+	file: ParsedFileList,
+	libraryId: string,
+	transaction: Prisma.PromiseReturnType<any>[]
+) => {
 	const newFile: Prisma.FileCreateWithoutEpisodeInput = Object.keys(file)
 		.filter(key => !['seasons', 'episodeNumbers', 'ep_folder', 'musicFolder'].includes(key))
 		.reduce((obj, key) => {

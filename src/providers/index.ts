@@ -22,7 +22,6 @@ export async function findLyrics(info: any): Promise<string> {
 		// f_subtitle_length: Math.floor(duration),
 		usertoken: userToken,
 	};
-	// console.log(params);
 
 	const finalURL
 		= baseURL

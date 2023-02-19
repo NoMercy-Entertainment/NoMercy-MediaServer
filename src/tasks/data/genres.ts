@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
-import { confDb } from "../../database/config";
-import genres from "../../providers/tmdb/genres";
+import { Prisma } from '../../database/config/client';
+import { confDb } from '../../database/config';
+import genres from '../../providers/tmdb/genres';
 
 export default async function () {
 	const genre = await genres();
