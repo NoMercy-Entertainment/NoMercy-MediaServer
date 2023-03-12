@@ -1,5 +1,6 @@
 import Logger from '../../functions/logger';
 import audio from './audio';
+import cast from './cast';
 // import progress from '../../controllers/encoder/ffmpeg/progress';
 import cpuStats from './cpu';
 // import content from './content';
@@ -45,6 +46,8 @@ export default function (socket, io) {
 	// progress(socket, io);
 	video(socket, io);
 	cpuStats(socket, io);
+
+	cast(socket);
 
 }
 

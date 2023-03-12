@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
 import { exec, execSync } from 'child_process';
+import { Request, Response } from 'express';
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
 
 import { transcodesPath } from '../../state';
@@ -36,7 +36,7 @@ export default function (req: Request, res: Response) {
 			`"${basePath}video-%04d.ts"`,
 		].join(' ');
 
-		if (!existsSync(`${basePath}/video.m3u8`)) {
+		if (!existsSync(`${basePath}video.m3u8`)) {
 			exec(cmd, { cwd: `${basePath}` });
 		}
 

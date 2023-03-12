@@ -1,11 +1,11 @@
-import { ArrayElementType, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
-import { execSync } from 'child_process';
-import { ffmpeg, transcodesPath, userDataPath } from '../../state';
-
-import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
-import { join } from 'path';
+import { exec, execSync } from 'child_process';
 import { existsSync, mkdirSync } from 'fs';
 import osu from 'os-utils';
+import { join } from 'path';
+
+import { ArrayElementType, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
+import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
+import { ffmpeg, transcodesPath, userDataPath } from '../../state';
 
 export class FFMpeg {
 	file = '';
@@ -66,26 +66,28 @@ export class FFMpeg {
 		return matches[1];
 	}
 
-	async open(file: string) {
-		file = file.replace('Z:/mnt/m/', 'M:/');
-		if (!file.includes('http') && !existsSync(file)) {
-			throw new Error('File does not exist');
-		}
-		this.file = file;
+	open(file: string) {
+		return new Promise(async (resolve, reject) => {
+			file = file.replace('Z:/mnt/m/', 'M:/');
+			if (!file.includes('http') && !existsSync(file)) {
+				reject(new Error('File does not exist'));
+			}
+			this.file = file;
 
-		const info = await getVideoInfo(file);
-		if (info.error) {
-			throw new Error(`Can't process file: ${this.file}`);
-		}
+			const info = await getVideoInfo(file);
+			if (info.error) {
+				reject(new Error(`Can't process file: ${this.file}`));
+			}
 
-		this.streams = info.streams;
-		this.chapters = info.chapters;
-		this.format = info.format;
+			this.streams = info.streams;
+			this.chapters = info.chapters;
+			this.format = info.format;
 
-		this.getHDRFilter();
-		this.getCropFilter();
+			this.getHDRFilter();
+			this.getCropFilter();
 
-		return this;
+			return resolve(this);
+		});
 	}
 
 	toDisk(path: string) {
@@ -158,9 +160,8 @@ export class FFMpeg {
 
 		const path = join(this.path);
 		const command = this.buildCommand();
-		console.log(command);
 
-		execSync(command, {
+		exec(command, {
 			cwd: path,
 		});
 
@@ -299,7 +300,9 @@ export class FFMpeg {
 		const folder = join(this.path, ...name.slice(0, name.length - 1));
 		const path = join(...name.slice(0, name.length - 1), name[name.length - 1]);
 
-		mkdirSync(`${folder}/${path.split(/[\\\/]/u)[0]}`, { recursive: true });
+		console.log(path.split(/[\\\/]/u)[0].replace(/\w+.\w{3,4}$/u, ''));
+
+		mkdirSync(`${folder}/${path.split(/[\\\/]/u)[0].replace(/\w+.\w{3,4}$/u, '')}`, { recursive: true });
 
 		this.addCommand(path);
 		return this;

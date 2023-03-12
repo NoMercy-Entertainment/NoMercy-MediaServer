@@ -2445,6 +2445,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bindings@npm:~1.2.1":
+  version: 1.2.1
+  resolution: "bindings@npm:1.2.1"
+  checksum: fb542a5721cbeb0a75607a0447ac4d12e3ba8fe12ddf2adbe76814fa9cf3d1236a03ab51d55a7fef1b2d1d9917f4315e8b1cf8b74ff21a6cf9e722e7e363ba5f
+  languageName: node
+  linkType: hard
+
 "bl@npm:^4.0.3, bl@npm:^4.1.0":
   version: 4.1.0
   resolution: "bl@npm:4.1.0"
@@ -2820,7 +2827,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"castv2@npm:~0.1.4":
+"castv2@npm:^0.1.10, castv2@npm:~0.1.4":
   version: 0.1.10
   resolution: "castv2@npm:0.1.10"
   dependencies:
@@ -7679,6 +7686,17 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"mdns@npm:^2.7.2":
+  version: 2.7.2
+  resolution: "mdns@npm:2.7.2"
+  dependencies:
+    bindings: ~1.2.1
+    nan: ^2.14.0
+    node-gyp: latest
+  checksum: cb13e18e479927e2e35a081b9d4939d295e5cb4d3b557f7f5c364c0601cf5872a16c15daa1b164347a49d0bf828466ff433f9cc443319263f996f6dd0225cb03
+  languageName: node
+  linkType: hard
+
 "media-typer@npm:0.3.0":
   version: 0.3.0
   resolution: "media-typer@npm:0.3.0"
@@ -8376,6 +8394,7 @@ chromedriver@latest:
     axios-retry: ^3.3.1
     blurhash: ^2.0.4
     canvas: ^2.11.0
+    castv2: ^0.1.10
     chalk: 4.1.2
     cheerio: ^1.0.0-rc.12
     chromecast: ^0.0.6
@@ -8417,6 +8436,7 @@ chromedriver@latest:
     keycloak-js: ^19.0.3
     lyrics-finder: ^21.7.0
     m3u8-file-parser: ^0.2.4
+    mdns: ^2.7.2
     moment: ^2.29.4
     musicbrainz-api: ^0.10.0
     node-machine-id: ^1.1.12

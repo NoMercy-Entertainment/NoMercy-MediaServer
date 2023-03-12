@@ -38,8 +38,8 @@ export default async function (req: Request, res: Response) {
 				? JSON.parse(collection.blurHash)
 				: null,
 			have_parts: collection.parts,
-			type: 'movie',
-			mediaType: 'collections',
+			type: 'collection',
+			mediaType: 'collection',
 		};
 	});
 

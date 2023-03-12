@@ -1,8 +1,9 @@
 import { CDNInfoResponse, Files } from 'types/cdn';
-import config, { AllowedUser } from '.';
 
+import { store } from '../';
 import { User } from '../../../database/config/client';
-import { store } from '..';
+import { ChromeCast } from '../../../functions/chromeCast/chromeCast';
+import config, { AllowedUser } from './';
 
 export const setTmdbApiKey = (payload: string) => store.dispatch(config.actions.setTmdbApiKey(payload));
 
@@ -31,6 +32,8 @@ export const setKeepOriginal = (payload: {[arg: string]: any}) => store.dispatch
 export const setAssToVtt = (payload: boolean) => store.dispatch(config.actions.setAssToVtt(payload));
 
 export const setKeycloakCertificate = (payload: string) => store.dispatch(config.actions.setKeycloakCertificate(payload));
+
+export const setChromeCast = (payload: ChromeCast) => store.dispatch(config.actions.setChromeCast(payload));
 
 // export const setQueueWorkers = (payload: number) => store.dispatch(config.actions.setQueueWorkers(payload));
 

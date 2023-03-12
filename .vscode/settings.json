@@ -15,6 +15,7 @@
         "ARTISTSORT",
         "AUTOSELECT",
         "blurhash",
+        "castv",
         "CATALOGNUMBER",
         "Chromecast",
         "cmixlev",
@@ -111,6 +112,7 @@
         "totp",
         "translationable",
         "TSRC",
+        "ttvnw",
         "TVDB",
         "ucfirst",
         "ultrafast",
@@ -126,6 +128,7 @@
         "webvtt",
         "winstaller",
         "xywh",
+        "youtu",
         "zscale"
     ]
 }

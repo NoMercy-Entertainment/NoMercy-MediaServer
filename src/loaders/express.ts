@@ -1,6 +1,12 @@
 import { AppState, useSelector } from '../state/redux';
 import express, { Application, NextFunction, Request, Response } from 'express';
-import { serveImagesPath, serveLibraryPaths, servePublicPath, serveSubtitlesPath, serveTranscodePath } from '../api/routes/files';
+import {
+    serveImagesPath,
+    serveLibraryPaths,
+    servePublicPath,
+    serveSubtitlesPath,
+    serveTranscodePath
+} from '../api/routes/files';
 
 import Logger from '../functions/logger';
 import { allowedOrigins } from '../functions/networking';
@@ -22,8 +28,8 @@ export default async (app: Application) => {
 
 	app.use(
 		cors({
-			origin: allowedOrigins,
-			// origin: '*',
+			// origin: allowedOrigins,
+			origin: '*',
 		})
 	);
 

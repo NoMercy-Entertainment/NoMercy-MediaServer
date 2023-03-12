@@ -1,37 +1,40 @@
-import { AppState, useSelector } from '../state/redux';
-import { setHttpsServer, setSocketServer } from '../state/redux/system/actions';
-import { sslCA, sslCert, sslKey } from '../state';
+import _express from 'express';
+import fs from 'fs';
+import http2Express from 'http2-express-bridge';
+import https from 'https';
+import { Server } from 'socket.io';
 
 import Logger from '../functions/logger';
-import { Server } from 'socket.io';
-import _express from 'express';
-import express from './express';
-import fs from 'fs';
+import { socketCors } from '../functions/networking';
 // import https from '../functions/server/lib/spdy';
-import https from 'https';
+import { sslCA, sslCert, sslKey } from '../state';
+import { AppState, useSelector } from '../state/redux';
+import { setHttpsServer, setSocketServer } from '../state/redux/system/actions';
+import express from './express';
 import ping from './ping';
 import { serverRunning } from './serverRunning';
 import { socket } from './socket';
-import { socketCors } from '../functions/networking';
 
 export const server = async () => {
-	const app = _express();
+	const app = http2Express(_express);
 
 	await express(app);
 
 	const secureInternalPort = useSelector((state: AppState) => state.system.secureInternalPort);
 
 	let credentials: {
-    key: string;
-    cert: string;
-    ca: string;
-  };
+		key: string;
+		cert: string;
+		ca: string;
+		allowHTTP1: boolean;
+	};
 
 	if (fs.existsSync(sslKey) && fs.existsSync(sslCert)) {
 		credentials = {
 			key: fs.readFileSync(sslKey, 'utf-8'),
 			cert: fs.readFileSync(sslCert, 'utf-8'),
 			ca: fs.readFileSync(sslCA, 'utf-8'),
+			allowHTTP1: true,
 		};
 
 		const httpsServer = https.createServer(credentials, app);

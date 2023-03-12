@@ -1,6 +1,5 @@
 import trailer, { deleteTrailer } from '../media/trailer';
 
-import cast from '../media/cast';
 import collectionInfo from '../media/collection/info';
 import collections from '../media/collection';
 import encodeAndCast from '../media/encodeAndCast';
@@ -20,17 +19,17 @@ import tvWatch from '../media/tv/watch';
 const router = express.Router();
 
 router.post('/', index);
-router.post('/movies/:id', movieInfo);
-router.post('/movies/:id/watch', movieWatch);
+router.post('/movie/:id', movieInfo);
+router.post('/movie/:id/watch', movieWatch);
 
 router.post('/tv/:id', tvInfo);
 router.post('/tv/:id/watch', tvWatch);
 
 router.post('/collections', collections);
-router.post('/collections/:id', collectionInfo);
+router.post('/collection/:id', collectionInfo);
 
 router.post('/specials', specials);
-router.post('/specials/:id', specialInfo);
+router.post('/special/:id', specialInfo);
 
 router.post('/libraries', libraries);
 router.post('/libraries/:id', libraries);
@@ -43,7 +42,6 @@ router.post('/search', search);
 router.get('/trailer/:id', trailer);
 router.delete('/trailer/:id', deleteTrailer);
 
-router.get('/cast/:file', cast);
 router.post('/encodeandcast', encodeAndCast);
 
 export default router;

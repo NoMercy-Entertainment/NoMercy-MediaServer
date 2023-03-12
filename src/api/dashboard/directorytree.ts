@@ -82,7 +82,7 @@ const createFolderObject = function (parent, path) {
 			stats = fs.statSync(fullPath.replace(/[\/\\]$/u, ''));
 		}
 
-		parent = parent.replace(/[/]{1,}$/u, '').replace(/[\w.\s\d-_?,()$]*[\\/]*$/gu, '');
+		parent = parent.replace(/[/]{1,}$/u, '').replace(/[\w.\s\d\-_?,()$]*[\\\/]*$/gu, '');
 		if (!parent.endsWith('/')) {
 			parent = '/';
 		}

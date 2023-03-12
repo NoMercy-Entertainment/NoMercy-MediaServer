@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { trackSort, uniqBy } from '../../../functions/stringArray';
-
-import { ArtistResponse } from './artist.d';
 import { KAuthRequest } from 'types/keycloak';
+
 import { confDb } from '../../../database/config';
+import { trackSort, uniqBy } from '../../../functions/stringArray';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
+import { ArtistResponse } from './artist.d';
 
 export default async function (req: Request, res: Response): Promise<Response<ArtistResponse>> {
 	const language = getLanguage(req);
@@ -50,9 +50,9 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 
 		colorPalette: JSON.parse(
 			music.colorPalette
-        ?? music.Track?.find(t => t.cover)?.colorPalette
-        ?? music.Track?.[0]?.Artist.find(t => t.cover)?.colorPalette
-        ?? '{}'
+			?? music.Track?.find(t => t.cover)?.colorPalette
+			?? music.Track?.[0]?.Artist.find(t => t.cover)?.colorPalette
+			?? '{}'
 		),
 
 		Track: uniqBy<typeof music.Track>(music.Track.sort(trackSort), 'name').map((t) => {
@@ -80,13 +80,13 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 			return {
 				...t,
 				date:
-          t.date
-          && language
-          && new Date(t.date).toLocaleDateString(language, {
-          	year: 'numeric',
-          	month: 'short',
-          	day: '2-digit',
-          }),
+					t.date
+					&& language
+					&& new Date(t.date).toLocaleDateString(language, {
+						year: 'numeric',
+						month: 'short',
+						day: '2-digit',
+					}),
 				type: 'artist',
 				lyrics: undefined,
 				favorite_track: t.FavoriteTrack.length > 0,

@@ -1,25 +1,25 @@
 import {
-	AlternativeTitles,
-	Cast,
-	CastMovie,
-	Certification,
-	CertificationMovie,
-	Collection,
-	CollectionMovie,
-	Crew,
-	CrewMovie,
-	Genre,
-	GenreMovie,
-	Keyword,
-	KeywordMovie,
-	Library,
-	Media,
-	Movie,
-	Person,
-	Prisma,
-	SpecialItem,
-	UserData,
-	VideoFile
+    AlternativeTitles,
+    Cast,
+    CastMovie,
+    Certification,
+    CertificationMovie,
+    Collection,
+    CollectionMovie,
+    Crew,
+    CrewMovie,
+    Genre,
+    GenreMovie,
+    Keyword,
+    KeywordMovie,
+    Library,
+    Media,
+    Movie,
+    Person,
+    Prisma,
+    SpecialItem,
+    UserData,
+    VideoFile
 } from '../../../database/config/client';
 import { Request, Response } from 'express';
 
@@ -28,7 +28,7 @@ import Logger from '../../../functions/logger';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
-import { getLanguage } from '../..//middleware';
+import { getLanguage } from '../../middleware';
 import { isOwner } from '../../middleware/permissions';
 
 export default function (req: Request, res: Response) {
@@ -143,8 +143,8 @@ const getContent = async (data: MovieWithInfo, language: string, servers: string
 		poster: data.poster,
 		title: title[0].toUpperCase() + title.slice(1),
 		titleSort: createTitleSort(title),
-		type: 'collections',
-		mediaType: 'collections',
+		type: 'movie',
+		mediaType: 'movie',
 		logo: logo,
 		favorite: userData?.isFavorite ?? false,
 		watched: userData?.played ?? false,
@@ -154,7 +154,7 @@ const getContent = async (data: MovieWithInfo, language: string, servers: string
 		collection: data.Movie.map(c => ({
 			id: c.Movie.id,
 			backdrop: c.Movie.backdrop,
-			mediaType: 'movies',
+			mediaType: 'movie',
 			poster: c.Movie.poster,
 			title: c.Movie.title[0].toUpperCase() + c.Movie.title.slice(1),
 			titleSort: createTitleSort(c.Movie.title, c.Movie.releaseDate),

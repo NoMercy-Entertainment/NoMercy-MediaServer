@@ -114,6 +114,7 @@ export const allowedOrigins = [
 	'https://app.nomercy.tv',
 	'https://beta.nomercy.tv',
 	'https://beta2.nomercy.tv',
+	'https://*.nomercy.tv',
 	'https://dev.nomercy.tv',
 	'https://node.nomercy.tv',
 	'http://localhost:3000',

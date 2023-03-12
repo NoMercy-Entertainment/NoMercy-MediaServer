@@ -1,10 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Queue } from '../../../functions/queue/QueueClass';
-import { CDNInfoResponse, Files } from '../../../types/cdn';
-import { deviceName } from '../../../functions/system';
+
+import { User } from '../../../database/config/client';
 import { LibraryWithFolders } from '../../../database/data';
 import { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
-import { User } from '../../../database/config/client';
+import { ChromeCast } from '../../../functions/chromeCast/chromeCast';
+import { Queue } from '../../../functions/queue/QueueClass';
+import { deviceName } from '../../../functions/system';
+import { CDNInfoResponse, Files } from '../../../types/cdn';
 
 export const keepOriginal: { [arg: string]: boolean } = {
 	audio: true,
@@ -24,6 +26,8 @@ const initialState = {
 	allowedUsers: new Array<AllowedUser>(),
 	colors: <CDNInfoResponse['data']['colors']>{},
 	downloads: new Array<Files>(),
+
+	chromeCast: <ChromeCast>{},
 
 	queueWorker: new Queue({ name: 'queue', workers: 1 }),
 	queueWorkers: 1,
@@ -91,6 +95,10 @@ const config = createSlice({
 		},
 		setKeycloakCertificate: (state, action: PayloadAction<string>) => {
 			state.keycloakCertificate = action.payload;
+		},
+		setChromeCast: (state, action: PayloadAction<ChromeCast>) => {
+			// @ts-expect-error
+			state.chromeCast = action.payload;
 		},
 		// setQueueWorkers: (state, action: PayloadAction<number>) => {
 		// 	state.queueWorkers = action.payload;

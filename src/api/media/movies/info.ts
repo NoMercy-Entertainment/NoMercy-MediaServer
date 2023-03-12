@@ -1,27 +1,27 @@
 import {
-	AlternativeTitles,
-	Cast,
-	CastMovie,
-	Certification,
-	CertificationMovie,
-	CollectionMovie,
-	Crew,
-	CrewMovie,
-	Genre,
-	GenreMovie,
-	Image,
-	Keyword,
-	KeywordMovie,
-	Library,
-	Media,
-	Movie,
-	Person,
-	Prisma,
-	Recommendation,
-	Similar,
-	SpecialItem,
-	UserData,
-	VideoFile
+    AlternativeTitles,
+    Cast,
+    CastMovie,
+    Certification,
+    CertificationMovie,
+    CollectionMovie,
+    Crew,
+    CrewMovie,
+    Genre,
+    GenreMovie,
+    Image,
+    Keyword,
+    KeywordMovie,
+    Library,
+    Media,
+    Movie,
+    Person,
+    Prisma,
+    Recommendation,
+    Similar,
+    SpecialItem,
+    UserData,
+    VideoFile
 } from '../../../database/config/client';
 import { ExtendedVideo, InfoResponse, MediaItem } from '../../../types/server';
 import { Request, Response } from 'express';
@@ -58,7 +58,7 @@ export default async function (req: Request, res: Response) {
 					not: parseInt(req.params.id, 10),
 				},
 			},
-		}).then(d => recommendations.push(...d.map(m => ({ ...m, mediaType: 'movies', id: m.mediaId })))),
+		}).then(d => recommendations.push(...d.map(m => ({ ...m, mediaType: 'movie', id: m.mediaId })))),
 
 		confDb.similar.findMany({
 			where: {
@@ -68,7 +68,7 @@ export default async function (req: Request, res: Response) {
 					not: parseInt(req.params.id, 10),
 				},
 			},
-		}).then(d => similar.push(...d.map(m => ({ ...m, mediaType: 'movies', id: m.mediaId })))),
+		}).then(d => similar.push(...d.map(m => ({ ...m, mediaType: 'movie', id: m.mediaId })))),
 	]);
 
 	if (owner) {
@@ -221,7 +221,7 @@ const getContent = async (
 		})) ?? [],
 		keywords: data.Keyword.map(c => c.Keyword.name),
 		type: 'movies',
-		mediaType: 'movies',
+		mediaType: 'movie',
 		cast: data.Cast.map(c => c.Cast).map((c) => {
 			return {
 				gender: c.gender,
@@ -437,7 +437,7 @@ const getMovieData = async (id: string) => {
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			mediaType: 'movies',
+			mediaType: 'movie',
 			blurHash: {
 				poster: index < 10 && s.poster_path
 					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
@@ -455,7 +455,7 @@ const getMovieData = async (id: string) => {
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			mediaType: 'movies',
+			mediaType: 'movie',
 			blurHash: {
 				poster: index < 10 && s.poster_path
 					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
@@ -533,7 +533,7 @@ const getMovieData = async (id: string) => {
 		})) ?? [],
 		keywords: data.keywords.keywords.map(c => c.name),
 		type: 'movies',
-		mediaType: 'movies',
+		mediaType: 'movie',
 		cast: data.credits.cast.map((c) => {
 			return {
 				gender: c.gender,

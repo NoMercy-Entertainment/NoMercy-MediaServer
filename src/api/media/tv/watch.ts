@@ -8,7 +8,6 @@ import { convertToSeconds } from '../../../functions/dateTime';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
 import i18next from 'i18next';
-import { isOwner } from '../../middleware/permissions';
 import requestCountry from 'request-country';
 import { sortBy } from '../../../functions/stringArray';
 
@@ -18,9 +17,9 @@ export default function (req: Request, res: Response) {
 	console.log(language);
 
 	const id = req.params.id;
-	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
+	// const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
+	// const owner = isOwner(req as KAuthRequest);
 	const country = requestCountry(req, 'US');
 
 	const external: any[] = [];
@@ -117,10 +116,10 @@ export default function (req: Request, res: Response) {
 						}
 						textTracks.push({
 							label: type,
-							type: type,
+							// type: type,
 							src: `${baseFolder}/subtitles${videoFile?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
 							srclang: i18next.t(`languages:${language}`),
-							ext: ext,
+							// ext: ext,
 							language: language,
 							kind: 'subtitles',
 						});
@@ -165,11 +164,11 @@ export default function (req: Request, res: Response) {
 					season: episode.seasonNumber,
 					episode: episode.episodeNumber,
 					navigationY,
-					season_title: episode.seasonNumber == 0
-						? tv.Library.specialSeasonName
-						: seasonTranslations?.title ?? season.title,
-					season_overview: seasonTranslations?.overview ?? season.overview,
-					season_id: season.id,
+					// season_title: episode.seasonNumber == 0
+					// 	? tv.Library.specialSeasonName
+					// 	: seasonTranslations?.title ?? season.title,
+					// season_overview: seasonTranslations?.overview ?? season.overview,
+					// season_id: season.id,
 					episode_id: episode.id,
 					origin: deviceId,
 					uuid: id + episode.id,

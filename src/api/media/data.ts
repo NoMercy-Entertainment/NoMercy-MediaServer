@@ -1,20 +1,20 @@
 import {
-	Collection,
-	CollectionMovie,
-	Episode,
-	Folder,
-	GenreMovie,
-	GenreTv,
-	Library,
-	LibraryFolder,
-	Media,
-	Movie,
-	Prisma,
-	Season,
-	Translation,
-	Tv,
-	UserData,
-	VideoFile
+    Collection,
+    CollectionMovie,
+    Episode,
+    Folder,
+    GenreMovie,
+    GenreTv,
+    Library,
+    LibraryFolder,
+    Media,
+    Movie,
+    Prisma,
+    Season,
+    Translation,
+    Tv,
+    UserData,
+    VideoFile
 } from '../../database/config/client';
 
 import { LibraryResponseContent } from 'types/server';
@@ -105,7 +105,7 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 			favorite: userData?.isFavorite ?? false,
 			watched: userData?.played ?? false,
 			logo: logo?.src ?? null,
-			mediaType: 'movies',
+			mediaType: 'movie',
 			overview: overview,
 			blurHash: {
 				// logo: logo?.blurHash ?? null,
@@ -121,7 +121,7 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 			collection: movie.CollectionMovie.map(c => ({
 				id: c.Collection.id,
 				backdrop: c.Collection.backdrop,
-				mediaType: 'collections',
+				mediaType: 'collection',
 				poster: c.Collection.poster,
 				title: c.Collection.title[0].toUpperCase() + c.Collection.title.slice(1),
 				titleSort: createTitleSort(c.Collection.title),
