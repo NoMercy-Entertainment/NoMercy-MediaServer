@@ -1,16 +1,12 @@
 import axios from 'axios';
 import { load } from 'cheerio';
-import {
-	existsSync,
-	readFileSync,
-	writeFileSync
-} from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { PaletteColors } from 'types/server';
 
-import colorPalette from '../colorPalette';
-import downloadImage from '../downloadImage';
 import { confDb } from '../../database/config';
 import { cachePath } from '../../state';
+import colorPalette from '../colorPalette';
+import downloadImage from '../downloadImage';
 import { jsonToString } from '../stringArray';
 
 export interface Urls {
@@ -32,7 +28,7 @@ export const artistImages = async (artist: string) => {
 		.replace(/[íîï]/giu, 'i')
 		.replace(/[Øöó]/giu, 'o')
 		.replace(/[ý]/giu, 'y')
-		.replace(/[®]/giu, '');
+		.replace(/[®*]/giu, '');
 
 	const tempFile = `${cachePath}/temp/${sanitizedName}.json`;
 
@@ -206,7 +202,7 @@ export const getBestArtistImag = async function (artist: string, storagePath: st
 	if (image) {
 		extension = image.type.replace('image/', '').replace('jpeg', 'jpg')
 			.replace('unknown', 'png');
-		await downloadImage(image.url, `${storagePath}.${extension}`.replace('undefined', 'png'))
+		await downloadImage({ url: image.url, path: `${storagePath}.${extension}`.replace('undefined', 'png') })
 			.then(() => (result = true))
 			.catch(() => {
 				//

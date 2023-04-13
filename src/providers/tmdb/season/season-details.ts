@@ -1,8 +1,8 @@
 import { Episode } from '../episode/episode';
-import { Credits } from '../season/season-credits';
 import { ExternalIDS } from '../season/external_ids';
 import { SeasonImages } from '../season/images';
-
+import { Credits } from '../season/season-credits';
+import { AggregateCredits } from '../shared';
 import { Season } from './season';
 import { SeasonTranslations } from './translations';
 
@@ -14,7 +14,7 @@ export interface SeasonDetails extends Season {
 }
 
 export interface SeasonAppend extends SeasonDetails {
-	aggregate_credits: Credits;
+	aggregate_credits: AggregateCredits;
 	external_ids: ExternalIDS;
 	images: SeasonImages;
 	translations: SeasonTranslations;

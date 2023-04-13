@@ -1,17 +1,13 @@
-import { Collection, Prisma } from '../../../database/config/client';
 import { Request, Response } from 'express';
-import { sortBy, unique } from '../../../functions/stringArray';
 
 import { confDb } from '../../../database/config';
-import { deviceId } from '../../../functions/system';
+import { Collection, Prisma } from '../../../database/config/client';
+import { sortBy, unique } from '../../../functions/stringArray';
 import { getLanguage } from '../../middleware';
 
 export default async function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
-
-	const servers = req.body.servers
-		?.filter((s: string | any[]) => !s.includes(deviceId)) ?? [];
 
 	const external: any[] = [];
 	const translation: any[] = [];
@@ -68,9 +64,8 @@ const collectionQuery = Prisma.validator<Prisma.CollectionFindManyArgs>()({
 const translationQuery = ({ ids, language }) => {
 	return Prisma.validator<Prisma.TranslationFindManyArgs>()({
 		where: {
-			translationableId: { in: ids },
+			collectionId: { in: ids },
 			iso6391: language,
-			translationableType: 'collection',
 		},
 	});
 };

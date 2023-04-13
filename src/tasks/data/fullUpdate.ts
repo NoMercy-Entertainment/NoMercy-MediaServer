@@ -1,36 +1,26 @@
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
+
+import { AppState, useSelector } from '../../state/redux';
 import { FolderInfo } from '../files/scanLibraries';
 import storeMovie from './storeMovie';
 import { storeMusic } from './storeMusic';
 import storeTvShow from './storeTvShow';
-import { writeFileSync } from 'fs';
 
-export const fullUpdate = async (data: FolderInfo) => {
+// import { confDb } from '../../database/config';
 
-	// try {
-	// 	await confDb.runningTask.update({
-	// 		where: {
-	// 			id: data.task.id
-	// 		},
-	// 		data: {
-	// 			title: `Scanning ${data.lib.title} library`,
-	// 			type: 'library',
-	// 			value: Math.ceil((data.index / data.jobsCount) * 100),
-	// 		}
-	// 	});
 
-	// } catch (error) {
-
-	// }
+export const exec = async (data: FolderInfo) => {
 
 	switch (data.type) {
 	case 'tv':
-		await storeTvShow({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
+		await storeTvShow({ id: data.id as number, folder: data.folder, libraryId: data.libraryId });
 		break;
 	case 'movie':
-		await storeMovie({ id: data.id as number, folder: data.folder, libraryId: data.libraryId, task: data.task });
+		await storeMovie({ id: data.id as number, folder: data.folder, libraryId: data.libraryId });
 		break;
 	case 'music':
-		await storeMusic({ id: data.id as string, folder: data.folder, libraryId: data.libraryId, task: data.task });
+		await storeMusic({ id: data.id as string, folder: data.folder, libraryId: data.libraryId });
 		break;
 	default:
 		break;
@@ -41,3 +31,32 @@ export const fullUpdate = async (data: FolderInfo) => {
 
 	return data;
 };
+
+export default async function (x: FolderInfo, synchronous = false) {
+
+	// const runningTask = await confDb.runningTask.update({
+	// 	where: {
+	// 		id: x.task.id,
+	// 	},
+	// 	data: {
+	// 		title: `Scanning ${x.lib.title} library`,
+	// 		type: 'library',
+	// 		value: Math.ceil((x.index / x.jobsCount) * 100),
+	// 	},
+	// }).catch(e => console.log(e));
+
+	if (synchronous) {
+		await exec(x);
+		return;
+	}
+
+	const queue = useSelector((state: AppState) => state.config.queueWorker);
+	await queue.add({
+		file: resolve(__filename),
+		fn: 'exec',
+		args: x,
+	});
+
+	// const socket = useSelector((state: AppState) => state.system.socket);
+	// socket.emit('tasks', runningTask);
+}

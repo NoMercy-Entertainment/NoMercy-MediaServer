@@ -1,21 +1,23 @@
-import { AppState, useSelector } from '../../state/redux';
-import { deviceId, deviceName, platform } from '../system';
+import axios from 'axios';
 import express, { Request, Response } from 'express';
 import { readFileSync, writeFileSync } from 'fs';
-import { setAccessToken, setRefreshToken } from '../../state/redux/user/actions';
-
-import DetectBrowsers from '../detectBrowsers';
-import { KeycloakToken } from 'types/keycloak';
-import Logger from '../../functions/logger';
-import { ServerRegisterResponse } from 'types/api';
-import axios from 'axios';
 import http from 'http';
 import inquirer from 'inquirer';
-import { keycloak_key } from '../keycloak/config';
 import open from 'open';
 import qs from 'qs';
-import { setOwner } from '../../state/redux/system/actions';
+import { ServerRegisterResponse } from 'types/api';
+import { KeycloakToken } from 'types/keycloak';
+
+import { getLanguage } from '../../api/middleware';
+import Logger from '../../functions/logger';
 import { tokenFile } from '../../state';
+import { AppState, useSelector } from '../../state/redux';
+import { setOwner } from '../../state/redux/system/actions';
+import { setAccessToken, setRefreshToken } from '../../state/redux/user/actions';
+import DetectBrowsers from '../detectBrowsers';
+import { keycloak_key } from '../keycloak/config';
+import storeConfig from '../storeConfig';
+import { deviceId, deviceName, platform } from '../system';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
 
@@ -64,7 +66,7 @@ const registerServer = async () => {
 				Logger.log({
 					level: 'info',
 					name: 'setup',
-					color: 'red',
+					color: 'blueBright',
 					message: error?.response?.data?.message ?? error,
 				});
 			}
@@ -80,7 +82,7 @@ const registerServer = async () => {
 				level: 'info',
 				name: 'setup',
 				color: 'blueBright',
-				message: 'Opening browser, please login to link your server',
+				message: 'Opening browser, please login',
 			});
 
 			await open(
@@ -130,7 +132,7 @@ const registerServer = async () => {
 					level: 'info',
 					name: 'register',
 					color: 'blueBright',
-					message: 'Server assigned',
+					message: 'Server validated',
 				});
 			})
 			.catch(({ response }) => {
@@ -151,6 +153,10 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 	const httpsServer = http.createServer(app);
 
 	app.get('/sso-callback', async (req: Request, res: Response) => {
+
+		await storeConfig({
+			language: getLanguage(req),
+		}, null);
 
 		const keycloakData = qs.stringify({
 			client_id: 'nomercy-server',

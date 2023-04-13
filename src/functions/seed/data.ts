@@ -1,14 +1,15 @@
-import {
-	ConfigData
-} from 'types/server';
+import { ConfigData } from 'types/server';
+
 import { deviceName } from '../system';
 
 export const configData: ConfigData = {
 	secureInternalPort: process.env.DEFAULT_PORT ?? 7635,
 	secureExternalPort: process.env.DEFAULT_PORT ?? 7635,
 	deviceName: deviceName,
-	queueWorkers: 2,
+	queueWorkers: 1,
 	cronWorkers: 1,
+	dataWorkers: 15,
+	requestWorkers: 1,
 };
 
 export const notificationData: { [arg: string]: boolean } = {
@@ -262,58 +263,6 @@ export const libraries: LibrarySeed[] = [
 			},
 		],
 	},
-	// {
-	// 	id: 'cl7i4km1o000aqweffmongx0u',
-	// 	image: null,
-	// 	title: 'Collections',
-	// 	type: 'collection',
-	// 	language: 'nl',
-	// 	country: 'NL',
-	// 	specialSeasonName: 'Specials',
-	// 	realtime: true,
-	// 	autoRefreshInterval: '30',
-	// 	chapterImages: true,
-	// 	extractChaptersDuring: true,
-	// 	extractChapters: true,
-	// 	perfectSubtitleMatch: true,
-	// 	folders: [
-	// 		{
-	// 			id: 'cl7i4km1n0000qwefaltp4913',
-	// 		},
-	// 		{
-	// 			id: 'cl7i4km1o0001qwefarqd8r0q',
-	// 		},
-	// 		{
-	// 			id: 'cl7i4km1o0002qwef0xv15b15',
-	// 		},
-	// 	],
-	// },
-	// {
-	// 	id: 'cl7i4km1o000eqwefeej91x9g',
-	// 	image: null,
-	// 	title: 'Specials',
-	// 	type: 'special',
-	// 	language: 'nl',
-	// 	country: 'NL',
-	// 	specialSeasonName: 'Specials',
-	// 	realtime: true,
-	// 	autoRefreshInterval: '30',
-	// 	chapterImages: true,
-	// 	extractChaptersDuring: true,
-	// 	extractChapters: true,
-	// 	perfectSubtitleMatch: true,
-	// 	folders: [
-	// 		{
-	// 			id: 'cl7i4km1n0000qwefaltp4913',
-	// 		},
-	// 		{
-	// 			id: 'cl7i4km1o0001qwefarqd8r0q',
-	// 		},
-	// 		{
-	// 			id: 'cl7i4km1o0002qwef0xv15b15',
-	// 		},
-	// 	],
-	// },
 	{
 		id: 'cl7i4km1o000iqwefbtxz1hyp',
 		title: 'Music',
@@ -333,5 +282,37 @@ export const libraries: LibrarySeed[] = [
 				id: 'cl7i4km1o0003qwef44qpen9z',
 			},
 		],
+	},
+	{
+		id: 'cl7i4km1o000aqweffmongx0u',
+		image: null,
+		title: 'Collections',
+		type: 'collection',
+		language: 'nl',
+		country: 'NL',
+		specialSeasonName: 'Specials',
+		realtime: true,
+		autoRefreshInterval: '30',
+		chapterImages: true,
+		extractChaptersDuring: true,
+		extractChapters: true,
+		perfectSubtitleMatch: true,
+		folders: [],
+	},
+	{
+		id: 'cl7i4km1o000eqwefeej91x9g',
+		image: null,
+		title: 'Specials',
+		type: 'special',
+		language: 'nl',
+		country: 'NL',
+		specialSeasonName: 'Specials',
+		realtime: true,
+		autoRefreshInterval: '30',
+		chapterImages: true,
+		extractChaptersDuring: true,
+		extractChapters: true,
+		perfectSubtitleMatch: true,
+		folders: [],
 	},
 ];

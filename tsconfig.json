@@ -1,43 +1,35 @@
 {
-  "compilerOptions": {
-    "target": "ES2019",
-    "declaration": false,
-    "outDir": "./dist",
-    "strict": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "downlevelIteration": true,
-    "allowJs": true,
-    "module": "CommonJS",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "noImplicitAny": false,
-    "sourceMap": false,
-    "baseUrl": "./src",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "lib": [
-      "DOM",
-      "ES6",
-      "DOM.Iterable",
-      "ScriptHost",
-      "ES2016.Array.Include",
-      "ESNext",
-      "ES2015",
-      "ES5"
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-  },
-  "ts-node": {
-    "swc": true
-  },
-  "esm": true,
-  "include": [
-    "./src/**/*.ts",
-    "./src/**/*.d.ts",
-  ],
-  "references": [
-  ],
+	"compilerOptions": {
+		"target": "ES6",
+		"declaration": false,
+		"outDir": "./dist",
+		"strict": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+		"downlevelIteration": true,
+		"allowJs": true,
+		"module": "CommonJS",
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"importHelpers": true,
+		"isolatedModules": true,
+		"moduleDetection": "force",
+		"noImplicitAny": false,
+		"sourceMap": false,
+		"moduleResolution": "Node",
+		"resolveJsonModule": true,
+		"noErrorTruncation": true,
+		"lib": ["DOM", "ES6", "DOM.Iterable", "ScriptHost", "ES2016.Array.Include", "ESNext", "ES2015", "ES5"],
+		"baseUrl": "./src",
+		"paths": {
+			"@/*": ["*"]
+		}
+	},
+	"ts-node": {
+		"swc": true,
+		"esm": true,
+		"experimentalSpecifierResolution": "node"
+	},
+	"include": ["./src/**/*.ts", "./src/**/*.d.ts"],
+	"references": []
 }

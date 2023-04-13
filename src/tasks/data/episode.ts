@@ -1,17 +1,19 @@
-import cast from './cast';
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
-import crew from './crew';
-import guest_star from './guest_star';
-import image from './image';
-import Logger from '../../functions/logger';
-import translation from './translation';
-import { AppState, useSelector } from '../../state/redux';
-import { CombinedSeasons } from './fetchTvShow';
-import { Prisma } from '../../database/config/client';
 import { confDb } from '../../database/config';
+import { Prisma } from '../../database/config/client';
+import Logger from '../../functions/logger';
+import cast from './cast';
+import crew from './crew';
+import { CombinedSeasons } from './fetchTvShow';
+import guest_star from './guest_star';
+import { downloadAndHash, image } from './image';
+import translation from './translation';
 
-const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.PromiseReturnType<any>[],
-	people: number[]) => {
+const episode = async (
+	id: number,
+	season: CombinedSeasons,
+	transaction: Prisma.PromiseReturnType<any>[],
+	people: number[]
+) => {
 
 	Logger.log({
 		level: 'info',
@@ -23,31 +25,15 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 	for (const episode of season.episodes) {
 		if (!episode.id) continue;
 
-		const guestStarInsert: any[] = [];
-		const crewInsert: any[] = [];
-		const castInsert: any[] = [];
+		const guestStarInsert: Array<Prisma.GuestStarCreateOrConnectWithoutEpisodeInput> = [];
+		const castInsert: Array<Prisma.CastCreateOrConnectWithoutEpisodeInput> = [];
+		const crewInsert: Array<Prisma.CrewCreateOrConnectWithoutEpisodeInput> = [];
 
-		await cast(episode, transaction, castInsert, people);
-		await crew(episode, transaction, crewInsert, people);
-		await guest_star(episode, transaction, guestStarInsert, people);
+		await guest_star(episode, guestStarInsert, people);
+		await cast(episode, castInsert, people, 'episode');
+		await crew(episode, crewInsert, people, 'episode');
 
-		if (episode?.still_path != '' && episode.still_path != null) {
-			const mediaInsert = Prisma.validator<Prisma.MediaCreateInput>()({
-				src: episode.still_path,
-				type: 'still',
-			});
-
-			transaction.push(
-				confDb.media.upsert({
-					where: {
-						src: episode.still_path,
-					},
-					update: mediaInsert,
-					create: mediaInsert,
-				})
-			);
-		}
-
+		// @ts-ignore
 		const episodesInsert = Prisma.validator<Prisma.EpisodeCreateInput>()({
 			airDate: episode.air_date,
 			episodeNumber: episode.episode_number,
@@ -57,9 +43,6 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 			productionCode: episode.production_code,
 			seasonNumber: episode.season_number,
 			still: episode.still_path,
-			blurHash: episode.still_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${episode.still_path}`)
-				: undefined,
 			voteAverage: episode.vote_average,
 			voteCount: episode.vote_count,
 			imdbId: episode?.external_ids.imdb_id,
@@ -73,15 +56,15 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 					id: id,
 				},
 			},
-			GuestStar: {
-				connectOrCreate: guestStarInsert,
-			},
-			Cast: {
-				connectOrCreate: castInsert,
-			},
-			Crew: {
-				connectOrCreate: crewInsert,
-			},
+			// GuestStar: {
+			// 	connectOrCreate: guestStarInsert,
+			// },
+			// Cast: {
+			// 	connectOrCreate: castInsert,
+			// },
+			// Crew: {
+			// 	connectOrCreate: crewInsert,
+			// },
 		});
 
 		transaction.push(
@@ -94,20 +77,36 @@ const episode = async (id: number, season: CombinedSeasons, transaction: Prisma.
 			})
 		);
 
-		await translation(episode, transaction, 'episode');
+		if (episode?.still_path != '' && episode.still_path != null) {
+			const mediaInsert = Prisma.validator<Prisma.MediaUncheckedCreateInput>()({
+				src: episode.still_path,
+				type: 'still',
+				episodeId: episode.id,
+			});
 
+			transaction.push(
+				confDb.media.upsert({
+					where: {
+						src: episode.still_path,
+					},
+					update: mediaInsert,
+					create: mediaInsert,
+				})
+			);
+		}
 
-		const queue = useSelector((state: AppState) => state.config.dataWorker);
-
-		// await queue.add({
-		// 	file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
-		// 	fn: 'downloadTMDBImages',
-		// 	args: {type: 'episode', task, data: episode},
-		// });
-
-		// await downloadTMDBImages('episode', episode).catch(() => null);
-
+		translation(episode, transaction, 'episode');
 		await image(episode, transaction, 'still', 'episode');
+
+		if (episode.still_path) {
+			await downloadAndHash({
+				src: episode.still_path,
+				table: 'episode',
+				column: 'still',
+				type: 'episode',
+				only: ['blurHash'],
+			});
+		}
 	}
 
 	Logger.log({

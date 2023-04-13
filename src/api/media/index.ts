@@ -1,19 +1,17 @@
-import { Genre, Translation } from '../../database/config/client';
 import { Request, Response } from 'express';
-import { getContent, ownerQuery, userQuery } from './data';
-
 import { KAuthRequest } from 'types/keycloak';
 import { LibraryResponseContent } from 'types/server';
+
 import { confDb } from '../../database/config';
-import { deviceId } from '../../functions/system';
+import { Genre, Translation } from '../../database/config/client';
 import { getLanguage } from '../middleware';
 import { isOwner } from '../middleware/permissions';
+import { getContent, ownerQuery, userQuery } from './data';
 
 export default async function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
 
-	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 	const owner = isOwner(req as KAuthRequest);
 
@@ -24,10 +22,20 @@ export default async function (req: Request, res: Response) {
 	await confDb.translation.findMany({
 		where: {
 			iso6391: language,
-			translationableType: {
-				in: ['movie', 'tv'],
-			},
+			OR: [
+				{
+					movieId: {
+						not: null,
+					},
+				},
+				{
+					tvId: {
+						not: null,
+					},
+				},
+			],
 		},
+
 	}).then(data => translations.push(...data));
 
 	await Promise.all([
@@ -44,7 +52,7 @@ export default async function (req: Request, res: Response) {
 				for (const lib of data) {
 					if (!lib) continue;
 
-					response.push(...(await getContent(lib, translations, servers)));
+					response.push(...(await getContent(lib, translations)));
 				}
 			}),
 
@@ -56,7 +64,7 @@ export default async function (req: Request, res: Response) {
 				for (const lib of data?.Libraries ?? []) {
 					if (!lib.library) continue;
 
-					response.push(...(await getContent(lib.library, translations, servers)));
+					response.push(...(await getContent(lib.library, translations)));
 				}
 			}),
 	]);

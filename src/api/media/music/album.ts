@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { trackSort, uniqBy } from '../../../functions/stringArray';
-
-import { AlbumResponse } from './album.d';
 import { KAuthRequest } from 'types/keycloak';
+
 import { confDb } from '../../../database/config';
+import { trackSort, uniqBy } from '../../../functions/stringArray';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
+import { AlbumResponse } from './album.d';
 
 export default async function (req: Request, res: Response): Promise<Response<AlbumResponse>> {
 

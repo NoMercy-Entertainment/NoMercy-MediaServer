@@ -1,12 +1,10 @@
-import {
-	AppState,
-	useSelector
-} from '../../../state/redux';
 import { Request, Response } from 'express';
-
 import { KAuthRequest } from 'types/keycloak';
+
+import { checkDbLock } from '../../../database';
 import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
+import { AppState, useSelector } from '../../../state/redux';
 
 export default (req: Request, res: Response) => {
 
@@ -35,8 +33,11 @@ export const storeServerActivity = ({ sub_id, device_id, type, device_os, time, 
 
 	const socket = useSelector((state: AppState) => state.system.socket);
 
-	return new Promise((resolve, reject) => {
+	return new Promise(async (resolve) => {
 		try {
+			while (await checkDbLock()) {
+			  //
+			}
 			confDb.activityLog
 				.create({
 					data: {
@@ -74,7 +75,7 @@ export const storeServerActivity = ({ sub_id, device_id, type, device_os, time, 
 					socket.emit('setDevices', devices);
 					resolve(data);
 				})
-				.catch((error) => {
+				.catch(() => {
 					//
 				});
 		} catch (error) {

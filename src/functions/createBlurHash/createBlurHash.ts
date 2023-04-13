@@ -1,6 +1,5 @@
-import { createCanvas, loadImage } from 'canvas';
-
 import { encode } from 'blurhash';
+import { createCanvas, loadImage } from 'canvas';
 
 const createBlurHash = async (imageUrl: string | Buffer) => {
 	const image = await loadImage(imageUrl);

@@ -1,9 +1,10 @@
 import { exec, execSync } from 'child_process';
-import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import fs from 'fs';
-import makeAttachmentsFile from './attatchments';
+
+import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import { ffmpeg, subtitleEdit } from '../../../state';
 import { AppState, useSelector } from '../../../state/redux';
+import makeAttachmentsFile from './attatchments';
 
 export default (ffprobe: VideoFFprobe, outputFolder: string, fileName: string) => {
 	const subtitleMap: any[] = [];
@@ -267,13 +268,24 @@ export const convertSubToVtt = async function (folder: string) {
 	}
 };
 
-export const getExistingSubtitles = function (folder: string) {
-	if (!fs.existsSync(folder)) {
-		return [];
+export const getExistingSubtitles = function (ffprobe: VideoFFprobe) {
+	const path = ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1/subtitles');
+
+	const arr: any[] = [];
+
+	if (!fs.existsSync(path)) {
+		ffprobe.streams.subtitle.forEach((s) => {
+			arr.push({
+				language: s.language,
+				type: getSubType(s.title, s.index),
+				ext: getExtension(s.codec_name),
+			});
+		});
+
+		return arr;
 	}
 
-	const files = fs.readdirSync(folder);
-	const arr: any[] = [];
+	const files = fs.readdirSync(path);
 	files
 		.filter(f => !f.match(/-\w{5,}\.\w{3}$/u))
 		.filter(f => f.match(/.ass$|.vtt$/u))

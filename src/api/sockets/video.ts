@@ -94,7 +94,7 @@ export default function (socket: any, io: any) {
 		socket.emit('addToList', true);
 	});
 	socket.on('load', async (data: any) => {
-		// console.log("load",data);
+		// console.log('load', data);
 		if (data.tmdb_id) {
 			const start = await confDb.userData.findFirst({
 				where: {
@@ -118,7 +118,7 @@ export default function (socket: any, io: any) {
 		}
 	});
 	socket.on('getTime', async (data: any) => {
-		// console.log("getTime",data);
+		// console.log('getTime', data);
 		if (data.tmdb_id) {
 			const start = await confDb.userData.findFirst({
 				where: {

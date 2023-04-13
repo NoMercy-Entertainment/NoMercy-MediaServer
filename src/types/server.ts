@@ -1,9 +1,8 @@
-import { Genre, GenreMovie, GenreTv, Recommendation, Similar, UserData } from '../database/config/client';
-
-import { Movie } from '../providers/tmdb/movie';
 import { Socket } from 'socket.io';
+
+import { Genre, GenreMovie, GenreTv, UserData } from '../database/config/client';
+import { Movie } from '../providers/tmdb/movie';
 import { TvShow } from '../providers/tmdb/tv';
-import { Video } from '../providers/tmdb/shared';
 
 export interface MediaServer {
 	connected: boolean;
@@ -202,7 +201,7 @@ export interface InfoResponse {
 	posters: MediaItem[];
 	logos: MediaItem[];
 	genres: Item[];
-	creators?: Item[];
+	creators: Item[];
 	directors: Item[];
 	writers: Item[];
 	keywords: string[];
@@ -231,29 +230,25 @@ export interface InfoResponse {
 }
 
 export interface Item {
-	id: number | string;
-	name: string;
-}
+	id: number | string | undefined;
+	name: string | null | undefined;
+	blurHash?: string | null;
+}[];
 
 export interface MediaItem {
-	aspectRatio: number;
-	createdAt: string;
-	height: number;
-	id: number;
+	aspectRatio: number | null;
+	height: number | null;
+	id: string | number;
 	iso6391: string | null;
-	name: string | null;
-	site: string | null;
-	size: string | null;
 	profilePath?: string | null;
 	poster?: string | null;
 	backdrop?: string | null;
 	src: string;
-	type: string;
-	updatedAt: string;
-	voteAverage: number;
-	voteCount: number;
-	width: number;
-	colorPalette: PaletteColors;
+	voteAverage: number | null;
+	voteCount: number | null;
+	width: number | null;
+	colorPalette: PaletteColors | null;
+	blurHash?: string | null;
 }
 
 export interface InfoCredit {
@@ -269,8 +264,11 @@ export interface InfoCredit {
 	deathday: string | null | undefined;
 }
 
-export interface ExtendedVideo extends Video {
+export interface ExtendedVideo {
 	src: string;
+	name: string,
+	type: string,
+	site: string,
 }
 
 export interface LibraryResponse {
@@ -379,6 +377,9 @@ export interface ConfigParams {
 	deviceName: string;
 	queueWorkers: number;
 	cronWorkers: number;
+	dataWorkers: number;
+	requestWorkers: number;
+	encoderWorkers: number;
 }
 
 export interface UserDataResponse {
@@ -420,4 +421,27 @@ export interface LogoResponse {
 
 export interface UserPermissions {
 	edit: boolean;
+}
+
+
+export type Similar = {
+	backdrop: string | null
+	id: number
+	overview: string | null
+	poster: string | null
+	title: string
+	titleSort: string
+	blurHash: string | null
+	mediaType: string
+}
+
+export type Recommendation = {
+	backdrop: string | null
+	id: number
+	overview: string | null
+	poster: string | null
+	title: string
+	titleSort: string
+	blurHash: string | null
+	mediaType: string
 }

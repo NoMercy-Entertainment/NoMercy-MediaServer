@@ -25,7 +25,7 @@ export default function (socket, io) {
 			name: 'command',
 			color: 'yellow',
 			user: socket.decoded_token.name,
-			message: data.value,
+			message: data,
 		});
 		socket.nsp.to(socket.decoded_token.sub).emit('command', data);
 	});

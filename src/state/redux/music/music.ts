@@ -1,4 +1,5 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import { DisplayList, MutedState, PlayState, Song, State } from '../../../types/music';
 
 const initialState = {
@@ -104,7 +105,7 @@ const music = createSlice({
 		},
 		setCurrentItem: (state, action: PayloadAction<Song>) => {
 			state.currentItem = action.payload;
-			state.queue = state.queue?.filter(q => q.id != action.payload?.id);
+			state.queue = state.queue?.filter(q => q?.id != action.payload?.id);
 		},
 		setAudioElement: (state, action: PayloadAction<any>) => {
 			state.audio = action.payload;

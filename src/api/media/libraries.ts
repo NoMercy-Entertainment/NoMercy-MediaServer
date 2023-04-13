@@ -1,19 +1,16 @@
 import { Request, Response } from 'express';
-import { getContent, ownerQuery, userQuery } from './data';
-
 import { KAuthRequest } from 'types/keycloak';
-import Logger from '../../functions/logger';
-import { Translation } from '../../database/config/client';
+
 import { confDb } from '../../database/config';
-import { deviceId } from '../../functions/system';
+import { Translation } from '../../database/config/client';
+import Logger from '../../functions/logger';
 import { getLanguage } from '../middleware';
 import { isOwner } from '../middleware/permissions';
+import { getContent, ownerQuery, userQuery } from './data';
 
 export default async function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
-
-	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 	const owner = isOwner(req as KAuthRequest);
@@ -34,7 +31,7 @@ export default async function (req: Request, res: Response) {
 						...l,
 						Tv: undefined,
 						Movie: undefined,
-						content: await getContent(l, translations, servers),
+						content: await getContent(l, translations),
 					});
 				}
 				if (req.params.id) {
@@ -68,7 +65,7 @@ export default async function (req: Request, res: Response) {
 						...l.library,
 						Tv: undefined,
 						Movie: undefined,
-						content: await getContent(l.library, translations, servers),
+						content: await getContent(l.library, translations),
 					});
 				}
 				if (req.params.id) {

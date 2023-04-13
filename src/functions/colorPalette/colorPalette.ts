@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import colorThief from 'pure-color-thief-node';
 import { PaletteColors } from 'types/server';
 
-export default async (data: string| Buffer): Promise<PaletteColors | null> => {
+export default async (data: string| Buffer, type?: string): Promise<PaletteColors | null> => {
 
 	try {
 		let imageBuffer;
@@ -16,17 +16,13 @@ export default async (data: string| Buffer): Promise<PaletteColors | null> => {
 			imageBuffer = data;
 		}
 
-		if (!imageBuffer?.headers['content-type']) {
-			return null;
-		}
-
 		const img = new colorThief();
 
-		if (!['image/png', 'image/jpeg', 'image/jpg'].includes(imageBuffer.headers['content-type'])) {
+		if (!['image/png', 'image/jpeg', 'image/jpg'].includes(imageBuffer?.headers?.['content-type'] ?? type)) {
 			return null;
 		}
 
-		await img.loadImage(Buffer.from(imageBuffer.data), imageBuffer.headers['content-type']);
+		await img.loadImage(Buffer.from(imageBuffer.data ?? data), imageBuffer?.headers?.['content-type'] ?? type);
 
 		const pallette = img.getColorPalette(5);
 
@@ -39,6 +35,7 @@ export default async (data: string| Buffer): Promise<PaletteColors | null> => {
 		};
 
 	} catch (error) {
+		console.log(error);
 		return null;
 	}
 };

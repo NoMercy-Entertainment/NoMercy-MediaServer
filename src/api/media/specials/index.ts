@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 
-import { Prisma } from '../../../database/config/client';
 import { confDb } from '../../../database/config';
-import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { deviceId } from '../../../functions/system';
-import { getLanguage } from '../../middleware';
+import { Prisma } from '../../../database/config/client';
 import { unique } from '../../../functions/stringArray';
+import { deviceId } from '../../../functions/system';
+import { createTitleSort } from '../../../tasks/files/filenameParser';
+import { getLanguage } from '../../middleware';
 
-export default async (req: Request, res: Response) => {
+export default async function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
 
@@ -21,11 +21,11 @@ export default async (req: Request, res: Response) => {
 	await Promise.all([
 
 		confDb.special.findMany(specialQuery)
-			.then(data => specials.push(...data))
-			.finally(async () => {
-				await confDb.translation.findMany(translationQuery({ ids: specials.map(s => s.id), language }))
-					.then(data => translation.push(...data));
-			}),
+			.then(data => specials.push(...data)),
+		// .finally(async () => {
+		// 	await confDb.translation.findMany(translationQuery({ ids: specials.map(s => s.id), language }))
+		// 		.then(data => translation.push(...data));
+		// }),
 	]);
 
 	const data = specials.map((special) => {

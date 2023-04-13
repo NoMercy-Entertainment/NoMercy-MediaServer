@@ -1,17 +1,13 @@
 import { Prisma } from '../../database/config/client';
-import {
-	MovieAlternativeTitles
-} from '../../providers/tmdb/movie/index';
-import {
-	AlternativeTitles
-} from '../../providers/tmdb/tv/index';
+import { MovieAlternativeTitles } from '../../providers/tmdb/movie/index';
+import { AlternativeTitles } from '../../providers/tmdb/tv/index';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
 
 export default (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
 	alternative_titleArray: Array<
-		Prisma.AlternativeTitlesCreateOrConnectWithoutTvInput | Prisma.AlternativeTitlesCreateOrConnectWithoutMovieInput
+		Prisma.AlternativeTitlesCreateOrConnectWithoutMovieInput | Prisma.AlternativeTitlesCreateOrConnectWithoutTvInput
 	>,
 	table: 'movie' | 'tv'
 ) => {

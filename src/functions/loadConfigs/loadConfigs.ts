@@ -1,9 +1,8 @@
-import { setDeviceName, setLibraries } from '../../state/redux/config/actions';
-import { setSecureExternalPort, setSecureInternalPort } from '../../state/redux/system/actions';
-
-import { Configuration } from '../../database/config/client';
 import { confDb } from '../../database/config';
+import { Configuration } from '../../database/config/client';
 import { getLibrariesWithFolders } from '../../database/data';
+import { setDeviceName, setLanguage, setLibraries } from '../../state/redux/config/actions';
+import { setSecureExternalPort, setSecureInternalPort } from '../../state/redux/system/actions';
 
 export const loadConfigs = async () => {
 
@@ -17,6 +16,9 @@ export const loadConfigs = async () => {
 
 	const deviceName = dbConf.find(conf => conf.key == 'deviceName')?.value as string;
 	setDeviceName(deviceName);
+
+	const language = dbConf.find(conf => conf.key == 'language')?.value as string;
+	setLanguage(language);
 
 	const libraries = await getLibrariesWithFolders();
 	setLibraries(libraries);

@@ -1,12 +1,15 @@
+import { confDb } from '../../database/config';
+import { Prisma } from '../../database/config/client';
+import Logger from '../../functions/logger/logger';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
-import Logger from '../../functions/logger/logger';
-import { Prisma } from '../../database/config/client';
-import { confDb } from '../../database/config';
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
-import image from './image';
+import { image } from './image';
+import translation from './translation';
 
-export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[]) => {
+export default async (
+	req: CompleteTvAggregate | CompleteMovieAggregate,
+	transaction: Prisma.PromiseReturnType<any>[]
+) => {
 	Logger.log({
 		level: 'info',
 		name: 'App',
@@ -32,10 +35,7 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			id: person.id,
 			placeOfBirth: person.place_of_birth,
 			popularity: person.popularity,
-			profilePath: person.profile_path,
-			blurHash: person.profile_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${person.profile_path}`)
-				: undefined,
+			profile: person.profile_path,
 		});
 
 		transaction.push(
@@ -48,6 +48,7 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			})
 		);
 
+		translation(person, transaction, 'person');
 		await image(person, transaction, 'profile', 'person');
 	}
 

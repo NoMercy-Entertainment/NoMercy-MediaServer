@@ -1,65 +1,35 @@
-import lyricsFinder from 'lyrics-finder';
 import {
-	copyFileSync,
-	existsSync,
-	readdirSync,
-	readFileSync,
-	rmSync,
-	statSync,
-	writeFileSync
+	copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync
 } from 'fs';
+import lyricsFinder from 'lyrics-finder';
 import { join } from 'path';
 import { PaletteColors } from 'types/server';
 
-import createBlurHash from '../../functions/createBlurHash';
-import downloadImage from '../../functions/downloadImage';
-import FileList from '../../tasks/files/getFolders';
-import Logger from '../../functions/logger';
-import colorPalette, {
-	colorPaletteFromFile
-} from '../../functions/colorPalette';
 import { confDb } from '../../database/config';
-import {
-	Folder,
-	Jobs,
-	Prisma
-} from '../../database/config/client';
-import {
-	AudioFFprobe
-} from '../../encoder/ffprobe/ffprobe';
-import {
-	getBestArtistImag
-} from '../../functions/artistImage';
-import {
-	fileChangedAgo,
-	humanTime,
-	sleep
-} from '../../functions/dateTime';
+import { Folder, Job, Prisma } from '../../database/config/client';
+import { AudioFFprobe } from '../../encoder/ffprobe/ffprobe';
+import { getBestArtistImag } from '../../functions/artistImage';
+import colorPalette, { colorPaletteFromFile } from '../../functions/colorPalette';
+import createBlurHash from '../../functions/createBlurHash';
+import { fileChangedAgo, humanTime, sleep } from '../../functions/dateTime';
+import downloadImage from '../../functions/downloadImage';
+import Logger from '../../functions/logger';
 import { jsonToString } from '../../functions/stringArray';
+import i18n from '../../loaders/i18n';
 import { findLyrics } from '../../providers';
 import { Image } from '../../providers/musicbrainz/cover';
 import {
-	Artist,
-	getAcousticFingerprintFromParsedFileList,
-	Medium,
-	Recording,
-	Release
+	Artist, getAcousticFingerprintFromParsedFileList, Medium, Recording, Release
 } from '../../providers/musicbrainz/fingerprint';
 import {
-	recording,
-	recordingAppend,
-	RecordingWithAppends
+	recording, recordingAppend, RecordingWithAppends
 } from '../../providers/musicbrainz/recording';
-import {
-	releaseCover
-} from '../../providers/musicbrainz/release';
+import { releaseCover } from '../../providers/musicbrainz/release';
 import { cachePath, imagesPath } from '../../state';
-import {
-	ParsedFileList
-} from '../../tasks/files/filenameParser';
+import { ParsedFileList } from '../../tasks/files/filenameParser';
+import FileList from '../../tasks/files/getFolders';
 
-import i18n from '../../loaders/i18n';
-export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }: { id: number | string; folder: string; libraryId: string; job?: Jobs, task?: { id: string } }) => {
+export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }: { id: number | string; folder: string; libraryId: string; job?: Job, task?: { id: string } }) => {
 
 	console.log({ folder, libraryId, task });
 
@@ -444,7 +414,7 @@ const getArtistImage = async (folder: string, artist: Artist) => {
 				image = `/${artistName}.${x.extension}`;
 				palette = await colorPalette(x.url);
 				blurHash = await createBlurHash(x.url);
-				await downloadImage(x.url, `${imagesPath}/music/${artist.id}.${x.extension}`)
+				await downloadImage({ url: x.url, path: `${imagesPath}/music/${artist.id}.${x.extension}` })
 					.catch(() => {
 						//
 					});
@@ -463,7 +433,7 @@ const getArtistImage = async (folder: string, artist: Artist) => {
 			image = `/${artistName}.${x.extension}`;
 			palette = await colorPalette(x.url);
 			try {
-				await downloadImage(x.url, `${imagesPath}/music/${artist.id}.${x.extension}`)
+				await downloadImage({ url: x.url, path: `${imagesPath}/music/${artist.id}.${x.extension}` })
 					.catch(() => {
 						//
 					});
@@ -604,7 +574,7 @@ const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList
 		const extension = coverPath?.replace(/.+(\w{3,})$/u, '$1').replace('unknown', 'png');
 
 		if (!existsSync(`${imagesPath}/music/${id}.${extension}`)) {
-			await downloadImage(coverPath, `${imagesPath}/music/${id}.${extension}`).catch(() => {
+			await downloadImage({ url: coverPath, path: `${imagesPath}/music/${id}.${extension}` }).catch(() => {
 				//
 			});
 			if (existsSync(`${imagesPath}/music/${id}.${extension}`) && statSync(`${imagesPath}/music/${id}.${extension}`).size == 0) {

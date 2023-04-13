@@ -1,11 +1,11 @@
-import { AppState, useSelector } from '../../state/redux';
-import { ExecException, exec } from 'child_process';
+import { exec, ExecException } from 'child_process';
+import fs from 'fs';
 
 import Logger from '../../functions/logger';
-import { VideoFFprobe } from './ffprobe';
-import { errorLog } from '../../state';
-import fs from 'fs';
 import { sortByPriorityKeyed } from '../../functions/stringArray';
+import { errorLog } from '../../state';
+import { AppState, useSelector } from '../../state/redux';
+import { VideoFFprobe } from './ffprobe';
 
 export default (file: string): Promise<VideoFFprobe> => {
 	return new Promise((resolve, reject) => {
@@ -131,7 +131,7 @@ export default (file: string): Promise<VideoFFprobe> => {
 					videoInfo?.chapters?.map((chapter, index) => {
 						chapters.push({
 							index: index,
-							title: chapter['TAG:title'],
+							title: chapter['TAG:title'] ?? chapter.tags.title,
 							start_time: chapter.start_time,
 							end_time: chapter.end_time,
 						});

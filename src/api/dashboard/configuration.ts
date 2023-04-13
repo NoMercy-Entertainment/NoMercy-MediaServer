@@ -82,11 +82,17 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 
 	const queue = useSelector((state: AppState) => state.config.queueWorker);
 	const cron = useSelector((state: AppState) => state.config.cronWorker);
+	const data = useSelector((state: AppState) => state.config.dataWorker);
+	const request = useSelector((state: AppState) => state.config.requestWorker);
+	const encoder = useSelector((state: AppState) => state.config.encoderWorker);
 
 	await storeConfig(body as unknown as ConfigData, user)
 		.then(() => {
 			queue.setWorkers(body.queueWorkers);
 			cron.setWorkers(body.cronWorkers);
+			data.setWorkers(body.dataWorkers);
+			request.setWorkers(body.requestWorkers);
+			encoder.setWorkers(body.encoderWorkers);
 			setDeviceName(body.deviceName);
 
 			if (secureInternalPort != body.secureInternalPort) {

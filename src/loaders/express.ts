@@ -1,30 +1,34 @@
-import { AppState, useSelector } from '../state/redux';
-import express, { Application, NextFunction, Request, Response } from 'express';
-import {
-    serveImagesPath,
-    serveLibraryPaths,
-    servePublicPath,
-    serveSubtitlesPath,
-    serveTranscodePath
-} from '../api/routes/files';
-
-import Logger from '../functions/logger';
-import { allowedOrigins } from '../functions/networking';
-import changeLanguage from '../api/middleware/language';
-import check from '../api/middleware/check';
 import compression from 'compression';
 import cors from 'cors';
-import { initKeycloak } from '../functions/keycloak';
-import routes from '../api/index';
+import express, { Application, NextFunction, Request, Response } from 'express';
 import session from 'express-session';
-import { session_config } from '../functions/keycloak/config';
-import { setupComplete } from '../state';
+
+import routes from '../api/index';
+import check from '../api/middleware/check';
+import changeLanguage from '../api/middleware/language';
 import { staticPermissions } from '../api/middleware/permissions';
+import {
+	serveImagesPath, serveLibraryPaths, servePublicPath, serveSubtitlesPath, serveTranscodePath
+} from '../api/routes/files';
+import { initKeycloak } from '../functions/keycloak';
+import { session_config } from '../functions/keycloak/config';
+import Logger from '../functions/logger';
+import { allowedOrigins } from '../functions/networking';
+import { setupComplete } from '../state';
+import { AppState, useSelector } from '../state/redux';
 
 export default async (app: Application) => {
 	const owner = useSelector((state: AppState) => state.system.owner);
 
 	const KC = initKeycloak();
+
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		res.header('X-Powered-By', 'NoMercy MediaServer');
+		res.header('Access-Control-Allow-Private-Network', 'true');
+		// res.header('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
+
+		next();
+	});
 
 	app.use(
 		cors({
@@ -56,9 +60,9 @@ export default async (app: Application) => {
 	app.use(KC.middleware());
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		res.set('X-Powered-By', 'NoMercy MediaServer');
-		res.set('Access-Control-Allow-Private-Network', 'true');
-		res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
+		// res.set('X-Powered-By', 'NoMercy MediaServer');
+		// res.set('Access-Control-Allow-Private-Network', 'true');
+		// res.set('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
 
 		if (allowedOrigins.some(o => o == req.headers.origin)) {
 			res.set('Access-Control-Allow-Origin', req.headers.origin as string);

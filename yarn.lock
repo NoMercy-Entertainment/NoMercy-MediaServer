@@ -762,31 +762,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:^4.7.1":
-  version: 4.7.1
-  resolution: "@prisma/client@npm:4.7.1"
+"@prisma/client@npm:latest":
+  version: 4.11.0
+  resolution: "@prisma/client@npm:4.11.0"
   dependencies:
-    "@prisma/engines-version": 4.7.1-1.272861e07ab64f234d3ffc4094e32bd61775599c
+    "@prisma/engines-version": 4.11.0-57.8fde8fef4033376662cad983758335009d522acb
   peerDependencies:
     prisma: "*"
   peerDependenciesMeta:
     prisma:
       optional: true
-  checksum: 01ce4c7382d80a1cca256e532a773d982ada9b7f64acd6bb590415634d04305413cee700048287dbf94f09ccf31e19db03a4a6501bfd0a01509f80498ee58121
+  checksum: ca8d8f820caaf4a76b94674f88207d5bb14f57a9682d37d2f79c56378f259cd3b14b30a110ab59a97647fcf3c46f896e7a2d20ded2777e09b835d7accd70cf1d
   languageName: node
   linkType: hard
 
-"@prisma/engines-version@npm:4.7.1-1.272861e07ab64f234d3ffc4094e32bd61775599c":
-  version: 4.7.1-1.272861e07ab64f234d3ffc4094e32bd61775599c
-  resolution: "@prisma/engines-version@npm:4.7.1-1.272861e07ab64f234d3ffc4094e32bd61775599c"
-  checksum: 66221f1805ce700a4f9f0b6751a291d7114afff9d8b61fd03beb9bbe8b45b037fc67ee0425f45bbad57b7bf95cf649a490d5caaf75a4f3a7e17b3187ea8a6a15
+"@prisma/engines-version@npm:4.11.0-57.8fde8fef4033376662cad983758335009d522acb":
+  version: 4.11.0-57.8fde8fef4033376662cad983758335009d522acb
+  resolution: "@prisma/engines-version@npm:4.11.0-57.8fde8fef4033376662cad983758335009d522acb"
+  checksum: f040b93d09b21feaef193080eed22142fa26b3cf86d089ebb4286f5f45ed17a98e030a8bb55c0bec2892e15880a697f6754c6966b7795cf7ba4553f59fb387e7
   languageName: node
   linkType: hard
 
-"@prisma/engines@npm:4.7.1":
-  version: 4.7.1
-  resolution: "@prisma/engines@npm:4.7.1"
-  checksum: 1660f1d5a6188a9cb9aa5186111910f37b1bc02f09be10336a41e0ec61a18a4193e0ff424077dafb1bf1392a435fc89cec47526a58784a7bdc6c8278adf147a4
+"@prisma/engines@npm:4.11.0":
+  version: 4.11.0
+  resolution: "@prisma/engines@npm:4.11.0"
+  checksum: 98030cead39e5009b7a91fd2463433ccdb16cbeb6c7345ed7950c25dbe0731a425fc888458a1423b594d659972e081ca3d63d301ef647f05a634209c75769db2
   languageName: node
   linkType: hard
 
@@ -3460,6 +3460,13 @@ chromedriver@latest:
   bin:
     cssesc: bin/cssesc
   checksum: f8c4ababffbc5e2ddf2fa9957dda1ee4af6048e22aeda1869d0d00843223c1b13ad3f5d88b51caa46c994225eacb636b764eb807a8883e2fb6f99b4f4e8c48b2
+  languageName: node
+  linkType: hard
+
+"csvjson-csv2json@npm:^5.0.6":
+  version: 5.0.6
+  resolution: "csvjson-csv2json@npm:5.0.6"
+  checksum: 5a26d468c9b6f7254f1c313e136ec764bf934a767db618d4b631d30b75638737901d151a1ae7a7b3656be5109ebaa459ced89bf7d037ad678f4a4fd661f6c781
   languageName: node
   linkType: hard
 
@@ -7962,6 +7969,13 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
+"module-alias@npm:^2.2.2":
+  version: 2.2.2
+  resolution: "module-alias@npm:2.2.2"
+  checksum: 4b5543f834b484033e5bd184096ca8276b9195e32e88883ee6ea8d3a4789d97c470d26f5fa7271bd7a26588bf67e4d27dbdb594ee327aef1c9619d855dc78342
+  languageName: node
+  linkType: hard
+
 "moment@npm:^2.29.4":
   version: 2.29.4
   resolution: "moment@npm:2.29.4"
@@ -8368,7 +8382,7 @@ chromedriver@latest:
     "@electron-forge/maker-rpm": ^6.0.0-beta.67
     "@electron-forge/maker-squirrel": ^6.0.0-beta.67
     "@electron-forge/maker-zip": ^6.0.0-beta.67
-    "@prisma/client": ^4.7.1
+    "@prisma/client": latest
     "@reduxjs/toolkit": ^1.8.5
     "@runonflux/nat-upnp": ^1.0.2
     "@swc/core": ^1.3.6
@@ -8401,6 +8415,7 @@ chromedriver@latest:
     chromecast-api: ^0.4.0
     compression: ^1.7.4
     cors: ^2.8.5
+    csvjson-csv2json: ^5.0.6
     directory-tree: ^3.3.1
     dotenv: ^16.0.3
     edge-launcher: ^1.2.2
@@ -8437,6 +8452,7 @@ chromedriver@latest:
     lyrics-finder: ^21.7.0
     m3u8-file-parser: ^0.2.4
     mdns: ^2.7.2
+    module-alias: ^2.2.2
     moment: ^2.29.4
     musicbrainz-api: ^0.10.0
     node-machine-id: ^1.1.12
@@ -8446,7 +8462,7 @@ chromedriver@latest:
     os-utils: ^0.0.14
     pkg: ^5.8.0
     prettier: ^2.8.0
-    prisma: ^4.7.1
+    prisma: latest
     pure-color-thief-node: ^1.0.8
     qs: ^6.11.0
     react: ^18.2.0
@@ -9415,15 +9431,15 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"prisma@npm:^4.7.1":
-  version: 4.7.1
-  resolution: "prisma@npm:4.7.1"
+"prisma@npm:latest":
+  version: 4.11.0
+  resolution: "prisma@npm:4.11.0"
   dependencies:
-    "@prisma/engines": 4.7.1
+    "@prisma/engines": 4.11.0
   bin:
     prisma: build/index.js
     prisma2: build/index.js
-  checksum: eb7046a5928f33e484bb2a100f49b613a37bdd83d72aa7e87a4edb38a235b7c44bb9c89bc9116af60950554da06d6ef7c581dd0c637ba2798810485d04da29d4
+  checksum: 760d80766ae16ad2d25cfc20d75433b020dff0937eab864b94b95beadd89e481508e4d3c6370a5df90749d5ac5c7af77c9c2f293b74bfdee0e548b04a905c2e7
   languageName: node
   linkType: hard
 

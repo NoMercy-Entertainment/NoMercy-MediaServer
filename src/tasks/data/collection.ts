@@ -1,30 +1,15 @@
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
 import { confDb } from '../../database/config';
 import { Prisma } from '../../database/config/client';
-import {
-	createTitleSort
-} from '../../tasks/files/filenameParser';
+import createBlurHash from '../../functions/createBlurHash';
+import { createTitleSort } from '../../tasks/files/filenameParser';
 import { CompleteMovieAggregate } from './fetchMovie';
 
 const collection = async (
 	movie: CompleteMovieAggregate,
 	libraryId: string,
-	transaction: any[],
-	collectionMovieInsert: Prisma.CollectionMovieCreateOrConnectWithoutMovieInput[]
+	transaction: any[]
 ) => {
 	const collection = movie.collection;
-
-	collectionMovieInsert.push({
-		where: {
-			collectionId_movieId: {
-				collectionId: collection.id,
-				movieId: movie.id,
-			},
-		},
-		create: {
-			collectionId: collection.id,
-		},
-	});
 
 	const blurHash = {
 		poster: collection.poster_path
@@ -45,6 +30,79 @@ const collection = async (
 		title: collection.name,
 		titleSort: createTitleSort(collection.name),
 		libraryId: libraryId,
+		movieId: movie.id,
+		Parts: {
+			connectOrCreate: collection.parts.map((p) => {
+				return {
+					where: {
+						collectionId_movieId: {
+							collectionId: collection.id,
+							movieId: p.id,
+						},
+					},
+					create: {
+						Movie: {
+							connectOrCreate: {
+								where: {
+									id: p.id,
+								},
+								create: {
+									id: p.id,
+									adult: p.adult,
+									backdrop: p.backdrop_path,
+									blurHash: JSON.stringify(blurHash),
+									originalLanguage: p.original_language,
+									originalTitle: p.original_title,
+									overview: p.overview,
+									popularity: p.popularity,
+									poster: p.poster_path,
+									releaseDate: p.release_date,
+									title: p.title,
+									titleSort: createTitleSort(p.title, p.release_date),
+									voteAverage: p.vote_average,
+									voteCount: p.vote_count,
+									libraryId: libraryId,
+									Genre: {
+										connectOrCreate: p.genre_ids!.map((g) => {
+											return {
+												where: {
+													genre_movie_unique: {
+														genreId: g,
+														movieId: p.id,
+													},
+												},
+												create: {
+													genreId: g,
+												},
+											};
+										}),
+									},
+								},
+							},
+						},
+					},
+				};
+			}),
+		},
+		Translation: {
+			connectOrCreate: collection.translations.translations.map((tr) => {
+				return {
+					where: {
+						collectionId_iso31661_iso6391: {
+							iso31661: tr.iso_3166_1,
+							iso6391: tr.iso_639_1,
+							collectionId: collection.id,
+						},
+					},
+					create: {
+						englishName: tr.english_name,
+						homepage: tr.homepage,
+						iso31661: tr.iso_3166_1,
+						iso6391: tr.iso_639_1,
+					},
+				};
+			}),
+		},
 	});
 
 	transaction.push(
@@ -57,108 +115,103 @@ const collection = async (
 		})
 	);
 
-	for (const p of collection.parts) {
+	// for (const p of collection.parts) {
 
-		// collectionMovieInsert.push({
-		// 	where: {
-		// 		collectionId_movieId: {
-		// 			collectionId: collection.id,
-		// 			movieId: p.id,
-		// 		},
-		// 	},
-		// 	create: {
-		// 		collectionId: collection.id,
-		// 	},
-		// });
+	// 	const genresCollectionInsert = p.genre_ids!.map((g) => {
+	// 		return {
+	// 			create: {
+	// 				genreId: g,
+	// 			},
+	// 			where: {
+	// 				genre_movie_unique: {
+	// 					genreId: g,
+	// 					movieId: p.id,
+	// 				},
+	// 			},
+	// 		};
+	// 	});
 
-		const genresCollectionInsert = p.genre_ids!.map((g) => {
-			return {
-				create: {
-					genreId: g,
-				},
-				where: {
-					genre_movie_unique: {
-						genreId: g,
-						movieId: p.id,
-					},
-				},
-			};
-		});
+	// 	const blurHash = {
+	// 		poster: p.poster_path
+	// 			? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.poster_path}`)
+	// 			: undefined,
+	// 		backdrop: p.backdrop_path
+	// 			? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`)
+	// 			: undefined,
+	// 	};
 
-		const blurHash = {
-			poster: p.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.poster_path}`)
-				: undefined,
-			backdrop: p.backdrop_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`)
-				: undefined,
-		};
+	// 	const movieCollectionInsert = Prisma.validator<Prisma.MovieUncheckedCreateInput>()({
+	// 		adult: p.adult,
+	// 		backdrop: p.backdrop_path,
+	// 		id: p.id,
+	// 		originalLanguage: p.original_language,
+	// 		originalTitle: p.original_title,
+	// 		overview: p.overview,
+	// 		popularity: p.popularity,
+	// 		poster: p.poster_path,
+	// 		blurHash: JSON.stringify(blurHash),
+	// 		releaseDate: p.release_date,
+	// 		tagline: p.tagline,
+	// 		title: p.title,
+	// 		titleSort: createTitleSort(p.title),
+	// 		video: p.video.toString(),
+	// 		voteAverage: p.vote_average,
+	// 		voteCount: p.vote_count,
+	// 		libraryId: libraryId,
+	// 		Genre: {
+	// 			connectOrCreate: genresCollectionInsert,
+	// 		},
+	// 		Collection: {
+	// 			connect: {
+	// 				collectionId_movieId: {
+	// 					collectionId: collection.id,
+	// 					movieId: p.id,
+	// 				},
+	// 			},
+	// 		},
+	// 	});
 
-		const movieCollectionInsert = Prisma.validator<Prisma.MovieUncheckedCreateWithoutCollectionMovieInput>()({
-			adult: p.adult,
-			backdrop: p.backdrop_path,
-			id: p.id,
-			originalLanguage: p.original_language,
-			originalTitle: p.original_title,
-			overview: p.overview,
-			popularity: p.popularity,
-			poster: p.poster_path,
-			blurHash: JSON.stringify(blurHash),
-			releaseDate: p.release_date,
-			tagline: p.tagline,
-			title: p.title,
-			titleSort: createTitleSort(p.title),
-			video: p.video.toString(),
-			voteAverage: p.vote_average,
-			voteCount: p.vote_count,
-			libraryId: libraryId,
-			Genre: {
-				connectOrCreate: genresCollectionInsert,
-			},
-		});
+	// 	transaction.push(
+	// 		confDb.movie.upsert({
+	// 			where: {
+	// 				id: p.id,
+	// 			},
+	// 			create: movieCollectionInsert,
+	// 			update: movieCollectionInsert,
+	// 		})
+	// 	);
+	// };
+	// for (const tr of collection.translations.translations) {
 
-		transaction.push(
-			confDb.movie.upsert({
-				where: {
-					id: p.id,
-				},
-				create: movieCollectionInsert,
-				update: movieCollectionInsert,
-			})
-		);
-	};
-	for (const tr of collection.translations.translations) {
+	// 	const collectionTranslationsInsert = Prisma.validator<Prisma.TranslationUncheckedCreateInput>()({
+	// 		englishName: tr.english_name,
+	// 		homepage: tr.homepage,
+	// 		iso31661: tr.iso_3166_1,
+	// 		iso6391: tr.iso_639_1,
+	// 		name: tr.name,
+	// 		overview: tr.data && tr.data?.overview
+	// 			? tr.data?.overview
+	// 			: null,
+	// 		title: tr.data && tr.data?.name
+	// 			? tr.data?.name
+	// 			: null,
+	// 		collectionId: collection.id,
+	// 	});
 
-		const collectionTranslationsInsert = Prisma.validator<Prisma.TranslationUncheckedCreateInput>()({
-			englishName: tr.english_name,
-			homepage: tr.homepage,
-			iso31661: tr.iso_3166_1,
-			iso6391: tr.iso_639_1,
-			name: tr.name,
-			overview: tr.data && tr.data?.overview
-				? tr.data?.overview
-				: null,
-			title: tr.data && tr.data?.name
-				? tr.data?.name
-				: null,
-			translationableId: collection.id,
-			translationableType: 'collection',
-		});
-
-		transaction.push(
-			confDb.translation.upsert({
-				where: {
-					translationableId_translationableType_iso6391: {
-						translationableId: collection.id,
-						translationableType: 'collection',
-						iso6391: tr.iso_639_1,
-					},
-				},
-				update: collectionTranslationsInsert,
-				create: collectionTranslationsInsert,
-			})
-		);
-	};
+	// 	transaction.push(
+	// 		confDb.translation.upsert({
+	// 			where: {
+	// 				collectionId_iso31661_iso6391: {
+	// 					collectionId: collection.id,
+	// 					iso6391: tr.iso_639_1,
+	// 					iso31661: tr.iso_3166_1,
+	// 				},
+	// 			},
+	// 			update: collectionTranslationsInsert,
+	// 			create: collectionTranslationsInsert,
+	// 		})
+	// 	);
+	// };
 
 };
 

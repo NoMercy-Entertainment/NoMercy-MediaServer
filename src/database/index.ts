@@ -21,15 +21,15 @@ export const migrateConfigDatabase = async() => {
 		process.env.DATABASE_URL = configDatabaseString;
 
 		try {
-			execSync(`npx prisma migrate dev --name init --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+			execSync(`npx prisma migrate dev --name init --schema ${convertPath(`${__dirname}/config/schema.prisma`)}`, {
 				shell: 'powershell.exe',
 			});
 		} catch (error) {
-			execSync(`npx prisma migrate deploy --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+			execSync(`npx prisma migrate deploy --schema ${convertPath(`${__dirname}/config/schema.prisma`)}`, {
 				shell: 'powershell.exe',
 			});
 		}
-		execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/../prisma/schema.prisma`)}`, {
+		execSync(`npx prisma generate --schema ${convertPath(`${__dirname}/config/schema.prisma`)}`, {
 			shell: 'powershell.exe',
 		});
 
@@ -88,5 +88,16 @@ export const commitConfigTransaction = async (transaction) => {
 			// 	});
 			// }
 		}
+	}
+};
+
+export const checkDbLock = async () => {
+	const { confDb } = require('./config');
+	try {
+		await confDb.$queryRaw`BEGIN EXCLUSIVE;`;
+		await confDb.$queryRaw`COMMIT;`;
+		return false;
+	} catch (error) {
+		return true;
 	}
 };

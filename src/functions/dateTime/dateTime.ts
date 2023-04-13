@@ -1,15 +1,7 @@
 import fs, { existsSync } from 'fs';
 
 import { pad } from '../../functions/stringArray';
-import {
-	ffmpeg,
-	ffprobe,
-	makeMkv,
-	sslCA,
-	sslCert,
-	sslKey,
-	subtitleEdit
-} from '../../state';
+import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '../../state';
 
 export const convertToHumanReact = (t: (arg: string) => string, time: number, zeroPad = false): string => {
 	if (!time) {
@@ -140,11 +132,12 @@ export const convertToHumanExtended = function (time: any) {
 	return current.replace('NaN:NaN:NaN:NaN', '00:00');
 };
 
-export const convertToHis = function (time: number) {
-	let hours: any = pad((time % 86400) / 3600, 2);
+export const convertToHis = function (time: any) {
+	time = parseInt(time, 10);
+	let hours: any = pad(parseInt(`${(time % 86400) / 3600}`, 10), 2);
 
-	let minutes: any = (time % 3600) / 60;
-	let seconds: any = time % 60;
+	let minutes: any = parseInt(`${(time % 3600) / 60}`, 10);
+	let seconds: any = parseInt(`${time % 60}`, 10);
 	if (`${minutes}`.length === 1) {
 		minutes = `0${minutes}`;
 	}
@@ -161,7 +154,7 @@ export const convertToHis = function (time: number) {
 	} else {
 		minutes = `${minutes}:`;
 	}
-	const current = hours + minutes + seconds;
+	const current = `${hours + minutes + seconds}.000`;
 	return current.replace('NaN:NaN:NaN', '00:00');
 };
 

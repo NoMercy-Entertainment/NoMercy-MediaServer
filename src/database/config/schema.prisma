@@ -1,13 +1,13 @@
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
-  // url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
+  // url      = env("DATABASE_URL")
+  url      = "file:C:/Users/Stoney/AppData/Local/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
   // url      = "file:/home/stoney/.local/share/NoMercy/data/config.db?socket_timeout=10&connection_limit=1&timeout=5000"
 }
 
 generator client {
   provider      = "prisma-client-js"
-  // output   = "./client"
+  output        = "./client"
   binaryTargets = ["native"]
 }
 
@@ -34,7 +34,7 @@ model Library {
   type                  String
   country               String
   language              String
-  blurHash              String? @default("S1423toNIVof00R$_1WB")
+  blurHash              String?
 
   Folders           LibraryFolder[]
   Metadata          Metadata[]
@@ -162,7 +162,7 @@ model ActivityLog {
 }
 
 model Device {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   deviceId String
   title    String
   type     String
@@ -418,73 +418,44 @@ model AlternativeTitles {
 }
 
 model Cast {
-  adult              Boolean @default(false)
-  character          String?
-  creditId           String  @unique
-  gender             Int?
-  id                 String  @id @default(cuid())
-  knownForDepartment String?
-  name               String
-  order              Int?
-  originalName       String?
-  popularity         Float?
-  profilePath        String?
-  blurHash           String? @default("S1423toNIVof00R$_1WB")
+  id    Int    @id @default(autoincrement())
+  Roles Role[]
 
-  Episode CastEpisode[]
-  Movie   CastMovie[]
-  Season  CastSeason[]
-  Tv      CastTv[]
+  imageId String?
+  Image   Image?  @relation(fields: [imageId], references: [id])
 
   personId Int
-  Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Person   Person @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@unique([id, creditId])
-  @@index([id])
+  movieId   Int?
+  Movie     Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tvId      Int?
+  Tv        Tv?      @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  seasonId  Int?
+  Season    Season?  @relation(fields: [seasonId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  episodeId Int?
+  Episode   Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([personId, movieId])
+  @@unique([personId, tvId])
+  @@unique([personId, seasonId])
+  @@unique([personId, episodeId])
 }
 
-model CastEpisode {
-  creditId  String
-  Cast      Cast    @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  episodeId Int
-  Episode   Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+model Role {
+  id           Int    @id @default(autoincrement())
+  creditId     String
+  character    String
+  episodeCount Int?
 
-  @@id([creditId, episodeId])
-  @@unique([creditId])
-  @@index([episodeId])
-}
+  castId    Int?
+  Cast      Cast?      @relation(fields: [castId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  guestId   Int?
+  GuestStar GuestStar? @relation(fields: [guestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-model CastMovie {
-  creditId String
-  Cast     Cast   @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  movieId  Int
-  Movie    Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([creditId, movieId])
-  @@unique([creditId])
-  @@index([movieId])
-}
-
-model CastSeason {
-  creditId String
-  Cast     Cast   @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  seasonId Int
-  Season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([creditId, seasonId])
-  @@unique([creditId])
-  @@index([seasonId])
-}
-
-model CastTv {
-  creditId String
-  Cast     Cast   @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  tvId     Int
-  Tv       Tv     @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([creditId, tvId])
-  @@unique([creditId])
-  @@index([tvId])
+  @@unique([castId, creditId])
+  @@unique([castId, guestId])
+  @@index([creditId])
 }
 
 model Certification {
@@ -527,130 +498,51 @@ model CertificationTv {
   @@index([tvId])
 }
 
-model Collection {
-  backdrop  String?
-  id        Int     @id @default(autoincrement())
-  overview  String?
-  parts     Int?
-  poster    String?
-  title     String
-  titleSort String
-  blurHash  String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
-
-  Movie CollectionMovie[]
-
-  libraryId String
-  Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([id])
-}
-
-model CollectionMovie {
-  collectionId Int
-  Collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  movieId      Int
-  Movie        Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([collectionId, movieId])
-  @@unique([collectionId, movieId])
-  @@index([movieId])
-}
-
 model Creator {
-  creditId    String  @unique
-  gender      Int?
-  id          String  @id @default(cuid())
-  name        String
-  profilePath String?
-  blurHash    String? @default("S1423toNIVof00R$_1WB")
-
-  Tv CreatorTv[]
+  id Int @id @default(autoincrement())
 
   personId Int
-  Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Person   Person @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([id])
-}
+  tvId Int?
+  Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-model CreatorTv {
-  creditId String
-  Creator  Creator @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  tvId     Int
-  Tv       Tv      @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([creditId, tvId])
-  @@unique([creditId])
-  @@index([tvId])
+  @@unique([personId, tvId])
 }
 
 model Crew {
-  adult              Boolean @default(false)
-  creditId           String  @unique
-  department         String?
-  gender             Int?
-  id                 String  @id @default(cuid())
-  job                String?
-  knownForDepartment String?
-  name               String
-  originalName       String?
-  popularity         Float?
-  profilePath        String?
-  profileId          Int?
-  blurHash           String? @default("S1423toNIVof00R$_1WB")
-
-  Episode CrewEpisode[]
-  Movie   CrewMovie[]
-  Season  CrewSeason[]
-  Tv      CrewTv[]
+  id   Int   @id @default(autoincrement())
+  Jobs Job[]
 
   personId Int
   Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([id])
+  movieId   Int?
+  Movie     Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tvId      Int?
+  Tv        Tv?      @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  seasonId  Int?
+  Season    Season?  @relation(fields: [seasonId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  episodeId Int?
+  Episode   Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([personId, movieId])
+  @@unique([personId, tvId])
+  @@unique([personId, seasonId])
+  @@unique([personId, episodeId])
 }
 
-model CrewEpisode {
-  creditId  String
-  Crew      Crew    @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  episodeId Int
-  Episode   Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+model Job {
+  id           Int    @id @default(autoincrement())
+  creditId     String
+  job          String
+  episodeCount Int?
 
-  @@id([creditId, episodeId])
-  @@unique([creditId])
-  @@index([episodeId])
-}
+  crewId Int?
+  Crew   Crew? @relation(fields: [crewId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-model CrewMovie {
-  creditId String
-  Crew     Crew   @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  movieId  Int
-  Movie    Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([creditId, movieId])
-  @@unique([creditId])
-  @@index([movieId])
-}
-
-model CrewSeason {
-  creditId String
-  crew     Crew   @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  seasonId Int
-
-  @@id([creditId, seasonId])
-  @@unique([creditId])
-  @@index([seasonId])
-}
-
-model CrewTv {
-  creditId String
-  Crew     Crew   @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-  tvId     Int
-  Tv       Tv     @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([creditId, tvId])
-  @@unique([creditId])
-  @@index([tvId])
+  @@unique([crewId, creditId])
+  @@index([creditId])
 }
 
 model Episode {
@@ -668,43 +560,23 @@ model Episode {
   updatedAt      DateTime @updatedAt
   voteAverage    Float?
   voteCount      Int?
-  blurHash       String?  @default("S1423toNIVof00R$_1WB")
+  blurHash       String?
 
   tvId     Int
   Tv       Tv     @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   seasonId Int
   Season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  Cast      CastEpisode[]
-  Crew      CrewEpisode[]
-  Special   SpecialItem[]
-  VideoFile VideoFile[]
-  Media     Media[]
-  GuestStar EpisodeGuestStar[]
-  File      File[]
+  Cast        Cast[]
+  Crew        Crew[]
+  Special     SpecialItem[]
+  VideoFile   VideoFile[]
+  Media       Media[]
+  GuestStar   GuestStar[]
+  File        File[]
+  Translation Translation[]
 
   @@index([id])
-}
-
-model EpisodeGuestStar {
-  episodeId Int
-  Episode   Episode   @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  creditId  String
-  GuestStar GuestStar @relation(fields: [creditId], references: [creditId], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([creditId, episodeId])
-  @@unique([creditId])
-  @@index([episodeId])
-}
-
-model FailedJobs {
-  connnection String?
-  exception   String
-  failedAt    DateTime @default(now())
-
-  payload String
-  queue   String
-  uuid    String @id @default(cuid())
 }
 
 model GenreMovie {
@@ -730,37 +602,16 @@ model GenreTv {
 }
 
 model GuestStar {
-  adult              Boolean @default(false)
-  castId             Int?
-  character          String?
-  creditId           String  @unique
-  episodeId          Int
-  gender             Int?
-  id                 String  @id @default(cuid())
-  knownForDepartment String?
-  name               String?
-  order              Int?
-  originalName       String?
-  popularity         Float?
-  profilePath        String?
-  profileId          Int?
-
-  Episode EpisodeGuestStar?
+  id    Int    @id @default(autoincrement())
+  Roles Role[]
 
   personId Int
   Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([episodeId])
-}
+  episodeId Int
+  Episode   Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-model Jobs {
-  attempts    Int?
-  availableAt DateTime?
-  createdAt   DateTime  @default(now())
-  id          Int       @id @default(autoincrement())
-  payload     String
-  queue       String
-  reservedAt  DateTime?
+  @@index([episodeId])
 }
 
 model Keyword {
@@ -839,27 +690,64 @@ model Movie {
   video            String?
   voteAverage      Float?
   voteCount        Int?
-  blurHash         String?  @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
+  blurHash         String?
 
   AlternativeTitles AlternativeTitles[]
-  Cast              CastMovie[]
+  Cast              Cast[]
+  Crew              Crew[]
   Certification     CertificationMovie[]
-  CollectionMovie   CollectionMovie[]
-  Crew              CrewMovie[]
   Genre             GenreMovie[]
   SpecialItem       SpecialItem[]
   VideoFile         VideoFile[]
   Keyword           KeywordMovie[]
   Media             Media[]
   UserData          UserData[]
-  Image             Image[]
 
   libraryId String
   Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   File      File[]
 
+  RecommendationFrom Recommendation[]  @relation("movie_recommendation_from")
+  RecommendationTo   Recommendation[]  @relation("movie_recommendation_to")
+  SimilarFrom        Similar[]         @relation("movie_similar_from")
+  SimilarTo          Similar[]         @relation("movie_similar_to")
+  Translation        Translation[]
+  CollectionFrom     Collection[]
+  CollectionTo       CollectionMovie[]
+
   @@unique([id])
   @@index([id])
+}
+
+model Collection {
+  backdrop  String? @unique
+  id        Int     @id @default(autoincrement())
+  overview  String?
+  parts     Int?
+  poster    String? @unique
+  title     String
+  titleSort String
+  blurHash  String?
+
+  movieId     Int
+  Movie       Movie             @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Parts       CollectionMovie[]
+  libraryId   String
+  Library     Library           @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Translation Translation[]
+
+  @@index([id])
+}
+
+model CollectionMovie {
+  id           Int         @id @default(autoincrement())
+  collectionId Int?
+  Collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  movieId      Int?
+  Movie        Movie?      @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([collectionId, movieId])
+  @@index([movieId])
 }
 
 model Genre {
@@ -889,15 +777,17 @@ model Person {
   name               String?
   placeOfBirth       String?
   popularity         Float?
-  profilePath        String?
+  profile            String?
   updatedAt          DateTime  @updatedAt
-  blurHash           String?   @default("S1423toNIVof00R$_1WB")
+  blurHash           String?
+  colorPalette       String?
 
-  Cast      Cast[]
-  Crew      Crew[]
-  GuestStar GuestStar[]
-  Creator   Creator[]
-  Media     Media[]
+  Cast        Cast[]
+  Crew        Crew[]
+  GuestStar   GuestStar[]
+  Creator     Creator[]
+  Media       Media[]
+  Translation Translation[]
 
   @@index([id])
 }
@@ -909,15 +799,21 @@ model Recommendation {
   poster    String?
   title     String
   titleSort String
-  blurHash  String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
+  blurHash  String?
 
-  recommendationableId   Int
-  recommendationableType String
-  mediaId                Int
-  mediaType              String
+  mediaId     Int?
+  tvFromId    Int?
+  TvFrom      Tv?    @relation(fields: [tvFromId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "tv_recommendation_from")
+  tvToId      Int?
+  TvTo        Tv?    @relation(fields: [tvToId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "tv_recommendation_to")
+  movieFromId Int?
+  MovieFrom   Movie? @relation(fields: [movieFromId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "movie_recommendation_from")
+  movieToId   Int?
+  MovieTo     Movie? @relation(fields: [movieToId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "movie_recommendation_to")
 
-  @@unique([recommendationableId, recommendationableType, mediaId, mediaType])
-  @@index([recommendationableId, recommendationableType])
+  @@unique([tvFromId, mediaId])
+  @@unique([movieFromId, mediaId])
+  @@index([movieFromId, mediaId])
 }
 
 model Season {
@@ -930,15 +826,16 @@ model Season {
   seasonNumber Int
   title        String?
   updatedAt    DateTime  @updatedAt
-  blurHash     String?   @default("S1423toNIVof00R$_1WB")
+  blurHash     String?
 
   tvId Int
   Tv   Tv  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  Cast    CastSeason[]
-  Crew    CrewSeason[]
-  Episode Episode[]
-  Media   Media[]
+  Cast        Cast[]
+  Crew        Crew[]
+  Episode     Episode[]
+  Media       Media[]
+  Translation Translation[]
 
   @@index([tvId])
 }
@@ -950,15 +847,21 @@ model Similar {
   poster    String?
   title     String
   titleSort String
-  blurHash  String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
+  blurHash  String?
 
-  mediaId         Int
-  mediaType       String
-  similarableId   Int
-  similarableType String
+  mediaId     Int?
+  tvFromId    Int?
+  TvFrom      Tv?    @relation(fields: [tvFromId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "tv_similar_from")
+  tvToId      Int?
+  TvTo        Tv?    @relation(fields: [tvToId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "tv_similar_to")
+  movieFromId Int?
+  MovieFrom   Movie? @relation(fields: [movieFromId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "movie_similar_from")
+  movieToId   Int?
+  MovieTo     Movie? @relation(fields: [movieToId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "movie_similar_to")
 
-  @@unique([similarableId, similarableType, mediaId])
-  @@index([similarableId, similarableType])
+  @@unique([tvFromId, mediaId])
+  @@unique([movieFromId, mediaId])
+  @@index([movieFromId, mediaId])
 }
 
 model Special {
@@ -967,7 +870,7 @@ model Special {
   id          Int     @id @default(autoincrement())
   poster      String?
   title       String  @unique
-  blurHash    String? @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
+  blurHash    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1006,11 +909,31 @@ model Translation {
   overview    String?
   title       String?
 
-  translationableId   Int
-  translationableType String
+  tvId Int?
+  Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@unique([translationableId, translationableType, iso6391])
-  @@index([translationableId, translationableType])
+  seasonId Int?
+  Season   Season? @relation(fields: [seasonId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  episodeId Int?
+  Episode   Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  movieId Int?
+  Movie   Movie? @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  collectionId Int?
+  Collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  personId Int?
+  Person   Person? @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([tvId, iso31661, iso6391])
+  @@unique([seasonId, iso31661, iso6391])
+  @@unique([episodeId, iso31661, iso6391])
+  @@unique([movieId, iso31661, iso6391])
+  @@unique([collectionId, iso31661, iso6391])
+  @@unique([personId, iso31661, iso6391])
+  @@index([seasonId, episodeId, movieId, personId])
 }
 
 model Tv {
@@ -1046,23 +969,28 @@ model Tv {
   updatedAt        DateTime @updatedAt
   voteAverage      Float?
   voteCount        Int?
-  blurHash         String?  @default("{ \"poster\": \"S1423toNIVof00R$_1WB\", \"backdrop\": \"S1423toNIVof00R$_1WB\" }")
+  blurHash         String?
 
   AlternativeTitles AlternativeTitles[]
-  Cast              CastTv[]
+  Cast              Cast[]
+  Crew              Crew[]
   Certification     CertificationTv[]
-  Creator           CreatorTv[]
-  Crew              CrewTv[]
+  Creator           Creator[]
   Episode           Episode[]
   Genre             GenreTv[]
   Keyword           KeywordTv[]
   Season            Season[]
   Media             Media[]
   UserData          UserData[]
-  Image             Image[]
 
   libraryId String
   Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  RecommendationFrom Recommendation[] @relation("tv_recommendation_from")
+  RecommendationTo   Recommendation[] @relation("tv_recommendation_to")
+  SimilarFrom        Similar[]        @relation("tv_similar_from")
+  SimilarTo          Similar[]        @relation("tv_similar_to")
+  Translation        Translation[]
 
   @@index([id])
 }
@@ -1103,20 +1031,16 @@ model Image {
   name         String?
   site         String?
   size         Int?
-  filePath     String    @unique
+  filePath     String
   type         String?
   updatedAt    DateTime  @updatedAt
   width        Int?
   voteAverage  Float?
   voteCount    Int?
   colorPalette String?
-  blurHash     String?   @default("S1423toNIVof00R$_1WB")
+  blurHash     String?
 
-  tvId Int?
-  Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  movieId Int?
-  Movie   Movie? @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Cast Cast[]
 
   @@unique([site, type, filePath, width, height])
 }
@@ -1137,7 +1061,7 @@ model Media {
   voteCount    Int?
   width        Int?
   colorPalette String?
-  blurHash     String?   @default("S1423toNIVof00R$_1WB")
+  blurHash     String?
 
   tvId Int?
   Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -1167,7 +1091,7 @@ model Artist {
   cover        String?
   folder       String?
   colorPalette String?
-  blurHash     String? @default("S1423toNIVof00R$_1WB")
+  blurHash     String?
 
   Album Album[]
 
@@ -1189,7 +1113,7 @@ model Album {
   year         Int?
   tracks       Int?
   colorPalette String?
-  blurHash     String? @default("S1423toNIVof00R$_1WB")
+  blurHash     String?
 
   Track  Track[]
   Artist Artist[]
@@ -1224,7 +1148,7 @@ model Track {
   path         String
   lyrics       String?
   colorPalette String?
-  blurHash     String?   @default("S1423toNIVof00R$_1WB")
+  blurHash     String?
 
   MusicGenre    MusicGenre[]
   Album         Album[]
@@ -1242,7 +1166,7 @@ model Playlist {
   description  String?
   cover        String?
   colorPalette String?
-  blurHash     String? @default("S1423toNIVof00R$_1WB")
+  blurHash     String?
 
   PlaylistTrack PlaylistTrack[]
 

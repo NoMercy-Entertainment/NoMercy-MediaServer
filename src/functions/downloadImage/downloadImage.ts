@@ -1,24 +1,16 @@
-import { ExecException, exec } from 'child_process';
-import {
-	Stats,
-	createWriteStream,
-	mkdirSync,
-	rmSync,
-	statSync
-} from 'fs';
-import { ffmpeg, tempPath } from '../../state';
-import { join, resolve as pathResolve } from 'path';
-
-import {
-	ISizeCalculationResult
-} from 'image-size/dist/types/interface';
-import Logger from '../../functions/logger';
-import { PaletteColors } from 'types/server';
 import axios from 'axios';
-import colorPalette from '../../functions/colorPalette/colorPalette';
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
+import { exec, ExecException } from 'child_process';
 import { randomUUID } from 'crypto';
+import { createWriteStream, mkdirSync, PathLike, readFileSync, rmSync, Stats, statSync } from 'fs';
 import sizeOf from 'image-size';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { join, resolve as pathResolve } from 'path';
+import { PaletteColors } from 'types/server';
+
+import Logger from '../../functions/logger';
+import { ffmpeg, tempPath } from '../../state';
+import colorPalette from '../colorPalette';
+import createBlurHash from '../createBlurHash';
 
 export interface DownloadImage {
     dimensions: ISizeCalculationResult;
@@ -27,10 +19,15 @@ export interface DownloadImage {
 	blurHash: string | null;
 }
 
-export default (url: string, path: string, usableImageSizes?: {
-    size: string;
-    type: string[];
-}[]| undefined): Promise<DownloadImage> => {
+export default ({ url, path, only, usableImageSizes }: {
+	url: string,
+	path: string,
+	only?: Array<'colorPalette' | 'blurHash'>,
+	usableImageSizes?: {
+		size: string;
+		type: string[];
+	}[]| undefined,
+}): Promise<DownloadImage> => {
 
 	Logger.log({
 		name: 'image',
@@ -39,41 +36,51 @@ export default (url: string, path: string, usableImageSizes?: {
 	});
 
 	return new Promise(async (resolve, reject) => {
-		path = pathResolve(path);
-
-		let tempName;
-		if (path.includes('.svg')) {
-			tempName = path;
-		} else {
-			tempName = join(tempPath, `${randomUUID()}.jpg`);
+		if (!path) {
+			reject(new Error('Path empty'));
 		}
 
 		try {
-			const size = await fetch(url, path, tempName);
+			path = pathResolve(path);
+
+			let tempName: number | PathLike;
+			if (path.includes('.svg')) {
+				tempName = path;
+			} else {
+				tempName = join(tempPath, `${randomUUID()}.jpg`);
+			}
+
+			const { size, type } = await fetch(url, path, tempName);
 
 			if (size == 0) {
-				reject(new Error(''));
+				reject(new Error('size is 0'));
 			}
+
+			const buffer = readFileSync(tempName);
 
 			if (!path.includes('.svg')) {
 				await convertImageToWebp(tempName, path, usableImageSizes);
 			}
 
-			const dimensions = sizeOf(path);
 			const stats = statSync(path);
+			const dimensions = sizeOf(buffer);
 
 			let pallette: PaletteColors | null = null;
-			try {
-				pallette = await colorPalette(url);
-			} catch (error) {
-				//
+			if (!only || only.includes('colorPalette')) {
+				try {
+					pallette = await colorPalette(buffer, type);
+				} catch (error) {
+					//
+				}
 			}
 
 			let hash: string | null = null;
-			try {
-				hash = await createBlurHash(url);
-			} catch (error) {
-				//
+			if (!only || only.includes('blurHash')) {
+				try {
+					hash = await createBlurHash(buffer);
+				} catch (error) {
+					//
+				}
 			}
 
 			resolve({
@@ -89,11 +96,12 @@ export default (url: string, path: string, usableImageSizes?: {
 	});
 };
 
-export const fetch = (url: string, path: string, tempName: string): Promise<number> => {
+export const fetch = (url: string, path: string, tempName: string): Promise<{ size: number; type: string; }> => {
 
 	return new Promise(async (resolve, reject) => {
 
 		let size = 0;
+		let type = '';
 
 		try {
 			mkdirSync(path.replace(/(.+)[\\\/].+\.\w+$/u, '$1'), { recursive: true });
@@ -106,11 +114,12 @@ export const fetch = (url: string, path: string, tempName: string): Promise<numb
 			})
 				.then((response) => {
 					size = parseInt(response?.headers?.['content-length'] ?? '0', 10);
+					type = response?.headers?.['content-type'] ?? null;
 					response.data.pipe(writer);
 				})
 				.catch(error => reject(error));
 
-			writer.on('finish', () => resolve(size));
+			writer.on('finish', () => resolve({ size, type }));
 			writer.on('error', reject);
 
 			return size;
@@ -119,7 +128,10 @@ export const fetch = (url: string, path: string, tempName: string): Promise<numb
 			reject(error);
 		}
 
-		return size;
+		return {
+			size,
+			type,
+		};
 	});
 };
 

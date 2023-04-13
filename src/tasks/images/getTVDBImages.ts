@@ -1,10 +1,11 @@
-import { Cast } from '../../providers/tmdb/shared';
-import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
-import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 import axios from 'axios';
-import { imageCrawler } from '../../providers/tvdb';
+
 import { person } from '../../providers/tmdb/people/index';
 import { searchPeople } from '../../providers/tmdb/search/index';
+import { Cast } from '../../providers/tmdb/shared';
+import { imageCrawler } from '../../providers/tvdb';
+import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
+import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 
 export interface ImageResult extends Cast {
 	href: string;
@@ -24,29 +25,30 @@ export default (type: string, req: CompleteTvAggregate | CompleteMovieAggregate)
 			.replace(/\./gu, '')
 			.replace(/'/gu, '')
 			.replace(/:/gu, '')
+			.replace(/-{2,}/gu, '-')
 			.replace(/&/gu, 'and')
 			.replace(/[!*'();:@&=+$,/?%#\[\]]/gu, '')
 			.toLowerCase();
 
-		let url = `https://thetvdb.com/${type}/${title}/people`;
-		await axios.get(`https://thetvdb.com/${type}/${title}-${year}/people`)
+		let url = `https://thetvdb.com/${type}/${title}#castcrew`;
+		await axios.get(`https://thetvdb.com/${type}/${title}-${year}#castcrew`)
 			.then(() => {
-				url = `https://thetvdb.com/${type}/${title}-${year}/people`;
+				url = `https://thetvdb.com/${type}/${title}-${year}#castcrew`;
 
 			})
 			.catch(async () => {
 
-				await axios.get(`https://thetvdb.com/${type}/${title}-show/people`)
+				await axios.get(`https://thetvdb.com/${type}/${title}-show#castcrew`)
 					.then(() => {
-						url = `https://thetvdb.com/${type}/${title}-show/people`;
+						url = `https://thetvdb.com/${type}/${title}-show#castcrew`;
 					})
 					.catch(async () => {
-						await axios.get(`https://thetvdb.com/${type}/the-${title}/people`)
+						await axios.get(`https://thetvdb.com/${type}/the-${title}#castcrew`)
 							.then(() => {
-								url = `https://thetvdb.com/${type}/the-${title}/people`;
+								url = `https://thetvdb.com/${type}/the-${title}#castcrew`;
 							})
 							.catch(() => {
-								url = `https://thetvdb.com/${type}/${title}/people`;
+								url = `https://thetvdb.com/${type}/${title}#castcrew`;
 							});
 					});
 			});
@@ -60,8 +62,13 @@ export default (type: string, req: CompleteTvAggregate | CompleteMovieAggregate)
 			for (let i = 0; i < people.length; i++) {
 				const p = people[i];
 
-				const credit = req.credits.cast
-					.find(c => c.character.toLowerCase().includes(p.character.toLowerCase()));
+				let credit = req.credits.cast
+					.find(c => c.name.toLowerCase().includes(p.actor.toLowerCase()));
+
+				if (!credit) {
+					credit = req.credits.cast
+						.find(c => c.character.toLowerCase().includes(p.character.toLowerCase()));
+				}
 
 				if (credit) {
 					imageResult.push({
@@ -73,11 +80,11 @@ export default (type: string, req: CompleteTvAggregate | CompleteMovieAggregate)
 				}
 
 				await searchPeople(p.actor)
-					.then((personData) => {
+					.then(async (personData) => {
 						for (let j = 0; j < personData.length; j++) {
 
 							promises.push(
-								person(personData[j].id)
+								await person(personData[j].id)
 									.then((personDetails) => {
 
 										let characterResult: Cast | undefined = personDetails.tv_credits.cast

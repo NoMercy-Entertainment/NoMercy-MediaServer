@@ -1,16 +1,24 @@
 import { existsSync, rmSync } from 'fs';
-import { get_external_ip, get_internal_ip, portMap } from '../networking';
-import { setupComplete, transcodesPath } from '../../state';
 
 import cdn from '../../loaders/cdn/cdn';
+import { setupComplete, transcodesPath } from '../../state';
 import chromeCast from '../chromeCast';
-import dev from './dev';
 import firstBoot from '../firstBoot';
 import { getKeycloakKeys } from '../keycloak';
 import logo from '../logo';
+import { get_external_ip, get_internal_ip, portMap } from '../networking';
 import queue from '../queue';
+import dev from './dev';
 
 export default async () => {
+	process
+		.on('unhandledRejection', (reason, p) => {
+			console.error(reason, 'Unhandled Rejection at Promise', p);
+		})
+		.on('uncaughtException', (err) => {
+			console.error(err, 'Uncaught Exception thrown');
+			// process.exit(1);
+		});
 
 	await getKeycloakKeys();
 

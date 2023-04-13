@@ -55,6 +55,11 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 			?? '{}'
 		),
 
+		blurHash: music.blurHash
+			?? music.Track?.find(t => t.cover)?.blurHash
+			?? music.Track?.[0]?.Artist.find(t => t.cover)?.blurHash
+			?? null,
+
 		Track: uniqBy<typeof music.Track>(music.Track.sort(trackSort), 'name').map((t) => {
 			const albums = t.Album.map(a => ({
 				id: a.id,
@@ -95,6 +100,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 				cover: (t.cover ?? null)?.replace('http://', 'https://'),
 				FavoriteTrack: undefined,
 				libraryId: music.libraryId,
+				blurHash: t.blurHash,
 				colorPalette: JSON.parse(t.colorPalette ?? '{}'),
 				Album: albums,
 				album: albums[0],

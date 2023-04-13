@@ -1,31 +1,21 @@
-import {
-	AlternativeTitles,
-	ExternalIDS,
-	Recommendations,
-	TvCast,
-	TvContentRatings,
-	TvCredits,
-	TvCrew,
-	TvImages,
-	TvKeywords,
-	TvShowTranslations,
-	TvSimilar,
-	TvVideos,
-	TvWatchProviders,
-	tv
-} from '../../providers/tmdb/tv/index';
-import { Cast, Country, CreatedBy, Crew, Genre, Language } from '../../providers/tmdb/shared/index';
-import { Episode, EpisodeAppend, episodes } from '../../providers/tmdb/episode/index';
-import { PersonAppend, person } from '../../providers/tmdb/people/index';
-import { SeasonAppend, seasons } from '../../providers/tmdb/season/index';
-import { chunk, jsonToString, unique } from '../../functions/stringArray';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-
-import { Company } from '../../providers/tmdb/company/company';
-import { Network } from '../../providers/tmdb/networks/network';
-import { cachePath } from '../../state';
-import { fileChangedAgo } from '../../functions/dateTime';
 import path from 'path';
+
+import { fileChangedAgo } from '../../functions/dateTime';
+import { chunk, jsonToString, unique } from '../../functions/stringArray';
+import { Company } from '../../providers/tmdb/company/company';
+import { Episode, EpisodeAppend, episodes } from '../../providers/tmdb/episode/index';
+import { Network } from '../../providers/tmdb/networks/network';
+import { person, PersonAppend } from '../../providers/tmdb/people/index';
+import { SeasonAppend, seasons } from '../../providers/tmdb/season/index';
+import {
+	AggregateCredit, AggregateCredits, Cast, Country, CreatedBy, Crew, Genre, Language
+} from '../../providers/tmdb/shared/index';
+import {
+	AlternativeTitles, ExternalIDS, Recommendations, tv, TvCast, TvContentRatings, TvCredits,
+	TvCrew, TvImages, TvKeywords, TvShowTranslations, TvSimilar, TvVideos, TvWatchProviders
+} from '../../providers/tmdb/tv/index';
+import { cachePath } from '../../state';
 
 export default (id: number) => {
 	return new Promise<CompleteTvAggregate>((resolve, reject) => {
@@ -44,7 +34,7 @@ export default (id: number) => {
 
 			tv(id).then(async (show) => {
 
-				const people: Array<TvCast | TvCrew | Cast | Crew | PersonAppend> = [];
+				const people: Array<TvCast | TvCrew | Cast | Crew | PersonAppend | AggregateCredit> = [];
 				const newCast: Array<any> = [];
 				const newCrew: Array<any> = [];
 				const personPromise: Array<any> = [];
@@ -86,13 +76,12 @@ export default (id: number) => {
 					}
 				});
 
-
 				data.aggregate_credits.cast.map(c => people.push(c));
 				data.aggregate_credits.crew.map(c => people.push(c));
 
-				for (const Pers of unique(people, 'id')) {
+				for (const Person of unique(people, 'id')) {
 					personPromise.push(
-						person(Pers.id).then((p) => {
+						await person(Person.id).then((p) => {
 							data.aggregate_credits.cast
 								.filter(c => c.id == p.id)
 								.map((c) => {
@@ -170,11 +159,7 @@ export interface CompleteTvAggregate {
 	type: string;
 	vote_average: number;
 	vote_count: number;
-	aggregate_credits: {
-		id: number;
-		cast: Array<TvCast>;
-		crew: Array<TvCrew>;
-	};
+	aggregate_credits: AggregateCredits;
 	people: CombinedPeople;
 	credits: TvCredits;
 	keywords: TvKeywords;

@@ -1,18 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { DirectoryTree } from 'directory-tree';
+
+import {
+	EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie,
+	Season, Tv
+} from '../../database/config/client';
+import { DBLibraryWithFolders } from '../../database/data';
+import { AudioFFprobe, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
+import getAudioInfo from '../../encoder/ffprobe/getAudioInfo';
+import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
 /* eslint-disable max-len */
 import { parseYear } from '../../functions/dateTime';
 import { pad } from '../../functions/stringArray';
-import { AppState, useSelector } from '../../state/redux';
-import { DirectoryTree } from 'directory-tree';
-import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
-import { AudioFFprobe, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
 import { filenameParse, ParsedMovie, ParsedShow } from '../../functions/videoFilenameParser';
+import { Channels } from '../../functions/videoFilenameParser/audioChannels';
 import { MovieAppend, MovieTranslation } from '../../providers/tmdb/movie';
 import { TvAppend, TvShowTranslation } from '../../providers/tmdb/tv';
-import { DBLibraryWithFolders } from '../../database/data';
-import getAudioInfo from '../../encoder/ffprobe/getAudioInfo';
-import { Channels } from '../../functions/videoFilenameParser/audioChannels';
-import { EncoderProfile, EncoderProfileLibrary, Episode, Folder, Library, LibraryFolder, Movie, Season, Tv } from '../../database/config/client';
+import { AppState, useSelector } from '../../state/redux';
 
 interface IObj {
 	[key: string]: any;
@@ -62,7 +66,7 @@ export interface FolderList {
 
 export const yearRegex = /(\s|\.|\()(?<year>(19|20)[0-9][0-9])(\)|.*|(?!p))/u;
 
-export const parseFileName = async function (file: DirectoryTree<IObj>, isTvShow: boolean): Promise<ParsedFileList> {
+export const parseFileName = async function (file: DirectoryTree<IObj> | { path: string }, isTvShow: boolean): Promise<ParsedFileList> {
 	const reg: any = /(.*[\\\/])(?<fileName>.*)/u.exec(file.path);
 
 	const yearReg: any = yearRegex.exec(file.path);
@@ -99,6 +103,10 @@ export const parseFileName = async function (file: DirectoryTree<IObj>, isTvShow
 		res.musicFolder = file.path.replace(/.+[\\\/](\[.+)[\\\/].+[\\\/]?/u, '/$1');
 		res.folder = file.path.replace(/.+[\\\/](.+[\\\/].+)[\\\/].+[\\\/].+/u, '/$1');
 		res.episodeFolder = undefined;
+	}
+
+	if (res.episodeFolder?.includes(res.name)) {
+		res.episodeFolder = '';
 	}
 	// console.log(file.path);
 	// console.log(res);
@@ -259,11 +267,12 @@ export type EP = (Episode & {
                 folder: Folder | null;
             })[];
             EncoderProfiles: (EncoderProfileLibrary & {
-                EncoderProfile: EncoderProfile[]
+                EncoderProfile: EncoderProfile;
             })[];
         };
     })[];
 });
+
 
 export type MV = (Movie & {
     File: (File & {

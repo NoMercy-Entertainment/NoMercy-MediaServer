@@ -484,13 +484,13 @@ export const sortByPosterAlphabetized = <T>(
 	});
 
 	const postered = finalArr
-		.filter((d: { profilePath: null }) => d.profilePath != null)
+		.filter((d: { profile: null }) => d.profile != null)
 		.sort(
 			(a: { [x: string]: number }, b: { [x: string]: number }) =>
 				+(a[sort] > b[sort]) || -(a[sort] < b[sort])
 		);
 	const nulled = finalArr
-		.filter((d: { profilePath: null }) => d.profilePath == null)
+		.filter((d: { profile: null }) => d.profile == null)
 		.sort(
 			(a: { [x: string]: number }, b: { [x: string]: number }) =>
 				+(a[sort] > b[sort]) || -(a[sort] < b[sort])
@@ -523,8 +523,9 @@ declare global {
 	interface String {
 		capitalize: () => string
 		toTitleCase: () => string
-		toPascalCase: (string: any) => string
-		titlecase: (lang: string | 'NL' | 'FR', withLowers: boolean) => string
+		toPascalCase: () => string
+		toUcFirst: () => string
+		titleCase: (lang: string | 'NL' | 'FR', withLowers: boolean) => string
 	}
 }
 
@@ -563,7 +564,7 @@ String.prototype.toTitleCase = function (): string {
  * @param  {string} lang EN|NL|FR
  * @param  {boolean} withLowers true|false
  */
-String.prototype.titlecase = function (lang = navigator.language.split('-')[0], withLowers = true): string {
+String.prototype.titleCase = function (lang = navigator.language.split('-')[0], withLowers = true): string {
 	let string = '';
 	let lowers: string[] = [];
 
@@ -602,6 +603,10 @@ String.prototype.toPascalCase = function (): string {
 		.join('_');
 
 	return pascal;
+};
+
+String.prototype.toUcFirst = function (): string {
+	return this.charAt(0).toUpperCase() + this.substr(1).toLowerCase();
 };
 
 

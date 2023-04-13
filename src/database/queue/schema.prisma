@@ -6,8 +6,8 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  output          = "./client"
+  provider      = "prisma-client-js"
+  output        = "./client"
   binaryTargets = ["native"]
 }
 
@@ -35,4 +35,14 @@ model QueueJob {
 
   @@unique([key, runAt])
   @@index([queue, priority, runAt, finishedAt])
+}
+
+model FailedJobs {
+  connnection String?
+  exception   String
+  failedAt    DateTime @default(now())
+
+  payload String
+  queue   String
+  uuid    String @id @default(cuid())
 }

@@ -1,14 +1,26 @@
+import { confDb } from '../../database/config';
+import { Prisma } from '../../database/config/client';
+import createBlurHash from '../../functions/createBlurHash';
+import { unique } from '../../functions/stringArray';
+import { Movie } from '../../providers/tmdb/movie/index';
+import { TvShow } from '../../providers/tmdb/tv/index';
+import { createTitleSort } from '../../tasks/files/filenameParser';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
-import { Movie } from '../../providers/tmdb/movie/index';
-import { Prisma } from '../../database/config/client';
-import { TvShow } from '../../providers/tmdb/tv/index';
-import { confDb } from '../../database/config';
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
-import { createTitleSort } from '../../tasks/files/filenameParser';
-import { unique } from '../../functions/stringArray';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[], table: 'movie' | 'tv') => {
+
+	const movies = await confDb.movie.findMany({
+		select: {
+			id: true,
+		},
+	}).then(movie => movie.map(m => m.id));
+
+	const tvs = await confDb.tv.findMany({
+		select: {
+			id: true,
+		},
+	}).then(tv => tv.map(m => m.id));
 
 	for (const similar of unique<Movie | TvShow>(req.similar.results, 'id')) {
 
@@ -21,26 +33,34 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 				: undefined,
 		};
 
-		const similarInsert = Prisma.validator<Prisma.SimilarCreateInput>()({
+		const similarInsert = Prisma.validator<Prisma.SimilarUncheckedCreateInput>()({
 			backdrop: similar.backdrop_path,
 			mediaId: similar.id,
-			mediaType: table,
 			overview: similar.overview,
 			poster: similar.poster_path,
-			similarableId: req.id,
-			similarableType: table,
-			blurHash: JSON.stringify(blurHash),
 			title: (similar as TvShow).name ?? (similar as Movie).title,
 			titleSort: createTitleSort((similar as TvShow).name ?? (similar as Movie).title),
+			blurHash: JSON.stringify(blurHash),
+			movieFromId: table === 'movie'
+				? req.id
+				: undefined,
+			movieToId: table === 'movie' && movies.includes(similar.id)
+				? similar.id
+				: undefined,
+			tvFromId: table === 'tv'
+				? req.id
+				: undefined,
+			tvToId: table === 'tv' && tvs.includes(similar.id)
+				? similar.id
+				: undefined,
 		});
 
 		transaction.push(
 			confDb.similar.upsert({
 				where: {
-					similarableId_similarableType_mediaId: {
+					[`${table}FromId_mediaId`]: {
+						[`${table}FromId`]: req.id,
 						mediaId: similar.id,
-						similarableId: req.id,
-						similarableType: table,
 					},
 				},
 				update: similarInsert,

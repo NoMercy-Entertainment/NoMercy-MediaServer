@@ -1,14 +1,13 @@
-import { configData, encoderProfiles, libraries, notificationData } from './data';
-import { countries, languages } from '../../providers/tmdb/config/index';
-
-import Logger from '../../functions/logger';
-import { Prisma } from '../../database/config/client';
-import certifications from '../../providers/tmdb/certification/index';
-import { confDb } from '../../database/config';
 import { folders } from '../../../folderRoots';
-import genres from '../../providers/tmdb/genres/index';
+import { confDb } from '../../database/config';
+import { Prisma } from '../../database/config/client';
+import Logger from '../../functions/logger';
 import { musicGenres } from '../../providers/musicbrainz/genre';
+import certifications from '../../providers/tmdb/certification/index';
+import { countries, languages } from '../../providers/tmdb/config/index';
+import genres from '../../providers/tmdb/genres/index';
 import storeConfig from '../storeConfig';
+import { configData, encoderProfiles, libraries, notificationData } from './data';
 
 export const seed = async () => {
 	Logger.log({
@@ -22,25 +21,23 @@ export const seed = async () => {
 
 	await storeConfig(configData, null, transaction);
 
-	if (!confDb.genre.findFirst()) {
-		const Genres = await genres();
-		for (const genre of Genres) {
-			transaction.push(
-				confDb.genre.upsert({
-					where: {
-						id: genre.id,
-					},
-					create: {
-						id: genre.id,
-						name: genre.name,
-					},
-					update: {
-						id: genre.id,
-						name: genre.name,
-					},
-				})
-			);
-		}
+	const Genres = await genres();
+	for (const genre of Genres) {
+		transaction.push(
+			confDb.genre.upsert({
+				where: {
+					id: genre.id,
+				},
+				create: {
+					id: genre.id,
+					name: genre.name,
+				},
+				update: {
+					id: genre.id,
+					name: genre.name,
+				},
+			})
+		);
 	}
 
 	const Certifications = await certifications();

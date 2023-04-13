@@ -1,54 +1,34 @@
 import { existsSync, mkdirSync, Stats } from 'fs';
-import {
-	ISizeCalculationResult
-} from 'image-size/dist/types/interface';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import { PaletteColors } from 'types/server';
 
-import downloadImage from '../../functions/downloadImage/downloadImage';
+import { checkDbLock } from '@/database';
+
 import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
-import {
-	EpisodeAppend,
-	EpisodeImages
-} from '../../providers/tmdb/episode/index';
-import {
-	MovieAppend,
-	MovieCredits,
-	MovieImages
-} from '../../providers/tmdb/movie/index';
-import {
-	PersonAppend,
-	PersonImages
-} from '../../providers/tmdb/people/index';
-import {
-	SeasonAppend,
-	SeasonImages
-} from '../../providers/tmdb/season/index';
-import {
-	Cast,
-	Crew,
-	Image
-} from '../../providers/tmdb/shared/index';
-import {
-	TvAppend,
-	TvCredits,
-	TvImages
-} from '../../providers/tmdb/tv/index';
+import { Image as DBimage, Prisma } from '../../database/config/client';
+import downloadImage from '../../functions/downloadImage/downloadImage';
+import { EpisodeAppend, EpisodeImages } from '../../providers/tmdb/episode/index';
+import { MovieAppend, MovieCredits, MovieImages } from '../../providers/tmdb/movie/index';
+import { PersonAppend, PersonImages } from '../../providers/tmdb/people/index';
+import { SeasonAppend, SeasonImages } from '../../providers/tmdb/season/index';
+import { Cast, Crew, Image } from '../../providers/tmdb/shared/index';
+import { TvAppend, TvCredits, TvImages } from '../../providers/tmdb/tv/index';
 import { imagesPath } from '../../state';
-import {
-	CompleteMovieAggregate
-} from '../../tasks/data/fetchMovie';
-import {
-	CompleteTvAggregate
-} from '../../tasks/data/fetchTvShow';
+import { AppState, useSelector } from '../../state/redux';
+import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
+import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 
 interface DownloadTMDBImages {
 	type: string;
-	data: (TvAppend | MovieAppend | SeasonAppend |
-		EpisodeAppend | PersonAppend | CompleteMovieAggregate | CompleteTvAggregate) & {task?: {id: string}};
+	// eslint-disable-next-line max-len
+	data: (TvAppend | MovieAppend | SeasonAppend | EpisodeAppend | PersonAppend | CompleteMovieAggregate | CompleteTvAggregate) & {
+		task?: {
+			id: string
+		}
+	};
 }
 
-export const downloadTMDBImages = ({ type, data }: DownloadTMDBImages) => {
+export const execute = ({ type, data }: DownloadTMDBImages) => {
 	const imageSizes = [
 		{
 			size: 'original',
@@ -112,6 +92,8 @@ export const downloadTMDBImages = ({ type, data }: DownloadTMDBImages) => {
 				crew: (data.credits as TvCredits | MovieCredits)?.crew ?? [],
 			};
 
+			const transaction: Array<Prisma.Prisma__ImageClient<DBimage, never>> = [];
+
 			for (let i = 0; i < Object.values<Array<Image|Cast|Crew>>(combinedList).length; i++) {
 				const images = Object.values<Array<Image|Cast|Crew>>(combinedList)[i];
 				const allowedType = Object.keys(combinedList)[i];
@@ -141,28 +123,37 @@ export const downloadTMDBImages = ({ type, data }: DownloadTMDBImages) => {
 							},
 						});
 
-						if (existsSync(`${imagesPath}/${size}${newFile}`) && query?.id) {
+						if (query?.blurHash && query?.colorPalette && existsSync(`${imagesPath}/${size}${newFile}`)) {
 							continue;
 						}
 
 						// promises.push(
-						await	downloadImage(`https://image.tmdb.org/t/p/${size}${file}`, `${imagesPath}/${size}${newFile}`, usableImageSizes)
-							.then(async ({ dimensions, stats, colorPalette, blurHash }) => {
-								// transaction.push(
-								await	confDb.image.upsert({
-									where: {
-										filePath: file,
-									},
-									create: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
-									update: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
-								});
-								// );
+						await	downloadImage({
+							url: `https://image.tmdb.org/t/p/${size}${file}`,
+							path: `${imagesPath}/${size}${newFile}`,
+							usableImageSizes,
+						})
+							.then(({ dimensions, stats, colorPalette, blurHash }) => {
+								transaction.push(
+									confDb.image.upsert({
+										where: {
+											id: query?.id,
+										},
+										create: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
+										update: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
+									})
+								);
 							})
 							.catch(e => console.log(e));
 						// );
 					}
 				}
 			}
+
+			while (await checkDbLock()) {
+				//
+			}
+			await confDb.$transaction(transaction).catch(e => console.log(e));
 
 			resolve();
 
@@ -173,8 +164,6 @@ export const downloadTMDBImages = ({ type, data }: DownloadTMDBImages) => {
 
 	});
 };
-
-export default downloadTMDBImages;
 
 const imageQuery = (
 	dbType: string,
@@ -215,3 +204,16 @@ const imageQuery = (
 		blurHash: blurHash,
 	});
 };
+
+export const downloadTMDBImages = async ({ type, data }: DownloadTMDBImages) => {
+	const queue = useSelector((state: AppState) => state.config.dataWorker);
+
+	await queue.add({
+		file: __filename,
+		fn: 'execute',
+		args: { type, data },
+	});
+};
+
+export default downloadTMDBImages;
+

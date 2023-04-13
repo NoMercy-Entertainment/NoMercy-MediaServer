@@ -1,44 +1,18 @@
 import { exec, execSync } from 'child_process';
 import {
-	existsSync,
-	mkdirSync,
-	PathLike,
-	readdirSync,
-	readFileSync,
-	rmSync,
-	statSync,
-	writeFileSync
+	existsSync, mkdirSync, PathLike, readdirSync, readFileSync, rmSync, statSync, writeFileSync
 } from 'fs';
 
-import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
-import {
-	EncoderProfile,
-	EncoderProfileLibrary,
-	Episode,
-	File,
-	Folder,
-	Library,
-	LibraryFolder,
-	Movie,
-	Tv
-} from '../../../database/config/client';
 import { confDb } from '../../database/config';
 import {
-	convertToHis,
-	createTimeInterval,
-	humanTime
-} from '../../functions/dateTime';
+	EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie, Tv
+} from '../../database/config/client';
+import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
+import { convertToHis, createTimeInterval, humanTime } from '../../functions/dateTime';
 import { pad, unique } from '../../functions/stringArray';
-import {
-	filenameParse,
-	ParsedFilename,
-	ParsedTvInfo
-} from '../../functions/videoFilenameParser';
+import { filenameParse, ParsedFilename, ParsedTvInfo } from '../../functions/videoFilenameParser';
 import { ffmpeg, languagesFile } from '../../state';
-import {
-	cleanFileName,
-	yearRegex
-} from '../../tasks/files/filenameParser';
+import { cleanFileName, yearRegex } from '../../tasks/files/filenameParser';
 import { VideoFFprobe } from '../ffprobe/ffprobe';
 
 interface Quality {
@@ -354,6 +328,8 @@ export class NMEncoder {
 		//     return `,lut3d=${lutFile},scale_cuda=-1:-1:out_color_matrix=bt709`;
 		// }
 
+		return ',format=p010,hwupload,tonemap_opencl=tonemap=mobius:param=0.01:desat=0:r=tv:p=bt709:t=bt709:m=bt709:format=nv12,hwdownload,format=nv12';
+
 		return ',zscale=tin=smpte2084:min=bt2020nc:pin=bt2020:rin=tv:t=smpte2084:m=bt2020nc:p=bt2020:r=tv,zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,eq=saturation=0.85';
 	}
 
@@ -499,7 +475,7 @@ export class NMEncoder {
 
 	// setters
 
-	setsize(width: number, height: number) {
+	setSize(width: number, height: number) {
 		this.width = width;
 		this.height = height;
 		return this;
@@ -707,6 +683,11 @@ export class NMEncoder {
 			console.log(m3u8_content.join('\n'));
 			// writeFileSync(manifestFile, m3u8_content.join('\n'));
 		}
+	}
+
+	buildCommand() {
+
+		['-vsync 0', '-init_hw_device opencl=ocl', '-extra_hw_frames 3'];
 	}
 
 }

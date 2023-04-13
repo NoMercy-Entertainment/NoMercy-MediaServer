@@ -1,22 +1,21 @@
 import { Request, Response } from 'express';
 import { existsSync, readFileSync } from 'fs';
-
+import i18next from 'i18next';
+import requestCountry from 'request-country';
 import { KAuthRequest } from 'types/keycloak';
-import { Prisma } from '../../../database/config/client';
+
 import { confDb } from '../../../database/config';
+import { Prisma } from '../../../database/config/client';
 import { convertToSeconds } from '../../../functions/dateTime';
+import { sortBy } from '../../../functions/stringArray';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
-import i18next from 'i18next';
 import { isOwner } from '../../middleware/permissions';
-import requestCountry from 'request-country';
-import { sortBy } from '../../../functions/stringArray';
 
 export default function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
 	const id = req.params.id;
-	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 	const owner = isOwner(req as KAuthRequest);
 	const country = requestCountry(req, 'US');
@@ -69,7 +68,7 @@ export default function (req: Request, res: Response) {
 			}
 
 			const movieTranslations = translation
-				.find(t => t.translationableType == 'movie');
+				.find(t => !!t.movieId);
 
 			const overview = movieTranslations?.overview != '' && movieTranslations?.overview != null
 				? movieTranslations?.overview
@@ -79,7 +78,7 @@ export default function (req: Request, res: Response) {
 				? movieTranslations?.title
 				: movie.title;
 
-			const showTitle = translation.find(t => t.translationableType == 'movie')?.title;
+			const showTitle = translation.find(t => !!t.movieId)?.title;
 			const show = showTitle != '' && showTitle != null
 				? showTitle
 				: movie.title;
@@ -98,7 +97,7 @@ export default function (req: Request, res: Response) {
 				playlist_type: 'movie',
 				playlist_id: id,
 				year: movie.releaseDate?.split('-')[0] ?? null,
-				logo: media[0]?.src ?? null,
+				logo: media.find(m => m.type == 'logo')?.src ?? null,
 				rating: movie.Certification?.map((cr) => {
 					return {
 						country: cr.iso31661,
@@ -187,16 +186,14 @@ const movieQuery = ({ id, language, country }: movieQueryInterface) => {
 const translationQuery = ({ id, language }: { id: string; language: string }) => {
 	return Prisma.validator<Prisma.TranslationFindFirstArgs>()({
 		where: {
-			translationableType: 'movie',
 			iso6391: language,
-			translationableId: parseInt(id, 10),
+			movieId: parseInt(id, 10),
 		},
 		select: {
 			title: true,
 			overview: true,
 			iso6391: true,
-			translationableType: true,
-			translationableId: true,
+			movieId: true,
 		},
 	});
 };

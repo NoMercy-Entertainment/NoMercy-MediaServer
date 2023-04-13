@@ -1,6 +1,8 @@
 import { ChildProcess, fork } from 'child_process';
-import { QueueJob } from '../../database/queue/client';
+
+import { checkDbLock } from '../../database';
 import { confDb, queDb } from '../../database/config';
+import { QueueJob } from '../../database/queue/client';
 import { AppState, useSelector } from '../../state/redux';
 import Logger from '../logger';
 
@@ -70,6 +72,12 @@ export class Queue {
 	deleteWorker(Worker: Worker) {
 		if (!Worker) return;
 
+		Logger.log({
+			name: 'queue',
+			message: `Removing ${this.name} worker ${this.forks.length}`,
+			level: 'info',
+		});
+
 		Worker.worker.kill(2);
 
 		this.forks = this.forks.filter(w => w.id != Worker.id);
@@ -87,7 +95,7 @@ export class Queue {
 			}
 			this.workers = workers;
 		}
-
+		return this;
 	}
 
 	async jobs() {
@@ -169,26 +177,25 @@ export class Queue {
 			where: {
 				queue: this.name,
 				runAt: null,
+				attempts: {
+					lt: 2,
+				},
 			},
-			orderBy: [
-				{
-					createdAt: 'asc',
-				},
-				{
-					priority: 'asc',
-				},
-			],
+			orderBy: {
+				priority: 'asc',
+			},
 		});
 	}
 
-	async running(id: number) {
+	async running(job: QueueJob) {
 		try {
 			return await queDb.queueJob.update({
 				where: {
-					id: id,
+					id: job.id,
 				},
 				data: {
 					runAt: new Date(),
+					attempts: job.attempts + 1,
 				},
 			});
 		} catch (error) {
@@ -205,7 +212,7 @@ export class Queue {
 				data: {
 					runAt: null,
 					error: error
-						? JSON.stringify(error, null, 2)
+						? JSON.stringify(error ?? 'unknown', null, 2)
 						: 'unknown',
 				},
 			});
@@ -217,7 +224,7 @@ export class Queue {
 			data: {
 				failedAt: new Date(),
 				error: error
-					? JSON.stringify(error, null, 2)
+					? JSON.stringify(error ?? 'unknown', null, 2)
 					: 'unknown',
 			},
 		});
@@ -243,7 +250,7 @@ export class Queue {
 				id: id,
 			},
 			data: {
-				result: JSON.stringify(data, null, 2),
+				result: JSON.stringify(data ?? 'unknown', null, 2),
 				finishedAt: new Date(),
 			},
 		});
@@ -268,7 +275,12 @@ export class Queue {
 	}
 
 	async run() {
-		if (this.isDisabled) return;
+		if (this.isDisabled) {
+			setTimeout(async () => {
+				await this.run();
+			}, 10000);
+			return;
+		};
 
 		const Worker = this.forks.find(w => !w.running);
 		if (!Worker) return;
@@ -287,7 +299,7 @@ export class Queue {
 		Worker.running = true;
 		Worker.job = job;
 
-		await this.running(job.id);
+		await this.running(job);
 
 		if (job.taskId) {
 			try {
@@ -297,6 +309,9 @@ export class Queue {
 					},
 				});
 				if (runningTask?.id) {
+					while (await checkDbLock()) {
+						//
+					}
 					await confDb.runningTask.update({
 						where: {
 							id: runningTask.id,
@@ -311,6 +326,12 @@ export class Queue {
 			}
 		}
 
+		Logger.log({
+			name: 'queue',
+			message: `Running job ${job?.id} on ${this.name} worker ${Worker.id}`,
+			level: 'verbose',
+		});
+
 		Worker.worker.send(job);
 
 		Worker.worker.once('message', async (message: any) => {
@@ -319,7 +340,7 @@ export class Queue {
 
 			const runningTask = await confDb.runningTask.findFirst({
 				where: {
-					id: message.result?.task?.id,
+					id: message.job.queue?.task?.id,
 				},
 			}).catch(e => console.log(e));
 
@@ -338,6 +359,7 @@ export class Queue {
 			}
 
 			if (message?.error) {
+				console.log(message);
 				await this.failed(job.id, message.result);
 			} else if (this.keepJobs) {
 				await this.finished(job.id, message.result.data);

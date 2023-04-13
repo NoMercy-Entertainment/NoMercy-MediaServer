@@ -18,8 +18,9 @@ const {
   Debug,
   objectEnumValues,
   makeStrictEnum,
-  Extensions
-} = require('./runtime/index')
+  Extensions,
+  findSync
+} = require('./runtime/library')
 
 
 const Prisma = {}
@@ -27,12 +28,12 @@ const Prisma = {}
 exports.Prisma = Prisma
 
 /**
- * Prisma Client JS version: 4.7.1
- * Query Engine version: 272861e07ab64f234d3ffc4094e32bd61775599c
+ * Prisma Client JS version: 4.11.0
+ * Query Engine version: 8fde8fef4033376662cad983758335009d522acb
  */
 Prisma.prismaVersion = {
-  client: "4.7.1",
-  engine: "272861e07ab64f234d3ffc4094e32bd61775599c"
+  client: "4.11.0",
+  engine: "8fde8fef4033376662cad983758335009d522acb"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -69,7 +70,6 @@ Prisma.NullTypes = {
 
   const path = require('path')
 
-const { findSync } = require('./runtime')
 const fs = require('fs')
 
 // some frameworks or bundlers replace or totally remove __dirname
@@ -144,7 +144,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Projects\\NoMercy\\MediaServer\\src\\database\\queue\\client",
+      "value": "C:\\Projects\\Electron\\NoMercyMediaServer\\src\\database\\queue\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -164,26 +164,27 @@ const config = {
     "schemaEnvPath": "..\\..\\..\\..\\.env"
   },
   "relativePath": "..",
-  "clientVersion": "4.7.1",
-  "engineVersion": "272861e07ab64f234d3ffc4094e32bd61775599c",
+  "clientVersion": "4.11.0",
+  "engineVersion": "8fde8fef4033376662cad983758335009d522acb",
   "datasourceNames": [
     "db"
   ],
   "activeProvider": "sqlite",
   "dataProxy": false
 }
-config.document = dmmf
 config.dirname = dirname
+config.document = dmmf
 
 
 
 
-const { warnEnvConflicts } = require('./runtime/index')
+const { warnEnvConflicts } = require('./runtime/library')
 
 warnEnvConflicts({
     rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(dirname, config.relativeEnvPaths.rootEnvPath),
     schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(dirname, config.relativeEnvPaths.schemaEnvPath)
 })
+
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient

@@ -1,79 +1,71 @@
-import { CompleteMovieAggregate } from './fetchMovie';
-import { CompleteTvAggregate } from './fetchTvShow';
-import {
-	EpisodeAppend
-} from '../../providers/tmdb/episode/index';
 import { Prisma } from '../../database/config/client';
-import {
-	SeasonAppend
-} from '../../providers/tmdb/season/index';
-import { confDb } from '../../database/config';
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
+import logger from '../../functions/logger';
+import { EpisodeAppend } from '../../providers/tmdb/episode/index';
+import { CompleteMovieAggregate } from './fetchMovie';
+import { downloadAndHash } from './image';
 
 export default async (
-	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate,
-	transaction: Prisma.PromiseReturnType<any>[],
+	req: EpisodeAppend | CompleteMovieAggregate,
 	castArray: Array<
-		Prisma.CastMovieCreateOrConnectWithoutMovieInput
-		| Prisma.CastTvCreateOrConnectWithoutTvInput
-		| Prisma.CastSeasonCreateOrConnectWithoutSeasonInput
-		| Prisma.CastEpisodeCreateOrConnectWithoutEpisodeInput
+		Prisma.CastCreateOrConnectWithoutMovieInput
+		| Prisma.CastCreateOrConnectWithoutEpisodeInput
 	>,
-	people: number[]
+	people: number[],
+	type: 'episode' | 'movie'
 ) => {
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `Adding cast for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
-	// });
+
+	logger.log({
+		level: 'verbose',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding cast for: ${(req as EpisodeAppend).name ?? (req as CompleteMovieAggregate).title}`,
+	});
+
 	for (const cast of req.credits.cast) {
 		if (!people.includes(cast.id)) continue;
 
-		const castsInsert = Prisma.validator<Prisma.CastUncheckedCreateInput>()({
-			id: cast.credit_id,
-			personId: cast.id,
-			adult: cast.adult,
-			character: cast.character,
-			creditId: cast.credit_id,
-			gender: cast.gender,
-			knownForDepartment: cast.known_for_department,
-			name: cast.name,
-			order: cast.order,
-			originalName: cast.original_name,
-			popularity: cast.popularity,
-			profilePath: cast.profile_path,
-			blurHash: cast.profile_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${cast.profile_path}`)
-				: undefined,
-		});
-
-		// await downloadTMDBImages('cast', cast);
-
-		transaction.push(
-			confDb.cast.upsert({
-				where: {
-					creditId: cast.credit_id,
-				},
-				update: castsInsert,
-				create: castsInsert,
-			})
-		);
-
 		castArray.push({
 			where: {
-				creditId: cast.credit_id,
+				[`personId_${type}Id`]: {
+					personId: cast.id,
+					[`${type}Id`]: req.id,
+				},
 			},
 			create: {
-				creditId: cast.credit_id,
+				personId: cast.id,
+				Roles: {
+					connectOrCreate: {
+						where: {
+							castId_creditId: {
+								castId: cast.id,
+								creditId: cast.credit_id,
+							},
+						},
+						create: {
+							character: cast.character,
+							creditId: cast.credit_id,
+							episodeCount: cast.total_episode_count,
+						},
+					},
+				},
 			},
 		});
+
+		if (cast.profile_path) {
+			await downloadAndHash({
+				src: cast.profile_path,
+				table: 'person',
+				column: 'profile',
+				type: 'crew',
+				only: ['colorPalette', 'blurHash'],
+			});
+		}
 	}
 
-	// Logger.log({
-	// 	level: 'info',
-	// 	name: 'App',
-	// 	color: 'magentaBright',
-	// 	message: `Cast for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title} added successfully`,
-	// });
+	logger.log({
+		level: 'verbose',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Cast for: ${(req as EpisodeAppend).name ?? (req as CompleteMovieAggregate).title} added successfully`,
+	});
 };

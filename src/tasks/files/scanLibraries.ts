@@ -1,12 +1,12 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join, resolve } from 'path';
+import { join } from 'path';
 
 import { confDb } from '../../database/config';
 import { Folder, Library, LibraryFolder, Movie } from '../../database/config/client';
 import { TvShow } from '../../providers/tmdb/tv/index';
 import { cachePath } from '../../state';
 import { AppState, useSelector } from '../../state/redux';
-import { fullUpdate } from '../../tasks/data/fullUpdate';
+import fullUpdate from '../../tasks/data/fullUpdate';
 import { needsUpdate } from '../data/needsUpdate';
 import { fallbackSearch } from '../data/search';
 import { FolderList, ParsedFileList } from './filenameParser';
@@ -218,28 +218,16 @@ const process = async (
 	index: number
 ) => {
 
-	const queue = useSelector((state: AppState) => state.config.queueWorker);
-	const socket = useSelector((state: AppState) => state.system.socket);
-
 	const jsonFile = join(cachePath, 'temp', `${title.title ?? title.name}_cache.json`);
 	let x: FolderInfo;
 	const updateDate = Date.now();
 
 	if (existsSync(jsonFile)) {
 		x = JSON.parse(readFileSync(jsonFile, 'utf8'));
-		// x.lastCheck = updateDate;
-		// x.lastUpdate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 14)).getTime();
-		// // @ts-expect-error
-		// x.job = undefined;
-		// x.lib = lib;
-		// x.jobsCount = jobs.length;
-		// x.task = task ?? { id: 'manual' };
-		// x.index = index;
-		// x.priority = 1;
 	} else {
 		const search = (await fallbackSearch(lib.type, title)) as TvShow | Movie;
 		if (!search) {
-			console.log(title);
+			console.log(`No search result for ${title.title}`);
 			return;
 		}
 
@@ -269,32 +257,6 @@ const process = async (
 		|| forceUpdate
 		|| (await needsUpdate(x))
 	) {
-		if (synchronous) {
-
-			const runningTask = await confDb.runningTask.update({
-				where: {
-					id: task.id,
-				},
-				data: {
-					title: `Scanning ${lib.title} library`,
-					type: 'library',
-					value: Math.ceil((index / x.jobsCount) * 100),
-				},
-			}).catch(e => console.log(e));
-
-			await fullUpdate(x);
-
-			socket.emit('tasks', runningTask);
-
-		} else {
-			// await fullUpdate(x);
-			// console.log(x);
-
-			await queue.add({
-				file: resolve(__dirname, '..', 'data', 'fullUpdate'),
-				fn: 'fullUpdate',
-				args: x,
-			});
-		}
+		await fullUpdate(x, synchronous);
 	}
 };

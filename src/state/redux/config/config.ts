@@ -1,3 +1,4 @@
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { User } from '../../../database/config/client';
@@ -14,18 +15,18 @@ export const keepOriginal: { [arg: string]: boolean } = {
 };
 
 const initialState = {
-	tmdb_apikey: '',
-	omdb_apikey: '',
-	makemkv_key: '',
-	quote: '',
-	keycloakCertificate: '',
-	deviceName: deviceName,
-	openServer: false,
-	moderators: new Array<{ id: string; name: string }>(),
-	users: new Array<User>(),
 	allowedUsers: new Array<AllowedUser>(),
 	colors: <CDNInfoResponse['data']['colors']>{},
+	deviceName: deviceName,
 	downloads: new Array<Files>(),
+	keycloakCertificate: '',
+	makemkv_key: '',
+	moderators: new Array<{ id: string; name: string }>(),
+	omdb_apikey: '',
+	openServer: false,
+	quote: '',
+	tmdb_apikey: '',
+	users: new Array<User>(),
 
 	chromeCast: <ChromeCast>{},
 
@@ -45,11 +46,13 @@ const initialState = {
 	keepOriginal: keepOriginal,
 	assToVtt: true,
 
+	language: 'en',
+
 };
 
 const config = createSlice({
-	name: 'config',
 	initialState: initialState,
+	name: 'config',
 	reducers: {
 		setTmdbApiKey: (state, action: PayloadAction<string>) => {
 			state.tmdb_apikey = action.payload;
@@ -59,6 +62,9 @@ const config = createSlice({
 		},
 		setMakeMKVKey: (state, action: PayloadAction<string>) => {
 			state.makemkv_key = action.payload;
+		},
+		setLanguage: (state, action: PayloadAction<string>) => {
+			state.language = action.payload;
 		},
 		setQuote: (state, action: PayloadAction<string>) => {
 			state.quote = action.payload;

@@ -1,50 +1,17 @@
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import {
-	existsSync,
-	readFileSync,
-	writeFileSync
-} from 'fs';
 
-import collection, {
-	CollectionAppend
-} from '../../providers/tmdb/collection/index';
 import { fileChangedAgo } from '../../functions/dateTime';
+import { chunk, jsonToString, unique } from '../../functions/stringArray';
+import collection, { CollectionAppend } from '../../providers/tmdb/collection/index';
+import { Company } from '../../providers/tmdb/company/company';
 import {
-	chunk,
-	jsonToString,
-	unique
-} from '../../functions/stringArray';
-import {
-	Company
-} from '../../providers/tmdb/company/company';
-import {
-	BelongsToCollection,
-	ExternalIDS,
-	movie,
-	MovieAlternativeTitles,
-	MovieCast,
-	MovieCredits,
-	MovieCrew,
-	MovieImages,
-	MovieKeywords,
-	MovieRecommendations,
-	MovieReleaseDates,
-	MovieSimilar,
-	MovieTranslations,
-	MovieVideos,
-	MovieWatchProviders
+    BelongsToCollection, ExternalIDS, movie, MovieAlternativeTitles, MovieCast, MovieCredits,
+    MovieCrew, MovieImages, MovieKeywords, MovieRecommendations, MovieReleaseDates, MovieSimilar,
+    MovieTranslations, MovieVideos, MovieWatchProviders
 } from '../../providers/tmdb/movie/index';
-import {
-	person,
-	PersonAppend
-} from '../../providers/tmdb/people/index';
-import {
-	Cast,
-	Country,
-	Crew,
-	Genre,
-	Language
-} from '../../providers/tmdb/shared/index';
+import { person, PersonAppend } from '../../providers/tmdb/people/index';
+import { Cast, Country, Crew, Genre, Language } from '../../providers/tmdb/shared/index';
 import { cachePath } from '../../state';
 
 export default (id: number) => {
@@ -83,7 +50,7 @@ export default (id: number) => {
 
 				for (const Pers of unique(people, 'id')) {
 					personPromise.push(
-						person(Pers.id).then((p) => {
+						await person(Pers.id).then((p) => {
 							data.credits.cast
 								.filter(c => c.id == p.id)
 								.map((c) => {

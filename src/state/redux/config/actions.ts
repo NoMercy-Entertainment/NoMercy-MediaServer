@@ -7,6 +7,8 @@ import config, { AllowedUser } from './';
 
 export const setTmdbApiKey = (payload: string) => store.dispatch(config.actions.setTmdbApiKey(payload));
 
+export const setLanguage = (payload: string) => store.dispatch(config.actions.setLanguage(payload));
+
 export const setOmdbApiKey = (payload: string) => store.dispatch(config.actions.setOmdbApiKey(payload));
 
 export const setMakeMKVKey = (payload: string) => store.dispatch(config.actions.setMakeMKVKey(payload));

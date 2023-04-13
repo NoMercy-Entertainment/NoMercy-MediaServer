@@ -1,42 +1,36 @@
-import { CompleteTvAggregate } from './fetchTvShow';
 import { Prisma } from '../../database/config/client';
-import { confDb } from '../../database/config';
+import { CompleteTvAggregate } from './fetchTvShow';
+import { downloadAndHash } from './image';
 
-export default (
+export default async (
 	req: CompleteTvAggregate,
-	transaction: Prisma.PromiseReturnType<any>[],
-	createdByArray: Prisma.CastTvCreateOrConnectWithoutTvInput[],
+	createdByArray: Prisma.CreatorCreateOrConnectWithoutTvInput[],
 	people: number[]
 ) => {
 
 	for (const created_by of req.created_by) {
 		if (!people.includes(created_by.id)) continue;
 
-		const createdInsert = Prisma.validator<Prisma.CreatorUncheckedCreateInput>()({
-			creditId: created_by.credit_id,
-			personId: created_by.id,
-			name: created_by.name,
-			gender: created_by.gender,
-			profilePath: created_by.profile_path,
-		});
-
-		transaction.push(
-			confDb.creator.upsert({
-				where: {
-					creditId: created_by.credit_id,
-				},
-				update: createdInsert,
-				create: createdInsert,
-			})
-		);
-
 		createdByArray.push({
 			where: {
-				creditId: created_by.credit_id,
+				personId_tvId: {
+					personId: created_by.id,
+					tvId: req.id,
+				},
 			},
 			create: {
-				creditId: created_by.credit_id,
+				personId: created_by.id,
 			},
 		});
+
+		if (created_by.profile_path) {
+			await downloadAndHash({
+				src: created_by.profile_path,
+				table: 'person',
+				column: 'profile',
+				type: 'crew',
+				only: ['colorPalette', 'blurHash'],
+			});
+		}
 	}
 };

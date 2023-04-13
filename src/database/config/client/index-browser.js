@@ -5,7 +5,7 @@ const {
   Decimal,
   objectEnumValues,
   makeStrictEnum
-} = require('@prisma/client/runtime/index-browser')
+} = require('./runtime/index-browser')
 
 
 const Prisma = {}
@@ -13,12 +13,12 @@ const Prisma = {}
 exports.Prisma = Prisma
 
 /**
- * Prisma Client JS version: 4.7.1
- * Query Engine version: 272861e07ab64f234d3ffc4094e32bd61775599c
+ * Prisma Client JS version: 4.11.0
+ * Query Engine version: 8fde8fef4033376662cad983758335009d522acb
  */
 Prisma.prismaVersion = {
-  client: "4.7.1",
-  engine: "272861e07ab64f234d3ffc4094e32bd61775599c"
+  client: "4.11.0",
+  engine: "8fde8fef4033376662cad983758335009d522acb"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -133,40 +133,14 @@ exports.Prisma.ArtistScalarFieldEnum = makeEnum({
   trackId: 'trackId'
 });
 
-exports.Prisma.CastEpisodeScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  episodeId: 'episodeId'
-});
-
-exports.Prisma.CastMovieScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  movieId: 'movieId'
-});
-
 exports.Prisma.CastScalarFieldEnum = makeEnum({
-  adult: 'adult',
-  character: 'character',
-  creditId: 'creditId',
-  gender: 'gender',
   id: 'id',
-  knownForDepartment: 'knownForDepartment',
-  name: 'name',
-  order: 'order',
-  originalName: 'originalName',
-  popularity: 'popularity',
-  profilePath: 'profilePath',
-  blurHash: 'blurHash',
-  personId: 'personId'
-});
-
-exports.Prisma.CastSeasonScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  seasonId: 'seasonId'
-});
-
-exports.Prisma.CastTvScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  tvId: 'tvId'
+  imageId: 'imageId',
+  personId: 'personId',
+  movieId: 'movieId',
+  tvId: 'tvId',
+  seasonId: 'seasonId',
+  episodeId: 'episodeId'
 });
 
 exports.Prisma.CertificationMovieScalarFieldEnum = makeEnum({
@@ -190,6 +164,7 @@ exports.Prisma.CertificationTvScalarFieldEnum = makeEnum({
 });
 
 exports.Prisma.CollectionMovieScalarFieldEnum = makeEnum({
+  id: 'id',
   collectionId: 'collectionId',
   movieId: 'movieId'
 });
@@ -203,6 +178,7 @@ exports.Prisma.CollectionScalarFieldEnum = makeEnum({
   title: 'title',
   titleSort: 'titleSort',
   blurHash: 'blurHash',
+  movieId: 'movieId',
   libraryId: 'libraryId'
 });
 
@@ -223,55 +199,18 @@ exports.Prisma.CountryScalarFieldEnum = makeEnum({
 });
 
 exports.Prisma.CreatorScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  gender: 'gender',
   id: 'id',
-  name: 'name',
-  profilePath: 'profilePath',
-  blurHash: 'blurHash',
-  personId: 'personId'
-});
-
-exports.Prisma.CreatorTvScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
+  personId: 'personId',
   tvId: 'tvId'
-});
-
-exports.Prisma.CrewEpisodeScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  episodeId: 'episodeId'
-});
-
-exports.Prisma.CrewMovieScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  movieId: 'movieId'
 });
 
 exports.Prisma.CrewScalarFieldEnum = makeEnum({
-  adult: 'adult',
-  creditId: 'creditId',
-  department: 'department',
-  gender: 'gender',
   id: 'id',
-  job: 'job',
-  knownForDepartment: 'knownForDepartment',
-  name: 'name',
-  originalName: 'originalName',
-  popularity: 'popularity',
-  profilePath: 'profilePath',
-  profileId: 'profileId',
-  blurHash: 'blurHash',
-  personId: 'personId'
-});
-
-exports.Prisma.CrewSeasonScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  seasonId: 'seasonId'
-});
-
-exports.Prisma.CrewTvScalarFieldEnum = makeEnum({
-  creditId: 'creditId',
-  tvId: 'tvId'
+  personId: 'personId',
+  movieId: 'movieId',
+  tvId: 'tvId',
+  seasonId: 'seasonId',
+  episodeId: 'episodeId'
 });
 
 exports.Prisma.DeviceScalarFieldEnum = makeEnum({
@@ -299,11 +238,6 @@ exports.Prisma.EncoderProfileScalarFieldEnum = makeEnum({
   updated_at: 'updated_at'
 });
 
-exports.Prisma.EpisodeGuestStarScalarFieldEnum = makeEnum({
-  episodeId: 'episodeId',
-  creditId: 'creditId'
-});
-
 exports.Prisma.EpisodeScalarFieldEnum = makeEnum({
   airDate: 'airDate',
   createdAt: 'createdAt',
@@ -322,15 +256,6 @@ exports.Prisma.EpisodeScalarFieldEnum = makeEnum({
   blurHash: 'blurHash',
   tvId: 'tvId',
   seasonId: 'seasonId'
-});
-
-exports.Prisma.FailedJobsScalarFieldEnum = makeEnum({
-  connnection: 'connnection',
-  exception: 'exception',
-  failedAt: 'failedAt',
-  payload: 'payload',
-  queue: 'queue',
-  uuid: 'uuid'
 });
 
 exports.Prisma.FavoriteTrackScalarFieldEnum = makeEnum({
@@ -413,21 +338,9 @@ exports.Prisma.GenreTvScalarFieldEnum = makeEnum({
 });
 
 exports.Prisma.GuestStarScalarFieldEnum = makeEnum({
-  adult: 'adult',
-  castId: 'castId',
-  character: 'character',
-  creditId: 'creditId',
-  episodeId: 'episodeId',
-  gender: 'gender',
   id: 'id',
-  knownForDepartment: 'knownForDepartment',
-  name: 'name',
-  order: 'order',
-  originalName: 'originalName',
-  popularity: 'popularity',
-  profilePath: 'profilePath',
-  profileId: 'profileId',
-  personId: 'personId'
+  personId: 'personId',
+  episodeId: 'episodeId'
 });
 
 exports.Prisma.ImageScalarFieldEnum = makeEnum({
@@ -446,19 +359,15 @@ exports.Prisma.ImageScalarFieldEnum = makeEnum({
   voteAverage: 'voteAverage',
   voteCount: 'voteCount',
   colorPalette: 'colorPalette',
-  blurHash: 'blurHash',
-  tvId: 'tvId',
-  movieId: 'movieId'
+  blurHash: 'blurHash'
 });
 
-exports.Prisma.JobsScalarFieldEnum = makeEnum({
-  attempts: 'attempts',
-  availableAt: 'availableAt',
-  createdAt: 'createdAt',
+exports.Prisma.JobScalarFieldEnum = makeEnum({
   id: 'id',
-  payload: 'payload',
-  queue: 'queue',
-  reservedAt: 'reservedAt'
+  creditId: 'creditId',
+  job: 'job',
+  episodeCount: 'episodeCount',
+  crewId: 'crewId'
 });
 
 exports.Prisma.KeywordMovieScalarFieldEnum = makeEnum({
@@ -677,9 +586,10 @@ exports.Prisma.PersonScalarFieldEnum = makeEnum({
   name: 'name',
   placeOfBirth: 'placeOfBirth',
   popularity: 'popularity',
-  profilePath: 'profilePath',
+  profile: 'profile',
   updatedAt: 'updatedAt',
-  blurHash: 'blurHash'
+  blurHash: 'blurHash',
+  colorPalette: 'colorPalette'
 });
 
 exports.Prisma.PlaylistScalarFieldEnum = makeEnum({
@@ -718,10 +628,20 @@ exports.Prisma.RecommendationScalarFieldEnum = makeEnum({
   title: 'title',
   titleSort: 'titleSort',
   blurHash: 'blurHash',
-  recommendationableId: 'recommendationableId',
-  recommendationableType: 'recommendationableType',
   mediaId: 'mediaId',
-  mediaType: 'mediaType'
+  tvFromId: 'tvFromId',
+  tvToId: 'tvToId',
+  movieFromId: 'movieFromId',
+  movieToId: 'movieToId'
+});
+
+exports.Prisma.RoleScalarFieldEnum = makeEnum({
+  id: 'id',
+  creditId: 'creditId',
+  character: 'character',
+  episodeCount: 'episodeCount',
+  castId: 'castId',
+  guestId: 'guestId'
 });
 
 exports.Prisma.RunningTaskScalarFieldEnum = makeEnum({
@@ -756,9 +676,10 @@ exports.Prisma.SimilarScalarFieldEnum = makeEnum({
   titleSort: 'titleSort',
   blurHash: 'blurHash',
   mediaId: 'mediaId',
-  mediaType: 'mediaType',
-  similarableId: 'similarableId',
-  similarableType: 'similarableType'
+  tvFromId: 'tvFromId',
+  tvToId: 'tvToId',
+  movieFromId: 'movieFromId',
+  movieToId: 'movieToId'
 });
 
 exports.Prisma.SortOrder = makeEnum({
@@ -823,8 +744,12 @@ exports.Prisma.TranslationScalarFieldEnum = makeEnum({
   name: 'name',
   overview: 'overview',
   title: 'title',
-  translationableId: 'translationableId',
-  translationableType: 'translationableType'
+  tvId: 'tvId',
+  seasonId: 'seasonId',
+  episodeId: 'episodeId',
+  movieId: 'movieId',
+  collectionId: 'collectionId',
+  personId: 'personId'
 });
 
 exports.Prisma.TvScalarFieldEnum = makeEnum({
@@ -946,34 +871,24 @@ exports.Prisma.ModelName = makeEnum({
   UserData: 'UserData',
   AlternativeTitles: 'AlternativeTitles',
   Cast: 'Cast',
-  CastEpisode: 'CastEpisode',
-  CastMovie: 'CastMovie',
-  CastSeason: 'CastSeason',
-  CastTv: 'CastTv',
+  Role: 'Role',
   Certification: 'Certification',
   CertificationMovie: 'CertificationMovie',
   CertificationTv: 'CertificationTv',
-  Collection: 'Collection',
-  CollectionMovie: 'CollectionMovie',
   Creator: 'Creator',
-  CreatorTv: 'CreatorTv',
   Crew: 'Crew',
-  CrewEpisode: 'CrewEpisode',
-  CrewMovie: 'CrewMovie',
-  CrewSeason: 'CrewSeason',
-  CrewTv: 'CrewTv',
+  Job: 'Job',
   Episode: 'Episode',
-  EpisodeGuestStar: 'EpisodeGuestStar',
-  FailedJobs: 'FailedJobs',
   GenreMovie: 'GenreMovie',
   GenreTv: 'GenreTv',
   GuestStar: 'GuestStar',
-  Jobs: 'Jobs',
   Keyword: 'Keyword',
   KeywordMovie: 'KeywordMovie',
   KeywordTv: 'KeywordTv',
   Messages: 'Messages',
   Movie: 'Movie',
+  Collection: 'Collection',
+  CollectionMovie: 'CollectionMovie',
   Genre: 'Genre',
   Person: 'Person',
   Recommendation: 'Recommendation',

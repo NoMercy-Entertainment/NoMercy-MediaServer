@@ -1,15 +1,12 @@
-import cast from './cast';
-import createBlurHash from '../../functions/createBlurHash/createBlurHash';
-import crew from './crew';
-import episode from './episode';
-import image from './image';
-import Logger from '../../functions/logger';
-import translation from './translation';
 import { confDb } from '../../database/config';
 import { Prisma } from '../../database/config/client';
+import Logger from '../../functions/logger';
+import aggregateCast from './aggregateCast';
+import aggregateCrew from './aggregateCrew';
+import episode from './episode';
 import { CompleteTvAggregate } from './fetchTvShow';
-
-// import { AppState, useSelector } from '../../state/redux';
+import { downloadAndHash, image } from './image';
+import translation from './translation';
 
 const season = async (
 	tv: CompleteTvAggregate,
@@ -28,20 +25,17 @@ const season = async (
 		const season = tv.seasons[i];
 		if (!season.id) continue;
 
-		const castInsert: any[] = [];
-		const crewInsert: any[] = [];
+		const castInsert: Array<Prisma.CastCreateOrConnectWithoutSeasonInput> = [];
+		const crewInsert: Array<Prisma.CrewCreateOrConnectWithoutSeasonInput> = [];
+		await aggregateCast(season, castInsert, people, 'season');
+		await aggregateCrew(season, crewInsert, people, 'season');
 
-		await cast(season, transaction, castInsert, people);
-		await crew(season, transaction, crewInsert, people);
-
+		// @ts-ignore
 		const seasonsInsert = Prisma.validator<Prisma.SeasonCreateInput>()({
 			airDate: season.air_date,
 			id: season.id,
 			overview: season.overview,
 			poster: season.poster_path,
-			blurHash: season.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${season.poster_path}`)
-				: undefined,
 			seasonNumber: season.season_number,
 			title: season.name,
 			episodeCount: season.episode_count,
@@ -68,23 +62,20 @@ const season = async (
 			})
 		);
 
-		await translation(season, transaction, 'season');
-
-		// const queue = useSelector((state: AppState) => state.config.dataWorker);
-
-		// await queue.add({
-		// 	file: resolve(__dirname, '..', 'images', 'downloadTMDBImages'),
-		// 	fn: 'downloadTMDBImages',
-		// 	args: {type: 'season', task, data: season},
-		// });
-
-		// await downloadTMDBImages('season', season);
-
-		await image(season, transaction, 'backdrop', 'season');
-		await image(season, transaction, 'poster', 'season');
-
 		await episode(tv.id, season, transaction, people);
 
+		translation(season, transaction, 'season');
+		await image(season, transaction, 'poster', 'season');
+
+		if (season.poster_path) {
+			await downloadAndHash({
+				src: season.poster_path,
+				table: 'season',
+				column: 'poster',
+				type: 'season',
+				only: ['blurHash'],
+			});
+		}
 	}
 
 	Logger.log({

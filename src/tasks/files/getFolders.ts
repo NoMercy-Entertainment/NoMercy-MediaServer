@@ -1,24 +1,13 @@
+import dirTree, { DirectoryTree, DirectoryTreeOptions } from 'directory-tree';
+import { existsSync, readFileSync, writeFile } from 'fs';
 import path from 'path';
-import dirTree, {
-	DirectoryTree,
-	DirectoryTreeOptions
-} from 'directory-tree';
-import {
-	existsSync,
-	readFileSync, writeFile
-} from 'fs';
 
-import Logger from '../../functions/logger';
 import { fileChangedAgo } from '../../functions/dateTime';
-import {
-	FolderList,
-	ParsedFileList,
-	parseFileName,
-	parseFolderName
-} from './filenameParser';
-import { cachePath } from '../../state';
-import { chunk, sortBy, jsonToString } from '../../functions/stringArray';
+import Logger from '../../functions/logger';
+import { chunk, jsonToString, sortBy } from '../../functions/stringArray';
 import { cpuCores } from '../../functions/system';
+import { cachePath } from '../../state';
+import { FolderList, ParsedFileList, parseFileName, parseFolderName } from './filenameParser';
 
 interface FileListProps {
 	folder: string;
@@ -31,7 +20,7 @@ interface FileListProps {
 export default async ({
 	folder,
 	recursive = false,
-	filter = ['mp4', 'mkv', 'avi', 'ogv', 'm3u8', 'webm', 'vp9'],
+	filter = ['mp4', 'mkv', 'avi', 'ogv', 'm3u8', 'webm', 'vp9', 'mkv'],
 	foldersOnly = false,
 	ignoreBaseFilter = false,
 }: FileListProps): Promise<FileList> => {

@@ -146,10 +146,6 @@ export class ChromeCast {
 				this.status(data);
 				this.status(broadcast);
 			});
-
-			setInterval(() => {
-				this.heartbeat?.send({ type: 'PING' });
-			}, 500);
 		});
 	}
 
