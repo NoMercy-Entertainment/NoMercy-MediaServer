@@ -1,4 +1,4 @@
-import { EP } from 'tasks/files/filenameParser';
+import { EP } from '@/tasks/files/filenameParser';
 import { Store } from '../../functions/ffmpeg/store';
 import { confDb } from '../../database/config';
 

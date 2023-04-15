@@ -43,7 +43,7 @@ export const getUsers = async () => {
 			const users = await confDb.user.findMany();
 			setUsers(users);
 
-			const newAllowedUsers = [...users].map((d) => {
+			const newAllowedUsers = users.map((d) => {
 				return {
 					...d,
 					created_at: new Date(d.created_at).getTime(),

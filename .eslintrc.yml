@@ -21,7 +21,8 @@ ignorePatterns: [
   "src/database/config/client/*",
   "src/database/queue/client/*",
   "src/**/*.js",
-  "*.js"
+  "*.js",
+  "node_modules/**/*"
 ]
 rules:
   "@typescript-eslint/no-non-null-assertion":

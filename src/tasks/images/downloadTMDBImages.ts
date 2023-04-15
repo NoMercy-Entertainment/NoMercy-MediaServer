@@ -11,7 +11,7 @@ import { TvAppend, TvCredits, TvImages } from '../../providers/tmdb/tv/index';
 import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
 import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import { PaletteColors } from 'types/server';
+import { PaletteColors } from '@/types/server';
 import { checkDbLock } from '@/database';
 import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';

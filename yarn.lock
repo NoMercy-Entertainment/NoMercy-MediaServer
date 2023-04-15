@@ -7988,6 +7988,7 @@ chromedriver@latest:
     qs: ^6.11.0
     react: ^18.2.0
     regenerator-runtime: ^0.13.9
+    request: ^2.88.2
     request-country: ^0.1.6
     socket.io: 4.5.4
     socketio-jwt: ^4.6.2
@@ -9277,7 +9278,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"request@npm:^2.44.0, request@npm:^2.81.0":
+"request@npm:^2.44.0, request@npm:^2.81.0, request@npm:^2.88.2":
   version: 2.88.2
   resolution: "request@npm:2.88.2"
   dependencies:

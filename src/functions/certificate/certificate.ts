@@ -1,6 +1,6 @@
 import { AppState, useSelector } from '@/state/redux';
 import axios, { AxiosResponse } from 'axios';
-import { readFileSync, rmSync, writeFileSync } from 'fs';
+import { promises, readFileSync } from 'fs';
 import { sslCA, sslCert, sslKey, tokenFile } from '@/state';
 
 import Logger from '../../functions/logger';
@@ -37,13 +37,18 @@ const refresh = async () => {
 					},
 				}
 			)
-			.then((response: AxiosResponse<ServerCertificate>) => {
-				rmSync(sslKey, { force: true });
-				rmSync(sslCert, { force: true });
-				rmSync(sslCA, { force: true });
-				writeFileSync(sslKey, response.data.private_key);
-				writeFileSync(sslCA, response.data.certificate_authority);
-				writeFileSync(sslCert, `${response.data.certificate}\n${response.data.issuer_certificate}`);
+			.then(async (response: AxiosResponse<ServerCertificate>) => {
+				await Promise.all([
+					promises.rm(sslKey, { force: true }),
+					promises.rm(sslCert, { force: true }),
+					promises.rm(sslCA, { force: true }),
+				]);
+
+				await Promise.all([
+					promises.writeFile(sslKey, response.data.private_key),
+					promises.writeFile(sslCA, response.data.certificate_authority),
+					promises.writeFile(sslCert, `${response.data.certificate}\n${response.data.issuer_certificate}`),
+				]);
 
 				Logger.log({
 					level: 'info',
@@ -88,13 +93,18 @@ const refresh = async () => {
 								},
 							}
 						)
-						.then((response: AxiosResponse<ServerCertificate>) => {
-							rmSync(sslKey, { force: true });
-							rmSync(sslCert, { force: true });
-							rmSync(sslCA, { force: true });
-							writeFileSync(sslKey, response.data.private_key);
-							writeFileSync(sslCA, response.data.certificate_authority);
-							writeFileSync(sslCert, `${response.data.certificate}\n${response.data.issuer_certificate}`);
+						.then(async (response: AxiosResponse<ServerCertificate>) => {
+							await Promise.all([
+								promises.rm(sslKey, { force: true }),
+								promises.rm(sslCert, { force: true }),
+								promises.rm(sslCA, { force: true }),
+							]);
+
+							await Promise.all([
+								promises.writeFile(sslKey, response.data.private_key),
+								promises.writeFile(sslCA, response.data.certificate_authority),
+								promises.writeFile(sslCert, `${response.data.certificate}\n${response.data.issuer_certificate}`),
+							]);
 
 							Logger.log({
 								level: 'info',
