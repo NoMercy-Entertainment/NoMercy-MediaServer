@@ -13,7 +13,7 @@
     'en-US'
     ) // /tv/1433/season/1/episode/1?api_key=ABCDEFGHIJK&language=en-US
  */
-export const stringFormat = (template: string, ...values: Array<string | number>): string => {
+export const stringFormat = (template: string, ...values: (string | number | boolean)[]): string => {
 	const regex = new RegExp(/\{(?<index>\d+)\}/u, 'gu');
 	const matches = template.match(regex);
 	if (matches?.length == null) return '';

@@ -1,5 +1,9 @@
 // import { AppState, useSelector } from '../../state/redux';
 
+import { readdirSync, writeFileSync } from 'fs';
+
+import { FFmpegWrapper } from '../ffmpeg/fingerprint/Fingerprinter';
+
 // import { Store } from '../ffmpeg/store';
 // import ripper from '../ripper';
 
@@ -12,6 +16,43 @@
 // import { OnDemand } from '../ffmpeg/onDemand';
 
 export default async () => {
+
+	const folder = 'D:/TV.Shows/Download/NCIS.(2003)';
+	// const file = 'D:/TV.Shows/Download/NCIS.(2003)/NCIS.S19E01.Blood.in.the.Water.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv';
+	// const file2 = 'D:/TV.Shows/Download/NCIS.(2003)/NCIS.S19E02.Nearly.Departed.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv';
+
+	// const episodes = [
+	// 	{
+	// 		EpisodeId: '1',
+	// 		title: 'NCIS',
+	// 		path: file,
+	// 	},
+	// 	{
+	// 		EpisodeId: '2',
+	// 		title: 'NCIS',
+	// 		path: file2,
+	// 	},
+	// ];
+
+	const episodes = readdirSync(folder).map((f, index) => {
+		return {
+			EpisodeId: index.toString(),
+			title: 'NCIS',
+			path: `${folder}/${f}`,
+		};
+	});
+
+	const fp = new FFmpegWrapper();
+
+	for (const episode of episodes.slice(0, 1)) {
+		await fp.open(episode);
+		await fp.detectSilence();
+		// const args = fp.silenceRanges.filter(s => s.duration > 1).map(s => ({ start: s.start, end: s.end }))[0];
+		writeFileSync('detect.json', JSON.stringify(fp, null, 2));
+		console.log(fp);
+	}
+
+	// execSync('C:/Users/Stoney/AppData/Local/NoMercy/root/binaries/ffmpeg.exe -hide_banner -i "D:/TV.Shows/Download/NCIS.(2003)/NCIS.S19E01.Blood.in.the.Water.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv" -filter_complex "select=\'gt(scene,0.3)\',metadata=print:file=-" -f null - > output.txt 2>&1');
 
 	// ripper();
 
