@@ -340,7 +340,7 @@ export class Queue {
 
 			const runningTask = await confDb.runningTask.findFirst({
 				where: {
-					id: message.job.queue?.task?.id,
+					id: message.job?.queue?.task?.id,
 				},
 			}).catch(e => console.log(e));
 
@@ -354,7 +354,7 @@ export class Queue {
 
 			socket.emit('tasks', runningTask);
 
-			if (runningTask?.title.includes('library') && message.job.queue == 'queue') {
+			if (runningTask?.title.includes('library') && message.job?.queue == 'queue') {
 				socket.emit('update_content', ['libraries']);
 			}
 

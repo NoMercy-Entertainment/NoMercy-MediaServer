@@ -4,9 +4,6 @@
 // import { Store } from '../ffmpeg/store';
 // import ripper from '../ripper';
 
-// import { confDb } from '../../database/config';
-// import { Media, Prisma } from '../../database/config/client';
-// import { downloadAndHash } from '../../tasks/data/image';
 
 // import ChromecastAPI from 'chromecast-api';
 // import Device from 'chromecast-api/lib/device';
@@ -86,12 +83,12 @@ export default async () => {
 	// 		console.log(`Found ${images.length} images to make blurHashes for`);
 
 	// 		for (const image of images) {
-	// 			// console.log(`Making blurHash: ${image.src}`);
+	// 			console.log(`Making blurHash: ${image.src}`);
 	// 			await downloadAndHash({
 	// 				src: image.src,
 	// 				table: 'media',
 	// 				column: 'src',
-	// 				type: image.type!,
+	// 				type: image.type! as 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
 	// 			});
 	// 		};
 	// 	})

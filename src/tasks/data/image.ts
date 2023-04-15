@@ -89,16 +89,15 @@ export const downloadAndHash = async ({ src, table, column, type, transaction, o
 	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar'
 	transaction?: Array<Prisma.Prisma__MediaClient<Media, never>>,
 	only?: Array<'colorPalette' | 'blurHash'>
-// eslint-disable-next-line require-await
 }) => {
 
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	// await queue.add({
-	// 	file: __filename,
-	// 	fn: 'execute',
-	// 	args: { src, table, column, type, transaction, only },
-	// });
+	await queue.add({
+		file: __filename,
+		fn: 'execute',
+		args: { src, table, column, type, transaction, only },
+	});
 };
 
 export const execute = async ({ src, table, column, type, transaction, only }:	{
