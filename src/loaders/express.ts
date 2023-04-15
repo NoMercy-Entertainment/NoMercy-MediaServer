@@ -1,11 +1,11 @@
 import { AppState, useSelector } from '@/state/redux';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import {
-    serveImagesPath,
-    serveLibraryPaths,
-    servePublicPath,
-    serveSubtitlesPath,
-    serveTranscodePath
+	serveImagesPath,
+	serveLibraryPaths,
+	servePublicPath,
+	serveSubtitlesPath,
+	serveTranscodePath
 } from '../api/routes/files';
 
 import Logger from '../functions/logger';

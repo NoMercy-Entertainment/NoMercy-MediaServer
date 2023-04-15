@@ -2,15 +2,15 @@ import { AppState, useSelector } from '@/state/redux';
 import { configFile, tokenFile } from '@/state';
 import { readFileSync, writeFileSync } from 'fs';
 import {
-    setAccessToken,
-    setExpiresIn,
-    setIdToken,
-    setNotBeforePolicy,
-    setRefreshExpiresIn,
-    setRefreshToken,
-    setScope,
-    setSessionState,
-    setTokenType
+	setAccessToken,
+	setExpiresIn,
+	setIdToken,
+	setNotBeforePolicy,
+	setRefreshExpiresIn,
+	setRefreshToken,
+	setScope,
+	setSessionState,
+	setTokenType
 } from '@/state/redux/user/actions';
 
 import Logger from '../../functions/logger';

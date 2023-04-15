@@ -1,28 +1,28 @@
 import {
-    AggregateCredit,
-    AggregateCredits,
-    Cast,
-    Country,
-    CreatedBy,
-    Crew,
-    Genre,
-    Language
+	AggregateCredit,
+	AggregateCredits,
+	Cast,
+	Country,
+	CreatedBy,
+	Crew,
+	Genre,
+	Language
 } from '../../providers/tmdb/shared/index';
 import {
-    AlternativeTitles,
-    ExternalIDS,
-    Recommendations,
-    TvCast,
-    TvContentRatings,
-    TvCredits,
-    TvCrew,
-    TvImages,
-    TvKeywords,
-    TvShowTranslations,
-    TvSimilar,
-    TvVideos,
-    TvWatchProviders,
-    tv
+	AlternativeTitles,
+	ExternalIDS,
+	Recommendations,
+	TvCast,
+	TvContentRatings,
+	TvCredits,
+	TvCrew,
+	TvImages,
+	TvKeywords,
+	TvShowTranslations,
+	TvSimilar,
+	TvVideos,
+	TvWatchProviders,
+	tv
 } from '../../providers/tmdb/tv/index';
 import { Episode, EpisodeAppend, episodes } from '../../providers/tmdb/episode/index';
 import { PersonAppend, person } from '../../providers/tmdb/people/index';

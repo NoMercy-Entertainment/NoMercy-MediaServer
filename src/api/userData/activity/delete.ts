@@ -1,6 +1,6 @@
 import {
-    AppState,
-    useSelector
+	AppState,
+	useSelector
 } from '@/state/redux';
 import { Request, Response } from 'express';
 

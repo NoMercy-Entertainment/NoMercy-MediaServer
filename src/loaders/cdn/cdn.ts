@@ -1,10 +1,10 @@
 import {
-    setColors,
-    setDownloads,
-    setMakeMKVKey,
-    setOmdbApiKey,
-    setQuote,
-    setTmdbApiKey
+	setColors,
+	setDownloads,
+	setMakeMKVKey,
+	setOmdbApiKey,
+	setQuote,
+	setTmdbApiKey
 } from '@/state/redux/config/actions';
 
 import Logger from '../../functions/logger';

@@ -1,9 +1,9 @@
 import {
-    AddUserParams,
-    NotificationsParams,
-    ResponseStatus,
-    removeUserParams,
-    userPermissionsParams
+	AddUserParams,
+	NotificationsParams,
+	ResponseStatus,
+	removeUserParams,
+	userPermissionsParams
 } from 'types/server';
 import { AppState, useSelector } from '@/state/redux';
 import { Request, Response } from 'express';
@@ -11,10 +11,10 @@ import { Request, Response } from 'express';
 import Logger from '../../functions/logger';
 import { confDb } from '../../database/config';
 import {
-    defaultUserOptions
+	defaultUserOptions
 } from '@/state/redux/config';
 import {
-    setAllowedUsers
+	setAllowedUsers
 } from '@/state/redux/config/actions';
 
 export const AddUser = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {

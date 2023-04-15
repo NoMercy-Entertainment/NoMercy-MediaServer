@@ -9,5 +9,6 @@
         "./src/database/config/client/*",
         "./src/database/queue/client/*",
         "/src/**/*.js",
+        "node_modules/**/*"
     ]
 }

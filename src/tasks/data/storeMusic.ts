@@ -1,5 +1,5 @@
 import {
-    copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync
+	copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync
 } from 'fs';
 import lyricsFinder from 'lyrics-finder';
 import { join } from 'path';
@@ -19,10 +19,10 @@ import i18n from '../../loaders/i18n';
 import { findLyrics } from '../../providers';
 import { Image } from '../../providers/musicbrainz/cover';
 import {
-    Artist, getAcousticFingerprintFromParsedFileList, Medium, Recording, Release
+	Artist, getAcousticFingerprintFromParsedFileList, Medium, Recording, Release
 } from '../../providers/musicbrainz/fingerprint';
 import {
-    recording, recordingAppend, RecordingWithAppends
+	recording, recordingAppend, RecordingWithAppends
 } from '../../providers/musicbrainz/recording';
 import { releaseCover } from '../../providers/musicbrainz/release';
 import { cachePath, imagesPath } from '@/state';

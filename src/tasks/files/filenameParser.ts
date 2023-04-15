@@ -2,8 +2,8 @@
 import { DirectoryTree } from 'directory-tree';
 
 import {
-    EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie,
-    Season, Tv
+	EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie,
+	Season, Tv
 } from '../../database/config/client';
 import { DBLibraryWithFolders } from '../../database/data';
 import { AudioFFprobe, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
