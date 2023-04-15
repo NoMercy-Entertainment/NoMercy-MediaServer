@@ -2545,22 +2545,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bindings@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "bindings@npm:1.5.0"
-  dependencies:
-    file-uri-to-path: 1.0.0
-  checksum: 65b6b48095717c2e6105a021a7da4ea435aa8d3d3cd085cb9e85bcb6e5773cf318c4745c3f7c504412855940b585bdf9b918236612a1c7a7942491de176f1ae7
-  languageName: node
-  linkType: hard
-
-"bindings@npm:~1.2.1":
-  version: 1.2.1
-  resolution: "bindings@npm:1.2.1"
-  checksum: fb542a5721cbeb0a75607a0447ac4d12e3ba8fe12ddf2adbe76814fa9cf3d1236a03ab51d55a7fef1b2d1d9917f4315e8b1cf8b74ff21a6cf9e722e7e363ba5f
-  languageName: node
-  linkType: hard
-
 "bl@npm:^4.0.3, bl@npm:^4.1.0":
   version: 4.1.0
   resolution: "bl@npm:4.1.0"
@@ -2772,30 +2756,6 @@ __metadata:
   version: 0.1.1
   resolution: "buffers@npm:0.1.1"
   checksum: ad6f8e483efab39cefd92bdc04edbff6805e4211b002f4d1cfb70c6c472a61cc89fb18c37bcdfdd4ee416ca096e9ff606286698a7d41a18b539bac12fd76d4d5
-  languageName: node
-  linkType: hard
-
-"bunyan-prettystream@npm:~0.1.3":
-  version: 0.1.3
-  resolution: "bunyan-prettystream@npm:0.1.3"
-  checksum: 01085641663bc6f90129d1dcf884615bba8efb362af0d2748d6e214a7e33acb26b94bd8d1e916e53720d27905aec3033a59245949cf3463c94c19c3881ed3b11
-  languageName: node
-  linkType: hard
-
-"bunyan@npm:~0.22.0":
-  version: 0.22.3
-  resolution: "bunyan@npm:0.22.3"
-  dependencies:
-    dtrace-provider: 0.2.8
-    mv: ~2
-  dependenciesMeta:
-    dtrace-provider:
-      optional: true
-    mv:
-      optional: true
-  bin:
-    bunyan: ./bin/bunyan
-  checksum: 0912c9ce25b73cf91ca01ba337d31cf999eb2503b2ae23000bf0bacde6ce1c258ee29684413881ec6e8d0b1bded35e4b0b7bff6f2e2a8a673facfbe6ea06731d
   languageName: node
   linkType: hard
 
@@ -3058,16 +3018,6 @@ __metadata:
     xml2js: ^0.4.23
     youtube-remote: ^1.0.0
   checksum: f8e979d3cb8cec54fbdc77d570324d680f6d65b35a44a14518d1ba93a23ec67aaf1bac8dea1c76f7d06cfa0dfb32eaed44e3487881bc10fef0dd361ee3423bb7
-  languageName: node
-  linkType: hard
-
-"chromecast@npm:^0.0.6":
-  version: 0.0.6
-  resolution: "chromecast@npm:0.0.6"
-  dependencies:
-    dial: 0.0.5
-    rest: ~0.9.3
-  checksum: c1e65f309964dff763a9d6c21ce392d2648852d324000b9573995638400f5b6a06d2a819719723139b3c55282655f688aa8e9499fb6bff52d1af8c10ca4dcce7
   languageName: node
   linkType: hard
 
@@ -3837,17 +3787,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"dial@npm:0.0.5":
-  version: 0.0.5
-  resolution: "dial@npm:0.0.5"
-  dependencies:
-    node-ssdp: 0.2.0
-    rest: ^1.3.1
-    xml2json: ^0.7.1
-  checksum: 90dc011b24cbf73fdde98facd49390c25e2051827af7fd9d3b27fab3d970236689ea94ec7be613861f42329de5a99bf5bed06f5e76dd4ef2ba1b1dc87ad1ad4a
-  languageName: node
-  linkType: hard
-
 "didyoumean@npm:^1.2.2":
   version: 1.2.2
   resolution: "didyoumean@npm:1.2.2"
@@ -4036,15 +3975,6 @@ chromedriver@latest:
     macos-alias: ~0.2.5
     tn1150: ^0.1.0
   checksum: b574fdd92d8008e6e089ca958a9d186e4cca2b69131004ccc958a06fcea0a1079b6efd0693a74ad7f85b1f5df69edbfb81896eaef1644e1d23c506f9740c0945
-  languageName: node
-  linkType: hard
-
-"dtrace-provider@npm:0.2.8":
-  version: 0.2.8
-  resolution: "dtrace-provider@npm:0.2.8"
-  dependencies:
-    node-gyp: latest
-  checksum: f25b5a71a69f20c253e4379a012c459dcd515660c82e1183993425bbdb1d1eba8f029eb93f6c4a84d15bbfb477b00a64deda003b56a500725498c3af3fd3f73a
   languageName: node
   linkType: hard
 
@@ -5233,13 +5163,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"file-uri-to-path@npm:1.0.0":
-  version: 1.0.0
-  resolution: "file-uri-to-path@npm:1.0.0"
-  checksum: b648580bdd893a008c92c7ecc96c3ee57a5e7b6c4c18a9a09b44fb5d36d79146f8e442578bc0e173dc027adf3987e254ba1dfd6e3ec998b7c282873010502144
-  languageName: node
-  linkType: hard
-
 "filename-reserved-regex@npm:^2.0.0":
   version: 2.0.0
   resolution: "filename-reserved-regex@npm:2.0.0"
@@ -5857,19 +5780,6 @@ chromedriver@latest:
   dependencies:
     is-glob: ^4.0.3
   checksum: c13ee97978bef4f55106b71e66428eb1512e71a7466ba49025fc2aec59a5bfb0954d5abd58fc5ee6c9b076eef4e1f6d3375c2e964b88466ca390da4419a786a8
-  languageName: node
-  linkType: hard
-
-"glob@npm:^6.0.1":
-  version: 6.0.4
-  resolution: "glob@npm:6.0.4"
-  dependencies:
-    inflight: ^1.0.4
-    inherits: 2
-    minimatch: 2 || 3
-    once: ^1.3.0
-    path-is-absolute: ^1.0.0
-  checksum: c4946c3d015ac81f704d185f2b3a55eb670100693c2cf7bc833d0efd970ec727d860d4839a5178e46a7e594b34a34661bae2f4c3405727c9fd189f84954ca3c0
   languageName: node
   linkType: hard
 
@@ -7856,17 +7766,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"mdns@npm:^2.7.2":
-  version: 2.7.2
-  resolution: "mdns@npm:2.7.2"
-  dependencies:
-    bindings: ~1.2.1
-    nan: ^2.14.0
-    node-gyp: latest
-  checksum: cb13e18e479927e2e35a081b9d4939d295e5cb4d3b557f7f5c364c0601cf5872a16c15daa1b164347a49d0bf828466ff433f9cc443319263f996f6dd0225cb03
-  languageName: node
-  linkType: hard
-
 "media-typer@npm:0.3.0":
   version: 0.3.0
   resolution: "media-typer@npm:0.3.0"
@@ -8001,21 +7900,21 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"minimatch@npm:2 || 3, minimatch@npm:^3.0.4, minimatch@npm:^3.0.5, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
-  version: 3.1.2
-  resolution: "minimatch@npm:3.1.2"
-  dependencies:
-    brace-expansion: ^1.1.7
-  checksum: c154e566406683e7bcb746e000b84d74465b3a832c45d59912b9b55cd50dee66e5c4b1e5566dba26154040e51672f9aa450a9aef0c97cfc7336b78b7afb9540a
-  languageName: node
-  linkType: hard
-
 "minimatch@npm:3.0.4":
   version: 3.0.4
   resolution: "minimatch@npm:3.0.4"
   dependencies:
     brace-expansion: ^1.1.7
   checksum: 66ac295f8a7b59788000ea3749938b0970344c841750abd96694f80269b926ebcafad3deeb3f1da2522978b119e6ae3a5869b63b13a7859a456b3408bd18a078
+  languageName: node
+  linkType: hard
+
+"minimatch@npm:^3.0.4, minimatch@npm:^3.0.5, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "minimatch@npm:3.1.2"
+  dependencies:
+    brace-expansion: ^1.1.7
+  checksum: c154e566406683e7bcb746e000b84d74465b3a832c45d59912b9b55cd50dee66e5c4b1e5566dba26154040e51672f9aa450a9aef0c97cfc7336b78b7afb9540a
   languageName: node
   linkType: hard
 
@@ -8112,7 +8011,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"mkdirp@npm:>=0.5 0, mkdirp@npm:^0.5.1, mkdirp@npm:~0.5.1":
+"mkdirp@npm:>=0.5 0, mkdirp@npm:^0.5.1":
   version: 0.5.6
   resolution: "mkdirp@npm:0.5.6"
   dependencies:
@@ -8253,18 +8152,7 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"mv@npm:~2":
-  version: 2.1.1
-  resolution: "mv@npm:2.1.1"
-  dependencies:
-    mkdirp: ~0.5.1
-    ncp: ~2.0.0
-    rimraf: ~2.4.0
-  checksum: 59d4b5ebff6c265b452d6630ae8873d573c82e36fdc1ed9c34c7901a0bf2d3d357022f49db8e9bded127b743f709c7ef7befec249a2b3967578d649a8029aa06
-  languageName: node
-  linkType: hard
-
-"nan@npm:^2.13.2, nan@npm:^2.14.0, nan@npm:^2.17.0, nan@npm:^2.4.0":
+"nan@npm:^2.14.0, nan@npm:^2.17.0, nan@npm:^2.4.0":
   version: 2.17.0
   resolution: "nan@npm:2.17.0"
   dependencies:
@@ -8293,15 +8181,6 @@ chromedriver@latest:
   version: 1.4.0
   resolution: "natural-compare@npm:1.4.0"
   checksum: 23ad088b08f898fc9b53011d7bb78ec48e79de7627e01ab5518e806033861bef68d5b0cd0e2205c2f36690ac9571ff6bcb05eb777ced2eeda8d4ac5b44592c3d
-  languageName: node
-  linkType: hard
-
-"ncp@npm:~2.0.0":
-  version: 2.0.0
-  resolution: "ncp@npm:2.0.0"
-  bin:
-    ncp: ./bin/ncp
-  checksum: ea9b19221da1d1c5529bdb9f8e85c9d191d156bcaae408cce5e415b7fbfd8744c288e792bd7faf1fe3b70fd44c74e22f0d43c39b209bc7ac1fb8016f70793a16
   languageName: node
   linkType: hard
 
@@ -8402,17 +8281,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"node-expat@npm:^2.3.7":
-  version: 2.4.0
-  resolution: "node-expat@npm:2.4.0"
-  dependencies:
-    bindings: ^1.5.0
-    nan: ^2.13.2
-    node-gyp: latest
-  checksum: c65aba3d721dd1e42c4092577c2f93914d820aa3d7e0d15601c3976241ba41a9d4a6396ed0b7e2b5ae7dff0e3773c3f661c426e0c055dbfacc114e067209bc7f
-  languageName: node
-  linkType: hard
-
 "node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.6, node-fetch@npm:^2.6.7":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
@@ -8492,16 +8360,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"node-ssdp@npm:0.2.0":
-  version: 0.2.0
-  resolution: "node-ssdp@npm:0.2.0"
-  dependencies:
-    bunyan: ~0.22.0
-    bunyan-prettystream: ~0.1.3
-  checksum: 77b83c574be129736bfb98d3a86cb2950444c1234e00053c7609119e139797850e5dc55e4ef4028180da9b878eb7138462628b56b8c288be73349a14dd2bbf40
-  languageName: node
-  linkType: hard
-
 "node-ssdp@npm:^4.0.0":
   version: 4.0.1
   resolution: "node-ssdp@npm:4.0.1"
@@ -8574,7 +8432,6 @@ chromedriver@latest:
     castv2: ^0.1.10
     chalk: 4.1.2
     cheerio: ^1.0.0-rc.12
-    chromecast: ^0.0.6
     chromecast-api: ^0.4.0
     compression: ^1.7.4
     cors: ^2.8.5
@@ -8614,7 +8471,6 @@ chromedriver@latest:
     keycloak-js: ^19.0.3
     lyrics-finder: ^21.7.0
     m3u8-file-parser: ^0.2.4
-    mdns: ^2.7.2
     module-alias: ^2.2.2
     moment: ^2.29.4
     musicbrainz-api: ^0.10.0
@@ -10188,24 +10044,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"rest@npm:^1.3.1":
-  version: 1.3.2
-  resolution: "rest@npm:1.3.2"
-  dependencies:
-    when: ~3
-  checksum: dfc5ae52758651c790a809e970949ed0b15eacb1c6a717bd1ab47deffbe137f9f45ebe26672afcf9904c203ecbebf834d95b30aa6cc16649f58d39f9370d457b
-  languageName: node
-  linkType: hard
-
-"rest@npm:~0.9.3":
-  version: 0.9.4
-  resolution: "rest@npm:0.9.4"
-  dependencies:
-    when: ">1.8.0 <=3.0.0"
-  checksum: 1e5d4d4c7d0300eb45378cf1d1b12993d605369499e7f8ed8c42ea30528636a3cec344ee34d2ef03cbc79dbd77de4fd6ce83f4d8cb9a52076fe75776c071c258
-  languageName: node
-  linkType: hard
-
 "restore-cursor@npm:^3.1.0":
   version: 3.1.0
   resolution: "restore-cursor@npm:3.1.0"
@@ -10249,17 +10087,6 @@ chromedriver@latest:
   bin:
     rimraf: bin.js
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
-  languageName: node
-  linkType: hard
-
-"rimraf@npm:~2.4.0":
-  version: 2.4.5
-  resolution: "rimraf@npm:2.4.5"
-  dependencies:
-    glob: ^6.0.1
-  bin:
-    rimraf: ./bin.js
-  checksum: 036793b4055d65344ad7bea73c3f4095640af7455478fe56c19783619463e6bb4374ab3556b9e6d4d6d3dd210eb677b0955ece38813e734c294fd2687201151d
   languageName: node
   linkType: hard
 
@@ -11917,20 +11744,6 @@ chromedriver@latest:
   languageName: node
   linkType: hard
 
-"when@npm:>1.8.0 <=3.0.0":
-  version: 3.0.0
-  resolution: "when@npm:3.0.0"
-  checksum: 38847127330e0635379f772031a6e464f185e456597548307dd5c9ecf6acc855c377ef16f61b42940545613af35492f85042ebe5f94b6f8fdc4999aee22c2b6f
-  languageName: node
-  linkType: hard
-
-"when@npm:~3":
-  version: 3.7.8
-  resolution: "when@npm:3.7.8"
-  checksum: 1f7a3d4a125c61108c51a58b7e42350d290f0595c42fb864a38d403101b40ede28d29068c9f7a8c3e4e0128f2050f7cc68c7e82b3a39a9156f6929fc69bf42fb
-  languageName: node
-  linkType: hard
-
 "which-boxed-primitive@npm:^1.0.2":
   version: 1.0.2
   resolution: "which-boxed-primitive@npm:1.0.2"
@@ -12102,17 +11915,6 @@ chromedriver@latest:
     sax: ">=0.6.0"
     xmlbuilder: ~11.0.0
   checksum: ca0cf2dfbf6deeaae878a891c8fbc0db6fd04398087084edf143cdc83d0509ad0fe199b890f62f39c4415cf60268a27a6aed0d343f0658f8779bd7add690fa98
-  languageName: node
-  linkType: hard
-
-"xml2json@npm:^0.7.1":
-  version: 0.7.1
-  resolution: "xml2json@npm:0.7.1"
-  dependencies:
-    node-expat: ^2.3.7
-  bin:
-    xml2json: bin/xml2json
-  checksum: 231bff9435694b7bb41116cd5a8ccb6f0918391365a69a56a5cc255f5130ca88463e0096470e09be1f89ce4a83f0ad7dfc86fda6032d52a1ef6cf79535dff890
   languageName: node
   linkType: hard
 
