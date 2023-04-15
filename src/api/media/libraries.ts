@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
+import { getContent, ownerQuery, userQuery } from './data';
 
-import { confDb } from '../../database/config';
-import { Translation } from '../../database/config/client';
+import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../functions/logger';
+import { Translation } from '../../database/config/client';
+import { confDb } from '../../database/config';
 import { getLanguage } from '../middleware';
 import { isOwner } from '../middleware/permissions';
-import { getContent, ownerQuery, userQuery } from './data';
 
 export default async function (req: Request, res: Response) {
 
@@ -31,7 +31,7 @@ export default async function (req: Request, res: Response) {
 						...l,
 						Tv: undefined,
 						Movie: undefined,
-						content: await getContent(l, translations),
+						content: await getContent(l as any, translations),
 					});
 				}
 				if (req.params.id) {
@@ -65,7 +65,7 @@ export default async function (req: Request, res: Response) {
 						...l.library,
 						Tv: undefined,
 						Movie: undefined,
-						content: await getContent(l.library, translations),
+						content: await getContent(l.library as never, translations),
 					});
 				}
 				if (req.params.id) {

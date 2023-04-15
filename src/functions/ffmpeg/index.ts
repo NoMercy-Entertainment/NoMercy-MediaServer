@@ -1,1 +1,1 @@
-export { default } from './ffmpeg';
+export * from './ffmpeg';

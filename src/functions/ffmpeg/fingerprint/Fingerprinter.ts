@@ -20,7 +20,7 @@ export interface TimeRange {
 	duration: number;
 	humanStart: string;
 	humanEnd: string;
-	blackFrames: number;
+	blackFrames: number[][];
 }
 
 

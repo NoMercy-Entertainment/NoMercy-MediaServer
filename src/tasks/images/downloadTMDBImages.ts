@@ -191,12 +191,12 @@ const imageQuery = (
 		name: path,
 		voteAverage: (image as Image).vote_average ?? undefined,
 		voteCount: (image as Image).vote_count ?? undefined,
-		tvId: dbType == 'tv'
-			? data.id
-			: undefined,
-		movieId: dbType == 'movie'
-			? data.id
-			: undefined,
+		// tvId: dbType == 'tv'
+		// 	? data.id
+		// 	: undefined,
+		// movieId: dbType == 'movie'
+		// 	? data.id
+		// 	: undefined,
 		colorPalette: colorPalette
 			? JSON.stringify(colorPalette)
 			: null,

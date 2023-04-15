@@ -1,12 +1,12 @@
+import { Genre, Translation } from '../../database/config/client';
 import { Request, Response } from 'express';
+import { getContent, ownerQuery, userQuery } from './data';
+
 import { KAuthRequest } from 'types/keycloak';
 import { LibraryResponseContent } from 'types/server';
-
 import { confDb } from '../../database/config';
-import { Genre, Translation } from '../../database/config/client';
 import { getLanguage } from '../middleware';
 import { isOwner } from '../middleware/permissions';
-import { getContent, ownerQuery, userQuery } from './data';
 
 export default async function (req: Request, res: Response) {
 
@@ -52,7 +52,7 @@ export default async function (req: Request, res: Response) {
 				for (const lib of data) {
 					if (!lib) continue;
 
-					response.push(...(await getContent(lib, translations)));
+					response.push(...(await getContent(lib as any, translations)));
 				}
 			}),
 
@@ -64,7 +64,7 @@ export default async function (req: Request, res: Response) {
 				for (const lib of data?.Libraries ?? []) {
 					if (!lib.library) continue;
 
-					response.push(...(await getContent(lib.library, translations)));
+					response.push(...(await getContent((lib as any).library, translations)));
 				}
 			}),
 	]);

@@ -134,12 +134,12 @@ export enum logNameEnums {
 }
 
 export const logLevels = Object.keys(logLevelEnums).map((type) => {
-	return logLevelEnums[type];
+	return logLevelEnums[type as keyof typeof logLevelEnums];
 })
 	.filter(i => typeof i == 'string');
 
 export const logNames = Object.keys(logNameEnums).map((type) => {
-	return logNameEnums[type];
+	return logNameEnums[type as keyof typeof logNameEnums];
 })
 	.filter(i => typeof i == 'string');
 

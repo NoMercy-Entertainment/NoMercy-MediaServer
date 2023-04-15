@@ -365,7 +365,7 @@ export class NMEncoder {
 		}
 
 		if (this.format!.bit_rate && this.format!.duration) {
-			return Math.floor((this.format!.duration * this.format!.bit_rate) / 8 / rate);
+			return Math.floor((this.format!.duration * (this.format!.bit_rate as number)) / 8 / rate);
 		}
 		if (
             this.format!.bit_rate
@@ -373,7 +373,7 @@ export class NMEncoder {
             && this.format!.duration
 		) {
 			return Math.floor(
-				(this.format!.duration * this.format!.bit_rate) / 8 / rate
+				(this.format!.duration * (this.format!.bit_rate as never as number)) / 8 / rate
 			);
 		}
 		if (this.format!.duration) {

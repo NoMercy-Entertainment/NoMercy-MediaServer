@@ -5,7 +5,7 @@ import Logger from '../../functions/logger';
 import { jsonToString } from '../../functions/stringArray';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { cachePath } from '@/state';
+import { cachePath } from '../../state';
 import { fileChangedAgo, humanTime } from '../../functions/dateTime';
 import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
 import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
@@ -147,7 +147,7 @@ export default () => {
 										movieId: movieId,
 										quality: JSON.stringify(getQualityTag(file.ffprobe)),
 										share: folder.Libraries[0].libraryId,
-										subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1/subtitles'))),
+										subtitles: JSON.stringify(getExistingSubtitles((file.ffprobe as VideoFFprobe))),
 										languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
 										Chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
 									});

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 
-import { confDb } from '../../../database/config';
 import { Prisma } from '../../../database/config/client';
-import { unique } from '../../../functions/stringArray';
-import { deviceId } from '../../../functions/system';
+import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
+import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
+import { unique } from '../../../functions/stringArray';
 
 export default async function (req: Request, res: Response) {
 
@@ -60,15 +60,3 @@ const specialQuery = Prisma.validator<Prisma.SpecialFindManyArgs>()({
 	// include: {
 	// },
 });
-
-const translationQuery = ({ ids, language }) => {
-	return Prisma.validator<Prisma.TranslationFindManyArgs>()({
-		where: {
-			translationableId: { in: ids },
-			iso6391: language,
-			translationableType: {
-				in: ['episode', 'movie'],
-			},
-		},
-	});
-};

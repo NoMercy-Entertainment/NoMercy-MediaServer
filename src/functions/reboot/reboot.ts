@@ -26,5 +26,5 @@ export default () => {
 			process.exit(1);
 		});
 
-	socket.connect(httpsServer);
+	(socket as any).connect(httpsServer);
 };

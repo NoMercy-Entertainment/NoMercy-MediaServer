@@ -48,7 +48,7 @@ const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 };
 
 export const setupInterceptorsTo = (axiosInstance: AxiosInstance): AxiosInstance => {
-	axiosInstance.interceptors.request.use(onRequest, onRequestError);
+	axiosInstance.interceptors.request.use(onRequest as never, onRequestError);
 	axiosInstance.interceptors.response.use(onResponse, onResponseError);
 	return axiosInstance;
 };

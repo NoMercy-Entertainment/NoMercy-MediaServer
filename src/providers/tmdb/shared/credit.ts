@@ -1,6 +1,6 @@
+import { Department } from './department';
 import { Episode } from '../episode/episode';
 import { Season } from '../season/season';
-import { Department } from './department';
 
 export interface Credit {
 	credit_type: CreditType;
@@ -48,8 +48,8 @@ export interface AggregateCredit {
     profile_path: null | string;
     total_episode_count: number;
     order?: number;
-    jobs?: Job[];
-    roles?: Role[];
+    jobs?: CreditJob[];
+    roles?: CreditRole[];
     department?: string;
 }
 
@@ -58,13 +58,13 @@ export interface AggregateCredits {
     crew: AggregateCredit[];
 }
 
-export interface Job {
+export interface CreditJob {
     credit_id: string;
     job: string;
     episode_count: number;
 }
 
-export interface Role {
+export interface CreditRole {
     credit_id: string;
     character: string;
     episode_count: number;

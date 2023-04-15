@@ -48,7 +48,7 @@ export const logs = (req: Request, res: Response) => {
 	} catch (error) {
 		Logger.log({
 			level: 'error',
-			name: logNames.access,
+			name: 'access',
 			color: 'magentaBright',
 			message: 'Error fetching logs',
 		});
@@ -66,7 +66,7 @@ export const deleteLogs = (req: Request, res: Response) => {
 
 		Logger.log({
 			level: 'info',
-			name: logNames.app,
+			name: 'app',
 			color: 'magentaBright',
 			user: (req as KAuthRequest).kauth.grant?.access_token.content.name,
 			message: 'Cleared the logs',
@@ -80,7 +80,7 @@ export const deleteLogs = (req: Request, res: Response) => {
 	} catch (error) {
 		Logger.log({
 			level: 'error',
-			name: logNames.system,
+			name: 'system',
 			color: 'red',
 			message: 'Error deleting logs',
 		});

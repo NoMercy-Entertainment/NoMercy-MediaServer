@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } f
 import Logger from '../../functions/logger';
 import { appVersion } from '../../functions/system';
 
-const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
+const onRequest = (config: AxiosRequestConfig) => {
 	config.params = {
 		fmt: 'json',
 		...config.params,
@@ -47,7 +47,7 @@ const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 };
 
 export const setupInterceptorsTo = (axiosInstance: AxiosInstance): AxiosInstance => {
-	axiosInstance.interceptors.request.use(onRequest, onRequestError);
+	axiosInstance.interceptors.request.use(onRequest as never, onRequestError);
 	axiosInstance.interceptors.response.use(onResponse, onResponseError);
 	return axiosInstance;
 };
