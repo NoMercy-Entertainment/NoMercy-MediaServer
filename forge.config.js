@@ -71,14 +71,14 @@ module.exports = {
             name: '@electron-forge/maker-rpm',
             config: {
                 options: {
-                    icon: path.join(__dirname, 'assets', 'icons', 'mac', 'icon.png')
+                    icon: path.join(__dirname, 'assets', 'icons', 'png', '256x256.png')
                 }
             }
         },
         {
             name: '@electron-forge/maker-dmg',
             config: {
-                icon: path.join(__dirname, 'assets', 'icons', 'max', 'icon.icns')
+                icon: path.join(__dirname, 'assets', 'icons', 'mac', 'icon.icns')
             }
         },
 
