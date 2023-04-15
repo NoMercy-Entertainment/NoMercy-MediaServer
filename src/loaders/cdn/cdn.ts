@@ -1,11 +1,11 @@
 import {
-	setColors,
-	setDownloads,
-	setMakeMKVKey,
-	setOmdbApiKey,
-	setQuote,
-	setTmdbApiKey
-} from '../../state/redux/config/actions';
+    setColors,
+    setDownloads,
+    setMakeMKVKey,
+    setOmdbApiKey,
+    setQuote,
+    setTmdbApiKey
+} from '@/state/redux/config/actions';
 
 import Logger from '../../functions/logger';
 import axios from 'axios';

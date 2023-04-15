@@ -1,6 +1,5 @@
+import { AppState, useSelector } from '@/state/redux';
 import { Request, Response } from 'express';
-
-import { AppState, useSelector } from '../../state/redux';
 
 export default function (req: Request, res: Response) {
 

@@ -1,21 +1,25 @@
-import compression from 'compression';
-import cors from 'cors';
+import { AppState, useSelector } from '@/state/redux';
 import express, { Application, NextFunction, Request, Response } from 'express';
-import session from 'express-session';
-
-import routes from '../api/index';
-import check from '../api/middleware/check';
-import changeLanguage from '../api/middleware/language';
-import { staticPermissions } from '../api/middleware/permissions';
 import {
-	serveImagesPath, serveLibraryPaths, servePublicPath, serveSubtitlesPath, serveTranscodePath
+    serveImagesPath,
+    serveLibraryPaths,
+    servePublicPath,
+    serveSubtitlesPath,
+    serveTranscodePath
 } from '../api/routes/files';
-import { initKeycloak } from '../functions/keycloak';
-import { session_config } from '../functions/keycloak/config';
+
 import Logger from '../functions/logger';
 import { allowedOrigins } from '../functions/networking';
-import { setupComplete } from '../state';
-import { AppState, useSelector } from '../state/redux';
+import changeLanguage from '../api/middleware/language';
+import check from '../api/middleware/check';
+import compression from 'compression';
+import cors from 'cors';
+import { initKeycloak } from '../functions/keycloak';
+import routes from '../api/index';
+import session from 'express-session';
+import { session_config } from '../functions/keycloak/config';
+import { setupComplete } from '@/state';
+import { staticPermissions } from '../api/middleware/permissions';
 
 export default async (app: Application) => {
 	const owner = useSelector((state: AppState) => state.system.owner);

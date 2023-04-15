@@ -1,14 +1,14 @@
 import { existsSync, rmSync } from 'fs';
+import { get_external_ip, get_internal_ip, portMap } from '../networking';
+import { setupComplete, transcodesPath } from '@/state';
 
 import cdn from '../../loaders/cdn/cdn';
-import { setupComplete, transcodesPath } from '../../state';
 import chromeCast from '../chromeCast';
+import dev from './dev';
 import firstBoot from '../firstBoot';
 import { getKeycloakKeys } from '../keycloak';
 import logo from '../logo';
-import { get_external_ip, get_internal_ip, portMap } from '../networking';
 import queue from '../queue';
-import dev from './dev';
 
 export default async () => {
 	process

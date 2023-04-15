@@ -1,11 +1,11 @@
-import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+/* eslint-disable @typescript-eslint/no-var-requires */
+import { configDatabaseString, queueDatabaseString } from './config';
+import { configDb, queueDb } from '@/state';
 
 import Logger from '../functions/logger';
 import { convertPath } from '../functions/system';
-import { configDb, queueDb } from '../state';
-/* eslint-disable @typescript-eslint/no-var-requires */
-import { configDatabaseString, queueDatabaseString } from './config';
+import { execSync } from 'child_process';
+import { existsSync } from 'fs';
 
 export const migrateConfigDatabase = async() => {
 	if (!existsSync(configDb)) {

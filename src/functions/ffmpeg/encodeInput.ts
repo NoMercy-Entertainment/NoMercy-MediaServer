@@ -1,10 +1,8 @@
 import { EP } from 'tasks/files/filenameParser';
-
-
-import { confDb } from '../../database/config';
 import { Store } from '../../functions/ffmpeg/store';
+import { confDb } from '../../database/config';
 
-// import { AppState, useSelector } from '../../state/redux';
+// import { AppState, useSelector } from '@/state/redux';
 
 export const encodeInput = async ({ id }: {id:number}) => {
 

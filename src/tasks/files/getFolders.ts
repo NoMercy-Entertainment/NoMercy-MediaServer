@@ -6,7 +6,7 @@ import { fileChangedAgo } from '../../functions/dateTime';
 import Logger from '../../functions/logger';
 import { chunk, jsonToString, sortBy } from '../../functions/stringArray';
 import { cpuCores } from '../../functions/system';
-import { cachePath } from '../../state';
+import { cachePath } from '@/state';
 import { FolderList, ParsedFileList, parseFileName, parseFolderName } from './filenameParser';
 
 interface FileListProps {

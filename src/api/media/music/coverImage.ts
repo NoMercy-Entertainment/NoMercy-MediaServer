@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { join } from 'path';
 
-import { storageArtistImageInDatabase } from '../../../functions/artistImage';
+import { cachePath } from '@/state';
 import downloadImage from '../../../functions/downloadImage';
-import { cachePath } from '../../../state';
+import { join } from 'path';
+import { storageArtistImageInDatabase } from '../../../functions/artistImage';
 
 export default function (req: Request, res: Response) {
 

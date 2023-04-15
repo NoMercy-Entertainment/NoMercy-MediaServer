@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '@/state/redux';
 import { NextFunction, Request, Response } from 'express';
 
 import { KAuthRequest } from 'types/keycloak';
@@ -7,7 +7,7 @@ import { confDb } from '../../database/config';
 import crypto from 'crypto';
 import { readFileSync } from 'fs';
 import { sleep } from '../../functions/dateTime';
-import { sslCert } from '../../state';
+import { sslCert } from '@/state';
 
 let delay = 0;
 let timeout: NodeJS.Timeout;

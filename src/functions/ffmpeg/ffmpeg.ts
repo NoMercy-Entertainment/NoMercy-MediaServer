@@ -5,7 +5,7 @@ import { join } from 'path';
 
 import { ArrayElementType, Audio, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
 import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
-import { ffmpeg, transcodesPath, userDataPath } from '../../state';
+import { ffmpeg, transcodesPath, userDataPath } from '@/state';
 
 export class FFMpeg {
 	file = '';

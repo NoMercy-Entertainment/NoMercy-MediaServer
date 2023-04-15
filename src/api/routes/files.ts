@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { imagesPath, publicPath, subtitlesPath, transcodesPath } from '../../state';
+import { imagesPath, publicPath, subtitlesPath, transcodesPath } from '@/state';
 
 import { confDb } from '../../database/config';
 import { existsSync } from 'fs';

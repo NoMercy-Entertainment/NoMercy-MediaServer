@@ -1,18 +1,18 @@
-import { existsSync, Stats } from 'fs';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import path from 'path';
-import { PaletteColors } from 'types/server';
+import { AppState, useSelector } from '@/state/redux';
+import { Stats, existsSync } from 'fs';
+import getTVDBImages, { ImageResult } from './getTVDBImages';
 
-import { checkDbLock } from '../../database';
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
-import downloadImage from '../../functions/downloadImage/downloadImage';
-import Logger from '../../functions/logger';
-import { imagesPath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
 import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
 import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
-import getTVDBImages, { ImageResult } from './getTVDBImages';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import Logger from '../../functions/logger';
+import { PaletteColors } from 'types/server';
+import { Prisma } from '../../database/config/client';
+import { checkDbLock } from '../../database';
+import { confDb } from '../../database/config';
+import downloadImage from '../../functions/downloadImage/downloadImage';
+import { imagesPath } from '@/state';
+import path from 'path';
 
 interface DownloadTVDBImages {
 	type: string;

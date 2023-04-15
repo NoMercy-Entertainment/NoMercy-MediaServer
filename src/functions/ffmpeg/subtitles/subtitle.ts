@@ -1,9 +1,9 @@
+import { AppState, useSelector } from '@/state/redux';
 import { exec, execSync } from 'child_process';
-import fs from 'fs';
+import { ffmpeg, subtitleEdit } from '@/state';
 
 import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
-import { ffmpeg, subtitleEdit } from '../../../state';
-import { AppState, useSelector } from '../../../state/redux';
+import fs from 'fs';
 import makeAttachmentsFile from './attatchments';
 
 export default (ffprobe: VideoFFprobe, outputFolder: string, fileName: string) => {

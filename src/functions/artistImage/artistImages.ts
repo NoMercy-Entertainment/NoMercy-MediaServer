@@ -1,13 +1,13 @@
-import axios from 'axios';
-import { load } from 'cheerio';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { PaletteColors } from 'types/server';
 
-import { confDb } from '../../database/config';
-import { cachePath } from '../../state';
+import { PaletteColors } from 'types/server';
+import axios from 'axios';
+import { cachePath } from '@/state';
 import colorPalette from '../colorPalette';
+import { confDb } from '../../database/config';
 import downloadImage from '../downloadImage';
 import { jsonToString } from '../stringArray';
+import { load } from 'cheerio';
 
 export interface Urls {
 	page: string;

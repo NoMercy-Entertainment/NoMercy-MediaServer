@@ -5,7 +5,7 @@ import { join } from 'path';
 
 import { Library } from '../../database/config/client';
 import { ArrayElementType, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
-import { ffmpeg, transcodesPath } from '../../state';
+import { ffmpeg, transcodesPath } from '@/state';
 import {
 	createBaseFolder, createEpisodeFolder, createFileName, EP, MV
 } from '../../tasks/files/filenameParser';

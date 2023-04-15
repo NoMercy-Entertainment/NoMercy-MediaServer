@@ -1,19 +1,19 @@
+import { AppState, useSelector } from '@/state/redux';
+import { setHttpsServer, setSocketServer } from '@/state/redux/system/actions';
+// import https from '../functions/server/lib/spdy';
+import { sslCA, sslCert, sslKey } from '@/state';
+
+import Logger from '../functions/logger';
+import { Server } from 'socket.io';
 import _express from 'express';
+import express from './express';
 import fs from 'fs';
 import http2Express from 'http2-express-bridge';
 import https from 'https';
-import { Server } from 'socket.io';
-
-import Logger from '../functions/logger';
-import { socketCors } from '../functions/networking';
-// import https from '../functions/server/lib/spdy';
-import { sslCA, sslCert, sslKey } from '../state';
-import { AppState, useSelector } from '../state/redux';
-import { setHttpsServer, setSocketServer } from '../state/redux/system/actions';
-import express from './express';
 import ping from './ping';
 import { serverRunning } from './serverRunning';
 import { socket } from './socket';
+import { socketCors } from '../functions/networking';
 
 export const server = async () => {
 	const app = http2Express(_express);

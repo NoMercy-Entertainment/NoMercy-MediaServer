@@ -1,6 +1,7 @@
-import { confDb } from '../../database/config';
+import { AppState, useSelector } from '@/state/redux';
+
 import { Configuration } from '../../database/config/client';
-import { AppState, useSelector } from '../../state/redux';
+import { confDb } from '../../database/config';
 
 export default async () => {
 

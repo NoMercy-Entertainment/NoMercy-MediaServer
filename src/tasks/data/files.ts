@@ -9,8 +9,8 @@ import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
 import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
 import Logger from '../../functions/logger';
 import { jsonToString } from '../../functions/stringArray';
-import { cachePath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
+import { cachePath } from '@/state';
+import { AppState, useSelector } from '@/state/redux';
 import { ParsedFileList } from '../../tasks/files/filenameParser';
 import FileList from '../../tasks/files/getFolders';
 

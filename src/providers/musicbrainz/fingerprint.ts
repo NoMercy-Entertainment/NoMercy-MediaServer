@@ -2,7 +2,7 @@ import { ParsedFileList } from '../../tasks/files/filenameParser';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { execSync } from 'child_process';
-import { fingerprintCalc } from '../../state';
+import { fingerprintCalc } from '@/state';
 
 export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileList): Promise<void | Result> => {
 

@@ -22,13 +22,8 @@
 		"lib": ["DOM", "ES6", "DOM.Iterable", "ScriptHost", "ES2016.Array.Include", "ESNext", "ES2015", "ES5"],
 		"baseUrl": "./src",
 		"paths": {
-			"@/*": ["*"]
+			"@/*": ["./*"]
 		}
-	},
-	"ts-node": {
-		"swc": true,
-		"esm": true,
-		"experimentalSpecifierResolution": "node"
 	},
 	"include": ["./src/**/*.ts", "./src/**/*.d.ts"],
 	"references": []

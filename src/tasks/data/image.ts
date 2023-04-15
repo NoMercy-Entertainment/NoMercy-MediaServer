@@ -1,17 +1,17 @@
+import { AppState, useSelector } from '@/state/redux';
+import { Media, Prisma } from '../../database/config/client';
 import { existsSync, mkdirSync } from 'fs';
 
-import { confDb } from '../../database/config';
-import { Media, Prisma } from '../../database/config/client';
-import downloadImage from '../../functions/downloadImage';
+import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
+import { Image } from '../../providers/tmdb/shared/index';
 import { MovieAppend } from '../../providers/tmdb/movie/index';
 import { PersonAppend } from '../../providers/tmdb/people/index';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
-import { Image } from '../../providers/tmdb/shared/index';
-import { imagesPath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
-import { CompleteMovieAggregate } from './fetchMovie';
-import { CompleteTvAggregate } from './fetchTvShow';
+import { confDb } from '../../database/config';
+import downloadImage from '../../functions/downloadImage';
+import { imagesPath } from '@/state';
 
 export const image = async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | MovieAppend | PersonAppend | CompleteMovieAggregate,

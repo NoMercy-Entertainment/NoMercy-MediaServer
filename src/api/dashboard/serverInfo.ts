@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { arch, deviceName, platform, version } from '../../functions/system';
-import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '../../state';
+import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '@/state';
 
 import Logger from '../../functions/logger';
 import { confDb } from '../../database/config';

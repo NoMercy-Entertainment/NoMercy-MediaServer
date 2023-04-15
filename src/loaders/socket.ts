@@ -1,4 +1,4 @@
-import { AppState, store, useSelector } from '../state/redux';
+import { AppState, store, useSelector } from '@/state/redux';
 import { Server, Socket } from 'socket.io';
 
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
@@ -7,7 +7,7 @@ import { DisplayList, MutedState, PlayState, Song, State } from '../types/music'
 import base from '../api/sockets/base';
 import { confDb } from '../database/config';
 import { emitData } from '../api/sockets/helpers';
-import { setBackLog, setCurrentDevice, setCurrentItem, setCurrentItemIndex, setDisplayList, setDurationState, setIsCurrentDevice, setLyrics, setMutedState, setPlaylists, setPlayState, setPositionState, setQueue, setShowLyrics, setState, setVolumeState } from '../state/redux/music/actions';
+import { setBackLog, setCurrentDevice, setCurrentItem, setCurrentItemIndex, setDisplayList, setDurationState, setIsCurrentDevice, setLyrics, setMutedState, setPlaylists, setPlayState, setPositionState, setQueue, setShowLyrics, setState, setVolumeState } from '@/state/redux/music/actions';
 import socketioJwt from 'socketio-jwt';
 import { storeServerActivity } from '../api/userData/activity/post';
 

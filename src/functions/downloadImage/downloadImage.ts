@@ -1,16 +1,16 @@
-import axios from 'axios';
-import { exec, ExecException } from 'child_process';
-import { randomUUID } from 'crypto';
-import { createWriteStream, mkdirSync, PathLike, readFileSync, rmSync, Stats, statSync } from 'fs';
-import sizeOf from 'image-size';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { ExecException, exec } from 'child_process';
+import { PathLike, Stats, createWriteStream, mkdirSync, readFileSync, rmSync, statSync } from 'fs';
+import { ffmpeg, tempPath } from '@/state';
 import { join, resolve as pathResolve } from 'path';
-import { PaletteColors } from 'types/server';
 
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import Logger from '../../functions/logger';
-import { ffmpeg, tempPath } from '../../state';
+import { PaletteColors } from 'types/server';
+import axios from 'axios';
 import colorPalette from '../colorPalette';
 import createBlurHash from '../createBlurHash';
+import { randomUUID } from 'crypto';
+import sizeOf from 'image-size';
 
 export interface DownloadImage {
     dimensions: ISizeCalculationResult;

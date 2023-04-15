@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '@/state/redux';
 
 import chalk from 'chalk';
 

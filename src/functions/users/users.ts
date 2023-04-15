@@ -1,4 +1,4 @@
-import { setAllowedUsers, setUsers } from '../../state/redux/config/actions';
+import { setAllowedUsers, setUsers } from '@/state/redux/config/actions';
 
 import Logger from '../../functions/logger';
 import { Prisma } from '../../database/config/client';

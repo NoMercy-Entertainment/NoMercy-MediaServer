@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import winston from 'winston';
-
-import { winstonLog } from '../../state';
+import { winstonLog } from '@/state';
 
 export const dateFormat = (date: Date | number, format: string) => {
 	// @ts-expect-error

@@ -1,12 +1,12 @@
+import { AppState, useSelector } from '@/state/redux';
+
+import Logger from '../../functions/logger';
+import { binariesPath } from '@/state';
+import { fileLastModified } from '../dateTime';
 import fs from 'fs';
 import path from 'path';
 import request from 'request';
 import unzipper from 'unzipper';
-
-import Logger from '../../functions/logger';
-import { binariesPath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
-import { fileLastModified } from '../dateTime';
 
 export default async () => {
 	const downloads = useSelector((state: AppState) => state.config.downloads);

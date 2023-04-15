@@ -1,8 +1,8 @@
+import { AppState, useSelector } from '@/state/redux';
 import { Request, Response } from 'express';
-
 import { confDb, queDb } from '../../database/config';
+
 import Logger from '../../functions/logger';
-import { AppState, useSelector } from '../../state/redux';
 
 export const tasks = (req: Request, res: Response) => {
 	confDb.runningTask

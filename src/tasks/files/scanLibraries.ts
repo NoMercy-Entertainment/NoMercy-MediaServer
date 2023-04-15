@@ -1,16 +1,16 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-
-import { confDb } from '../../database/config';
+import { AppState, useSelector } from '@/state/redux';
 import { Folder, Library, LibraryFolder, Movie } from '../../database/config/client';
-import { TvShow } from '../../providers/tmdb/tv/index';
-import { cachePath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
-import fullUpdate from '../../tasks/data/fullUpdate';
-import { needsUpdate } from '../data/needsUpdate';
-import { fallbackSearch } from '../data/search';
 import { FolderList, ParsedFileList } from './filenameParser';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+
+import { TvShow } from '../../providers/tmdb/tv/index';
+import { cachePath } from '@/state';
+import { confDb } from '../../database/config';
+import { fallbackSearch } from '../data/search';
+import fullUpdate from '../../tasks/data/fullUpdate';
 import getFolders from './getFolders';
+import { join } from 'path';
+import { needsUpdate } from '../data/needsUpdate';
 
 export interface FolderInfo {
 	lib: Lib;

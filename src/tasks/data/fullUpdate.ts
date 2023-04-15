@@ -1,11 +1,11 @@
-import { writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { AppState, useSelector } from '@/state/redux';
 
-import { AppState, useSelector } from '../../state/redux';
 import { FolderInfo } from '../files/scanLibraries';
+import { resolve } from 'path';
 import storeMovie from './storeMovie';
 import { storeMusic } from './storeMusic';
 import storeTvShow from './storeTvShow';
+import { writeFileSync } from 'fs';
 
 // import { confDb } from '../../database/config';
 

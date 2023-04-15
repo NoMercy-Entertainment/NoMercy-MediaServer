@@ -1,7 +1,7 @@
-import { AppState, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '@/state/redux';
 import axios, { AxiosResponse } from 'axios';
 import { readFileSync, rmSync, writeFileSync } from 'fs';
-import { sslCA, sslCert, sslKey, tokenFile } from '../../state';
+import { sslCA, sslCert, sslKey, tokenFile } from '@/state';
 
 import Logger from '../../functions/logger';
 import { ServerCertificate } from 'types/api';

@@ -1,5 +1,5 @@
-import { AppState, useSelector } from '../../state/redux';
-import { setExternalIp, setInternalIp } from '../../state/redux/system/actions';
+import { AppState, useSelector } from '@/state/redux';
+import { setExternalIp, setInternalIp } from '@/state/redux/system/actions';
 
 import { Client } from '@runonflux/nat-upnp';
 import Logger from '../../functions/logger';

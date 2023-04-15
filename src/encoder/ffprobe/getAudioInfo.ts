@@ -1,4 +1,4 @@
-import { errorLog, ffprobe } from '../../state';
+import { errorLog, ffprobe } from '@/state';
 
 import { AudioFFprobe } from './ffprobe';
 import Logger from '../../functions/logger';

@@ -3,7 +3,7 @@ import { ChildProcess, fork } from 'child_process';
 import { checkDbLock } from '../../database';
 import { confDb, queDb } from '../../database/config';
 import { QueueJob } from '../../database/queue/client';
-import { AppState, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '@/state/redux';
 import Logger from '../logger';
 
 interface QueueProps {

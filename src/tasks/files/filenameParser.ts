@@ -2,8 +2,8 @@
 import { DirectoryTree } from 'directory-tree';
 
 import {
-	EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie,
-	Season, Tv
+    EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie,
+    Season, Tv
 } from '../../database/config/client';
 import { DBLibraryWithFolders } from '../../database/data';
 import { AudioFFprobe, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
@@ -16,7 +16,7 @@ import { filenameParse, ParsedMovie, ParsedShow } from '../../functions/videoFil
 import { Channels } from '../../functions/videoFilenameParser/audioChannels';
 import { MovieAppend, MovieTranslation } from '../../providers/tmdb/movie';
 import { TvAppend, TvShowTranslation } from '../../providers/tmdb/tv';
-import { AppState, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '@/state/redux';
 
 interface IObj {
 	[key: string]: any;

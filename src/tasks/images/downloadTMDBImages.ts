@@ -1,22 +1,21 @@
-import { existsSync, mkdirSync, Stats } from 'fs';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import { PaletteColors } from 'types/server';
-
-import { checkDbLock } from '@/database';
-
-import { confDb } from '../../database/config';
+import { AppState, useSelector } from '@/state/redux';
+import { Cast, Crew, Image } from '../../providers/tmdb/shared/index';
 import { Image as DBimage, Prisma } from '../../database/config/client';
-import downloadImage from '../../functions/downloadImage/downloadImage';
 import { EpisodeAppend, EpisodeImages } from '../../providers/tmdb/episode/index';
 import { MovieAppend, MovieCredits, MovieImages } from '../../providers/tmdb/movie/index';
 import { PersonAppend, PersonImages } from '../../providers/tmdb/people/index';
 import { SeasonAppend, SeasonImages } from '../../providers/tmdb/season/index';
-import { Cast, Crew, Image } from '../../providers/tmdb/shared/index';
+import { Stats, existsSync, mkdirSync } from 'fs';
 import { TvAppend, TvCredits, TvImages } from '../../providers/tmdb/tv/index';
-import { imagesPath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
+
 import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
 import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { PaletteColors } from 'types/server';
+import { checkDbLock } from '@/database';
+import { confDb } from '../../database/config';
+import downloadImage from '../../functions/downloadImage/downloadImage';
+import { imagesPath } from '@/state';
 
 interface DownloadTMDBImages {
 	type: string;

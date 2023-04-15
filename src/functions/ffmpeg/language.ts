@@ -1,4 +1,4 @@
-import { dataPath } from '../../state';
+import { dataPath } from '@/state';
 import { join } from 'path';
 import { readFileSync } from 'fs';
 

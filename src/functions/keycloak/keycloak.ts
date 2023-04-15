@@ -2,7 +2,7 @@ import Keycloak from 'keycloak-connect';
 import Logger from '../../functions/logger';
 import axios from 'axios';
 import session from 'express-session';
-import { setKeycloakCertificate } from '../../state/redux/config/actions';
+import { setKeycloakCertificate } from '@/state/redux/config/actions';
 
 export let _keycloak;
 

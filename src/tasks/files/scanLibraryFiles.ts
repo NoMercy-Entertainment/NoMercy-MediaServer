@@ -5,7 +5,7 @@ import Logger from '../../functions/logger';
 import { jsonToString } from '../../functions/stringArray';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
-import { cachePath } from '../../state';
+import { cachePath } from '@/state';
 import { fileChangedAgo, humanTime } from '../../functions/dateTime';
 import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
 import { getQualityTag } from '../../functions/ffmpeg/quality/quality';

@@ -4,7 +4,7 @@ import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import getVideoInfo from '../../../encoder/ffprobe/getVideoInfo';
 import { humanTime } from '../../../functions/dateTime';
 import { chunk } from '../../../functions/stringArray';
-import { ffmpeg } from '../../../state';
+import { ffmpeg } from '@/state';
 import Logger from '../../logger';
 import { stringFormat } from '../../stringFormat';
 

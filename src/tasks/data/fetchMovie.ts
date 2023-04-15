@@ -1,18 +1,30 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import path from 'path';
-
-import { fileChangedAgo } from '../../functions/dateTime';
+import {
+    BelongsToCollection,
+    ExternalIDS,
+    MovieAlternativeTitles,
+    MovieCast,
+    MovieCredits,
+    MovieCrew,
+    MovieImages,
+    MovieKeywords,
+    MovieRecommendations,
+    MovieReleaseDates,
+    MovieSimilar,
+    MovieTranslations,
+    MovieVideos,
+    MovieWatchProviders,
+    movie
+} from '../../providers/tmdb/movie/index';
+import { Cast, Country, Crew, Genre, Language } from '../../providers/tmdb/shared/index';
+import { PersonAppend, person } from '../../providers/tmdb/people/index';
 import { chunk, jsonToString, unique } from '../../functions/stringArray';
 import collection, { CollectionAppend } from '../../providers/tmdb/collection/index';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+
 import { Company } from '../../providers/tmdb/company/company';
-import {
-    BelongsToCollection, ExternalIDS, movie, MovieAlternativeTitles, MovieCast, MovieCredits,
-    MovieCrew, MovieImages, MovieKeywords, MovieRecommendations, MovieReleaseDates, MovieSimilar,
-    MovieTranslations, MovieVideos, MovieWatchProviders
-} from '../../providers/tmdb/movie/index';
-import { person, PersonAppend } from '../../providers/tmdb/people/index';
-import { Cast, Country, Crew, Genre, Language } from '../../providers/tmdb/shared/index';
-import { cachePath } from '../../state';
+import { cachePath } from '@/state';
+import { fileChangedAgo } from '../../functions/dateTime';
+import path from 'path';
 
 export default (id: number) => {
 	return new Promise<CompleteMovieAggregate>((resolve, reject) => {

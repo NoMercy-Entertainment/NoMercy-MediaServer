@@ -1,22 +1,22 @@
-import { AppState, useSelector } from '../../state/redux';
-import { configFile, tokenFile } from '../../state';
+import { AppState, useSelector } from '@/state/redux';
+import { configFile, tokenFile } from '@/state';
 import { readFileSync, writeFileSync } from 'fs';
 import {
-	setAccessToken,
-	setExpiresIn,
-	setIdToken,
-	setNotBeforePolicy,
-	setRefreshExpiresIn,
-	setRefreshToken,
-	setScope,
-	setSessionState,
-	setTokenType
-} from '../../state/redux/user/actions';
+    setAccessToken,
+    setExpiresIn,
+    setIdToken,
+    setNotBeforePolicy,
+    setRefreshExpiresIn,
+    setRefreshToken,
+    setScope,
+    setSessionState,
+    setTokenType
+} from '@/state/redux/user/actions';
 
 import Logger from '../../functions/logger';
 import { keycloak_key } from '../keycloak/config';
 import qs from 'qs';
-import { setOwner } from '../../state/redux/system/actions';
+import { setOwner } from '@/state/redux/system/actions';
 
 export const refreshToken = async () => {
 

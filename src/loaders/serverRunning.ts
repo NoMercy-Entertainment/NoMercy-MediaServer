@@ -1,6 +1,6 @@
-import chalk from 'chalk';
+import { AppState, useSelector } from '@/state/redux';
 
-import { AppState, useSelector } from '../state/redux';
+import chalk from 'chalk';
 
 export const serverRunning = () => {
 	const secureInternalPort = useSelector((state: AppState) => state.system.secureInternalPort);

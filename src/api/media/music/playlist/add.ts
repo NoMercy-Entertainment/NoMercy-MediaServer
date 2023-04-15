@@ -1,14 +1,14 @@
-import { exec } from 'child_process';
 import { Request, Response } from 'express';
+import { ffmpeg, imagesPath, tempPath } from '@/state';
+import { jsonToString, unique } from '../../../../functions/stringArray';
+
+import { KAuthRequest } from '../../../../types/keycloak';
+import { colorPaletteFromFile } from '../../../../functions/colorPalette';
+import { confDb } from '../../../../database/config';
+import { convertPath } from '../../../../functions/system';
+import { exec } from 'child_process';
 import fs from 'fs';
 import { imageHash } from 'image-hash';
-
-import { confDb } from '../../../../database/config';
-import { colorPaletteFromFile } from '../../../../functions/colorPalette';
-import { jsonToString, unique } from '../../../../functions/stringArray';
-import { convertPath } from '../../../../functions/system';
-import { ffmpeg, imagesPath, tempPath } from '../../../../state';
-import { KAuthRequest } from '../../../../types/keycloak';
 
 export default async function (req: Request, res: Response) {
 

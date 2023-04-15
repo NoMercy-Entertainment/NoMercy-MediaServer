@@ -1,7 +1,7 @@
 // import { confDb } from '../../database/config';
 // import { Configuration } from '../../database/config/client';
 
-// import { AppState, useSelector } from '../../state/redux';
+// import { AppState, useSelector } from '@/state/redux';
 
 import { Ripper } from './RipperClass';
 

@@ -1,21 +1,40 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import path from 'path';
-
-import { fileChangedAgo } from '../../functions/dateTime';
-import { chunk, jsonToString, unique } from '../../functions/stringArray';
-import { Company } from '../../providers/tmdb/company/company';
-import { Episode, EpisodeAppend, episodes } from '../../providers/tmdb/episode/index';
-import { Network } from '../../providers/tmdb/networks/network';
-import { person, PersonAppend } from '../../providers/tmdb/people/index';
-import { SeasonAppend, seasons } from '../../providers/tmdb/season/index';
 import {
-	AggregateCredit, AggregateCredits, Cast, Country, CreatedBy, Crew, Genre, Language
+    AggregateCredit,
+    AggregateCredits,
+    Cast,
+    Country,
+    CreatedBy,
+    Crew,
+    Genre,
+    Language
 } from '../../providers/tmdb/shared/index';
 import {
-	AlternativeTitles, ExternalIDS, Recommendations, tv, TvCast, TvContentRatings, TvCredits,
-	TvCrew, TvImages, TvKeywords, TvShowTranslations, TvSimilar, TvVideos, TvWatchProviders
+    AlternativeTitles,
+    ExternalIDS,
+    Recommendations,
+    TvCast,
+    TvContentRatings,
+    TvCredits,
+    TvCrew,
+    TvImages,
+    TvKeywords,
+    TvShowTranslations,
+    TvSimilar,
+    TvVideos,
+    TvWatchProviders,
+    tv
 } from '../../providers/tmdb/tv/index';
-import { cachePath } from '../../state';
+import { Episode, EpisodeAppend, episodes } from '../../providers/tmdb/episode/index';
+import { PersonAppend, person } from '../../providers/tmdb/people/index';
+import { SeasonAppend, seasons } from '../../providers/tmdb/season/index';
+import { chunk, jsonToString, unique } from '../../functions/stringArray';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+
+import { Company } from '../../providers/tmdb/company/company';
+import { Network } from '../../providers/tmdb/networks/network';
+import { cachePath } from '@/state';
+import { fileChangedAgo } from '../../functions/dateTime';
+import path from 'path';
 
 export default (id: number) => {
 	return new Promise<CompleteTvAggregate>((resolve, reject) => {

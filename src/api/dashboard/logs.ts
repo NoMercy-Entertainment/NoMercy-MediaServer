@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { logLevels, logNames, winstonLog } from '../../state';
+import { logLevels, logNames, winstonLog } from '@/state';
 
 import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../functions/logger';

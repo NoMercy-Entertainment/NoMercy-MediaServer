@@ -1,7 +1,7 @@
 import {
-	AppState,
-	useSelector
-} from '../../../state/redux';
+    AppState,
+    useSelector
+} from '@/state/redux';
 import { Request, Response } from 'express';
 
 import { confDb } from '../../../database/config';

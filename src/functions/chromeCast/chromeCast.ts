@@ -6,10 +6,10 @@ import { mkdirSync } from 'fs';
 import { Server } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
-import { transcodesPath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
-import { setChromeCast } from '../../state/redux/config/actions';
-import { setCast } from '../../state/redux/system/actions';
+import { transcodesPath } from '@/state';
+import { AppState, useSelector } from '@/state/redux';
+import { setChromeCast } from '@/state/redux/config/actions';
+import { setCast } from '@/state/redux/system/actions';
 import { deviceId } from '../system';
 
 export class ChromeCast {

@@ -1,23 +1,23 @@
-import axios from 'axios';
+import { AppState, useSelector } from '@/state/redux';
+import { deviceId, deviceName, platform } from '../system';
 import express, { Request, Response } from 'express';
 import { readFileSync, writeFileSync } from 'fs';
+import { setAccessToken, setRefreshToken } from '@/state/redux/user/actions';
+
+import DetectBrowsers from '../detectBrowsers';
+import { KeycloakToken } from 'types/keycloak';
+import Logger from '../../functions/logger';
+import { ServerRegisterResponse } from 'types/api';
+import axios from 'axios';
+import { getLanguage } from '../../api/middleware';
 import http from 'http';
 import inquirer from 'inquirer';
+import { keycloak_key } from '../keycloak/config';
 import open from 'open';
 import qs from 'qs';
-import { ServerRegisterResponse } from 'types/api';
-import { KeycloakToken } from 'types/keycloak';
-
-import { getLanguage } from '../../api/middleware';
-import Logger from '../../functions/logger';
-import { tokenFile } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
-import { setOwner } from '../../state/redux/system/actions';
-import { setAccessToken, setRefreshToken } from '../../state/redux/user/actions';
-import DetectBrowsers from '../detectBrowsers';
-import { keycloak_key } from '../keycloak/config';
+import { setOwner } from '@/state/redux/system/actions';
 import storeConfig from '../storeConfig';
-import { deviceId, deviceName, platform } from '../system';
+import { tokenFile } from '@/state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
 

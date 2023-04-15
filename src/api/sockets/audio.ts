@@ -1,37 +1,37 @@
 import {
-	addToBackLog,
-	addToBackLogNext,
-	addToQueue,
-	addToQueueNext,
-	pushToBackLog,
-	pushToQueue,
-	removeFromBackLog,
-	removeFromQueue,
-	setAlbums,
-	setArtists,
-	setBackLog,
-	setCurrentDevice,
-	setCurrentItem,
-	setCurrentItemIndex,
-	setDisplayList,
-	setDurationState,
-	setFadeDuration,
-	setHome,
-	setIsCurrentDevice,
-	setLikedSongs,
-	setLyrics,
-	setMutedState,
-	setPlayState,
-	setPlaylists,
-	setPositionState,
-	setQueue,
-	setShowLyrics,
-	setState,
-	setVolumeState
-} from '../../state/redux/music/actions';
+    addToBackLog,
+    addToBackLogNext,
+    addToQueue,
+    addToQueueNext,
+    pushToBackLog,
+    pushToQueue,
+    removeFromBackLog,
+    removeFromQueue,
+    setAlbums,
+    setArtists,
+    setBackLog,
+    setCurrentDevice,
+    setCurrentItem,
+    setCurrentItemIndex,
+    setDisplayList,
+    setDurationState,
+    setFadeDuration,
+    setHome,
+    setIsCurrentDevice,
+    setLikedSongs,
+    setLyrics,
+    setMutedState,
+    setPlayState,
+    setPlaylists,
+    setPositionState,
+    setQueue,
+    setShowLyrics,
+    setState,
+    setVolumeState
+} from '@/state/redux/music/actions';
 
 import { emitData } from './helpers';
-import { store } from '../../state/redux';
+import { store } from '@/state/redux';
 
 export interface SocketData {
 	value: any;

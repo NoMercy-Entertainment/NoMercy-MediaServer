@@ -1,4 +1,4 @@
-import { configDb, queueDb } from '../state';
+import { configDb, queueDb } from '@/state';
 import { PrismaClient as configDbModel, PrismaClient as configPrismaClient } from './config/client';
 import { PrismaClient as queueDbModel, PrismaClient as queuePrismaClient } from './queue/client';
 

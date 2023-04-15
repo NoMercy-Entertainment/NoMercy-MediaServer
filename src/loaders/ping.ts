@@ -1,10 +1,11 @@
-import { deviceId } from '../functions/system';
-import { AppState, useSelector } from '../state/redux';
-import { setOwner } from '../state/redux/system/actions';
+import { AppState, useSelector } from '@/state/redux';
+
 import Logger from '../functions/logger';
 import { ServerPingResponse } from 'types/api';
-import { confDb } from '../database/config';
 import axios from '../functions/axios';
+import { confDb } from '../database/config';
+import { deviceId } from '../functions/system';
+import { setOwner } from '@/state/redux/system/actions';
 
 export default async () => {
 	setInterval(async () => {

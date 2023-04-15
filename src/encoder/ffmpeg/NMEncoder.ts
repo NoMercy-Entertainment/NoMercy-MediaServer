@@ -1,17 +1,17 @@
 import { exec, execSync } from 'child_process';
 import {
-	existsSync, mkdirSync, PathLike, readdirSync, readFileSync, rmSync, statSync, writeFileSync
+    existsSync, mkdirSync, PathLike, readdirSync, readFileSync, rmSync, statSync, writeFileSync
 } from 'fs';
 
 import { confDb } from '../../database/config';
 import {
-	EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie, Tv
+    EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie, Tv
 } from '../../database/config/client';
 import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
 import { convertToHis, createTimeInterval, humanTime } from '../../functions/dateTime';
 import { pad, unique } from '../../functions/stringArray';
 import { filenameParse, ParsedFilename, ParsedTvInfo } from '../../functions/videoFilenameParser';
-import { ffmpeg, languagesFile } from '../../state';
+import { ffmpeg, languagesFile } from '@/state';
 import { cleanFileName, yearRegex } from '../../tasks/files/filenameParser';
 import { VideoFFprobe } from '../ffprobe/ffprobe';
 

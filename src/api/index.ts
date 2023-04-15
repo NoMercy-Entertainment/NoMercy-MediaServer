@@ -1,21 +1,21 @@
-import axios from 'axios';
-import express, { Request, Response } from 'express';
-import { writeFileSync } from 'fs';
-import qs from 'qs';
+import { AppState, store, useSelector } from '@/state/redux';
 import { KAuthRequest, KeycloakToken } from 'types/keycloak';
+import express, { Request, Response } from 'express';
+import { setAccessToken, setRefreshToken } from '@/state/redux/user/actions';
 
-import { keycloak_key } from '../functions/keycloak/config';
 import Logger from '../functions/logger';
-import { tokenParser } from '../functions/tokenParser';
-import writeToConfigFile from '../functions/writeToConfigFile';
-import { tokenFile } from '../state';
-import { AppState, store, useSelector } from '../state/redux';
-import { setOwner } from '../state/redux/system/actions';
-import { setAccessToken, setRefreshToken } from '../state/redux/user/actions';
+import axios from 'axios';
 import dashboard from './routes/dashboard';
+import { keycloak_key } from '../functions/keycloak/config';
 import media from './routes/media';
 import music from './routes/music';
+import qs from 'qs';
+import { setOwner } from '@/state/redux/system/actions';
+import { tokenFile } from '@/state';
+import { tokenParser } from '../functions/tokenParser';
 import userData from './routes/userData';
+import { writeFileSync } from 'fs';
+import writeToConfigFile from '../functions/writeToConfigFile';
 
 const router = express.Router();
 

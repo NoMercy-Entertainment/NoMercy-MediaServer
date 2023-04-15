@@ -8,5 +8,5 @@
     "src/database/config/client",
     "src/database/queue/client"
   ],
-  "exec": "node --require ts-node/register --max-old-space-size=102400 --max-http-header-size=1024000 ./src/index.ts"
+  "exec": "node --loader tsx --max-old-space-size=102400 --max-http-header-size=1024000 ./src/index.ts"
 }

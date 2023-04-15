@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '@/state/redux';
 
 import Logger from '../../functions/logger';
 import ping from '../../loaders/ping';

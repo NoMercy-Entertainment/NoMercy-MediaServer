@@ -1,6 +1,4 @@
-
-
-import { AppState, useSelector } from '../../state/redux';
+import { AppState, useSelector } from '@/state/redux';
 
 export default function (socket) {
 

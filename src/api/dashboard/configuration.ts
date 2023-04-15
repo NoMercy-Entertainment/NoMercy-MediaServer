@@ -1,14 +1,14 @@
-import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
+import { AppState, useSelector } from '@/state/redux';
 import { ConfigData, ConfigParams, ResponseStatus } from 'types/server';
+import { Request, Response } from 'express';
+import { setSecureExternalPort, setSecureInternalPort } from '@/state/redux/system/actions';
 
-import { confDb } from '../../database/config';
+import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../functions/logger';
+import { confDb } from '../../database/config';
 import reboot from '../../functions/reboot/reboot';
+import { setDeviceName } from '@/state/redux/config/actions';
 import storeConfig from '../../functions/storeConfig';
-import { AppState, useSelector } from '../../state/redux';
-import { setDeviceName } from '../../state/redux/config/actions';
-import { setSecureExternalPort, setSecureInternalPort } from '../../state/redux/system/actions';
 
 export const configuration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
 	await confDb.configuration

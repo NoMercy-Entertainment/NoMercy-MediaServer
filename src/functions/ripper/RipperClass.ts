@@ -6,8 +6,8 @@ import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
 import Logger from '../../functions/logger';
-import { makeMkv as makeMkvPath } from '../../state';
-import { AppState, useSelector } from '../../state/redux';
+import { makeMkv as makeMkvPath } from '@/state';
+import { AppState, useSelector } from '@/state/redux';
 
 export interface RipperProps {
     makeMkv: string;
