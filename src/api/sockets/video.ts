@@ -1,6 +1,6 @@
 import { confDb } from '../../database/config';
 
-export default function (socket: any, io: any) {
+export default function (socket: any) {
 	socket.on('setTime', async (data: any) => {
 		if (data.tmdb_id && data.video_id) {
 			const progressInsert = {

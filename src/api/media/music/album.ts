@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
-
-import { confDb } from '../../../database/config';
 import { trackSort, uniqBy } from '../../../functions/stringArray';
+
+import { AlbumResponse } from './album.d';
+import { KAuthRequest } from 'types/keycloak';
+import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
-import { AlbumResponse } from './album.d';
 
 export default async function (req: Request, res: Response): Promise<Response<AlbumResponse>> {
 
@@ -20,6 +20,7 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 		include: {
 			_count: true,
 			Track: {
+				distinct: ['name'],
 				include: {
 					Artist: true,
 					Album: true,
@@ -61,16 +62,16 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 					colorPalette: a.colorPalette,
 				}));
 
-			const albums = t.Album.map(a => ({
-				id: a.id,
-				name: a?.name,
-				folder: a?.folder,
-				cover: (a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null)?.replace('http://', 'https://'),
-				description: a?.description,
-				libraryId: music.libraryId,
-				origin: deviceId,
-				colorPalette: a.colorPalette,
-			}));
+			// const albums = t.Album.map(a => ({
+			// 	id: a.id,
+			// 	name: a?.name,
+			// 	folder: a?.folder,
+			// 	cover: (a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null)?.replace('http://', 'https://'),
+			// 	description: a?.description,
+			// 	libraryId: music.libraryId,
+			// 	origin: deviceId,
+			// 	colorPalette: a.colorPalette,
+			// }));
 
 			return {
 				...t,
@@ -85,9 +86,9 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 				favorite_track: t.FavoriteTrack.length > 0,
 				artistId: music.Artist[0]?.id,
 				origin: deviceId,
-				cover: (albums.find(a => a.id == req.params.id) ?? t).cover?.replace('http://', 'https://'),
+				cover: t.cover?.replace('http://', 'https://'),
 				libraryId: music.libraryId,
-				colorPalette: JSON.parse((albums.find(a => a.id == req.params.id) ?? t).colorPalette ?? '{}'),
+				colorPalette: JSON.parse(t.colorPalette ?? '{}'),
 				FavoriteTrack: undefined,
 				Artist: artists,
 			};

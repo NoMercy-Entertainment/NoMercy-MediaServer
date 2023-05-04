@@ -1,13 +1,28 @@
 /* eslint-disable indent */
 
-import { LibraryResponseContent } from 'types/server';
-
 import {
-	Collection, Episode, Folder, GenreMovie, GenreTv, Library, LibraryFolder, Media, Movie, Prisma,
-	Season, Translation, Tv, UserData, VideoFile
+	Collection,
+	Episode,
+	Folder,
+	GenreMovie,
+	GenreTv,
+	Library,
+	LibraryFolder,
+	Media,
+	Movie,
+	Prisma,
+	Season,
+	Translation,
+	Tv,
+	UserData,
+	VideoFile
 } from '../../database/config/client';
-import { parseYear } from '../../functions/dateTime';
+
+import { LibraryResponseContent } from 'types/server';
+import { MovieTranslations } from '@/providers/tmdb/movie';
+import { TvShowTranslations } from '@/providers/tmdb/tv';
 import { createTitleSort } from '../../tasks/files/filenameParser';
+import { parseYear } from '../../functions/dateTime';
 
 export type LibraryWithTvAndMovie = Library & {
 	Folders: (LibraryFolder & {
@@ -22,6 +37,9 @@ export type LibraryWithTvAndMovie = Library & {
 				VideoFile: VideoFile[];
 			})[];
 		})[];
+		Translations: (TvShowTranslations & {
+			Translation: Translation[];
+		})[];
 	})[];
 	Movie: (Movie & {
 		UserData: UserData[];
@@ -31,15 +49,18 @@ export type LibraryWithTvAndMovie = Library & {
 		Collection: (Collection & {
 			Movie: Movie[];
 		})[];
+		Translations: (MovieTranslations & {
+			Translation: Translation[];
+		})[];
 	})[];
 };
 
-export const getContent = (data: LibraryWithTvAndMovie, translations: Translation[]) => {
+export const getContent = (data: LibraryWithTvAndMovie) => {
 	const response: LibraryResponseContent[] = [];
 
 	for (const tv of data.Tv) {
-		const title = translations.find(t => t.tvId == tv.id)?.title || tv.title;
-		const overview = translations.find(t => t.tvId == tv.id)?.overview || tv.overview;
+		// const title = data.Translations.find(t => t.tvId == tv.id)?.title || tv.title;
+		// const overview = data.Translations.find(t => t.tvId == tv.id)?.overview || tv.overview;
 		const logo = tv.Media.find(m => m.type == 'logo');
 		const userData = tv.UserData?.[0];
 
@@ -53,6 +74,7 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 		// .filter((v, i, a) => a.indexOf(v) === i);
 
 		const hash = JSON.parse(tv.blurHash ?? '{}');
+		const palette = JSON.parse(tv.colorPalette ?? '{}');
 
 		response.push({
 			id: tv.id,
@@ -64,28 +86,34 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 			mediaType: data.type,
 			numberOfEpisodes: tv.numberOfEpisodes ?? 1,
 			haveEpisodes: files.length,
-			overview: overview,
+			overview: tv.overview,
 			blurHash: {
 				logo: logo?.blurHash ?? null,
 				poster: hash?.poster ?? null,
 				backdrop: hash?.backdrop ?? null,
 			},
+			colorPalette: {
+				logo: JSON.parse(logo?.colorPalette ?? '{}') ?? null,
+				poster: palette?.poster ?? null,
+				backdrop: palette?.backdrop ?? null,
+			},
 			poster: tv.poster,
-			title: title[0].toUpperCase() + title.slice(1),
-			titleSort: createTitleSort(title, tv.firstAirDate),
+			title: tv.title[0].toUpperCase() + tv.title.slice(1),
+			titleSort: createTitleSort(tv.title, tv.firstAirDate),
 			type: tv.type ?? 'unknown',
 			genres: tv.Genre,
 			year: parseYear(tv.firstAirDate),
 		});
 	}
 	for (const movie of data.Movie) {
-		const title = translations.find(t => t.movieId == movie.id)?.title || movie.title;
-		const overview
-			= translations.find(t => t.movieId == movie.id)?.overview || movie.overview;
+		// const title = translations.find(t => t.movieId == movie.id)?.title || movie.title;
+		// const overview
+		// 	= translations.find(t => t.movieId == movie.id)?.overview || movie.overview;
 		const logo = movie.Media.find(m => m.type == 'logo');
 		const userData = movie.UserData?.[0];
 
 		const hash = JSON.parse(movie.blurHash ?? '{}');
+		const palette = JSON.parse(movie.colorPalette ?? '{}');
 
 		response.push({
 			id: movie.id,
@@ -94,15 +122,20 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 			watched: userData?.played ?? false,
 			logo: logo?.src ?? null,
 			mediaType: 'movie',
-			overview: overview,
+			overview: movie.overview,
 			blurHash: {
-				// logo: logo?.blurHash ?? null,
+				logo: logo?.blurHash ?? null,
 				poster: hash?.poster ?? null,
 				backdrop: hash?.backdrop ?? null,
 			},
+			colorPalette: {
+				logo: JSON.parse(logo?.colorPalette ?? '{}') ?? null,
+				poster: palette?.poster ?? null,
+				backdrop: palette?.backdrop ?? null,
+			},
 			poster: movie.poster,
-			title: title[0].toUpperCase() + title.slice(1),
-			titleSort: createTitleSort(title, movie.releaseDate),
+			title: movie.title[0].toUpperCase() + movie.title.slice(1),
+			titleSort: createTitleSort(movie.title, movie.releaseDate),
 			type: data.type,
 			genres: movie.Genre,
 			year: parseYear(movie.releaseDate),
@@ -113,6 +146,7 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 				poster: c.poster,
 				title: c.title[0].toUpperCase() + c.title.slice(1),
 				titleSort: createTitleSort(c.title),
+				colorPalette: JSON.parse(c.colorPalette ?? '[]'),
 				type: 'collection',
 			})),
 		});
@@ -121,33 +155,8 @@ export const getContent = (data: LibraryWithTvAndMovie, translations: Translatio
 	return response;
 };
 
-export const translationQuery = ({ ids, language }) => {
-	return Prisma.validator<Prisma.TranslationFindManyArgs>()({
-		where: {
-			iso6391: language,
-			OR: [
-				{
-					movieId: {
-						in: ids,
-					},
-				},
-				{
-					tvId: {
-						in: ids,
-					},
-				},
-			],
-		},
-	});
-};
-
-export const ownerQuery = (id?: string) => {
+export const ownerQuery = (language: string) => {
 	return Prisma.validator<Prisma.LibraryFindManyArgs>()({
-		where: {
-			id: id
-				? id
-				: undefined,
-		},
 		include: {
 			Folders: {
 				include: {
@@ -175,6 +184,13 @@ export const ownerQuery = (id?: string) => {
 								include: {
 									VideoFile: true,
 								},
+							},
+						},
+					},
+					Translation: {
+						where: {
+							iso6391: {
+								in: ['en', language],
 							},
 						},
 					},
@@ -219,6 +235,13 @@ export const ownerQuery = (id?: string) => {
 							Movie: true,
 						},
 					},
+					Translation: {
+						where: {
+							iso6391: {
+								in: ['en', language],
+							},
+						},
+					},
 				},
 				orderBy: {
 					titleSort: 'asc',
@@ -228,18 +251,13 @@ export const ownerQuery = (id?: string) => {
 	});
 };
 
-export const userQuery = (userId: string, id?: string) => {
+export const userQuery = (userId: string, language: string) => {
 	return Prisma.validator<Prisma.UserFindManyArgs>()({
 		where: {
 			sub_id: userId,
 		},
 		include: {
 			Libraries: {
-				where: {
-					libraryId: id
-						? id
-						: undefined,
-				},
 				include: {
 					library: {
 						include: {
@@ -269,6 +287,13 @@ export const userQuery = (userId: string, id?: string) => {
 												include: {
 													VideoFile: true,
 												},
+											},
+										},
+									},
+									Translation: {
+										where: {
+											iso6391: {
+												in: ['en', language],
 											},
 										},
 									},
@@ -311,6 +336,13 @@ export const userQuery = (userId: string, id?: string) => {
 									CollectionFrom: {
 										include: {
 											Movie: true,
+										},
+									},
+									Translation: {
+										where: {
+											iso6391: {
+												in: ['en', language],
+											},
 										},
 									},
 								},

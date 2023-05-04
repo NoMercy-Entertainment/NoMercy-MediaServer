@@ -1,21 +1,21 @@
 /* eslint-disable indent */
 
 import { Request, Response } from 'express';
-import i18next from 'i18next';
+import { TvWithInfo, getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helpers';
 
-import { confDb } from '../../../database/config';
-import { Prisma } from '../../../database/config/client';
-import createBlurHash from '../../../functions/createBlurHash';
-import { convertToSeconds } from '../../../functions/dateTime';
-import Logger from '../../../functions/logger';
-import { groupBy } from '../../../functions/stringArray';
-import { tv as TV } from '../../../providers/tmdb/tv';
-import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { KAuthRequest } from '../../../types/keycloak';
 import { InfoResponse } from '../../../types/server';
+import { KAuthRequest } from '../../../types/keycloak';
+import Logger from '../../../functions/logger';
+import { Prisma } from '../../../database/config/client';
+import { tv as TV } from '../../../providers/tmdb/tv';
+import { confDb } from '../../../database/config';
+import { convertToSeconds } from '../../../functions/dateTime';
+import createBlurHash from '../../../functions/createBlurHash';
+import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { getLanguage } from '../../middleware';
+import { groupBy } from '../../../functions/stringArray';
+import i18next from 'i18next';
 import { isOwner } from '../../middleware/permissions';
-import { getFromDepartmentMap, imageMap, peopleMap, relatedMap, TvWithInfo } from '../helpers';
 
 export default function (req: Request, res: Response) {
 
@@ -30,7 +30,6 @@ export default function (req: Request, res: Response) {
 			.then(async (tv) => {
 				if (!tv) {
 					return res.json(await getTvData(req.params.id));
-					// return storeTvShow({ id: parseInt(req.params.id, 10), libraryId: '' });
 				}
 				return res.json(await getContent(tv, language));
 			})
@@ -52,7 +51,6 @@ export default function (req: Request, res: Response) {
 			.then(async (tv) => {
 				if (!tv) {
 					return res.json(await getTvData(req.params.id));
-					// return storeTvShow({ id: parseInt(req.params.id, 10), libraryId: '' });
 				}
 				return res.json(await getContent(tv, language));
 			})
@@ -74,8 +72,6 @@ export default function (req: Request, res: Response) {
 const getContent = async (
 	data: TvWithInfo,
 	language: string
-	// similar: SimilarWithBase[],
-	// recommendations: RecommendationsWithBase[]
 ): Promise<InfoResponse> => {
 	const translations: any[] = [];
 	await confDb.translation.findMany(translationQuery({ id: data.id, language })).then(data => translations.push(...data));
@@ -95,7 +91,7 @@ const getContent = async (
 	// .filter((v, i, a) => a.indexOf(v) === i);
 
 	const logos = await imageMap(groupedMedia.logo);
-	const hash = JSON.parse(data.blurHash ?? '{}');
+	const palette = JSON.parse(data.colorPalette ?? '{}');
 
 	// console.log(files);
 
@@ -105,10 +101,10 @@ const getContent = async (
 		overview: overview,
 		poster: data.poster,
 		backdrop: data.backdrop,
-		blurHash: {
-			logo: logos[0]?.blurHash ?? null,
-			poster: hash?.poster ?? null,
-			backdrop: hash?.backdrop ?? null,
+		colorPalette: {
+			logo: logos[0]?.colorPalette,
+			poster: palette?.poster ?? null,
+			backdrop: palette?.backdrop ?? null,
 		},
 		videos: groupedMedia.Trailer?.map((v) => {
 			return {
@@ -176,6 +172,7 @@ const getContent = async (
 				seasonNumber: s.seasonNumber,
 				title: s.title,
 				blurHash: s.blurHash,
+				colorPalette: JSON.parse(s.colorPalette ?? '{}'),
 				Episode: undefined,
 				episodes: s.Episode.map((e) => {
 					let progress: null | number = null;
@@ -193,6 +190,7 @@ const getContent = async (
 						airDate: e.airDate,
 						still: e.still,
 						blurHash: e.blurHash,
+						colorPalette: JSON.parse(e.colorPalette ?? '{}'),
 						progress: progress,
 						available: !!e.VideoFile[0],
 					};
@@ -339,24 +337,14 @@ const ownerQuery = (id: string, userId: string) => {
 const userQuery = (id: string, userId: string) => {
 	return Prisma.validator<Prisma.TvFindFirstArgs>()({
 		where: {
-			OR: [
-				{
-					id: parseInt(id, 10),
-					Library: {
-						User: {
-							some: {
-								userId: userId,
-							},
-						},
+			id: parseInt(id, 10),
+			Library: {
+				User: {
+					some: {
+						userId: userId,
 					},
 				},
-				{
-					id: parseInt(id, 10),
-					Library: {
-						is: null,
-					},
-				},
-			],
+			},
 		},
 		include: {
 			AlternativeTitles: true,

@@ -24,7 +24,7 @@ export const stringFormat = (template: string, ...values: (string | number | boo
 		const element: string = matches[i];
 		const index: number = parseInt(matches[i][1], 10);
 
-		string = string.replace(element, values[index].toString());
+		string = string.replace(element, values[index]?.toString() ?? '');
 	}
 
 	return string;

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
-
-import { confDb } from '../../../database/config';
 import { trackSort, uniqBy } from '../../../functions/stringArray';
+
+import { ArtistResponse } from './artist.d';
+import { KAuthRequest } from 'types/keycloak';
+import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
-import { ArtistResponse } from './artist.d';
 
 export default async function (req: Request, res: Response): Promise<Response<ArtistResponse>> {
 	const language = getLanguage(req);
@@ -19,7 +19,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 		include: {
 			_count: true,
 			Track: {
-				distinct: 'name',
+				distinct: ['name'],
 				include: {
 					Artist: true,
 					Album: true,

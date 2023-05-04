@@ -1,10 +1,10 @@
-import i18next from 'i18next';
-import { MusicBrainzApi } from 'musicbrainz-api';
-
-import { matchPercentage } from '../../functions/stringArray';
-import { appVersion } from '../../functions/system';
-import { searchMovie, searchTv } from '../../providers/tmdb/search/index';
 import { FolderList, ParsedFileList } from '../../tasks/files/filenameParser';
+import { searchMovie, searchTv } from '../../providers/tmdb/search/index';
+
+import { MusicBrainzApi } from 'musicbrainz-api';
+import { appVersion } from '../../functions/system';
+import i18next from 'i18next';
+import { matchPercentage } from '../../functions/stringArray';
 
 const mbApi = new MusicBrainzApi({
 	appName: 'NoMercy Mediaserver',
@@ -49,7 +49,7 @@ export const fallbackSearch = async (type: string, title: FolderList | ParsedFil
 				}
 
 				for (const movie of movies) {
-					const newScore = matchPercentage(title.title ?? title.name, movie.title);
+					const newScore = matchPercentage(movie.title, title.title ?? title.name);
 					if (newScore > currentScore) {
 						currentScore = newScore;
 						show = movie;

@@ -1,107 +1,168 @@
-import { Genre, Translation } from '../../database/config/client';
+import { Movie, Tv } from '../../database/config/client';
 import { Request, Response } from 'express';
-import { getContent, ownerQuery, userQuery } from './data';
 
 import { KAuthRequest } from 'types/keycloak';
-import { LibraryResponseContent } from 'types/server';
 import { confDb } from '../../database/config';
 import { getLanguage } from '../middleware';
 import { isOwner } from '../middleware/permissions';
+import { parseYear } from '@/functions/dateTime';
 
 export default async function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
 
+	const cursorQuery = (req.body.page as number) ?? undefined;
+	const skip = cursorQuery
+		? 1
+		: 0;
+	const cursor = cursorQuery
+		? { id: cursorQuery }
+		: undefined;
+
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
 	const owner = isOwner(req as KAuthRequest);
 
-	const genres: Genre[] = [];
-	const response: any[] = [];
-	const translations: Translation[] = [];
-
-	await confDb.translation.findMany({
-		where: {
-			iso6391: language,
-			OR: [
-				{
-					movieId: {
-						not: null,
-					},
-				},
-				{
-					tvId: {
-						not: null,
-					},
-				},
-			],
+	const genres = await confDb.genre.findMany({
+		orderBy: {
+			name: 'asc',
 		},
-
-	}).then(data => translations.push(...data));
-
-	await Promise.all([
-
-		confDb.genre.findMany({
-			orderBy: {
-				name: 'asc',
+		skip,
+		take: req.body.take,
+		cursor,
+		include: {
+			Movie: {
+				where: {
+					Movie: {
+						VideoFile: {
+							some: {
+								duration: {
+									not: null,
+								},
+							},
+						},
+						Library: {
+							User: {
+								some: {
+									userId: owner
+										? undefined
+										: user,
+								},
+							},
+						},
+					},
+				},
+				include: {
+					Movie: {
+						include: {
+							Translation: {
+								where: {
+									iso6391: language,
+								},
+							},
+							Media: true,
+						},
+					},
+				},
 			},
-		})
-			.then(data => genres.push(...data)),
+			Tv: {
+				where: {
+					Tv: {
+						Episode: {
+							some: {
+								VideoFile: {
+									some: {
+										duration: {
+											not: null,
+										},
+									},
+								},
+							},
+						},
+						Library: {
+							User: {
+								some: {
+									userId: owner
+										? undefined
+										: user,
+								},
+							},
+						},
+					},
+				},
+				include: {
+					Tv: {
+						include: {
+							Translation: {
+								where: {
+									iso6391: language,
+								},
+							},
+							Media: {
+								orderBy: {
+									voteAverage: 'desc',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	});
 
-		owner && confDb.library.findMany(ownerQuery())
-			.then(async (data) => {
-				for (const lib of data) {
-					if (!lib) continue;
+	const data = genres.map((genre) => {
+		const items = [
+			...genre.Movie.map(m => ({
+				...m.Movie,
+				Translation: m.Movie.Translation,
+				Media: m.Movie.Media,
+			})),
+			...genre.Tv.map(t => ({
+				...t.Tv,
+				Translation: t.Tv.Translation,
+				Media: t.Tv.Media,
+			})),
+		];
 
-					response.push(...(await getContent(lib as any, translations)));
-				}
-			}),
+		return {
+			id: genre.id,
+			title: genre.name,
+			moreLink: '',
+			items: items.map((d) => {
 
-		!owner && confDb.user
-			.findFirst(userQuery(user))
-			.then(async (data) => {
-				if (!data?.Libraries) return;
+				const logo = d.Media.find(m => m.type == 'logo');
+				const palette = JSON.parse(d.colorPalette ?? '{}');
 
-				for (const lib of data?.Libraries ?? []) {
-					if (!lib.library) continue;
-
-					response.push(...(await getContent((lib as any).library, translations)));
-				}
-			}),
-	]);
-
-	const body:any = [];
-
-	genres.map((g) => {
-		const x: LibraryResponseContent[] = response
-			.filter(d => d.genres && d.genres.map(g => g.genreId).includes(g.id))
-			.map((d) => {
 				return {
 					id: d.id,
 					backdrop: d.backdrop,
-					logo: d.logo,
+					logo: logo?.src ?? undefined,
 					overview: d.overview,
-					favorite: d.favorite,
-					played: d.played,
 					poster: d.poster,
-					blurHash: d.blurHash,
 					title: d.title,
 					titleSort: d.titleSort,
-					type: d.mediaType,
-					year: d.year,
-					mediaType: d.mediaType,
+					type: (d as Tv).firstAirDate
+						? 'tv'
+						: 'movie',
+					year: parseYear((d as Tv).firstAirDate ?? (d as Movie).releaseDate),
+					mediaType: (d as Tv).firstAirDate
+						? 'tv'
+						: 'movie',
+					colorPalette: palette,
 				};
 			})
-			.sort(() => Math.random() - 0.5)
-			.slice(0, 35);
-
-		if (x.length > 0) {
-			body.push({
-				title: g.name,
-				moreLink: '',
-				items: x,
-			});
-		}
+				.sort(() => Math.random() - 0.5)
+				.slice(0, 35),
+		};
 	});
 
-	return res.json(body);
+
+	const nextId = data.length < req.body.take
+		? undefined
+		: data[req.body.take - 1]?.id;
+
+	return res.json({
+		nextId: nextId,
+		data: data,
+	});
+
 }

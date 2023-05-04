@@ -3,38 +3,6 @@ import fs, { existsSync } from 'fs';
 
 import { pad } from '../../functions/stringArray';
 
-export const convertToHumanReact = (t: (arg: string) => string, time: number, zeroPad = false): string => {
-	if (!time) {
-		return '';
-	}
-
-	const hours = Math.floor(time / 3600);
-	time %= 3600;
-	const minutes = pad(Math.floor(time / 60), zeroPad && hours > 0
-		? 2
-		: 0);
-
-	if (hours === 0 && parseInt(minutes, 10) === 0) {
-		return `${minutes} ${t('minutes').slice(0, 3)}`;
-	}
-	if (hours === 0 && parseInt(minutes, 10) > 0) {
-		return `${minutes} ${t('minutes').slice(0, 3)}`;
-	}
-	if (hours > 0 && parseInt(minutes, 10) === 0) {
-		return `${hours} ${t('hour')} ${minutes} ${t('minutes').slice(0, 3)}`;
-	}
-	if (hours === 1 && parseInt(minutes, 10) !== 0) {
-		return `${hours} ${t('hour')} ${minutes} ${t('minutes').slice(0, 3)}`;
-	}
-	if (hours === 1 && parseInt(minutes, 10) === 0) {
-		return `${hours} ${t('hour')} ${minutes} ${t('minutes').slice(0, 3)}`;
-	}
-	if (hours > 1) {
-		return `${hours} ${t('hours')} ${minutes} ${t('minutes').slice(0, 3)}`;
-	}
-	return `${minutes} ${t('minutes').slice(0, 3)}`;
-};
-
 export const convertToHuman = function (time: any) {
 	time = parseInt(time, 10);
 	let days: any = parseInt(`${time / (3600 * 24)}`, 10);
@@ -68,6 +36,10 @@ export const convertToHuman = function (time: any) {
 	return current.replace('NaN:NaN:NaN:NaN', '00:00');
 };
 
+/**
+ * Returns time in seconds in human readable format
+ * @param time
+ */
 export const humanTime = function (time: any) {
 	time = parseInt(time, 10);
 	let hours: any = pad(parseInt(`${(time % 86400) / 3600}`, 10), 2);
@@ -99,38 +71,11 @@ export const humanTime = function (time: any) {
 	return current.replace('NaN:NaN:NaN', '00:00');
 };
 
-export const convertToHumanExtended = function (time: any) {
-	time = parseInt(time, 10);
-	let days: any = parseInt((time / (3600 * 24)) as any, 10);
-
-	let hours: any = pad(parseInt(((time % 86400) / 3600) as any, 10), 2);
-
-	let minutes: any = parseInt(((time % 3600) / 60) as any, 10);
-	let seconds: any = parseInt((time % 60) as any, 10);
-	if (`${minutes}`.length === 1) {
-		minutes = `0${minutes}`;
-	}
-	if (`${seconds}`.length === 1) {
-		seconds = `0${seconds}`;
-	}
-	if (days === 0) {
-		days = '00:';
-	} else {
-		days = `${days}:`;
-	}
-	if (hours === 0) {
-		hours = '00:';
-	} else {
-		hours = `${hours}:`;
-	}
-	if (minutes == 0) {
-		minutes = '00:';
-	} else {
-		minutes = `${minutes}:`;
-	}
-	const current = days + hours + minutes + seconds;
-	return current.replace('NaN:NaN:NaN:NaN', '00:00');
-};
+/**
+ * @description: convert time to 00:00:00.000
+ * @param {string} time
+ * @return {string} current
+ */
 
 export const convertToHis = function (time: any) {
 	time = parseInt(time, 10);
@@ -170,13 +115,22 @@ export const convertToSeconds = (hms: string | null) => {
 	return +a[0] * 60 * 60 + +a[1] * 60 + +a[2];
 };
 
-export const parseYear = function (date: string | undefined) {
+/**
+ * Returns the year of a date
+ * @param {string} date - the date
+ * @returns {number | undefined} - the year of the date
+ */
+export const parseYear = function (date: string | number | undefined) {
 	if (!date) {
 		return undefined;
 	}
 	return new Date(date).getFullYear();
 };
 
+/**
+ * Sleeps for the specified number of milliseconds
+ * @param ms the number of milliseconds to sleep for
+ */
 export const sleep = function (ms: number) {
 	const start = new Date().getTime();
 	const expire = start + ms;
@@ -185,6 +139,11 @@ export const sleep = function (ms: number) {
 	}
 };
 
+/**
+ * Get the modified time of a file.
+ * @param {string} file - The file to get the modified time of.
+ * @return {date} The modified time of the file.
+ */
 export const fileChangedAt = function (file: string) {
 	const fileTime = fs.statSync(file).mtime;
 	return fileTime;
@@ -302,6 +261,10 @@ export const createTimeInterval = function (duration: number, interval: number) 
 	return timeArr.splice(0, duration / interval);
 };
 
+/**
+ * @param {string} time
+ * @return {string}
+ */
 export const time_ago = (time: any) => {
 	time = Date.now() - (Date.now() - time);
 

@@ -1,87 +1,45 @@
-import { DirectoryTree } from 'directory-tree';
-import { readdirSync } from 'fs';
-import i18next from 'i18next';
-import { join } from 'path';
-
 import {
-	Certification, CertificationTv, Episode, Folder, Library, LibraryFolder, Media, Translation, Tv,
-	UserData, VideoFile
+	Certification,
+	CertificationTv,
+	Episode,
+	Folder,
+	Library,
+	LibraryFolder,
+	Media,
+	Translation,
+	Tv,
+	UserData,
+	VideoFile
 } from '../../../database/config/client';
-import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
-import { convertToSeconds, humanTime } from '../../../functions/dateTime';
-import { getQualityTag } from '../../../functions/ffmpeg/quality/quality';
-import { getExistingSubtitles } from '../../../functions/ffmpeg/subtitles/subtitle';
-import { sortBy } from '../../../functions/stringArray';
+import { convertToSeconds } from '../../../functions/dateTime';
+
 import { deviceId } from '../../../functions/system';
-import {
-	filenameParse, ParsedFilename, ParsedTvInfo
-} from '../../../functions/videoFilenameParser';
-import { createBaseFolder, EP, parseFileName } from '../../../tasks/files/filenameParser';
+import i18next from 'i18next';
+import { sortBy } from '../../../functions/stringArray';
 
 export type PlaylistItem = (Episode & {
 	Media: Media[];
 	Translation: Translation[];
 	Tv: Tv & {
-    Certification: (CertificationTv & {
-        Certification: Certification | null;
-    })[];
-	Media: Media[];
-	Library: (Library & {
-		Folders: (LibraryFolder & {
-			folder: Folder | null;
-		})[]
-	})
-	Translation: Translation[];
+		Certification: (CertificationTv & {
+			Certification: Certification | null;
+		})[];
+		Media: Media[];
+		Library: (Library & {
+			Folders: (LibraryFolder & {
+				folder: Folder | null;
+			})[];
+		});
+		Translation: Translation[];
 	};
 	VideoFile?: (VideoFile & {
 		UserData: UserData[];
 	})[];
 });
 
-export default async ({ data }: { data: PlaylistItem }) => {
+export default ({ data }: { data: PlaylistItem; }) => {
 
-	let videoFile = data.VideoFile?.[0];
-
-	if (!videoFile) {
-
-		const baseFolder = createBaseFolder(data as unknown as EP);
-
-		const folder = join(data.Tv.Library.Folders[0].folder!.path, baseFolder);
-		const list = readdirSync(folder);
-		const f = list.find((l) => {
-			const x: ParsedFilename = filenameParse(l, data.Tv.Library.type == 'tv');
-			const s = (x as ParsedTvInfo)?.seasons?.[0] ?? undefined;
-			const e = (x as ParsedTvInfo)?.episodeNumbers?.[0] ?? undefined;
-
-			return (s ?? 1) === data.seasonNumber && e === data.episodeNumber;
-		}) ?? '';
-
-		const filePath = join(folder, f);
-
-		const file = await parseFileName({ path: filePath, name: '', size: 0, type: 'file' } as DirectoryTree<{[key: string]: any; }>, true);
-
-		if (!file?.ffprobe) {
-			return;
-		}
-
-		videoFile = {
-			id: 0,
-			UserData: [],
-			episodeId: 0,
-			movieId: 0,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-			filename: file.ffprobe.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
-			folder: baseFolder,
-			hostFolder: file.ffprobe.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
-			duration: humanTime(file.ffprobe.format.duration),
-			quality: JSON.stringify(getQualityTag(file.ffprobe)),
-			share: `${data.Tv.libraryId}/`,
-			subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe as VideoFFprobe)),
-			languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
-			Chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
-		};
-	}
+	const videoFile = data.VideoFile?.[0];
 
 	const showTitle = data.Tv.Translation[0].title;
 

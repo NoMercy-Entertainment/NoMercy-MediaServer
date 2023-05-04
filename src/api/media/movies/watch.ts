@@ -1,39 +1,26 @@
 import { Request, Response } from 'express';
 import { existsSync, readFileSync } from 'fs';
-import i18next from 'i18next';
-import requestCountry from 'request-country';
-import { KAuthRequest } from 'types/keycloak';
 
-import { confDb } from '../../../database/config';
+import { KAuthRequest } from 'types/keycloak';
 import { Prisma } from '../../../database/config/client';
+import { confDb } from '../../../database/config';
 import { convertToSeconds } from '../../../functions/dateTime';
-import { sortBy } from '../../../functions/stringArray';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
-import { isOwner } from '../../middleware/permissions';
+import i18next from 'i18next';
+import requestCountry from 'request-country';
+import { sortBy } from '../../../functions/stringArray';
 
 export default function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
 	const id = req.params.id;
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
 	const country = requestCountry(req, 'US');
 
-	return confDb.movie.findFirst(movieQuery({ id, language, country }))
-		.then(async (movie) => {
+	return confDb.movie.findFirst(movieQuery({ id, language, country, user }))
+		.then((movie) => {
 			if (!movie?.VideoFile) { return; }
-
-			const translation: any[] = [];
-			const media: any[] = [];
-			const progress: any[] = [];
-			const files: any[] = [];
-
-			await Promise.all([
-				confDb.media.findMany(mediaQuery(id)).then((data: any[]) => media.push(...data)),
-				confDb.translation.findMany(translationQuery({ id, language })).then((data: any[]) => translation.push(...data)),
-				confDb.userData.findMany(progressQuery({ id, user_id: user })).then((data: any[]) => progress.push(...data)),
-			]);
 
 			const textTracks: any[] = [];
 			let search = false;
@@ -67,8 +54,7 @@ export default function (req: Request, res: Response) {
 				fonts = JSON.parse(readFileSync(`${movie.VideoFile[0]?.hostFolder}fonts.json`, 'utf8'));
 			}
 
-			const movieTranslations = translation
-				.find(t => !!t.movieId);
+			const movieTranslations = movie.Translation[0];
 
 			const overview = movieTranslations?.overview != '' && movieTranslations?.overview != null
 				? movieTranslations?.overview
@@ -78,7 +64,7 @@ export default function (req: Request, res: Response) {
 				? movieTranslations?.title
 				: movie.title;
 
-			const showTitle = translation.find(t => !!t.movieId)?.title;
+			const showTitle = title;
 			const show = showTitle != '' && showTitle != null
 				? showTitle
 				: movie.title;
@@ -97,7 +83,7 @@ export default function (req: Request, res: Response) {
 				playlist_type: 'movie',
 				playlist_id: id,
 				year: movie.releaseDate?.split('-')[0] ?? null,
-				logo: media.find(m => m.type == 'logo')?.src ?? null,
+				logo: movie.Media[0]?.src ?? null,
 				rating: movie.Certification?.map((cr) => {
 					return {
 						country: cr.iso31661,
@@ -107,7 +93,9 @@ export default function (req: Request, res: Response) {
 					};
 				})?.[0] ?? {},
 
-				progress: (progress[0]?.time / convertToSeconds(movie.VideoFile[0]?.duration) * 100) ?? null,
+				progress: movie.UserData?.[0]?.time
+					? (movie.UserData?.[0].time / convertToSeconds(movie.VideoFile[0]?.duration) * 100)
+					: null,
 
 				poster: movie.poster
 					? movie.poster
@@ -160,12 +148,20 @@ interface movieQueryInterface {
 	id: string;
 	language: string;
 	country: string;
+	user: string;
 }
 
-const movieQuery = ({ id, language, country }: movieQueryInterface) => {
+const movieQuery = ({ id, language, country, user }: movieQueryInterface) => {
 	return Prisma.validator<Prisma.MovieFindFirstArgs>()({
 		where: {
 			id: parseInt(id, 10),
+			Library: {
+				User: {
+					some: {
+						userId: user,
+					},
+				},
+			},
 		},
 		include: {
 			Certification: {
@@ -178,43 +174,31 @@ const movieQuery = ({ id, language, country }: movieQueryInterface) => {
 					Certification: true,
 				},
 			},
+			Translation: {
+				where: {
+					iso6391: language,
+				},
+				select: {
+					title: true,
+					overview: true,
+					iso6391: true,
+					movieId: true,
+				},
+			},
+			Media: {
+				where: {
+					type: 'logo',
+				},
+				orderBy: {
+					voteAverage: 'asc',
+				},
+			},
+			UserData: {
+				where: {
+					sub_id: user,
+				},
+			},
 			VideoFile: true,
-		},
-	});
-};
-
-const translationQuery = ({ id, language }: { id: string; language: string }) => {
-	return Prisma.validator<Prisma.TranslationFindFirstArgs>()({
-		where: {
-			iso6391: language,
-			movieId: parseInt(id, 10),
-		},
-		select: {
-			title: true,
-			overview: true,
-			iso6391: true,
-			movieId: true,
-		},
-	});
-};
-
-const mediaQuery = (id: string) => {
-	return Prisma.validator<Prisma.MediaFindFirstArgs>()({
-		where: {
-			movieId: parseInt(id, 10),
-			type: 'logo',
-		},
-		orderBy: {
-			voteAverage: 'asc',
-		},
-	});
-};
-
-const progressQuery = ({ id, user_id }: { id: string; user_id: string }) => {
-	return Prisma.validator<Prisma.UserDataFindFirstArgs>()({
-		where: {
-			sub_id: user_id,
-			movieId: parseInt(id, 10),
 		},
 	});
 };

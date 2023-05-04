@@ -7,7 +7,7 @@ import { confDb } from '../../database/config';
 export default async function (certifications: Array<Certification | ContentRating>) {
 	const transaction: any[] = [];
 
-	certifications.map((cr) => {
+	for (const cr of certifications) {
 		const certificationsInsert = Prisma.validator<Prisma.CertificationUncheckedCreateInput>()({
 			iso31661: cr.iso_3166_1,
 			rating: (cr as Certification).certification ?? (cr as ContentRating).rating,
@@ -15,19 +15,19 @@ export default async function (certifications: Array<Certification | ContentRati
 			order: parseInt(cr.order, 10),
 		});
 
-		transaction.push(
-			confDb.certification.upsert({
-				where: {
-					rating_iso31661: {
-						iso31661: cr.iso_3166_1,
-						rating: (cr as Certification).certification ?? (cr as ContentRating).rating,
-					},
+		// transaction.push(
+		await	confDb.certification.upsert({
+			where: {
+				rating_iso31661: {
+					iso31661: cr.iso_3166_1,
+					rating: (cr as Certification).certification ?? (cr as ContentRating).rating,
 				},
-				update: certificationsInsert,
-				create: certificationsInsert,
-			})
-		);
-	});
+			},
+			update: certificationsInsert,
+			create: certificationsInsert,
+		});
+		// );
+	};
 
 	await commitConfigTransaction(transaction);
 }

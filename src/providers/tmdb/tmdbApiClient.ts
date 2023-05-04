@@ -8,6 +8,7 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		api_key: process.env.TMDB_API_KEY,
 		language: i18next.language || process.env.LANGUAGE,
 		...config.params,
+		include_adult: false,
 	};
 
 	config.headers = {

@@ -5,7 +5,7 @@ import { Prisma } from '../../database/config/client';
 import { TvKeywords } from '../../providers/tmdb/tv/index';
 import { confDb } from '../../database/config';
 
-export default (
+export default async (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
 	keywordsInsert: Array<Prisma.KeywordMovieCreateOrConnectWithoutMovieInput | Prisma.KeywordTvCreateOrConnectWithoutTvInput>,
@@ -17,15 +17,15 @@ export default (
 			name: keyword.name,
 		});
 
-		transaction.push(
-			confDb.keyword.upsert({
-				where: {
-					keywordId: keyword.id,
-				},
-				update: keywordInsert,
-				create: keywordInsert,
-			})
-		);
+		// transaction.push(
+		await	confDb.keyword.upsert({
+			where: {
+				keywordId: keyword.id,
+			},
+			update: keywordInsert,
+			create: keywordInsert,
+		});
+		// );
 
 		keywordsInsert.push({
 			where: {

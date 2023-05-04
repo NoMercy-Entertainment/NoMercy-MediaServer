@@ -14,8 +14,8 @@ import { parseYear } from '../../functions/dateTime';
 import { pad } from '../../functions/stringArray';
 import { filenameParse, ParsedMovie, ParsedShow } from '../../functions/videoFilenameParser';
 import { Channels } from '../../functions/videoFilenameParser/audioChannels';
-import { MovieAppend, MovieTranslation } from '../../providers/tmdb/movie';
-import { TvAppend, TvShowTranslation } from '../../providers/tmdb/tv';
+import { MovieAppend } from '../../providers/tmdb/movie';
+import { TvAppend } from '../../providers/tmdb/tv';
 import { AppState, useSelector } from '@/state/redux';
 
 interface IObj {
@@ -66,7 +66,7 @@ export interface FolderList {
 
 export const yearRegex = /(\s|\.|\()(?<year>(19|20)[0-9][0-9])(\)|.*|(?!p))/u;
 
-export const parseFileName = async function (file: DirectoryTree<IObj> | { path: string }, isTvShow: boolean): Promise<ParsedFileList> {
+export const parseFileName = async function (file: DirectoryTree<IObj> | { path: string; }, isTvShow: boolean): Promise<ParsedFileList> {
 	const reg: any = /(.*[\\\/])(?<fileName>.*)/u.exec(file.path);
 
 	const yearReg: any = yearRegex.exec(file.path);
@@ -220,12 +220,14 @@ export const cleanFileName = function (name: string) {
 		.replace(/\*/gu, '-')
 		.replace(/\.\./gu, '.')
 		.replace(/,\./gu, '.')
+		.replace(/: /gu, '.')
 		.replace(/:/gu, '.')
+		.replace(/\.*$/gu, '')
 		.replace(/'|\?|\.\s|-\.|\.\(\d{1,3}\)|[^[:print:]\]|[^-_.[:alnum:]\]/giu, '')
 		.replace(/\.{2,}/gu, '.');
 };
 
-export const createTitleSort = function (title: string, date?: string) {
+export const createTitleSort = function (title: string, date?: string | number) {
 
 	title = title[0].toUpperCase() + title.slice(1);
 
@@ -248,10 +250,7 @@ export const createMediaFolder = (
 ): string => {
 	const baseFolder = library.Folders[0].folder?.path;
 
-	const translation = [...data.translations.translations].find(t => t.iso_639_1 == 'en');
-	const translatedTitle = (translation as MovieTranslation).data.title ?? (translation as TvShowTranslation).data.name;
-
-	const title = translatedTitle ?? (data as MovieAppend).title ?? (data as TvAppend).name;
+	const title = cleanFileName((data as MovieAppend).title ?? (data as TvAppend).name);
 
 	const year = parseYear((data as MovieAppend).release_date ?? (data as TvAppend).first_air_date);
 
@@ -259,36 +258,35 @@ export const createMediaFolder = (
 };
 
 export type EP = (Episode & {
-    Tv: Tv;
-    Season: Season;
-    File: (File & {
-        Library: Library & {
-            Folders: (LibraryFolder & {
-                folder: Folder | null;
-            })[];
-            EncoderProfiles: (EncoderProfileLibrary & {
-                EncoderProfile: EncoderProfile;
-            })[];
-        };
-    })[];
+	Tv: Tv;
+	Season: Season;
+	File: (File & {
+		Library: Library & {
+			Folders: (LibraryFolder & {
+				folder: Folder | null;
+			})[];
+			EncoderProfiles: (EncoderProfileLibrary & {
+				EncoderProfile: EncoderProfile;
+			})[];
+		};
+	})[];
 });
 
-
 export type MV = (Movie & {
-    File: (File & {
-        Library: Library & {
-            Folders: (LibraryFolder & {
-                folder: Folder | null;
-            })[];
-            EncoderProfiles: (EncoderProfileLibrary & {
-                EncoderProfile: EncoderProfile[]
-            })[];
-        };
-    })[];
+	File: (File & {
+		Library: Library & {
+			Folders: (LibraryFolder & {
+				folder: Folder | null;
+			})[];
+			EncoderProfiles: (EncoderProfileLibrary & {
+				EncoderProfile: EncoderProfile;
+			})[];
+		};
+	})[];
 });
 
 export const createBaseFolder = (data: EP | MV): string => {
-	const name = `${((data as EP).Tv ?? data).title}.(${parseYear((data as EP).Tv.firstAirDate ?? (data as MV).releaseDate)})`;
+	const name = `${((data as EP).Tv ?? data).title}.(${parseYear((data as EP)?.Tv?.firstAirDate ?? (data as MV)?.releaseDate)})`;
 
 	return cleanFileName(name);
 };

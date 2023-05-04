@@ -1,10 +1,10 @@
-import { Person } from './person';
-import { PersonTranslations } from './translations';
-import { Image } from '../shared/image';
 import { ExternalIDS } from './external_ids';
-import { PersonCredits } from './credits';
-import { TvCredits } from '../tv';
+import { Image } from '../shared/image';
 import { MovieCredits } from '../movie';
+import { Person } from './person';
+import { PersonCredits } from './credits';
+import { PersonTranslations } from './translations';
+import { TvCredits } from '../tv';
 
 export interface PersonDetails extends Person {
 	also_known_as: string[];
@@ -20,6 +20,7 @@ export interface PersonDetails extends Person {
 export interface PersonAppend extends PersonDetails {
 	details: PersonDetails;
 	credits: PersonCredits;
+	combined_credits: MovieCredits | TvCredits;
 	movie_credits: MovieCredits;
 	tv_credits: TvCredits;
 	external_ids: ExternalIDS;

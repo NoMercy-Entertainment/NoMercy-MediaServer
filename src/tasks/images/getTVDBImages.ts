@@ -1,11 +1,10 @@
-import axios from 'axios';
-
-import { person } from '../../providers/tmdb/people/index';
-import { searchPeople } from '../../providers/tmdb/search/index';
 import { Cast } from '../../providers/tmdb/shared';
-import { imageCrawler } from '../../providers/tvdb';
 import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
 import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
+import axios from 'axios';
+import { imageCrawler } from '../../providers/tvdb';
+import { person } from '../../providers/tmdb/people/index';
+import { searchPeople } from '../../providers/tmdb/search/index';
 
 export interface ImageResult extends Cast {
 	href: string;
@@ -27,6 +26,7 @@ export default (type: string, req: CompleteTvAggregate | CompleteMovieAggregate)
 			.replace(/:/gu, '')
 			.replace(/-{2,}/gu, '-')
 			.replace(/&/gu, 'and')
+			.replace(/-$/u, '')
 			.replace(/[!*'();:@&=+$,/?%#\[\]]/gu, '')
 			.toLowerCase();
 
@@ -63,11 +63,11 @@ export default (type: string, req: CompleteTvAggregate | CompleteMovieAggregate)
 				const p = people[i];
 
 				let credit = req.credits.cast
-					.find(c => c.name.toLowerCase().includes(p.actor.toLowerCase()));
+					.find(c => c.character.toLowerCase().includes(p.character.toLowerCase()));
 
 				if (!credit) {
 					credit = req.credits.cast
-						.find(c => c.character.toLowerCase().includes(p.character.toLowerCase()));
+						.find(c => c.name.toLowerCase().includes(p.actor.toLowerCase()));
 				}
 
 				if (credit) {
@@ -110,7 +110,6 @@ export default (type: string, req: CompleteTvAggregate | CompleteMovieAggregate)
 							);
 						}
 					});
-
 			}
 
 			await Promise.all(promises).catch(error => reject(error));

@@ -48,7 +48,7 @@ export default async function (req: Request, res: Response): Promise<Response<Fa
 				folder: a.folder,
 				libraryId: a.libraryId,
 				origin: deviceId,
-				colorPalette: a.colorPalette,
+				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
 			}));
 			const albums = t.Track.Album.map(a => ({
 				id: a.id,
@@ -58,7 +58,7 @@ export default async function (req: Request, res: Response): Promise<Response<Fa
 				description: a?.description,
 				libraryId: a.libraryId,
 				origin: deviceId,
-				colorPalette: a.colorPalette,
+				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
 			}));
 
 			return {

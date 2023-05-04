@@ -214,15 +214,15 @@ const createArtist = async (libraryId: string, artist: Artist, transaction: Pris
 		},
 	});
 
-	transaction.push(
-		confDb.artist.upsert({
-			where: {
-				id: artist.id,
-			},
-			create: artistInsert,
-			update: artistInsert,
-		})
-	);
+	// transaction.push(
+	await	confDb.artist.upsert({
+		where: {
+			id: artist.id,
+		},
+		create: artistInsert,
+		update: artistInsert,
+	});
+	// );
 };
 
 const createAlbum = async (
@@ -264,15 +264,15 @@ const createAlbum = async (
 		},
 	});
 
-	transaction.push(
-		confDb.album.upsert({
-			where: {
-				id: album.id,
-			},
-			create: albumInsert,
-			update: albumInsert,
-		})
-	);
+	// transaction.push(
+	await	confDb.album.upsert({
+		where: {
+			id: album.id,
+		},
+		create: albumInsert,
+		update: albumInsert,
+	});
+	// );
 
 	for (const track of album.mediums) {
 		await createTrack(track, artist, album, file, recordingID, title, transaction);
@@ -335,15 +335,15 @@ const createTrack = async (
 		},
 	});
 
-	transaction.push(
-		confDb.track.upsert({
-			where: {
-				id: recordingID,
-			},
-			create: trackInsert,
-			update: trackInsert,
-		})
-	);
+	// transaction.push(
+	await	confDb.track.upsert({
+		where: {
+			id: recordingID,
+		},
+		create: trackInsert,
+		update: trackInsert,
+	});
+	// );
 
 	const recordingInfoFile = join(cachePath, 'temp', `recordingInfo_${recordingID}.json`);
 
@@ -365,7 +365,7 @@ const createTrack = async (
 		sleep(2000);
 	}
 
-	response?.genres.map((genre) => {
+	for (const genre of response?.genres ?? []) {
 		const genreInsert = Prisma.validator<Prisma.MusicGenreCreateInput>()({
 			id: genre.id,
 			name: genre.name,
@@ -376,16 +376,16 @@ const createTrack = async (
 			},
 		});
 
-		transaction.push(
-			confDb.musicGenre.upsert({
-				where: {
-					id: genre.id,
-				},
-				create: genreInsert,
-				update: genreInsert,
-			})
-		);
-	});
+		// transaction.push(
+		await	confDb.musicGenre.upsert({
+			where: {
+				id: genre.id,
+			},
+			create: genreInsert,
+			update: genreInsert,
+		});
+		// );
+	};
 };
 
 const getArtistImage = async (folder: string, artist: Artist) => {
@@ -647,7 +647,7 @@ const filterRecordings = (data: Recording[], file: ParsedFileList, parsedFiles: 
 	return recording;
 };
 
-const createFile = (
+const createFile = async (
 	data: Recording,
 	file: ParsedFileList,
 	libraryId: string,
@@ -660,68 +660,68 @@ const createFile = (
 			return obj;
 		}, <Prisma.FileCreateWithoutEpisodeInput>{});
 
-	transaction.push(
-		confDb.file.upsert({
-			where: {
-				path_libraryId: {
-					libraryId: libraryId,
-					path: file.path,
+	// transaction.push(
+	await	confDb.file.upsert({
+		where: {
+			path_libraryId: {
+				libraryId: libraryId,
+				path: file.path,
+			},
+		},
+		create: {
+			...newFile,
+			episodeFolder: file.musicFolder!,
+			year: file.year
+				? file.year
+				: null,
+			sources: JSON.stringify(file.sources),
+			revision: JSON.stringify(file.revision),
+			languages: JSON.stringify(file.languages),
+			edition: JSON.stringify(file.edition),
+			ffprobe: (file.ffprobe as AudioFFprobe)
+				? JSON.stringify(file.ffprobe as AudioFFprobe)
+				: null,
+			chapters: JSON.stringify([]),
+			seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
+			episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
+			Library: {
+				connect: {
+					id: libraryId,
 				},
 			},
-			create: {
-				...newFile,
-				episodeFolder: file.musicFolder!,
-				year: file.year
-					? file.year
-					: null,
-				sources: JSON.stringify(file.sources),
-				revision: JSON.stringify(file.revision),
-				languages: JSON.stringify(file.languages),
-				edition: JSON.stringify(file.edition),
-				ffprobe: (file.ffprobe as AudioFFprobe)
-					? JSON.stringify(file.ffprobe as AudioFFprobe)
-					: null,
-				chapters: JSON.stringify([]),
-				seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
-				episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
-				Library: {
-					connect: {
-						id: libraryId,
-					},
-				},
-				Album: {
-					connect: {
-						id: data.id,
-					},
+			Album: {
+				connect: {
+					id: data.id,
 				},
 			},
-			update: {
-				...newFile,
-				episodeFolder: file.musicFolder!,
-				year: file.year
-					? file.year
-					: null,
-				sources: JSON.stringify(file.sources),
-				revision: JSON.stringify(file.revision),
-				languages: JSON.stringify(file.languages),
-				edition: JSON.stringify(file.edition),
-				ffprobe: (file.ffprobe as AudioFFprobe)
-					? JSON.stringify(file.ffprobe as AudioFFprobe)
-					: null,
-				chapters: JSON.stringify([]),
-				seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
-				episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
-				Library: {
-					connect: {
-						id: libraryId,
-					},
-				},
-				Album: {
-					connect: {
-						id: data.id,
-					},
+		},
+		update: {
+			...newFile,
+			episodeFolder: file.musicFolder!,
+			year: file.year
+				? file.year
+				: null,
+			sources: JSON.stringify(file.sources),
+			revision: JSON.stringify(file.revision),
+			languages: JSON.stringify(file.languages),
+			edition: JSON.stringify(file.edition),
+			ffprobe: (file.ffprobe as AudioFFprobe)
+				? JSON.stringify(file.ffprobe as AudioFFprobe)
+				: null,
+			chapters: JSON.stringify([]),
+			seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
+			episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
+			Library: {
+				connect: {
+					id: libraryId,
 				},
 			},
-		})
-	);
+			Album: {
+				connect: {
+					id: data.id,
+				},
+			},
+		},
+	});
+	// );
 };

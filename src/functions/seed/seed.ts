@@ -1,13 +1,14 @@
-import { folders } from '../../../folderRoots';
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
-import Logger from '../../functions/logger';
-import { musicGenres } from '../../providers/musicbrainz/genre';
-import certifications from '../../providers/tmdb/certification/index';
-import { countries, languages } from '../../providers/tmdb/config/index';
-import genres from '../../providers/tmdb/genres/index';
-import storeConfig from '../storeConfig';
 import { configData, encoderProfiles, libraries, notificationData } from './data';
+import { countries, languages } from '../../providers/tmdb/config/index';
+
+import Logger from '../../functions/logger';
+import { Prisma } from '../../database/config/client';
+import certifications from '../../providers/tmdb/certification/index';
+import { confDb } from '../../database/config';
+import { folders } from '../../../folderRoots';
+import genres from '../../providers/tmdb/genres/index';
+import { musicGenres } from '../../providers/musicbrainz/genre';
+import storeConfig from '../storeConfig';
 
 export const seed = async () => {
 	Logger.log({
@@ -187,9 +188,14 @@ export const seed = async () => {
 
 	const users = await confDb.user.findMany();
 
+
+	await confDb.$transaction(transaction)
+		.catch(error => console.log(error));
+
+
 	for (const library of libraries) {
 
-		const libraryInsert = Prisma.validator<Prisma.LibraryUpdateInput>()({
+		const libraryInsert = Prisma.validator<Prisma.LibraryUncheckedUpdateInput>()({
 			id: library.id,
 			title: library.title,
 			autoRefreshInterval: library.autoRefreshInterval,
@@ -227,23 +233,33 @@ export const seed = async () => {
 					},
 				})),
 			},
+			EncoderProfiles: {
+				connectOrCreate: {
+					create: {
+						encoderProfileId: 'clftcfuqj000oefz8p2eclwqq',
+					},
+					where: {
+						libraryId_encoderProfileId: {
+							encoderProfileId: 'clftcfuqj000oefz8p2eclwqq',
+							libraryId: library.id,
+						},
+					},
+				},
+			},
 			country: 'NL',
 			language: 'nl',
 		});
 
-		transaction.push(
-			confDb.library.upsert({
-				where: {
-					id: library.id,
-				},
-				create: libraryInsert,
-				update: libraryInsert,
-			})
-		);
+		// transaction.push(
+		await	confDb.library.upsert({
+			where: {
+				id: library.id,
+			},
+			create: libraryInsert,
+			update: libraryInsert,
+		});
+		// );
 	}
-
-	await confDb.$transaction(transaction)
-		.catch(error => console.log(error));
 
 };
 

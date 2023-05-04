@@ -202,6 +202,7 @@ export default async function (req: Request, res: Response) {
 				cover: playlist.cover,
 				created_at: playlist.created_at,
 				updated_at: playlist.updated_at,
+				colorPalette: JSON.parse(playlist.colorPalette ?? '{}'),
 				type: 'playlist',
 			};
 		} else if (playlists.some(a => a.Playlist.name.toLowerCase().includes(query.toLowerCase()))) {
@@ -216,6 +217,7 @@ export default async function (req: Request, res: Response) {
 					cover: playlist.cover,
 					created_at: playlist.created_at,
 					updated_at: playlist.updated_at,
+					colorPalette: JSON.parse(playlist.colorPalette ?? '{}'),
 					type: 'playlist',
 				};
 			}
@@ -235,6 +237,7 @@ export default async function (req: Request, res: Response) {
 						name: t.name.replace(/["'\[\]*]/gu, ''),
 						title_sort: createTitleSort(t.name.replace(/["'\[\]*]/gu, '')),
 						origin: deviceId,
+						colorPalette: JSON.parse(t.colorPalette ?? '{}'),
 					};
 				}),
 			},
@@ -253,6 +256,7 @@ export default async function (req: Request, res: Response) {
 						Artist: t.Artist,
 						Album: t.Album,
 						cover: t.Album[0]?.cover ?? t.Artist[0]?.cover,
+						colorPalette: JSON.parse(t.Album[0]?.colorPalette ?? t.Artist[0]?.colorPalette ?? '{}'),
 					};
 				}),
 			},
@@ -266,6 +270,7 @@ export default async function (req: Request, res: Response) {
 						Track: undefined,
 						Artist: a.Artist,
 						items: a.Track,
+						colorPalette: JSON.parse(a.colorPalette ?? '{}'),
 					};
 				}), 'name'),
 			},
@@ -287,6 +292,7 @@ export default async function (req: Request, res: Response) {
 						moreLink: '',
 						Track: undefined,
 						items: p.Track,
+						colorPalette: JSON.parse(playlist.colorPalette ?? '{}'),
 					};
 				}), 'playlistId'),
 			},

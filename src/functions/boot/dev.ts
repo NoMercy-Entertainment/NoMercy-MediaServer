@@ -1,40 +1,211 @@
-// import { AppState, useSelector } from '@/state/redux';
-
-
-// import { Store } from '../ffmpeg/store';
-// import ripper from '../ripper';
-
-
-// import ChromecastAPI from 'chromecast-api';
-// import Device from 'chromecast-api/lib/device';
-// import { OnDemand } from '../ffmpeg/onDemand';
+import { confDb } from '@/database/config';
+import { unique } from '../stringArray';
+import { writeFileSync } from 'fs';
 
 export default async () => {
 
+	const posters: {title: string; src: string}[] = [];
+	const backdrops: {title: string; src: string}[] = [];
+	const profiles: {title: string; src: string}[] = [];
+
+	await confDb.media.findMany({
+		where: {
+			type: 'poster',
+			tvId: {
+				not: null,
+			},
+		},
+		take: 250,
+		include: {
+			Tv: true,
+		},
+		orderBy: {
+			voteAverage: 'desc',
+		},
+	}).then((data) => {
+		unique(data, 'tvId').forEach((d) => {
+			if (d.src) {
+				posters.push({
+					title: d.Tv!.title,
+					src: d.src,
+				});
+			}
+		});
+	});
+	await confDb.media.findMany({
+		where: {
+			type: 'poster',
+			movieId: {
+				not: null,
+			},
+		},
+		take: 250,
+		include: {
+			Movie: true,
+		},
+		orderBy: {
+			voteAverage: 'desc',
+		},
+	}).then((data) => {
+		unique(data, 'movieId').forEach((d) => {
+			if (d.src) {
+				posters.push({
+					title: d.Movie!.title,
+					src: d.src,
+				});
+			}
+		});
+	});
+	await confDb.media.findMany({
+		where: {
+			type: 'backdrop',
+			tvId: {
+				not: null,
+			},
+		},
+		take: 250,
+		include: {
+			Tv: true,
+		},
+		orderBy: {
+			voteAverage: 'desc',
+		},
+	}).then((data) => {
+		unique(data, 'tvId').forEach((d) => {
+			if (d.src) {
+				backdrops.push({
+					title: d.Tv!.title,
+					src: d.src,
+				});
+			}
+		});
+	});
+	await confDb.media.findMany({
+		where: {
+			type: 'backdrop',
+			movieId: {
+				not: null,
+			},
+		},
+		take: 250,
+		include: {
+			Movie: true,
+		},
+		orderBy: {
+			voteAverage: 'desc',
+		},
+	}).then((data) => {
+		unique(data, 'movieId').forEach((d) => {
+			if (d.src) {
+				backdrops.push({
+					title: d.Movie!.title,
+					src: d.src,
+				});
+			}
+		});
+	});
+	await confDb.media.findMany({
+		where: {
+			type: 'profile',
+			personId: {
+				not: null,
+			},
+		},
+		include: {
+			Person: true,
+		},
+		take: 500,
+		orderBy: {
+			voteAverage: 'desc',
+		},
+	}).then((data) => {
+		unique(data, 'personId').forEach((d) => {
+			if (d.src) {
+				profiles.push({
+					title: d.Person!.name!,
+					src: d.src,
+				});
+			}
+		});
+	});
+
+	writeFileSync('figmaData.json', JSON.stringify({ posters, backdrops, profiles }));
+
+
 	// const folder = 'D:/TV.Shows/Download/NCIS.(2003)';
-	// const file = 'D:/TV.Shows/Download/NCIS.(2003)/NCIS.S19E01.Blood.in.the.Water.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv';
-	// const file2 = 'D:/TV.Shows/Download/NCIS.(2003)/NCIS.S19E02.Nearly.Departed.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv';
+	// const libraryId = 'cl7i4km1o0008qwef7qwdapxe';
 
-	// const episodes = [
-	// 	{
-	// 		EpisodeId: '1',
-	// 		title: 'NCIS',
-	// 		path: file,
+	// const library = await confDb.library.findFirst({
+	// 	where: {
+	// 		id: libraryId,
 	// 	},
-	// 	{
-	// 		EpisodeId: '2',
-	// 		title: 'NCIS',
-	// 		path: file2,
+	// 	include: {
+	// 		EncoderProfiles: {
+	// 			include: {
+	// 				EncoderProfile: true,
+	// 			},
+	// 		},
+	// 		Folders: {
+	// 			include: {
+	// 				folder: true,
+	// 			},
+	// 		},
 	// 	},
-	// ];
+	// });
 
-	// const episodes = readdirSync(folder).map((f, index) => {
+	// const episodes = readdirSync(folder)
+	// 	.map((f) => {
+	// 		return {
+	// 			path: `${folder}/${f}`,
+	// 		};
+	// 	})
+	// 	.filter(f => f.path.endsWith('.mkv'));
+
+	// for (const episode of episodes) {
+	// 	try {
+	// 		const onDemand = new FFMpegArchive();
+
+	// 		onDemand.setLibrary(library!);
+	// 		await onDemand.fromFile(episode.path);
+
+	// 		onDemand
+	// 			.verify()
+	// 			.makeStack()
+	// 			// .check();
+
+	// 		if (onDemand.commands.length == 0) {
+	// 			console.error('No commands to execute');
+	// 		} else {
+	// 			await onDemand.start(() => onDemand.buildSprite());
+	// 		}
+	// 	} catch (e) {
+	// 		console.error(e);
+	// 	}
+	// };
+
+
+	// const folder = 'D:/TV.Shows/Download/NCIS.(2003)';
+	// const episodes = readdirSync(folder).map((f) => {
 	// 	return {
-	// 		EpisodeId: index.toString(),
-	// 		title: 'NCIS',
 	// 		path: `${folder}/${f}`,
 	// 	};
 	// });
+	// await Promise.all([
+	// await encodeFolder({ folder: 'M:/Films/Films/Cosmos.Laundromat.(2015)/original', libraryId: 'cl7i4km1o0006qwefdx5neusi' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/NCIS.(2003)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/Family.Guy.(1999)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/Love.Death.and.Robots.(2019)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/American.Dad.(2005)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/Rick.and.Morty.(2013)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/South.Park.(1997)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/The.Blacklist.(2013)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/The.Sandman.(2022)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/The.Cleveland.Show.(2009)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/Scooby-Doo.and.Scrappy-Doo.(1979)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/Popeye.the.Sailor.(1960)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/Dexter\'s.Laboratory.(1996)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// await encodeFolder({ folder: 'D:/TV.Shows/Download/NCIS.New.Orleans.(2014)', libraryId: 'cl7i4km1o0008qwef7qwdapxe' });
+	// ]);
 
 	// const fp = new FFmpegWrapper();
 
@@ -46,24 +217,27 @@ export default async () => {
 	// 	console.log(fp);
 	// }
 
-	// execSync('C:/Users/Stoney/AppData/Local/NoMercy/root/binaries/ffmpeg.exe -hide_banner -i "D:/TV.Shows/Download/NCIS.(2003)/NCIS.S19E01.Blood.in.the.Water.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv" -filter_complex "select=\'gt(scene,0.3)\',metadata=print:file=-" -f null - > output.txt 2>&1');
-
 	// ripper();
 
-	// const onDemand = new Store();
+	// const library = await confDb.library.findFirst({
+	// 	where: {
+	// 		id: 'cl7i4km1o0008qwef7qwdapxe',
+	// 	},
+	// 	include: {
+	// 		EncoderProfiles: {
+	// 			include: {
+	// 				EncoderProfile: true,
+	// 			},
+	// 		},
+	// 		Folders: {
+	// 			include: {
+	// 				folder: true,
+	// 			},
+	// 		},
+	// 	},
+	// });
 
-	// await onDemand.fromFile('C:/Media/Marvels/Films/Download/Iron.Man.2.2010.2160p.US.BluRay.REMUX.HEVC.DTS-HD.MA.TrueHD.7.1.Atmos-FGT/Iron.Man.2.2010.2160p.US.BluRay.REMUX.HEVC.DTS-HD.MA.TrueHD.7.1.Atmos-FGT.mkv');
-
-	// onDemand
-	// 	// .enableDebug()
-	// 	.verifyHLS()
-	// 	.makeStack()
-	// 	.check()
-	// 	.start(() => onDemand.buildSprite());
-
-	// const transaction = new Array<Prisma.Prisma__MediaClient<Media, never>>();
-
-	// confDb.media.findMany({
+	// confDb.similar.findMany({
 	// 	where: {
 	// 		OR: [
 	// 			{
@@ -73,22 +247,48 @@ export default async () => {
 	// 				colorPalette: null,
 	// 			},
 	// 		],
-	// 		src: {
-	// 			startsWith: '/',
-	// 		},
 	// 	},
 	// })
-	// 	.then(async (images) => {
+	// 	.then(async (shows) => {
 
-	// 		console.log(`Found ${images.length} images to make blurHashes for`);
+	// 		console.log(`Found ${shows.length} images to make blurHashes for`);
 
-	// 		for (const image of images) {
-	// 			console.log(`Making blurHash: ${image.src}`);
-	// 			await downloadAndHash({
-	// 				src: image.src,
-	// 				table: 'media',
-	// 				column: 'src',
-	// 				type: image.type! as 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
+	// 		for (const tv of shows) {
+	// 			console.log(`Making blurHash: ${tv.poster}`);
+
+	// 			const palette: any = {
+	// 				poster: undefined,
+	// 				backdrop: undefined,
+	// 			};
+
+	// 			const blurHash: any = {
+	// 				poster: undefined,
+	// 				backdrop: undefined,
+	// 			};
+
+	// 			await Promise.all([
+	// 				tv.poster && createBlurHash(`https://image.tmdb.org/t/p/w185${tv.poster}`).then((hash) => {
+	// 					blurHash.poster = hash;
+	// 				}),
+	// 				tv.backdrop && createBlurHash(`https://image.tmdb.org/t/p/w185${tv.backdrop}`).then((hash) => {
+	// 					blurHash.backdrop = hash;
+	// 				}),
+	// 				tv.poster && colorPalette(`https://image.tmdb.org/t/p/w185${tv.poster}`).then((hash) => {
+	// 					palette.poster = hash;
+	// 				}),
+	// 				tv.backdrop && colorPalette(`https://image.tmdb.org/t/p/w185${tv.backdrop}`).then((hash) => {
+	// 					palette.backdrop = hash;
+	// 				}),
+	// 			]);
+
+	// 			await confDb.similar.update({
+	// 				where: {
+	// 					id: tv.id,
+	// 				},
+	// 				data: {
+	// 					colorPalette: JSON.stringify(palette),
+	// 					blurHash: JSON.stringify(blurHash),
+	// 				},
 	// 			});
 	// 		};
 	// 	})

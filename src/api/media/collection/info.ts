@@ -1,15 +1,30 @@
 /* eslint-disable indent */
 
-import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
-
-import { confDb } from '../../../database/config';
 import {
-	AlternativeTitles, Certification, CertificationMovie, Collection, CollectionMovie, Crew, Genre,
-	GenreMovie, Keyword, KeywordMovie, Library, Media, Movie, Person, Prisma, SpecialItem, UserData,
+	AlternativeTitles,
+	Certification,
+	CertificationMovie,
+	Collection,
+	CollectionMovie,
+	Crew,
+	Genre,
+	GenreMovie,
+	Keyword,
+	KeywordMovie,
+	Library,
+	Media,
+	Movie,
+	Person,
+	Prisma,
+	SpecialItem,
+	UserData,
 	VideoFile
 } from '../../../database/config/client';
+import { Request, Response } from 'express';
+
+import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../../functions/logger';
+import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { getLanguage } from '../../middleware';
 import { isOwner } from '../../middleware/permissions';
@@ -124,6 +139,9 @@ const getContent = async (data: MovieWithInfo, language: string) => {
 		blurHash: data.blurHash
 			? JSON.parse(data.blurHash)
 			: null,
+		colorPalette: data.colorPalette
+			? JSON.parse(data.colorPalette)
+			: null,
 		collection: data.Parts?.map((c) => {
 			if (!c.Movie) return;
 			return {
@@ -137,6 +155,9 @@ const getContent = async (data: MovieWithInfo, language: string) => {
 				logo: c.Movie?.[0]?.Media?.find(m => m.type == 'logo')?.src,
 				blurHash: c.Movie?.blurHash
 					? JSON.parse(c.Movie?.blurHash)
+					: null,
+				colorPalette: c.Movie?.colorPalette
+					? JSON.parse(c.Movie?.colorPalette)
 					: null,
 			};
 		}),

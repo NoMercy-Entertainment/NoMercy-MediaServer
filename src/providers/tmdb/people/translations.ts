@@ -8,7 +8,7 @@ export interface PersonTranslations {
 interface PersonTranslation extends Translation {
 	data: {
 		name: string;
-		overview: string;
 		homepage: string;
+		biography: string;
 	};
 }

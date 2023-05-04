@@ -1,11 +1,12 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
-import createBlurHash from '../../functions/createBlurHash';
-import { Movie } from '../../providers/tmdb/movie/index';
-import { TvShow } from '../../providers/tmdb/tv/index';
-import { createTitleSort } from '../../tasks/files/filenameParser';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
+import { Movie } from '../../providers/tmdb/movie/index';
+import { Prisma } from '../../database/config/client';
+import { TvShow } from '../../providers/tmdb/tv/index';
+import colorPalette from '@/functions/colorPalette/colorPalette';
+import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash';
+import { createTitleSort } from '../../tasks/files/filenameParser';
 
 export default async (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
@@ -27,14 +28,30 @@ export default async (
 
 	for (const recommendation of req.recommendations.results as Array<Movie | TvShow>) {
 
-		const blurHash = {
-			poster: recommendation.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.poster_path}`)
-				: undefined,
-			backdrop: recommendation.backdrop_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`)
-				: undefined,
+		const palette: any = {
+			poster: undefined,
+			backdrop: undefined,
 		};
+
+		const blurHash: any = {
+			poster: undefined,
+			backdrop: undefined,
+		};
+
+		await Promise.all([
+			recommendation.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.poster_path}`).then((hash) => {
+				blurHash.poster = hash;
+			}),
+			recommendation.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`).then((hash) => {
+				blurHash.backdrop = hash;
+			}),
+			recommendation.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${recommendation.poster_path}`).then((hash) => {
+				palette.poster = hash;
+			}),
+			recommendation.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`).then((hash) => {
+				palette.backdrop = hash;
+			}),
+		]);
 
 		const recommendationInsert = Prisma.validator<Prisma.RecommendationUncheckedCreateInput>()({
 			backdrop: recommendation.backdrop_path,
@@ -42,6 +59,7 @@ export default async (
 			overview: recommendation.overview,
 			poster: recommendation.poster_path,
 			blurHash: JSON.stringify(blurHash),
+			colorPalette: JSON.stringify(palette),
 			movieFromId: table === 'movie'
 				? req.id
 				: undefined,
@@ -58,17 +76,17 @@ export default async (
 			titleSort: createTitleSort((recommendation as TvShow).name ?? (recommendation as Movie).title),
 		});
 
-		transaction.push(
-			confDb.recommendation.upsert({
-				where: {
-					[`${table}FromId_mediaId`]: {
-						[`${table}FromId`]: req.id,
-						mediaId: recommendation.id,
-					},
+		// transaction.push(
+		await	confDb.recommendation.upsert({
+			where: {
+				[`${table}FromId_mediaId`]: {
+					[`${table}FromId`]: req.id,
+					mediaId: recommendation.id,
 				},
-				update: recommendationInsert,
-				create: recommendationInsert,
-			})
-		);
+			},
+			update: recommendationInsert,
+			create: recommendationInsert,
+		});
+		// );
 	}
 };

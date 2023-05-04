@@ -1,11 +1,12 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
+import { downloadAndHash, image } from './image';
+
+import { CompleteTvAggregate } from './fetchTvShow';
 import Logger from '../../functions/logger';
+import { Prisma } from '../../database/config/client';
 import aggregateCast from './aggregateCast';
 import aggregateCrew from './aggregateCrew';
+import { confDb } from '../../database/config';
 import episode from './episode';
-import { CompleteTvAggregate } from './fetchTvShow';
-import { downloadAndHash, image } from './image';
 import translation from './translation';
 
 const season = async (
@@ -52,19 +53,19 @@ const season = async (
 			},
 		});
 
-		transaction.push(
-			confDb.season.upsert({
-				where: {
-					id: season.id,
-				},
-				update: seasonsInsert,
-				create: seasonsInsert,
-			})
-		);
+		// transaction.push(
+		await	confDb.season.upsert({
+			where: {
+				id: season.id,
+			},
+			update: seasonsInsert,
+			create: seasonsInsert,
+		});
+		// );
 
 		await episode(tv.id, season, transaction, people);
 
-		translation(season, transaction, 'season');
+		await translation(season, transaction, 'season');
 		await image(season, transaction, 'poster', 'season');
 
 		if (season.poster_path) {
@@ -73,7 +74,6 @@ const season = async (
 				table: 'season',
 				column: 'poster',
 				type: 'season',
-				only: ['blurHash'],
 			});
 		}
 	}

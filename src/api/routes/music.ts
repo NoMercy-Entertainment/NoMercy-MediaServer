@@ -23,14 +23,11 @@ const router = express.Router();
 
 router.post('/', music);
 
-router.post('/albums', musicAlbums);
-router.post('/album/:id', musicAlbum);
-
-router.post('/artists', musicArtists);
-router.post('/artist/:id', musicArtist);
-
 router.post('/genres', musicGenres);
 router.post('/genre/:id', musicGenre);
+
+router.post('/album/:id', musicAlbum);
+router.post('/artist/:id', musicArtist);
 
 router.post('/playlists', musicPlaylists);
 router.post('/playlist/:id', musicPlaylist);

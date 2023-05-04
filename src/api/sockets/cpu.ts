@@ -67,9 +67,10 @@ setInterval(() => {
 	info = info.slice(info.length - threads, info.length);
 }, 1000);
 
-let watcher: string | number | NodeJS.Timeout | undefined;
 
 export default (socket: { on: (arg0: string, arg1: { (): void; (): void; (): void; }) => void; emit: (arg0: string, arg1: { model: any; os: any; threads: number; platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'; memUsage: number; memTotal: number; sysUptime: any; Uptime: any; coreUtil: never[]; }) => void; }, io: any) => {
+
+	let watcher: string | number | NodeJS.Timeout | undefined;
 	clearInterval(watcher);
 
 	socket.on('disconnect', () => {

@@ -1,8 +1,10 @@
-import { confDb } from '../../database/config';
+import { CompleteMovieAggregate } from './fetchMovie';
+import { Movie } from '@/providers/tmdb/movie';
 import { Prisma } from '../../database/config/client';
+import colorPalette from '@/functions/colorPalette';
+import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash';
 import { createTitleSort } from '../../tasks/files/filenameParser';
-import { CompleteMovieAggregate } from './fetchMovie';
 
 const collection = async (
 	movie: CompleteMovieAggregate,
@@ -11,14 +13,70 @@ const collection = async (
 ) => {
 	const collection = movie.collection;
 
-	const blurHash = {
-		poster: collection.poster_path
-			? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.poster_path}`)
-			: undefined,
-		backdrop: collection.backdrop_path
-			? await createBlurHash(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`)
-			: undefined,
+	const palette: any = {
+		poster: undefined,
+		backdrop: undefined,
 	};
+
+	const blurHash: any = {
+		poster: undefined,
+		backdrop: undefined,
+	};
+
+	await Promise.all([
+		collection.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${collection.poster_path}`).then((hash) => {
+			blurHash.poster = hash;
+		}),
+		collection.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`).then((hash) => {
+			blurHash.backdrop = hash;
+		}),
+		collection.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${collection.poster_path}`).then((hash) => {
+			palette.poster = hash;
+		}),
+		collection.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`).then((hash) => {
+			palette.backdrop = hash;
+		}),
+	]);
+
+	const parts: (Movie & {
+		blurHash: string;
+		colorPalette: string;
+	})[] = [];
+
+	for (const p of collection.parts) {
+
+		const palette: any = {
+			poster: undefined,
+			backdrop: undefined,
+		};
+
+		const blurHash: any = {
+			poster: undefined,
+			backdrop: undefined,
+		};
+
+		await Promise.all([
+			p.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${p.poster_path}`).then((hash) => {
+				blurHash.poster = hash;
+			}),
+			p.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`).then((hash) => {
+				blurHash.backdrop = hash;
+			}),
+			p.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${p.poster_path}`).then((hash) => {
+				palette.poster = hash;
+			}),
+			p.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`).then((hash) => {
+				palette.backdrop = hash;
+			}),
+		]);
+
+		parts.push({
+			...p,
+			blurHash: JSON.stringify(blurHash),
+			colorPalette: JSON.stringify(palette),
+		});
+
+	}
 
 	const collectionInsert = Prisma.validator<Prisma.CollectionUncheckedCreateInput>()({
 		backdrop: collection.backdrop_path,
@@ -27,12 +85,13 @@ const collection = async (
 		parts: collection.parts.length,
 		poster: collection.poster_path,
 		blurHash: JSON.stringify(blurHash),
+		colorPalette: JSON.stringify(palette),
 		title: collection.name,
 		titleSort: createTitleSort(collection.name),
 		libraryId: libraryId,
 		movieId: movie.id,
 		Parts: {
-			connectOrCreate: collection.parts.map((p) => {
+			connectOrCreate: parts.map((p) => {
 				return {
 					where: {
 						collectionId_movieId: {
@@ -50,7 +109,8 @@ const collection = async (
 									id: p.id,
 									adult: p.adult,
 									backdrop: p.backdrop_path,
-									blurHash: JSON.stringify(blurHash),
+									blurHash: p.blurHash,
+									colorPalette: p.colorPalette,
 									originalLanguage: p.original_language,
 									originalTitle: p.original_title,
 									overview: p.overview,
@@ -105,15 +165,15 @@ const collection = async (
 		},
 	});
 
-	transaction.push(
-		confDb.collection.upsert({
-			where: {
-				id: collection.id,
-			},
-			update: collectionInsert,
-			create: collectionInsert,
-		})
-	);
+	// transaction.push(
+	await	confDb.collection.upsert({
+		where: {
+			id: collection.id,
+		},
+		update: collectionInsert,
+		create: collectionInsert,
+	});
+	// );
 
 	// for (const p of collection.parts) {
 

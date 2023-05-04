@@ -3,6 +3,7 @@ import { KAuthRequest } from 'types/keycloak';
 
 import { confDb } from '../../../database/config';
 import { VideoFile } from '../../../database/config/client';
+import { AppState, useSelector } from '@/state/redux';
 
 export default async function (req: Request, res: Response) {
 	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
@@ -84,6 +85,8 @@ export default async function (req: Request, res: Response) {
 		},
 	})
 		.then((data) => {
+			const socket = useSelector((state: AppState) => state.system.socket);
+			socket.emit('update_content', ['favorites']);
 			return res.json({
 				status: 'ok',
 				data: data,

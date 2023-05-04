@@ -1,20 +1,20 @@
 /* eslint-disable indent */
 
-import { Request, Response } from 'express';
-import i18next from 'i18next';
-
-import { confDb } from '../../../database/config';
 import { Image, Prisma } from '../../../database/config/client';
-import createBlurHash from '../../../functions/createBlurHash';
-import Logger from '../../../functions/logger';
-import { groupBy } from '../../../functions/stringArray';
-import { movie } from '../../../providers/tmdb/movie';
-import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { KAuthRequest } from '../../../types/keycloak';
+import { MovieWithInfo, getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helpers';
+import { Request, Response } from 'express';
+
 import { InfoResponse } from '../../../types/server';
+import { KAuthRequest } from '../../../types/keycloak';
+import Logger from '../../../functions/logger';
+import { confDb } from '../../../database/config';
+import createBlurHash from '../../../functions/createBlurHash';
+import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { getLanguage } from '../../middleware';
+import { groupBy } from '../../../functions/stringArray';
+import i18next from 'i18next';
 import { isOwner } from '../../middleware/permissions';
-import { getFromDepartmentMap, imageMap, MovieWithInfo, peopleMap, relatedMap } from '../helpers';
+import { movie } from '../../../providers/tmdb/movie';
 
 export default function (req: Request, res: Response) {
 
@@ -84,7 +84,7 @@ const getContent = async (
 	const overview = translations.find(t => t.movieId == data.id)?.overview || data.overview;
 
 	const logos = groupedMedia.logo?.map((i: Image) => ({ ...i, colorPalette: JSON.parse(i.colorPalette ?? '{}') })) ?? [];
-	const hash = JSON.parse(data.blurHash ?? '{}');
+	const palette = JSON.parse(data.colorPalette ?? '{}');
 
 	const response: InfoResponse = {
 		id: data.id,
@@ -92,10 +92,10 @@ const getContent = async (
 		overview: overview,
 		poster: data.poster,
 		backdrop: data.backdrop,
-		blurHash: {
-			logo: logos[0]?.blurHash ?? null,
-			poster: hash?.poster ?? null,
-			backdrop: hash?.backdrop ?? null,
+		colorPalette: {
+			logo: logos[0]?.colorPalette,
+			poster: palette?.poster ?? null,
+			backdrop: palette?.backdrop ?? null,
 		},
 		videos: groupedMedia.Trailer?.map((v) => {
 			return {

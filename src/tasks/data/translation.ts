@@ -1,14 +1,14 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
+import { CompleteMovieAggregate } from './fetchMovie';
+import { CompleteTvAggregate } from './fetchTvShow';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
 import { MovieTranslation } from '../../providers/tmdb/movie/index';
 import { PersonAppend } from '../../providers/tmdb/people/details';
+import { Prisma } from '../../database/config/client';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
 import { TvShowTranslation } from '../../providers/tmdb/tv/index';
-import { CompleteMovieAggregate } from './fetchMovie';
-import { CompleteTvAggregate } from './fetchTvShow';
+import { confDb } from '../../database/config';
 
-export default (
+export default async (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | CompleteMovieAggregate | PersonAppend,
 	transaction: Prisma.PromiseReturnType<any>[],
 	table: 'movie' | 'tv' | 'season' | 'episode' | 'person'
@@ -41,75 +41,75 @@ export default (
 		});
 
 		if (table === 'tv') {
-			transaction.push(
-				confDb.translation.upsert({
-					where: {
-						tvId_iso31661_iso6391: {
-							tvId: req.id,
-							iso31661: translation.iso_3166_1,
-							iso6391: translation.iso_639_1,
-						},
+			// transaction.push(
+			await	confDb.translation.upsert({
+				where: {
+					tvId_iso31661_iso6391: {
+						tvId: req.id,
+						iso31661: translation.iso_3166_1,
+						iso6391: translation.iso_639_1,
 					},
-					update: translationsInsert,
-					create: translationsInsert,
-				})
-			);
+				},
+				update: translationsInsert,
+				create: translationsInsert,
+			});
+			// );
 		} else if (table === 'movie') {
-			transaction.push(
-				confDb.translation.upsert({
-					where: {
-						movieId_iso31661_iso6391: {
-							movieId: req.id,
-							iso31661: translation.iso_3166_1,
-							iso6391: translation.iso_639_1,
-						},
+			// transaction.push(
+			await	confDb.translation.upsert({
+				where: {
+					movieId_iso31661_iso6391: {
+						movieId: req.id,
+						iso31661: translation.iso_3166_1,
+						iso6391: translation.iso_639_1,
 					},
-					update: translationsInsert,
-					create: translationsInsert,
-				})
-			);
+				},
+				update: translationsInsert,
+				create: translationsInsert,
+			});
+			// );
 		} else if (table === 'season') {
-			transaction.push(
-				confDb.translation.upsert({
-					where: {
-						seasonId_iso31661_iso6391: {
-							seasonId: req.id,
-							iso31661: translation.iso_3166_1,
-							iso6391: translation.iso_639_1,
-						},
+			// transaction.push(
+			await	confDb.translation.upsert({
+				where: {
+					seasonId_iso31661_iso6391: {
+						seasonId: req.id,
+						iso31661: translation.iso_3166_1,
+						iso6391: translation.iso_639_1,
 					},
-					update: translationsInsert,
-					create: translationsInsert,
-				})
-			);
+				},
+				update: translationsInsert,
+				create: translationsInsert,
+			});
+			// );
 		} else if (table === 'episode') {
-			transaction.push(
-				confDb.translation.upsert({
-					where: {
-						episodeId_iso31661_iso6391: {
-							episodeId: req.id,
-							iso31661: translation.iso_3166_1,
-							iso6391: translation.iso_639_1,
-						},
+			// transaction.push(
+			await	confDb.translation.upsert({
+				where: {
+					episodeId_iso31661_iso6391: {
+						episodeId: req.id,
+						iso31661: translation.iso_3166_1,
+						iso6391: translation.iso_639_1,
 					},
-					update: translationsInsert,
-					create: translationsInsert,
-				})
-			);
+				},
+				update: translationsInsert,
+				create: translationsInsert,
+			});
+			// );
 		} else if (table === 'person') {
-		// 	transaction.push(
-		// 		confDb.translation.upsert({
-		// 			where: {
-		// 				personId_iso31661_iso6391: {
-		// 					personId: req.id,
-		// 					iso31661: translation.iso_3166_1,
-		// 					iso6391: translation.iso_639_1,
-		// 				},
-		// 			},
-		// 			update: translationsInsert,
-		// 			create: translationsInsert,
-		// 		})
-		// 	);
+			// transaction.push(
+			// await	confDb.translation.upsert({
+			// 	where: {
+			// 		personId_iso31661_iso6391: {
+			// 			personId: req.id,
+			// 			iso31661: translation.iso_3166_1,
+			// 			iso6391: translation.iso_639_1,
+			// 		},
+			// 	},
+			// 	update: translationsInsert,
+			// 	create: translationsInsert,
+			// });
+			// );
 		}
 	}
 };

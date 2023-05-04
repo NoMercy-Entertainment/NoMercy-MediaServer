@@ -15,4 +15,5 @@ export interface Cast {
 	order?: number;
 	credit_id: string;
 	character: string;
+	poster_path?: string | null;
 }

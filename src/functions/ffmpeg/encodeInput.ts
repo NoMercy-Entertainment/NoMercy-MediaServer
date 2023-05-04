@@ -1,5 +1,5 @@
 import { EP } from '@/tasks/files/filenameParser';
-import { Store } from '../../functions/ffmpeg/store';
+import { FFMpegArchive } from './archiver';
 import { confDb } from '../../database/config';
 
 // import { AppState, useSelector } from '@/state/redux';
@@ -57,7 +57,7 @@ export const encodeInput = async ({ id }: {id:number}) => {
 
 export const encodeEpisode = async ({ episode }: { episode: EP }) => {
 
-	const onDemand = new Store();
+	const onDemand = new FFMpegArchive();
 
 	await onDemand.fromDatabase(episode);
 

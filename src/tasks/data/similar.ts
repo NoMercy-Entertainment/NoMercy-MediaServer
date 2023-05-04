@@ -1,12 +1,13 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
-import createBlurHash from '../../functions/createBlurHash';
-import { unique } from '../../functions/stringArray';
-import { Movie } from '../../providers/tmdb/movie/index';
-import { TvShow } from '../../providers/tmdb/tv/index';
-import { createTitleSort } from '../../tasks/files/filenameParser';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
+import { Movie } from '../../providers/tmdb/movie/index';
+import { Prisma } from '../../database/config/client';
+import { TvShow } from '../../providers/tmdb/tv/index';
+import colorPalette from '@/functions/colorPalette/colorPalette';
+import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash';
+import { createTitleSort } from '../../tasks/files/filenameParser';
+import { unique } from '../../functions/stringArray';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[], table: 'movie' | 'tv') => {
 
@@ -24,14 +25,30 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 
 	for (const similar of unique<Movie | TvShow>(req.similar.results, 'id')) {
 
-		const blurHash = {
-			poster: similar.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${similar.poster_path}`)
-				: undefined,
-			backdrop: similar.backdrop_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`)
-				: undefined,
+		const palette: any = {
+			poster: undefined,
+			backdrop: undefined,
 		};
+
+		const blurHash: any = {
+			poster: undefined,
+			backdrop: undefined,
+		};
+
+		await Promise.all([
+			similar.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${similar.poster_path}`).then((hash) => {
+				blurHash.poster = hash;
+			}),
+			similar.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`).then((hash) => {
+				blurHash.backdrop = hash;
+			}),
+			similar.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${similar.poster_path}`).then((hash) => {
+				palette.poster = hash;
+			}),
+			similar.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`).then((hash) => {
+				palette.backdrop = hash;
+			}),
+		]);
 
 		const similarInsert = Prisma.validator<Prisma.SimilarUncheckedCreateInput>()({
 			backdrop: similar.backdrop_path,
@@ -41,6 +58,7 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			title: (similar as TvShow).name ?? (similar as Movie).title,
 			titleSort: createTitleSort((similar as TvShow).name ?? (similar as Movie).title),
 			blurHash: JSON.stringify(blurHash),
+			colorPalette: JSON.stringify(palette),
 			movieFromId: table === 'movie'
 				? req.id
 				: undefined,
@@ -55,17 +73,17 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 				: undefined,
 		});
 
-		transaction.push(
-			confDb.similar.upsert({
-				where: {
-					[`${table}FromId_mediaId`]: {
-						[`${table}FromId`]: req.id,
-						mediaId: similar.id,
-					},
+		// transaction.push(
+		await	confDb.similar.upsert({
+			where: {
+				[`${table}FromId_mediaId`]: {
+					[`${table}FromId`]: req.id,
+					mediaId: similar.id,
 				},
-				update: similarInsert,
-				create: similarInsert,
-			})
-		);
+			},
+			update: similarInsert,
+			create: similarInsert,
+		});
+		// );
 	}
 };

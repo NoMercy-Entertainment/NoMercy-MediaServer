@@ -141,6 +141,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 							Album: d.Album,
 							type: 'artist',
 							libraryId: d.Artist[0].libraryId,
+							colorPalette: JSON.parse(d.Artist[0].colorPalette ?? '{}'),
 						};
 					}
 					return {
@@ -148,6 +149,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 						Artist: d.Artist,
 						type: 'album',
 						libraryId: d.Album[0].libraryId,
+						colorPalette: JSON.parse(d.Album[0].colorPalette ?? '{}'),
 					};
 				}), 'id')
 				.filter((g: any) => {
@@ -198,6 +200,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 						name: m.name.replace(/["'\[\]*]/gu, ''),
 						title_sort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
 						origin: deviceId,
+						colorPalette: JSON.parse(m.colorPalette ?? '{}'),
 					};
 				}),
 		},
@@ -213,6 +216,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 						name: m.name.replace(/["'\[\]*]/gu, ''),
 						title_sort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
 						origin: deviceId,
+						colorPalette: JSON.parse(m.colorPalette ?? '{}'),
 					};
 				}),
 		},
@@ -226,6 +230,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 					name: m.name.replace(/["'\[\]*]/gu, ''),
 					title_sort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
 					origin: deviceId,
+					colorPalette: JSON.parse(m.colorPalette ?? '{}'),
 				};
 			}),
 		},

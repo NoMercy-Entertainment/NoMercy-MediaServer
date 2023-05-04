@@ -178,6 +178,7 @@ exports.Prisma.CollectionScalarFieldEnum = makeEnum({
   title: 'title',
   titleSort: 'titleSort',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   movieId: 'movieId',
   libraryId: 'libraryId'
 });
@@ -254,6 +255,7 @@ exports.Prisma.EpisodeScalarFieldEnum = makeEnum({
   voteAverage: 'voteAverage',
   voteCount: 'voteCount',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   tvId: 'tvId',
   seasonId: 'seasonId'
 });
@@ -413,6 +415,7 @@ exports.Prisma.LibraryScalarFieldEnum = makeEnum({
   country: 'country',
   language: 'language',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   created_at: 'created_at',
   updated_at: 'updated_at'
 });
@@ -557,6 +560,7 @@ exports.Prisma.MovieScalarFieldEnum = makeEnum({
   voteAverage: 'voteAverage',
   voteCount: 'voteCount',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   libraryId: 'libraryId'
 });
 
@@ -628,6 +632,7 @@ exports.Prisma.RecommendationScalarFieldEnum = makeEnum({
   title: 'title',
   titleSort: 'titleSort',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   mediaId: 'mediaId',
   tvFromId: 'tvFromId',
   tvToId: 'tvToId',
@@ -664,6 +669,7 @@ exports.Prisma.SeasonScalarFieldEnum = makeEnum({
   title: 'title',
   updatedAt: 'updatedAt',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   tvId: 'tvId'
 });
 
@@ -675,6 +681,7 @@ exports.Prisma.SimilarScalarFieldEnum = makeEnum({
   title: 'title',
   titleSort: 'titleSort',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   mediaId: 'mediaId',
   tvFromId: 'tvFromId',
   tvToId: 'tvToId',
@@ -703,6 +710,7 @@ exports.Prisma.SpecialScalarFieldEnum = makeEnum({
   poster: 'poster',
   title: 'title',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   libraryId: 'libraryId'
@@ -786,6 +794,7 @@ exports.Prisma.TvScalarFieldEnum = makeEnum({
   voteAverage: 'voteAverage',
   voteCount: 'voteCount',
   blurHash: 'blurHash',
+  colorPalette: 'colorPalette',
   libraryId: 'libraryId'
 });
 

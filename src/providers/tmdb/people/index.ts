@@ -21,7 +21,7 @@ export * from './trending';
 export * from './credits';
 export * from './person';
 
-export const personAppend = ['details', 'movie_credits', 'credits', 'tv_credits', 'external_ids', 'images', 'translations'] as const;
+export const personAppend = ['details', 'combined_credits', 'movie_credits', 'credits', 'tv_credits', 'external_ids', 'images', 'translations'] as const;
 
 export const person = async (id: number) => {
 	const params = {

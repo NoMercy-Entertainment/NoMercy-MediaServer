@@ -40,11 +40,11 @@ export default function (socket, io) {
 		});
 	});
 
+	video(socket);
 	audio(socket);
 	// content(socket, io);
 	dashboard(socket);
 	// progress(socket, io);
-	video(socket, io);
 	cpuStats(socket, io);
 
 	cast(socket);

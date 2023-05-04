@@ -1,8 +1,8 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
-import Logger from '../../functions/logger/logger';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
+import Logger from '../../functions/logger/logger';
+import { Prisma } from '../../database/config/client';
+import { confDb } from '../../database/config';
 import { image } from './image';
 import translation from './translation';
 
@@ -16,6 +16,7 @@ export default async (
 		color: 'magentaBright',
 		message: `Adding people for: ${(req as CompleteTvAggregate).name ?? (req as CompleteMovieAggregate).title}`,
 	});
+	// const transaction2: Prisma.PromiseReturnType<any>[] = [];
 	for (let i = 0; i < req.people.length; i++) {
 		const person = req.people[i];
 
@@ -48,9 +49,11 @@ export default async (
 			})
 		);
 
-		translation(person, transaction, 'person');
+		await translation(person, transaction, 'person');
 		await image(person, transaction, 'profile', 'person');
+
 	}
+	// await confDb.$transaction(transaction2).catch(e => console.log(e));
 
 	Logger.log({
 		level: 'info',

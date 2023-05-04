@@ -12,7 +12,6 @@ import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
 import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import { PaletteColors } from '@/types/server';
-import { checkDbLock } from '@/database';
 import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';
 import { imagesPath } from '@/state';
@@ -122,7 +121,7 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 							},
 						});
 
-						if (query?.blurHash && query?.colorPalette && existsSync(`${imagesPath}/${size}${newFile}`)) {
+						if (!file || (query?.blurHash && query?.colorPalette && existsSync(`${imagesPath}/${size}${newFile}`))) {
 							continue;
 						}
 
@@ -149,9 +148,9 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 				}
 			}
 
-			while (await checkDbLock()) {
-				//
-			}
+			// while (await checkDbLock()) {
+			// 	//
+			// }
 			await confDb.$transaction(transaction).catch(e => console.log(e));
 
 			resolve();

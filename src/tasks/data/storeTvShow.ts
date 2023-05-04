@@ -1,24 +1,26 @@
-import axios from 'axios';
+import { AppState, useSelector } from '@/state/redux';
 
-import { confDb } from '../../database/config';
+import Logger from '../../functions/logger';
+import Person from '../../providers/tmdb/people';
 import { Prisma } from '../../database/config/client';
 import { QueueJob } from '../../database/queue/client';
-import createBlurHash from '../../functions/createBlurHash';
-import { parseYear } from '../../functions/dateTime';
-import Logger from '../../functions/logger';
-import i18n from '../../loaders/i18n';
-import Person from '../../providers/tmdb/people';
-import { createTitleSort } from '../../tasks/files/filenameParser';
-import downloadTVDBImages from '../images/downloadTVDBImages';
 import aggregateCast from './aggregateCast';
 import aggregateCrew from './aggregateCrew';
 import alternative_title from './alternative_title';
+import axios from 'axios';
+import colorPalette from '@/functions/colorPalette/colorPalette';
+import { confDb } from '../../database/config';
+import createBlurHash from '../../functions/createBlurHash';
+import { createTitleSort } from '../../tasks/files/filenameParser';
 import creator from './creator';
+import downloadTVDBImages from '../images/downloadTVDBImages';
 import fetchTvShow from './fetchTvShow';
 import findMediaFiles from './files';
 import genre from './genre';
+import i18n from '../../loaders/i18n';
 import { image } from './image';
 import keyword from './keyword';
+import { parseYear } from '../../functions/dateTime';
 import person from './person';
 import recommendation from './recommendation';
 import season from './season';
@@ -26,8 +28,8 @@ import similar from './similar';
 import translation from './translation';
 
 export const storeTvShow = async ({ id, folder, libraryId, job }:
-	{ id: number; folder?: string, libraryId: string, job?: QueueJob }) => {
-	// console.log({ id, folder, libraryId, job });
+	{ id: number; folder: string, libraryId: string, job?: QueueJob; }) => {
+	console.log({ id, folder, libraryId, job });
 	await i18n.changeLanguage('en');
 
 	const tv = await fetchTvShow(id);
@@ -36,7 +38,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 	}
 
 	try {
-		const transaction: Prisma.PromiseReturnType<any>[] = [];
+		let transaction: Prisma.PromiseReturnType<any>[] = [];
 
 		const alternativeTitlesInsert: Array<Prisma.AlternativeTitlesCreateOrConnectWithoutTvInput> = [];
 		const castInsert: Array<Prisma.CastCreateOrConnectWithoutTvInput> = [];
@@ -57,12 +59,14 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 		}
 
 		await person(tv, transaction);
+		await confDb.$transaction(transaction).catch(e => console.log(e));
 
+		transaction = [];
 		const people = (tv.people as unknown as Person[]).map(p => p.id) as unknown as number[];
 
-		genre(tv, genresInsert, 'tv');
-		alternative_title(tv, alternativeTitlesInsert, 'tv');
-		keyword(tv, transaction, keywordsInsert, 'tv');
+		await genre(tv, genresInsert, 'tv');
+		await alternative_title(tv, alternativeTitlesInsert, 'tv');
+		await keyword(tv, transaction, keywordsInsert, 'tv');
 
 		const year = parseYear(tv.first_air_date);
 
@@ -75,7 +79,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 
 		await axios
 			.get(`https://kitsu.io/api/edge/anime?filter[text]=${tv.name}&filter[year]=${year}`, {
-				timeout: 2000,
+				timeout: 20000,
 			})
 			.then((response) => {
 				for (const data of response.data.data) {
@@ -90,14 +94,30 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			})
 			.catch(e => console.log(e));
 
-		const blurHash = {
-			poster: tv.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${tv.poster_path}`)
-				: undefined,
-			backdrop: tv.backdrop_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`)
-				: undefined,
+		const palette: any = {
+			poster: undefined,
+			backdrop: undefined,
 		};
+
+		const blurHash: any = {
+			poster: undefined,
+			backdrop: undefined,
+		};
+
+		await Promise.all([
+			tv.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${tv.poster_path}`).then((hash) => {
+				blurHash.poster = hash;
+			}),
+			tv.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`).then((hash) => {
+				blurHash.backdrop = hash;
+			}),
+			tv.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${tv.poster_path}`).then((hash) => {
+				palette.poster = hash;
+			}),
+			tv.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`).then((hash) => {
+				palette.backdrop = hash;
+			}),
+		]);
 
 		await creator(tv, createdByInsert, people);
 		await aggregateCast(tv, castInsert, people, 'tv');
@@ -124,6 +144,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			popularity: tv.popularity,
 			poster: tv.poster_path,
 			blurHash: JSON.stringify(blurHash),
+			colorPalette: JSON.stringify(palette),
 			spokenLanguages: tv.spoken_languages.map(sl => sl.iso_639_1).join(', '),
 			status: tv.status,
 			tagline: tv.tagline,
@@ -132,7 +153,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			type: tv.type,
 			voteAverage: tv.vote_average,
 			voteCount: tv.vote_count,
-			folder: folder?.replace(/.*[\\\/](.*)/u, '/$1'),
+			folder: folder.replace(/.*[\\\/](.*)/u, '/$1'),
 			libraryId: libraryId,
 			Genre: {
 				connectOrCreate: genresInsert,
@@ -154,19 +175,19 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			},
 		});
 
-		transaction.push(
-			confDb.tv.upsert({
-				where: {
-					id: tv.id,
-				},
-				update: tvInsert,
-				create: tvInsert,
-			})
-		);
+		// transaction.push(
+		await confDb.tv.upsert({
+			where: {
+				id: tv.id,
+			},
+			update: tvInsert,
+			create: tvInsert,
+		});
+		// );
 
 		await season(tv, transaction, people);
 
-		translation(tv, transaction, 'tv');
+		await translation(tv, transaction, 'tv');
 
 		await recommendation(tv, transaction, 'tv');
 		await similar(tv, transaction, 'tv');
@@ -182,15 +203,15 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 				tvId: tv.id,
 			});
 
-			transaction.push(
-				confDb.media.upsert({
-					where: {
-						src: video.key,
-					},
-					update: mediaInsert,
-					create: mediaInsert,
-				})
-			);
+			// transaction.push(
+			await confDb.media.upsert({
+				where: {
+					src: video.key,
+				},
+				update: mediaInsert,
+				create: mediaInsert,
+			});
+			// );
 		}
 
 		for (const content_rating of tv.content_ratings.results || []) {
@@ -209,18 +230,18 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 				certificationId: cert.id,
 			});
 
-			transaction.push(
-				confDb.certificationTv.upsert({
-					where: {
-						tvId_iso31661: {
-							iso31661: content_rating.iso_3166_1,
-							tvId: tv.id,
-						},
+			// transaction.push(
+			await confDb.certificationTv.upsert({
+				where: {
+					tvId_iso31661: {
+						iso31661: content_rating.iso_3166_1,
+						tvId: tv.id,
 					},
-					create: tvRatingsInsert,
-					update: tvRatingsInsert,
-				})
-			);
+				},
+				create: tvRatingsInsert,
+				update: tvRatingsInsert,
+			});
+			// );
 		}
 
 		await image(tv, transaction, 'backdrop', 'tv');
@@ -246,6 +267,9 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 		});
 
 		await findMediaFiles({ type: 'tv', data: tv, folder, libraryId, sync: true });
+
+		const socket = useSelector((state: AppState) => state.system.socket);
+		socket.emit('update_content', ['library']);
 
 		Logger.log({
 			level: 'info',

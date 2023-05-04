@@ -208,11 +208,11 @@ export class FileList {
 		for (const faultyFile of faultyFiles) {
 			if (faultyFile.extension == '.m3u8') {
 				const path = faultyFile.path?.replace(/(.+[\\\/])/u, '$1');
-				console.log(path);
+				console.log(`file ${path} is faulty`);
 				// rmSync(path, { recursive: true});
 			} else if (faultyFile.extension == '.mp4') {
 				const path = faultyFile.path?.replace(/(\w.+[\\\/])/u, '$1');
-				console.log(path);
+				console.log(`file ${path} is faulty`);
 				// rmSync(path, { recursive: true});
 			}
 		}

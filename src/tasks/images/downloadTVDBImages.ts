@@ -1,4 +1,5 @@
 import { AppState, useSelector } from '@/state/redux';
+import { Image, Prisma } from '../../database/config/client';
 import { Stats, existsSync } from 'fs';
 import getTVDBImages, { ImageResult } from './getTVDBImages';
 
@@ -7,9 +8,6 @@ import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import Logger from '../../functions/logger';
 import { PaletteColors } from 'types/server';
-import { Prisma } from '../../database/config/client';
-import { checkDbLock } from '../../database';
-import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';
 import { imagesPath } from '@/state';
 import path from 'path';
@@ -31,30 +29,31 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 				message: 'Fetching character images',
 			});
 
-			type = type == 'tv'
+			const newType = type == 'tv'
 				? 'series'
 				: 'movies';
 			const imageData = await getTVDBImages(
-				type,
+				newType,
 				data
 			);
 
-			// const transaction: Array<Prisma.Prisma__ImageClient<Image, never>> = [];
+			const transaction: Array<Prisma.Prisma__ImageClient<Image, never>> = [];
 
 			for (let i = 0; i < imageData.length; i++) {
 				const image = imageData[i];
+				const file = `${imagesPath}/cast/${image.profile_path?.replace('.jpg', '.webp')}`;
 
-				if (!data.people.some(p => p.id == image.id)) {
-					continue;
-				}
+				// if (!data.people.some(p => p.id == image.id)) {
+				// 	continue;
+				// }
 
-				const query = await confDb.image.findFirst({
-					where: {
-						id: image.credit_id,
-					},
-				});
+				// const query = await confDb.image.findFirst({
+				// 	where: {
+				// 		id: image.credit_id,
+				// 	},
+				// });
 
-				if (existsSync(`${imagesPath}/cast/${image.credit_id}.webp`) && query?.id) continue;
+				if (existsSync(`${imagesPath}/cast/${image.credit_id}.webp`)) continue;
 
 				await downloadImage({
 					url: image.img,
@@ -62,21 +61,26 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 				})
 					// eslint-disable-next-line no-loop-func
 					.then(async ({ dimensions, stats, colorPalette, blurHash }) => {
-						const query = imageQuery(type, image, dimensions, stats, colorPalette, data, blurHash);
+						// const query = imageQuery(newType, image, dimensions, stats, colorPalette, data, blurHash);
 
-						while (await checkDbLock()) {
-							//
-						}
-						await confDb.image.upsert({
-							where: {
-								id: image.credit_id,
-							},
-							create: query,
-							update: query,
-						});
+						// transaction.push(
+						// await	confDb.image.upsert({
+						// 	where: {
+						// 		id: image.credit_id,
+						// 	},
+						// 	create: query,
+						// 	update: query,
+						// });
+						// );
 					})
 					.catch(() => null);
 			}
+
+			// while (await checkDbLock()) {
+			// 	//
+			// }
+			// await confDb.$transaction(transaction).catch(e => console.log(e));
+
 
 			Logger.log({
 				level: 'verbose',

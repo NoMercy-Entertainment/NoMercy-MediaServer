@@ -39,11 +39,11 @@ export default async function (req: Request, res: Response) {
 		});
 
 		if (music) {
-			const results: any = {
+			const results = {
 				type: 'playlist',
 				...music,
 				colorPalette: JSON.parse(music.colorPalette ?? '{}'),
-				track: music.PlaylistTrack.map((t) => {
+				Track: music.PlaylistTrack.map((t) => {
 
 					const albums = t.Track.Album.map(a => ({
 						id: a.id,
@@ -78,13 +78,14 @@ export default async function (req: Request, res: Response) {
 						Album: undefined,
 						FavoriteTrack: undefined,
 						libraryId: t.Track.Artist[0].libraryId,
-						colorPalette: undefined,
+						colorPalette: JSON.parse(t.Track.colorPalette ?? '{}'),
 						album: albums[0],
 					};
 				}),
 			};
 
-			delete results.playlistTrack;
+			// @ts-ignore
+			results.PlaylistTrack = undefined;
 
 			return res.json(results);
 		}

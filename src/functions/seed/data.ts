@@ -1,12 +1,11 @@
 import { ConfigData } from 'types/server';
-
 import { deviceName } from '../system';
 
 export const configData: ConfigData = {
 	secureInternalPort: process.env.DEFAULT_PORT ?? 7635,
 	secureExternalPort: process.env.DEFAULT_PORT ?? 7635,
 	deviceName: deviceName,
-	queueWorkers: 1,
+	queueWorkers: 2,
 	cronWorkers: 1,
 	dataWorkers: 15,
 	requestWorkers: 1,
@@ -30,118 +29,48 @@ export const encoderProfiles = [
 		id: 'cl7i4o7v6001jqwef0nn3avkm',
 		name: '2160p high',
 		container: 'auto',
-		params: [
-			{
-				key: '-c:v',
-				val: 'libx264',
-			},
-			{
-				key: '-crf',
-				val: '20',
-			},
-			{
-				key: '-c:a',
-				val: 'aac',
-			},
-			{
-				key: '-s',
-				val: '3840:-2',
-			},
-			{
-				key: '-preset',
-				val: 'veryfast',
-			},
-			{
-				key: '-profile',
-				val: 'high',
-			},
-			{
-				key: '-tune',
-				val: 'film',
-			},
-			{
-				key: '-level',
-				val: '5.2',
-			},
-		],
+		params: {
+			width: 3840,
+			height: undefined,
+			crf: 20,
+			bitrate: undefined,
+			maxrate: undefined,
+			preset: 'slow',
+			profile: 'high',
+			codec: 'H264',
+			audio: 'aac',
+		},
 	},
 	{
 		id: 'cl7i4o7v7001kqwef32im51hk',
 		name: '1080p high',
 		container: 'auto',
-		params: [
-			{
-				key: '-c:v',
-				val: 'libx264',
-			},
-			{
-				key: '-crf',
-				val: '20',
-			},
-			{
-				key: '-c:a',
-				val: 'aac',
-			},
-			{
-				key: '-s',
-				val: '1920:-2',
-			},
-			{
-				key: '-preset',
-				val: 'veryfast',
-			},
-			{
-				key: '-profile',
-				val: 'high',
-			},
-			{
-				key: '-tune',
-				val: 'film',
-			},
-			{
-				key: '-level',
-				val: '5.2',
-			},
-		],
+		params: {
+			width: 1920,
+			height: undefined,
+			crf: 20,
+			bitrate: undefined,
+			maxrate: undefined,
+			preset: 'slow',
+			profile: 'high',
+			codec: 'H264',
+			audio: 'aac',
+		},
 	},
 	{
 		id: 'cl7i4o7v7001lqwefcnljgy5o',
 		name: '1080p regular',
 		container: 'auto',
-		params: [
-			{
-				key: '-c:v',
-				val: 'libx264',
-			},
-			{
-				key: '-crf',
-				val: '23',
-			},
-			{
-				key: '-c:a',
-				val: 'aac',
-			},
-			{
-				key: '-s',
-				val: '1920:-2',
-			},
-			{
-				key: '-preset',
-				val: 'veryfast',
-			},
-			{
-				key: '-profile',
-				val: 'high',
-			},
-			{
-				key: '-tune',
-				val: 'film',
-			},
-			{
-				key: '-level',
-				val: '5.2',
-			},
-		],
+		params: {
+			width: 1920,
+			height: undefined,
+			crf: 28,
+			bitrate: undefined,
+			maxrate: undefined,
+			preset: 'slow',
+			codec: 'H264',
+			audio: 'aac',
+		},
 	},
 ];
 
@@ -283,36 +212,36 @@ export const libraries: LibrarySeed[] = [
 			},
 		],
 	},
-	{
-		id: 'cl7i4km1o000aqweffmongx0u',
-		image: null,
-		title: 'Collections',
-		type: 'collection',
-		language: 'nl',
-		country: 'NL',
-		specialSeasonName: 'Specials',
-		realtime: true,
-		autoRefreshInterval: '30',
-		chapterImages: true,
-		extractChaptersDuring: true,
-		extractChapters: true,
-		perfectSubtitleMatch: true,
-		folders: [],
-	},
-	{
-		id: 'cl7i4km1o000eqwefeej91x9g',
-		image: null,
-		title: 'Specials',
-		type: 'special',
-		language: 'nl',
-		country: 'NL',
-		specialSeasonName: 'Specials',
-		realtime: true,
-		autoRefreshInterval: '30',
-		chapterImages: true,
-		extractChaptersDuring: true,
-		extractChapters: true,
-		perfectSubtitleMatch: true,
-		folders: [],
-	},
+	// {
+	// 	id: 'cl7i4km1o000aqweffmongx0u',
+	// 	image: null,
+	// 	title: 'Collections',
+	// 	type: 'collection',
+	// 	language: 'nl',
+	// 	country: 'NL',
+	// 	specialSeasonName: 'Specials',
+	// 	realtime: true,
+	// 	autoRefreshInterval: '30',
+	// 	chapterImages: true,
+	// 	extractChaptersDuring: true,
+	// 	extractChapters: true,
+	// 	perfectSubtitleMatch: true,
+	// 	folders: [],
+	// },
+	// {
+	// 	id: 'cl7i4km1o000eqwefeej91x9g',
+	// 	image: null,
+	// 	title: 'Specials',
+	// 	type: 'special',
+	// 	language: 'nl',
+	// 	country: 'NL',
+	// 	specialSeasonName: 'Specials',
+	// 	realtime: true,
+	// 	autoRefreshInterval: '30',
+	// 	chapterImages: true,
+	// 	extractChaptersDuring: true,
+	// 	extractChapters: true,
+	// 	perfectSubtitleMatch: true,
+	// 	folders: [],
+	// },
 ];

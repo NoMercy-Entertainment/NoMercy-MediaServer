@@ -1,16 +1,14 @@
+import { AppState, useSelector } from '@/state/redux';
+
+import { deviceName } from '../../functions/system';
 import fs from 'fs';
 import i18next from 'i18next';
-
 import { storeServerActivity } from '../../api/userData/activity/post';
-import { deviceName } from '../../functions/system';
-
-// import progress from '../../controllers/encoder/ffmpeg/progress';
 
 const watchDir = `${__dirname}/../../cache/working/`;
 
 export default function (socket) {
 	socket.on('servers', () => {
-		// progress(socket, io);
 
 		fs.writeFileSync(`${watchDir}update.json`, JSON.stringify(Date.now()));
 
@@ -33,5 +31,23 @@ export default function (socket) {
 		data.version = '0.0.5';
 		await storeServerActivity(data);
 	});
+
+	const handlePause = (id: any) => {
+		const queueWorker = useSelector((state: AppState) => state.config.queueWorker);
+		queueWorker.forks.forEach((worker) => {
+			worker.worker.send({ type: 'encoder-pause', id });
+		});
+	};
+
+	const handleResume = (id: any) => {
+		const queueWorker = useSelector((state: AppState) => state.config.queueWorker);
+		queueWorker.forks.forEach((worker) => {
+			worker.worker.send({ type: 'encoder-resume', id });
+		});
+	};
+
+	socket.on('encoder-pause', handlePause);
+	socket.on('encoder-resume', handleResume);
+
 
 }

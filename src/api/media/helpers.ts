@@ -1,16 +1,44 @@
 /* eslint-disable indent */
 
 import {
-	AlternativeTitles, Cast, Certification, CertificationMovie, CertificationTv, Collection,
-	Creator, Crew, Episode, Genre, GenreMovie, GenreTv, Image, Job, Keyword, KeywordMovie,
-	KeywordTv, Library, Media, Movie, Person, Recommendation, Role, Season, Similar, Tv, UserData,
+	AlternativeTitles,
+	Cast,
+	Certification,
+	CertificationMovie,
+	CertificationTv,
+	Collection,
+	Creator,
+	Crew,
+	Episode,
+	Genre,
+	GenreMovie,
+	GenreTv,
+	Image,
+	Job,
+	Keyword,
+	KeywordMovie,
+	KeywordTv,
+	Library,
+	Media,
+	Movie,
+	Person,
+	Recommendation,
+	Role,
+	Season,
+	Similar,
+	Tv,
+	UserData,
 	VideoFile
 } from '../../database/config/client';
-import colorPalette from '../../functions/colorPalette';
-import { Image as TMDBImage } from '../../providers/tmdb/shared';
 import {
-	InfoCredit, MediaItem, Recommendation as RecommendationResponse, Similar as SimilarResponse
+	InfoCredit,
+	MediaItem,
+	Recommendation as RecommendationResponse,
+	Similar as SimilarResponse
 } from '../../types/server';
+
+import { Image as TMDBImage } from '../../providers/tmdb/shared';
+import colorPalette from '@/functions/colorPalette/colorPalette';
 
 export type TvWithEpisodes = Tv & {
 	Season: (Season & {
@@ -112,6 +140,7 @@ export const relatedMap = (data: TvWithInfo['SimilarFrom'] | TvWithInfo['Recomme
 		numberOfEpisodes: s[`${type.toUcFirst()}To`]?.numberOfEpisodes ?? null,
 		haveEpisodes: s[`${type.toUcFirst()}To`]?.haveEpisodes ?? null,
 		blurHash: JSON.parse(s.blurHash ?? '{}'),
+		colorPalette: JSON.parse(s.colorPalette ?? '{}'),
 	};
 }) ?? [];
 
@@ -121,7 +150,7 @@ export const imageMap = async (data: Array<Media | TMDBImage>): Promise<MediaIte
 	for (const i of data?.filter(Boolean) ?? []) {
 
 		if (((i as Media).src ?? (i as TMDBImage).file_path) != null && (i as Media).colorPalette === null) {
-			(i as Media).colorPalette = JSON.stringify(await colorPalette((i as Media).src ?? (i as TMDBImage).file_path));
+			(i as Media).colorPalette = JSON.stringify(await colorPalette((i as Media).src ?? (i as TMDBImage).file_path) ?? {});
 		}
 
 		res.push({
@@ -132,9 +161,9 @@ export const imageMap = async (data: Array<Media | TMDBImage>): Promise<MediaIte
 			src: (i as Media).src ?? (i as TMDBImage).file_path,
 			width: i.width,
 			blurHash: (i as Media).blurHash,
+			colorPalette: JSON.parse((i as Media).colorPalette ?? '{}'),
 			voteAverage: (i as Media).voteAverage ?? (i as TMDBImage).vote_average,
 			voteCount: (i as Media).voteCount ?? (i as TMDBImage).vote_count,
-			colorPalette: JSON.parse((i as Media).colorPalette ?? '{}'),
 		});
 	}
 	return res;
@@ -162,6 +191,7 @@ export const peopleMap = (data: Array<People>, filter: string): InfoCredit[] => 
 			popularity: c.Person!.popularity,
 			deathday: c.Person!.deathday,
 			blurHash: c.Person!.blurHash,
+			colorPalette: JSON.parse(c.Person!.colorPalette ?? '{}'),
 		};
 	}) ?? [];
 };
@@ -178,5 +208,6 @@ export const getFromDepartmentMap = (data: Department[], type: string, filter: s
 			id: c.Person!.id,
 			name: c.Person!.name!,
 			blurHash: c.Person!.blurHash,
+			colorPalette: c.Person!.colorPalette,
 		})) ?? [];
 };

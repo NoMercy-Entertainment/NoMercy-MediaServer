@@ -37,6 +37,7 @@ import {
 	runningTaskWorkers,
 	tasks
 } from '../dashboard/tasks';
+import directoryTree, { fileList } from '../dashboard/directoryTree';
 import {
 	editMiddleware,
 	permissions
@@ -51,10 +52,10 @@ import {
 	stopServer
 } from '../dashboard/server';
 
+import addFiles from '../dashboard/contentManagement/addFiles';
 import deleteDevices from '../userData/devices/delete';
 import deleteServerActivity from '../userData/activity/delete';
 import devices from '../userData/devices/get';
-import directoryTree from '../dashboard/directoryTree';
 import express from 'express';
 import { group } from '../routeGroup';
 import serverActivity from '../userData/activity/get';
@@ -103,7 +104,10 @@ router.use(
 		route.post('/libraries/:id/add', addNewItem);
 		route.post('/encode/:id', encodeLibrary);
 
+		route.post('/addFiles', addFiles);
+
 		route.post('/directorytree', directoryTree);
+		route.post('/fileList', fileList);
 
 		route.post('/configuration', configuration);
 		route.post('/configuration/create', createConfiguration);

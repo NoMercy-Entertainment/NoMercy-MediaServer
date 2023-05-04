@@ -1,6 +1,5 @@
 import { ChildProcess, fork } from 'child_process';
 
-import { checkDbLock } from '../../database';
 import { confDb, queDb } from '../../database/config';
 import { QueueJob } from '../../database/queue/client';
 import { AppState, useSelector } from '@/state/redux';
@@ -106,7 +105,7 @@ export class Queue {
 		});
 	}
 
-	async add({ file, fn, args }: { file?: string; fn: string; args?: any }) {
+	async add({ file, fn, args }: { file?: string; fn: string; args?: any; }) {
 		if (!file) {
 			file = _getCallerFile();
 		}
@@ -274,6 +273,18 @@ export class Queue {
 		}
 	}
 
+	sendMessageTo(worker: Worker, message: any) {
+		console.log('send message to worker', worker, message);
+		worker.worker.send(message);
+	}
+
+	sendMessage(message: any) {
+		for (const worker of this.forks) {
+			console.log('send message to worker', worker, message);
+			worker.worker.send(message);
+		}
+	}
+
 	async run() {
 		if (this.isDisabled) {
 			setTimeout(async () => {
@@ -309,22 +320,24 @@ export class Queue {
 					},
 				});
 				if (runningTask?.id) {
-					while (await checkDbLock()) {
-						//
-					}
-					await confDb.runningTask.update({
-						where: {
-							id: runningTask.id,
-						},
-						data: {
-							title: `${runningTask?.title?.replace(/\n.+/u, '')}\n${JSON.parse(job.payload as string).args.folder}` ?? 'Downloading images',
-						},
-					});
+					// while (await checkDbLock()) {
+					// 	//
+					// }
+					// await confDb.runningTask.update({
+					// 	where: {
+					// 		id: runningTask.id,
+					// 	},
+					// 	data: {
+					// 		title: `${runningTask?.title?.replace(/\n.+/u, '')}\n${JSON.parse(job.payload as string).args.folder}` ?? 'Downloading images',
+					// 	},
+					// });
 				}
 			} catch (error) {
 				//
 			}
 		}
+
+		const socket = useSelector((state: AppState) => state.system.socket);
 
 		Logger.log({
 			name: 'queue',
@@ -332,51 +345,61 @@ export class Queue {
 			level: 'verbose',
 		});
 
-		Worker.worker.send(job);
+		Worker.worker.send({ type: 'job', job });
 
-		Worker.worker.once('message', async (message: any) => {
+		Worker.worker.on('message', async (message: any) => {
 
-			const socket = useSelector((state: AppState) => state.system.socket);
+			if (message.type == 'encoder-progress') {
+				socket.emit('encoder-progress', message.data);
+			} else if (message.type == 'encoder-end') {
+				socket.emit('encoder-clear');
+			} else if (message.type == 'encoder-paused') {
+				socket.emit('encoder-paused', message.data);
+			} else if (message.type == 'encoder-resumed') {
+				socket.emit('encoder-resumed', message.data);
+			} else if (message.type == 'dependency') {
+				//
+			} else {
 
-			const runningTask = await confDb.runningTask.findFirst({
-				where: {
-					id: message.job?.queue?.task?.id,
-				},
-			}).catch(e => console.log(e));
-
-			if (runningTask?.value == 100) {
-				await confDb.runningTask.delete({
+				const runningTask = await confDb.runningTask.findFirst({
 					where: {
-						id: runningTask.id,
+						id: message.job?.queue?.task?.id,
 					},
 				}).catch(e => console.log(e));
+
+				if (runningTask?.value == 100) {
+					await confDb.runningTask.delete({
+						where: {
+							id: runningTask.id,
+						},
+					}).catch(e => console.log(e));
+				}
+
+				if (message.job?.queue == 'queue') {
+					socket.emit('tasks', runningTask);
+					socket.emit('update_content', ['library']);
+				}
+
+				if (message?.error) {
+					console.log(message?.error);
+					await this.failed(job.id, message.result);
+				} else if (this.keepJobs) {
+					await this.finished(job.id, message.result.data);
+				} else {
+					await this.remove(job.id);
+				}
+
+				Worker.running = false;
+				Worker.job = <QueueJob>{};
+				this.runningJobs = this.runningJobs.filter(j => j != job.id);
+
+				if (this.workers < this.forks.length) {
+					this.deleteWorker(Worker);
+				}
+				setTimeout(async () => {
+					await this.run();
+				}, 1500);
 			}
-
-			socket.emit('tasks', runningTask);
-
-			if (runningTask?.title.includes('library') && message.job?.queue == 'queue') {
-				socket.emit('update_content', ['libraries']);
-			}
-
-			if (message?.error) {
-				console.log(message);
-				await this.failed(job.id, message.result);
-			} else if (this.keepJobs) {
-				await this.finished(job.id, message.result.data);
-			} else {
-				await this.remove(job.id);
-			}
-
-			Worker.running = false;
-			Worker.job = <QueueJob>{};
-			this.runningJobs = this.runningJobs.filter(j => j != job.id);
-
-			if (this.workers < this.forks.length) {
-				this.deleteWorker(Worker);
-			}
-			setTimeout(async () => {
-				await this.run();
-			}, 1500);
 		});
 	}
 }

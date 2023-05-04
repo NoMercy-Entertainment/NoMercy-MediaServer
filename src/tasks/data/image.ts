@@ -86,27 +86,27 @@ export const downloadAndHash = async ({ src, table, column, type, transaction, o
 	src: string,
 	column: string,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
-	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar'
+	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar';
 	transaction?: Array<Prisma.Prisma__MediaClient<Media, never>>,
-	only?: Array<'colorPalette' | 'blurHash'>
+	only?: Array<'colorPalette' | 'blurHash'>;
 }) => {
 
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	await queue.add({
-		file: __filename,
-		fn: 'execute',
-		args: { src, table, column, type, transaction, only },
-	});
+	// await queue.add({
+	// 	file: __filename,
+	// 	fn: 'execute',
+	// 	args: { src, table, column, type, transaction, only },
+	// });
 };
 
-export const execute = async ({ src, table, column, type, transaction, only }:	{
+export const execute = async ({ src, table, column, type, transaction, only }: {
 	src: string,
 	column: string,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
-	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar'
+	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar';
 	transaction?: Array<Prisma.Prisma__MediaClient<Media, never>>,
-	only?: Array<'colorPalette' | 'blurHash'>
+	only?: Array<'colorPalette' | 'blurHash'>;
 }) => {
 
 	const hasTransaction = !!transaction;
@@ -203,21 +203,21 @@ export const execute = async ({ src, table, column, type, transaction, only }:	{
 				}
 			}
 			console.log(table);
-			// transaction!.push(
-			await confDb[table].update({
-				where: {
-					id: (await confDb[table].findFirst({ where: { [column]: src } }))?.id,
-				},
-				data: {
-					colorPalette: colorPalette && (!only || only.includes('colorPalette'))
-						? JSON.stringify(colorPalette)
-						: undefined,
-					blurHash: blurHash && (!only || only.includes('blurHash'))
-						? blurHash
-						: undefined,
-				},
-			});
-			// );
+			transaction!.push(
+				confDb[table].update({
+					where: {
+						id: (await confDb[table].findFirst({ where: { [column]: src } }))?.id,
+					},
+					data: {
+						colorPalette: colorPalette && (!only || only.includes('colorPalette'))
+							? JSON.stringify(colorPalette)
+							: undefined,
+						blurHash: blurHash && (!only || only.includes('blurHash'))
+							? blurHash
+							: undefined,
+					},
+				})
+			);
 		})
 		.catch(e => console.log(table, e));
 
@@ -225,7 +225,7 @@ export const execute = async ({ src, table, column, type, transaction, only }:	{
 		// while (await checkDbLock()) {
 		// 	//
 		// }
-		// await confDb.$transaction(transaction).catch(e => console.log(e));
+		await confDb.$transaction(transaction).catch(e => console.log(e));
 	}
 };
 

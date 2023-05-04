@@ -1,11 +1,12 @@
-import { confDb } from '../../database/config';
-import { Prisma } from '../../database/config/client';
-import Logger from '../../functions/logger';
-import cast from './cast';
-import crew from './crew';
-import { CombinedSeasons } from './fetchTvShow';
-import guest_star from './guest_star';
 import { downloadAndHash, image } from './image';
+
+import { CombinedSeasons } from './fetchTvShow';
+import Logger from '../../functions/logger';
+import { Prisma } from '../../database/config/client';
+import cast from './cast';
+import { confDb } from '../../database/config';
+import crew from './crew';
+import guest_star from './guest_star';
 import translation from './translation';
 
 const episode = async (
@@ -67,15 +68,15 @@ const episode = async (
 			// },
 		});
 
-		transaction.push(
-			confDb.episode.upsert({
-				where: {
-					id: episode.id,
-				},
-				update: episodesInsert,
-				create: episodesInsert,
-			})
-		);
+		// transaction.push(
+		await	confDb.episode.upsert({
+			where: {
+				id: episode.id,
+			},
+			update: episodesInsert,
+			create: episodesInsert,
+		});
+		// );
 
 		if (episode?.still_path != '' && episode.still_path != null) {
 			const mediaInsert = Prisma.validator<Prisma.MediaUncheckedCreateInput>()({
@@ -84,18 +85,18 @@ const episode = async (
 				episodeId: episode.id,
 			});
 
-			transaction.push(
-				confDb.media.upsert({
-					where: {
-						src: episode.still_path,
-					},
-					update: mediaInsert,
-					create: mediaInsert,
-				})
-			);
+			// transaction.push(
+			await	confDb.media.upsert({
+				where: {
+					src: episode.still_path,
+				},
+				update: mediaInsert,
+				create: mediaInsert,
+			});
+			// );
 		}
 
-		translation(episode, transaction, 'episode');
+		await translation(episode, transaction, 'episode');
 		await image(episode, transaction, 'still', 'episode');
 
 		if (episode.still_path) {
@@ -104,7 +105,6 @@ const episode = async (
 				table: 'episode',
 				column: 'still',
 				type: 'episode',
-				only: ['blurHash'],
 			});
 		}
 	}

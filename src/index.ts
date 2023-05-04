@@ -1,10 +1,10 @@
-import { execSync } from 'child_process';
-import env from 'dotenv';
-import { app, BrowserWindow, ipcMain, Menu, screen, Tray } from 'electron';
-import { join } from 'path';
+import { BrowserWindow, Menu, Tray, app, ipcMain, screen } from 'electron';
+import { deviceName, platform, version } from './functions/system';
 
 import boot from './functions/boot';
-import { deviceName, platform, version } from './functions/system';
+import env from 'dotenv';
+import { execSync } from 'child_process';
+import { join } from 'path';
 
 env.config();
 

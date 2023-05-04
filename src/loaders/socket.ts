@@ -13,18 +13,18 @@ import { storeServerActivity } from '../api/userData/activity/post';
 
 const io: any = null;
 export let myClientList: {
-    sub: string;
-    email: string;
-    id: string;
-    address: string;
-    connected: boolean;
-    disconnected: boolean;
-    secure_connection: boolean;
-    client_id: string;
-    client_name: string;
-    client_type: string;
-    client_os: string;
-    socket: Socket;
+	sub: string;
+	email: string;
+	id: string;
+	address: string;
+	connected: boolean;
+	disconnected: boolean;
+	secure_connection: boolean;
+	client_id: string;
+	client_name: string;
+	client_type: string;
+	client_os: string;
+	socket: Socket;
 }[] = [];
 
 process.setMaxListeners(300);
@@ -91,7 +91,7 @@ export const socket = {
 			next(new Error('thou shall not pass'));
 		});
 
-		io.once('connection', (socket: { emit: (arg0: any, arg1?: any) => void }) => {
+		io.once('connection', (socket: { emit: (arg0: any, arg1?: any) => void; }) => {
 			socket.emit('update_content');
 
 			socket.emit('notification', {
@@ -112,6 +112,8 @@ export const socket = {
 		const uniqueFilter = 'connection';
 
 		io.on('connection', async (socket) => {
+			base(socket, io);
+
 			const toAll = socket.nsp.to((socket as any).decoded_token.sub);
 
 			if (uniqueFilter == 'connection') {
@@ -158,11 +160,10 @@ export const socket = {
 				user: (socket as any).decoded_token.name,
 				message: `connected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
 					? ''
-					: 's'} ${
-					uniqueFilter == 'connection'
+					: 's'} ${uniqueFilter == 'connection'
 						? 'established'
 						: 'connected'
-				}.`,
+					}.`,
 			});
 			socket.nsp.to((socket as any).decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
 
@@ -194,7 +195,7 @@ export const socket = {
 					socket.broadcast.emit('setDevices', devices);
 				})
 				.catch(() => {
-				//
+					//
 				});
 
 			socket.on('connect_error', (err) => {
@@ -254,17 +255,15 @@ export const socket = {
 					user: (socket as any).decoded_token.name,
 					message: `disconnected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
 						? ''
-						: 's'} ${
-						uniqueFilter == 'connection'
+						: 's'} ${uniqueFilter == 'connection'
 							? 'established'
 							: 'connected'
-					}.`,
+						}.`,
 				});
 
 				socket.nsp.to((socket as any).decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
 			});
 
-			await base(socket, io);
 		});
 
 		// io.of("/").adapter.on("create-room", (room) => {

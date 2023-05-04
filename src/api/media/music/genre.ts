@@ -68,7 +68,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 				folder: a.folder,
 				libraryId: a.libraryId,
 				origin: deviceId,
-				colorPalette: a.colorPalette,
+				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
 			}));
 			const albums = t.Album.map(a => ({
 				id: a.id,
@@ -78,7 +78,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 				description: a?.description,
 				libraryId: t.Album[0].libraryId,
 				origin: deviceId,
-				colorPalette: a.colorPalette,
+				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
 			}));
 
 			return {

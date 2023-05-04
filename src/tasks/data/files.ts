@@ -1,7 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-import { checkDbLock } from '../../database';
 import { confDb } from '../../database/config';
 import { Prisma } from '../../database/config/client';
 import { fileChangedAgo, humanTime } from '../../functions/dateTime';
@@ -24,7 +23,7 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 		message: `Finding all usable files for: ${data.title ?? data.name}`,
 	});
 
-	console.log({ id: data.id, folder, libraryId, type });
+	// console.log({ id: data.id, folder, libraryId, type });
 
 	if (folder) {
 
@@ -91,18 +90,18 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 						},
 					});
 
-					fileTransaction.push(
-						confDb.file.upsert({
-							where: {
-								path_libraryId: {
-									libraryId: libraryId,
-									path: file.path,
-								},
+					// fileTransaction.push(
+					await confDb.file.upsert({
+						where: {
+							path_libraryId: {
+								libraryId: libraryId,
+								path: file.path,
 							},
-							create: insertData,
-							update: insertData,
-						})
-					);
+						},
+						create: insertData,
+						update: insertData,
+					});
+					// );
 
 					if (file.ffprobe?.format && movie) {
 						const videoFileInset = Prisma.validator<Prisma.VideoFileUpdateInput>()({
@@ -122,21 +121,20 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 							},
 						});
 
-						fileTransaction.push(
-							confDb.videoFile.upsert({
-								where: {
-									movieId: data.id,
-								},
-								create: videoFileInset,
-								update: videoFileInset,
-							})
-						);
+						// fileTransaction.push(
+						await confDb.videoFile.upsert({
+							where: {
+								movieId: data.id,
+							},
+							create: videoFileInset,
+							update: videoFileInset,
+						});
+						// );
 					}
 				}
 				await confDb.$transaction(fileTransaction);
 			});
 		} else {
-			let haveEpisodes = 0;
 			await FileList({
 				folder: folder,
 				recursive: true,
@@ -155,6 +153,7 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 					writeFileSync(folderFile, jsonToString(parsedFiles));
 				}
 
+				let haveEpisodes = 0;
 				for (const file of parsedFiles) {
 
 					if (file.episodeNumbers?.[0] === undefined && file.episodeNumbers?.[0] === null) {
@@ -179,7 +178,11 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 								return obj;
 							}, <Prisma.FileCreateWithoutMovieInput>{});
 
-						if ((file.seasons?.[0] ?? 1) > 0) {
+						const seasonNumber = file.seasons?.[0] == null
+							? 1
+							: file.seasons?.[0];
+
+						if (seasonNumber > 0) {
 							haveEpisodes += 1;
 						}
 
@@ -195,7 +198,7 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 							revision: JSON.stringify(file.revision),
 							languages: JSON.stringify(file.languages),
 							edition: JSON.stringify(file.edition),
-							seasonNumber: (file.seasons?.[0] ?? 1),
+							seasonNumber: seasonNumber,
 							episodeNumber: file.episodeNumbers[0],
 							ffprobe: file.ffprobe
 								? JSON.stringify(file.ffprobe)
@@ -215,18 +218,18 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 							},
 						});
 
-						fileTransaction.push(
-							confDb.file.upsert({
-								where: {
-									path_libraryId: {
-										libraryId: libraryId,
-										path: file.path,
-									},
+						// fileTransaction.push(
+						await confDb.file.upsert({
+							where: {
+								path_libraryId: {
+									libraryId: libraryId,
+									path: file.path,
 								},
-								create: insertData,
-								update: insertData,
-							})
-						);
+							},
+							create: insertData,
+							update: insertData,
+						});
+						// );
 
 						if (file.ffprobe?.format && (file.ffprobe as VideoFFprobe).streams?.video) {
 							const videoFileInset = Prisma.validator<Prisma.VideoFileUpdateInput>()({
@@ -259,20 +262,20 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 					}
 				}
 
-				fileTransaction.push(
-					confDb.tv.update({
-						where: {
-							id: data.id,
-						},
-						data: {
-							haveEpisodes: haveEpisodes,
-						},
-					})
-				);
+				// fileTransaction.push(
+				await confDb.tv.update({
+					where: {
+						id: data.id,
+					},
+					data: {
+						haveEpisodes: haveEpisodes,
+					},
+				});
+				// );
 
-				while (await checkDbLock()) {
-					//
-				}
+				// while (await checkDbLock()) {
+				// 	//
+				// }
 				await confDb.$transaction(fileTransaction).catch(e => console.log(e));
 			});
 		}

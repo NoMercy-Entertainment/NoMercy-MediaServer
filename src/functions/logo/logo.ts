@@ -30,12 +30,19 @@ export default () => {
 	);
 };
 
-const createQuote = (text: string, rightPadding: number) => {
-	const spacing: any = [];
+// This function takes a string and a number and returns a string of the given string, right-padded with spaces to meet the given length.
+// It is used to right-pad a string to a certain length in the 'createQuote' function.
+export const createQuote = (text: string, rightPadding: number): string => {
+	if (text.length + rightPadding > 210) {
+		throw new Error('The text is too long to fit in the quote');
+	}
+	const spacing: string[] = [];
+	// Add spaces to the left of the text
 	for (let i = 110 - rightPadding; i > text.length; i--) {
 		spacing.push('');
 	}
 	spacing.push(text);
+	// Add spaces to the right of the text
 	for (let i = 0; i < rightPadding; i++) {
 		spacing.push('');
 	}

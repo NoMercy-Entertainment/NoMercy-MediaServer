@@ -72,6 +72,9 @@ export default async function (req: Request, res: Response) {
 		blurHash: d.blurHash
 			? JSON.parse(d.blurHash)
 			: null,
+		colorPalette: d.colorPalette
+			? JSON.parse(d.colorPalette)
+			: null,
 	}));
 
 	return res.json(data);

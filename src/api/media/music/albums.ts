@@ -42,6 +42,7 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 				name: m.name?.replace(/["'\[\]*]/gu, ''),
 				titleSort: createTitleSort(m.name?.replace(/["'\[\]*]/gu, '') ?? ''),
 				origin: deviceId,
+				colorPalette: JSON.parse(m.colorPalette ?? '{}'),
 			};
 		}), 'titleSort'),
 	};

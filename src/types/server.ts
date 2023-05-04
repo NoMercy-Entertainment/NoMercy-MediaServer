@@ -1,7 +1,7 @@
-import { Socket } from 'socket.io';
-
 import { Genre, GenreMovie, GenreTv, UserData } from '../database/config/client';
+
 import { Movie } from '../providers/tmdb/movie';
+import { Socket } from 'socket.io';
 import { TvShow } from '../providers/tmdb/tv';
 
 export interface MediaServer {
@@ -222,6 +222,11 @@ export interface InfoResponse {
 		backdrop?: string|null|undefined,
 		logo?: string|null|undefined,
 	};
+	colorPalette?: {
+		poster?: PaletteColors | null,
+		backdrop?: PaletteColors | null,
+		logo?: PaletteColors | null,
+	};
 
 	videos: ExtendedVideo[];
 	similar: Similar[];
@@ -320,6 +325,11 @@ export interface LibraryResponseContent {
 		poster?: string|null|undefined,
 		backdrop?: string|null|undefined,
 		logo?: string|null|undefined,
+	};
+	colorPalette?: {
+		poster?: PaletteColors | null,
+		backdrop?: PaletteColors | null,
+		logo?: PaletteColors | null,
 	};
 	numberOfEpisodes?: number;
 	haveEpisodes?: number;
