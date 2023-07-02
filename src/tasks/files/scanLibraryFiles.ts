@@ -10,7 +10,7 @@ import { fileChangedAgo, humanTime } from '../../functions/dateTime';
 import { getExistingSubtitles } from '../../functions/ffmpeg/subtitles/subtitle';
 import { getQualityTag } from '../../functions/ffmpeg/quality/quality';
 import { ParsedFileList } from './filenameParser';
-import { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
+import type { VideoFFprobe } from 'encoder/ffprobe/ffprobe';
 
 export default () => {
 	return new Promise((resolve, reject) => {

@@ -1,47 +1,32 @@
+import { NewUserData, insertUserData } from '@/db/media/actions/userData';
 import { confDb } from '../../database/config';
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
+import { userData } from '@/db/media/schema/userData';
+import { mediaDb } from '@/db/media';
 
 export default function (socket: any) {
-	socket.on('setTime', async (data: any) => {
+	socket.on('setTime', (data: any) => {
 		if (data.tmdb_id && data.video_id) {
-			const progressInsert = {
-				sub_id: socket.decoded_token.sub,
-				movieId: data.type == 'movie'
-					? parseInt(data.tmdb_id, 10)
-					: undefined,
-				tvId: data.type == 'tv'
-					? parseInt(data.tmdb_id, 10)
-					: undefined,
-				videoFileId: parseInt(data.video_id, 10),
-				audio: data.audio,
-				subtitle: data.subtitle,
-				subtitleType: data.subtitle_type,
-				time: parseInt(data.time, 10),
+			const progressInsert: NewUserData = {
+				audio: data.audio ?? undefined,
+				subtitle: data.subtitle ?? undefined,
+				subtitleType: data.subtitle_type ?? undefined,
+				time: data.time,
+				type: data.playlist_type ?? undefined,
+				user_id: socket.decoded_token.sub,
+				videoFile_id: data.video_id,
+				[`${data.video_type}_id`]: data.tmdb_id,
+				special_id: data.special_id ?? null,
 			};
-			// console.log('setTime', progressInsert);
 
 			try {
-				await confDb.userData.upsert({
-					where: {
-						movieId_videoFileId_sub_id: data.type == 'movie'
-							? {
-								sub_id: socket.decoded_token.sub,
-								movieId: parseInt(data.tmdb_id, 10),
-								videoFileId: data.video_id,
-							}
-							: undefined,
-						tvId_videoFileId_sub_id: data.type == 'tv'
-							? {
-								sub_id: socket.decoded_token.sub,
-								tvId: parseInt(data.tmdb_id, 10),
-								videoFileId: data.video_id,
-							}
-							: undefined,
-					},
-					update: progressInsert,
-					create: progressInsert,
-				});
+				if (data.video_type == 'special') {
+					insertUserData(progressInsert, ['special_id', `${data.video_type as 'movie' | 'tv'}_id`]);
+				} else {
+					insertUserData(progressInsert, [`${data.video_type as 'movie' | 'tv'}_id`]);
+				}
 			} catch (error) {
-				//
+				console.log(error);
 			}
 		}
 	});
@@ -93,50 +78,42 @@ export default function (socket: any) {
 
 		socket.emit('addToList', true);
 	});
-	socket.on('load', async (data: any) => {
+	socket.on('load', (data: any) => {
 		// console.log('load', data);
 		if (data.tmdb_id) {
-			const start = await confDb.userData.findFirst({
-				where: {
-					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-					tvId: data.type == 'tv'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-					videoFileId: {
-						not: null,
-					},
-				},
-				orderBy: {
-					updatedAt: 'desc',
-				},
-			});
+
+			const start = mediaDb.select()
+				.from(userData)
+				.where(
+					and(
+						eq(userData.user_id, socket.decoded_token.sub),
+						eq(userData[`${data.playlist_type}_id`], data[`${data.playlist_type}_id`] ?? data.tmdb_id),
+						isNotNull(userData.videoFile_id)
+					)
+				)
+				.orderBy(desc(userData.updated_at))
+				.get();
+
 			// console.log('load', start);
 			socket.emit('load', start);
 		}
 	});
-	socket.on('getTime', async (data: any) => {
+
+	socket.on('getTime', (data: any) => {
 		// console.log('getTime', data);
 		if (data.tmdb_id) {
-			const start = await confDb.userData.findFirst({
-				where: {
-					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-					tvId: data.type == 'tv'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-					subtitle: data.subtitle,
-					subtitleType: data.subtitle_type,
-					videoFileId: parseInt(data.video_id, 10),
-				},
-				orderBy: {
-					updatedAt: 'desc',
-				},
-			});
+			const start = mediaDb.select()
+				.from(userData)
+				.where(
+					and(
+						eq(userData.user_id, socket.decoded_token.sub),
+						eq(userData[`${data.video_type}_id`], parseInt(data.tmdb_id, 10)),
+						eq(userData.videoFile_id, data.video_id),
+						eq(userData.type, data.playlist_type)
+					)
+				)
+				.orderBy(desc(userData.updated_at))
+				.get();
 
 			if (start == null) {
 				// console.log('getTime', {time: 0});
@@ -149,31 +126,32 @@ export default function (socket: any) {
 			}
 		}
 	});
-	socket.on('remove-watched', async (data: any) => {
+	socket.on('remove-watched', (data: any) => {
 		// console.log("remove-watched",data);
-		if (data.tmdb_id && data.type) {
-			const video = await confDb.userData.findMany({
-				where: {
-					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-					tvId: data.type == 'tv'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-				},
-			});
-			if (video.length > 0) {
-				await confDb.userData.deleteMany({
-					where: {
-						id: {
-							in: video.map(v => v.id),
-						},
-					},
+		if (data.tmdb_id && data.video_type) {
+
+			const videos = data.video_type == 'special'
+				? mediaDb.query.userData.findMany({
+					where: and(
+						eq(userData.user_id, socket.decoded_token.sub),
+						eq(userData[`${data.video_type}_id`], data.tmdb_id),
+						eq(userData.special_id, data.special_id)
+					),
+				})
+				: mediaDb.query.userData.findMany({
+					where: and(
+						eq(userData.user_id, socket.decoded_token.sub),
+						eq(userData[`${data.video_type}_id`], data.tmdb_id)
+					),
 				});
-				socket.emit('remove-watched', data);
+
+			if (videos.length > 0) {
+				mediaDb.delete(userData)
+					.where(inArray(userData.id, videos.map(v => v.id)))
+					.run();
 			}
 		}
+		socket.emit('update_content', ['continue']);
 	});
 
 	socket.on('log', (data: any) => {

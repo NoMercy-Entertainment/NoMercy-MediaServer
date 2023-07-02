@@ -1,13 +1,17 @@
-import { downloadAndHash, image } from './image';
+import { image } from './image';
 
 import { CompleteTvAggregate } from './fetchTvShow';
 import Logger from '../../functions/logger';
 import { Prisma } from '../../database/config/client';
-import aggregateCast from './aggregateCast';
-import aggregateCrew from './aggregateCrew';
-import { confDb } from '../../database/config';
+// import aggregateCast from './aggregateCast';
+// import aggregateCrew from './aggregateCrew';
 import episode from './episode';
 import translation from './translation';
+import { insertSeason } from '@/db/media/actions/seasons';
+import createBlurHash from '@/functions/createBlurHash/createBlurHash';
+import colorPalette from '@/functions/colorPalette/colorPalette';
+import aggregateCast from './aggregateCast';
+import aggregateCrew from './aggregateCrew';
 
 const season = async (
 	tv: CompleteTvAggregate,
@@ -28,54 +32,63 @@ const season = async (
 
 		const castInsert: Array<Prisma.CastCreateOrConnectWithoutSeasonInput> = [];
 		const crewInsert: Array<Prisma.CrewCreateOrConnectWithoutSeasonInput> = [];
-		await aggregateCast(season, castInsert, people, 'season');
-		await aggregateCrew(season, crewInsert, people, 'season');
 
-		// @ts-ignore
-		const seasonsInsert = Prisma.validator<Prisma.SeasonCreateInput>()({
-			airDate: season.air_date,
-			id: season.id,
-			overview: season.overview,
-			poster: season.poster_path,
-			seasonNumber: season.season_number,
-			title: season.name,
-			episodeCount: season.episode_count,
-			Tv: {
-				connect: {
-					id: tv.id,
-				},
-			},
-			Cast: {
-				connectOrCreate: castInsert,
-			},
-			Crew: {
-				connectOrCreate: crewInsert,
-			},
-		});
+		const palette: any = {
+			poster: undefined,
+		};
 
-		// transaction.push(
-		await	confDb.season.upsert({
-			where: {
+		const blurHash: any = {
+			poster: undefined,
+		};
+
+		await Promise.all([
+			season.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${season.poster_path}`).then((hash) => {
+				blurHash.poster = hash;
+			}),
+			season.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${season.poster_path}`).then((hash) => {
+				palette.poster = hash;
+			}),
+		]);
+
+		try {
+			insertSeason({
+				airDate: season.air_date,
 				id: season.id,
-			},
-			update: seasonsInsert,
-			create: seasonsInsert,
-		});
-		// );
+				overview: season.overview,
+				poster: season.poster_path,
+				seasonNumber: season.season_number,
+				title: season.name,
+				episodeCount: season.episode_count,
+				blurHash: JSON.stringify(blurHash),
+				colorPalette: JSON.stringify(palette),
+				tv_id: tv.id,
+			});
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify([`${__filename}`, error]),
+			});
+			process.exit(1);
+		}
+
+		aggregateCast(season, castInsert, people, 'season');
+		aggregateCrew(season, crewInsert, people, 'season');
 
 		await episode(tv.id, season, transaction, people);
 
-		await translation(season, transaction, 'season');
-		await image(season, transaction, 'poster', 'season');
+		translation(season, transaction, 'season');
+		image(season, transaction, 'poster', 'season');
 
-		if (season.poster_path) {
-			await downloadAndHash({
-				src: season.poster_path,
-				table: 'season',
-				column: 'poster',
-				type: 'season',
-			});
-		}
+		// if (season.poster_path) {
+		// 	downloadAndHash({
+		// 		src: season.poster_path,
+		// 		table: 'season',
+		// 		column: 'poster',
+		// 		type: 'season',
+		// 	});
+		// }
 	}
 
 	Logger.log({

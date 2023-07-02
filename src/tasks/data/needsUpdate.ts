@@ -38,7 +38,7 @@ export const needsUpdate = async (data: FolderInfo) => {
 			level: 'info',
 			name: 'App',
 			color: 'magentaBright',
-			message: `Refreshing ${data.type} with id: ${data.id}`,
+			message: `Refreshing ${data.type} with _id: ${data.id}`,
 		});
 	} else {
 

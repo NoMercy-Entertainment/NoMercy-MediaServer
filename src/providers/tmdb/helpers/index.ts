@@ -9,6 +9,10 @@ export interface PaginatedResponse<T> {
 	total_results: number;
 }
 
-export const mappedEntries = <O>(input: any): O => {
-	return Object.entries(input) as any;
+type Entries<T> = {
+    [K in keyof T]: [K, T[K]];
+}[keyof T][];
+
+export const mappedEntries = <O>(input: O) => {
+	return Object.entries(input as any) as Entries<O>;
 };

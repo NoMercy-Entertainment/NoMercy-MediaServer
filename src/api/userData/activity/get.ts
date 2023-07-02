@@ -12,7 +12,7 @@ export default (req: Request, res: Response) => {
 				data.map(d => ({
 					...d,
 					user: d.user.name,
-					device: d.device.title,
+					device: d.device.name,
 				}))
 			);
 		})

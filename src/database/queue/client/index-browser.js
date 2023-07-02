@@ -13,12 +13,12 @@ const Prisma = {}
 exports.Prisma = Prisma
 
 /**
- * Prisma Client JS version: 4.11.0
- * Query Engine version: 8fde8fef4033376662cad983758335009d522acb
+ * Prisma Client JS version: 4.12.0
+ * Query Engine version: 659ef412370fa3b41cd7bf6e94587c1dfb7f67e7
  */
 Prisma.prismaVersion = {
-  client: "4.11.0",
-  engine: "8fde8fef4033376662cad983758335009d522acb"
+  client: "4.12.0",
+  engine: "659ef412370fa3b41cd7bf6e94587c1dfb7f67e7"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -89,6 +89,15 @@ Prisma.NullTypes = {
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
+exports.Prisma.FailedJobsScalarFieldEnum = makeEnum({
+  connnection: 'connnection',
+  exception: 'exception',
+  failedAt: 'failedAt',
+  payload: 'payload',
+  queue: 'queue',
+  uuid: 'uuid'
+});
+
 exports.Prisma.QueueJobScalarFieldEnum = makeEnum({
   id: 'id',
   queue: 'queue',
@@ -122,7 +131,8 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 
 exports.Prisma.ModelName = makeEnum({
-  QueueJob: 'QueueJob'
+  QueueJob: 'QueueJob',
+  FailedJobs: 'FailedJobs'
 });
 
 /**

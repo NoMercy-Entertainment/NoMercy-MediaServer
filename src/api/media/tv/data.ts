@@ -16,8 +16,10 @@ import { convertToSeconds } from '../../../functions/dateTime';
 import { deviceId } from '../../../functions/system';
 import i18next from 'i18next';
 import { sortBy } from '../../../functions/stringArray';
+import { PlaylistItem } from '@/types/video';
+import { AppState, useSelector } from '@/state/redux';
 
-export type PlaylistItem = (Episode & {
+export type PlaylistItemData = (Episode & {
 	Media: Media[];
 	Translation: Translation[];
 	Tv: Tv & {
@@ -37,11 +39,13 @@ export type PlaylistItem = (Episode & {
 	})[];
 });
 
-export default ({ data }: { data: PlaylistItem; }) => {
+export default ({ data }: { data: PlaylistItemData; }): PlaylistItem => {
+
+	const access_token = useSelector((state: AppState) => state.user.access_token);
 
 	const videoFile = data.VideoFile?.[0];
 
-	const showTitle = data.Tv.Translation[0].title;
+	const showTitle = data.Tv.Translation[0]?.title;
 
 	const episodeTranslations = data.Translation[0];
 
@@ -78,7 +82,7 @@ export default ({ data }: { data: PlaylistItem; }) => {
 		title: title,
 		description: overview,
 		duration: videoFile?.duration,
-
+		specialId: undefined,
 		poster: data.Tv.poster
 			? data.Tv.poster
 			: null,
@@ -120,7 +124,9 @@ export default ({ data }: { data: PlaylistItem; }) => {
 		textTracks: sortBy(textTracks, 'language'),
 		sources: [
 			{
-				src: `${baseFolder}${videoFile?.filename.replace('.mkv', '.m3u8')}`,
+				src: `${baseFolder}${videoFile?.filename}${videoFile?.filename.includes('.mp4')
+					? `?token=${access_token}`
+					: ''}`,
 				type: videoFile?.filename.includes('.mp4')
 					? 'video/mp4'
 					: 'application/x-mpegURL',

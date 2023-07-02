@@ -44,8 +44,6 @@ export default (id: number) => {
 			movie(id).then(async (movie) => {
 
 				const people: Array<MovieCast | MovieCrew | Cast | Crew | PersonAppend> = [];
-				const newCast: Array<any> = [];
-				const newCrew: Array<any> = [];
 				const personPromise: Array<any> = [];
 
 				// @ts-expect-error
@@ -60,26 +58,12 @@ export default (id: number) => {
 				data.credits.cast.map(c => people.push(c));
 				data.credits.crew.map(c => people.push(c));
 
+				const newPeople: Array<any> = [];
+
 				for (const Pers of unique(people, 'id')) {
 					personPromise.push(
 						await person(Pers.id).then((p) => {
-							data.credits.cast
-								.filter(c => c.id == p.id)
-								.map((c) => {
-									newCast.push({
-										...c,
-										...p,
-									});
-								});
-
-							data.credits.crew
-								.filter(c => c.id == p.id)
-								.map((c) => {
-									newCrew.push({
-										...c,
-										...p,
-									});
-								});
+							newPeople.push(p);
 						})
 					);
 				}
@@ -90,8 +74,7 @@ export default (id: number) => {
 				}
 				data.people = [];
 
-				data.people.push(...newCast);
-				data.people.push(...newCrew);
+				data.people.push(...newPeople);
 
 				data.people = unique(data.people, 'id');
 

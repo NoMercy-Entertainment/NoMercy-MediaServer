@@ -184,10 +184,11 @@ export interface MediaResponse extends TvShow, Movie {
 }
 
 export interface InfoResponse {
-	id: number;
+	id: number | string;
 	duration: number | null;
 	backdrop: string | null;
 	poster: string | null;
+	logo: string | null;
 	title: string;
 	overview: string | null;
 	name?: string;
@@ -200,7 +201,7 @@ export interface InfoResponse {
 	backdrops: MediaItem[];
 	posters: MediaItem[];
 	logos: MediaItem[];
-	genres: Item[];
+	genres: Genre[];
 	creators: Item[];
 	directors: Item[];
 	writers: Item[];
@@ -232,6 +233,14 @@ export interface InfoResponse {
 	similar: Similar[];
 	recommendations: Recommendation[];
 	seasons: any[];
+	creator?: {
+		id: string;
+		name: string;
+	};
+	movies?: number;
+	episodes?: number;
+	casts?: number;
+	crews?: number;
 }
 
 export interface Item {
@@ -271,9 +280,9 @@ export interface InfoCredit {
 
 export interface ExtendedVideo {
 	src: string;
-	name: string,
+	// name: string,
 	type: string,
-	site: string,
+	// site: string,
 }
 
 export interface LibraryResponse {

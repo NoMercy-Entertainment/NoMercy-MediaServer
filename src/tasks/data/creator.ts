@@ -1,36 +1,39 @@
+import Logger from '@/functions/logger/logger';
 import { Prisma } from '../../database/config/client';
 import { CompleteTvAggregate } from './fetchTvShow';
-import { downloadAndHash } from './image';
+import { insertCreator } from '@/db/media/actions/creators';
 
-export default async (
+export default (
 	req: CompleteTvAggregate,
 	createdByArray: Prisma.CreatorCreateOrConnectWithoutTvInput[],
 	people: number[]
 ) => {
 
 	for (const created_by of req.created_by) {
+
 		if (!people.includes(created_by.id)) continue;
 
-		createdByArray.push({
-			where: {
-				personId_tvId: {
-					personId: created_by.id,
-					tvId: req.id,
-				},
-			},
-			create: {
-				personId: created_by.id,
-			},
-		});
-
-		if (created_by.profile_path) {
-			await downloadAndHash({
-				src: created_by.profile_path,
-				table: 'person',
-				column: 'profile',
-				type: 'crew',
-				only: ['colorPalette', 'blurHash'],
+		try {
+			insertCreator({
+				person_id: created_by.id,
+				tv_id: req.id,
+			});
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify([`${__filename}`, error]),
 			});
 		}
+		// if (created_by.profile_path) {
+		// 	downloadAndHash({
+		// 		src: created_by.profile_path,
+		// 		table: 'person',
+		// 		column: 'profile',
+		// 		type: 'crew',
+		// 		only: ['colorPalette', 'blurHash'],
+		// 	});
+		// }
 	}
 };

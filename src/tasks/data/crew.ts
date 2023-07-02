@@ -1,17 +1,19 @@
+import { insertCrew } from '@/db/media/actions/crews';
 import { Prisma } from '../../database/config/client';
 import logger from '../../functions/logger';
 import { EpisodeAppend } from '../../providers/tmdb/episode/index';
 import { CompleteMovieAggregate } from './fetchMovie';
-import { downloadAndHash } from './image';
+import { insertJob } from '@/db/media/actions/jobs';
+import Logger from '@/functions/logger/logger';
 
-export default async (
+export default (
 	req: EpisodeAppend | CompleteMovieAggregate,
 	crewArray: Array<
 		Prisma.CrewCreateOrConnectWithoutMovieInput
 		| Prisma.CrewCreateOrConnectWithoutEpisodeInput
 	>,
 	people: number[],
-	type: 'episode' | 'movie'
+	type: 'movie' | 'tv' | 'season' | 'episode'
 ) => {
 	logger.log({
 		level: 'verbose',
@@ -23,42 +25,47 @@ export default async (
 	for (const crew of req.credits.crew) {
 		if (!people.includes(crew.id)) continue;
 
-		crewArray.push({
-			where: {
-				[`personId_${type}Id`]: {
-					personId: crew.id,
-					[`${type}Id`]: req.id,
-				},
-			},
-			create: {
-				personId: crew.id,
-				Jobs: {
-					connectOrCreate: {
-						where: {
-							crewId_creditId: {
-								crewId: crew.id,
-								creditId: crew.credit_id,
-							},
-						},
-						create: {
-							job: crew.job,
-							creditId: crew.credit_id,
-							episodeCount: crew.total_episode_count,
-						},
-					},
-				},
-			},
-		});
+		try {
+			insertCrew({
+				id: crew.credit_id,
+				person_id: crew.id,
+				[`${type}_id`]: req.id,
+			});
 
-		if (crew.profile_path) {
-			await downloadAndHash({
-				src: crew.profile_path,
-				table: 'person',
-				column: 'profile',
-				type: 'crew',
-				only: ['colorPalette', 'blurHash'],
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['crew', error]),
 			});
 		}
+
+		try {
+			insertJob({
+				credit_id: crew.credit_id,
+				job: crew.job,
+				episodeCount: crew.total_episode_count,
+				crew_id: crew.credit_id,
+			});
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['job', error]),
+			});
+		}
+
+		// if (crew.profile_path) {
+		// 	await downloadAndHash({
+		// 		src: crew.profile_path,
+		// 		table: 'person',
+		// 		column: 'profile',
+		// 		type: 'crew',
+		// 		only: ['colorPalette', 'blurHash'],
+		// 	});
+		// }
 	}
 
 	logger.log({

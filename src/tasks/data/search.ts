@@ -2,13 +2,11 @@ import { FolderList, ParsedFileList } from '../../tasks/files/filenameParser';
 import { searchMovie, searchTv } from '../../providers/tmdb/search/index';
 
 import { MusicBrainzApi } from 'musicbrainz-api';
-import { appVersion } from '../../functions/system';
 import i18next from 'i18next';
 import { matchPercentage } from '../../functions/stringArray';
 
 const mbApi = new MusicBrainzApi({
 	appName: 'NoMercy Mediaserver',
-	appVersion: appVersion,
 	appContactInfo: 'nomercy.tv',
 });
 

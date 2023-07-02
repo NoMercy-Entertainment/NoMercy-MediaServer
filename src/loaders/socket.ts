@@ -7,7 +7,11 @@ import { DisplayList, MutedState, PlayState, Song, State } from '../types/music'
 import base from '../api/sockets/base';
 import { confDb } from '../database/config';
 import { emitData } from '../api/sockets/helpers';
-import { setBackLog, setCurrentDevice, setCurrentItem, setCurrentItemIndex, setDisplayList, setDurationState, setIsCurrentDevice, setLyrics, setMutedState, setPlaylists, setPlayState, setPositionState, setQueue, setShowLyrics, setState, setVolumeState } from '@/state/redux/music/actions';
+import {
+	setBackLog, setCurrentDevice, setCurrentSong, setDisplayList, setIsCurrentDevice,
+	setLyrics, setMutedState, setPlaylists, setPlayState, setDuration,
+	setQueue, setShowLyrics, setState, setVolume
+} from '@/state/redux/music/actions';
 import socketioJwt from 'socketio-jwt';
 import { storeServerActivity } from '../api/userData/activity/post';
 
@@ -73,6 +77,7 @@ export const socket = {
 	connect(io: Server<DefaultEventsMap, any>) {
 
 		io.use(
+			// @ts-ignore
 			socketioJwt.authorize({
 				secret: useSelector((state: AppState) => state.config.keycloakCertificate),
 				// timeout: 15000,
@@ -112,7 +117,7 @@ export const socket = {
 		const uniqueFilter = 'connection';
 
 		io.on('connection', async (socket) => {
-			base(socket, io);
+			base(socket);
 
 			const toAll = socket.nsp.to((socket as any).decoded_token.sub);
 
@@ -130,28 +135,30 @@ export const socket = {
 				connected: socket.connected,
 				disconnected: socket.disconnected,
 				secure_connection: socket.handshake.secure,
-				client_id: socket.handshake.query.device_id as string,
-				client_name: socket.handshake.query.device_name as string,
-				client_type: socket.handshake.query.device_type as string,
-				client_os: socket.handshake.query.device_os as string,
+
+				client_id: socket.handshake.query.id as string,
+				client_os: socket.handshake.query.os as string,
+				client_type: socket.handshake.query.type as string,
+				client_name: socket.handshake.query.name as string,
 				socket,
 			});
 
-			const data: any = {};
-			data.sub_id = (socket as any).decoded_token.sub;
-			data.time = new Date();
-			data.device_id = socket.handshake.query.device_id;
-			data.from = socket.request.socket.remoteAddress;
-			data.device_name = socket.handshake.query.device_name;
-			data.device_type = socket.handshake.query.device_type;
-			data.device_os = socket.handshake.query.device_os;
-			data.version = '0.0.5';
-			data.type = 'Connected';
+			const data: any = {
+				sub_id: (socket as any).decoded_token.sub,
+				time: new Date(),
+				from: socket.request.socket.remoteAddress,
+				id: socket.handshake.query.id,
+				browser: socket.handshake.query.browser,
+				os: socket.handshake.query.os,
+				device: socket.handshake.query.device,
+				type: socket.handshake.query.type,
+				name: socket.handshake.query.name,
+				version: socket.handshake.query.version,
+				activity_type: 'Connected',
+			};
 			await storeServerActivity(data);
 
 			socket.join((socket as any).decoded_token.sub);
-
-			// setClientList(myClientList);
 
 			Logger.log({
 				level: 'http',
@@ -161,32 +168,36 @@ export const socket = {
 				message: `connected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
 					? ''
 					: 's'} ${uniqueFilter == 'connection'
-						? 'established'
-						: 'connected'
-					}.`,
+					? 'established'
+					: 'connected'
+				}.`,
 			});
 			socket.nsp.to((socket as any).decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
 
 			await confDb.device.upsert({
 				where: {
-					id: socket.handshake.query.device_id as string,
+					id: socket.handshake.query.id as string,
 				},
 				update: {
-					id: socket.handshake.query.device_id as string,
-					deviceId: socket.handshake.query.device_id as string,
-					ip: socket.request.socket.remoteAddress as string,
-					title: socket.handshake.query.device_name as string,
-					type: socket.handshake.query.device_os as string,
-					version: '0.0.5',
+					id: socket.handshake.query.id as string,
+					deviceId: socket.handshake.query.id as string,
+					browser: socket.handshake.query.browser as string,
+					os: socket.handshake.query.os as string,
+					device: socket.handshake.query.device as string,
+					type: socket.handshake.query.type as string,
+					name: socket.handshake.query.name as string,
+					version: socket.handshake.query.version as string,
 					updated_at: new Date(),
 				},
 				create: {
-					id: socket.handshake.query.device_id as string,
-					deviceId: socket.handshake.query.device_id as string,
-					ip: socket.request.socket.remoteAddress as string,
-					title: socket.handshake.query.device_name as string,
-					type: socket.handshake.query.device_os as string,
-					version: '0.0.5',
+					id: socket.handshake.query.id as string,
+					deviceId: socket.handshake.query.id as string,
+					browser: socket.handshake.query.browser as string,
+					os: socket.handshake.query.os as string,
+					device: socket.handshake.query.device as string,
+					type: socket.handshake.query.type as string,
+					name: socket.handshake.query.name as string,
+					version: socket.handshake.query.version as string,
 					updated_at: new Date(),
 				},
 			})
@@ -220,32 +231,34 @@ export const socket = {
 				if (myClientList.length == 0) {
 					setCurrentDevice('');
 					setState(State.idle);
-					setCurrentItemIndex(-1);
-					setCurrentItem(<Song>{});
+					setCurrentSong(<Song>{});
 					setIsCurrentDevice(true);
 					setPlayState(PlayState.paused);
 					setMutedState(MutedState.unmuted);
-					setVolumeState(0.8);
-					setPositionState(0);
-					setDurationState(0);
+					setVolume(0.8);
+					setDuration(0);
+					setDuration(0);
 					setLyrics('');
 					setShowLyrics(false);
-					setPlaylists(null);
+					setPlaylists([]);
 					setQueue([]);
 					setBackLog([]);
 					setDisplayList(<DisplayList>{});
 				}
 
-				const data: any = {};
-				data.sub_id = (socket as any).decoded_token.sub;
-				data.time = new Date();
-				data.device_id = socket.handshake.query.device_id as string;
-				data.from = socket.request.socket.remoteAddress as string;
-				data.device_name = socket.handshake.query.device_name as string;
-				data.device_type = socket.handshake.query.device_type as string;
-				data.device_os = socket.handshake.query.device_os as string;
-				data.version = '0.0.5';
-				data.type = 'Disconnected';
+				const data: any = {
+					sub_id: (socket as any).decoded_token.sub,
+					time: new Date(),
+					from: socket.request.socket.remoteAddress,
+					id: socket.handshake.query.id,
+					browser: socket.handshake.query.browser,
+					os: socket.handshake.query.os,
+					device: socket.handshake.query.device,
+					type: socket.handshake.query.type,
+					name: socket.handshake.query.name,
+					version: socket.handshake.query.version,
+					activity_type: 'Disconnected',
+				};
 				await storeServerActivity(data);
 
 				Logger.log({
@@ -256,9 +269,9 @@ export const socket = {
 					message: `disconnected, ${updatedList(socket).length} ${uniqueFilter}${updatedList(socket).length == 1
 						? ''
 						: 's'} ${uniqueFilter == 'connection'
-							? 'established'
-							: 'connected'
-						}.`,
+						? 'established'
+						: 'connected'
+					}.`,
 				});
 
 				socket.nsp.to((socket as any).decoded_token.sub).emit('setConnectedDevices', updatedList(socket));

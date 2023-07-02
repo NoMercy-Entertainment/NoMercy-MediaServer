@@ -33,7 +33,7 @@ export default async () => {
 										level: 'info',
 										name: 'setup',
 										color: 'blueBright',
-										message: `Unpacking: ${program.name}`,
+										message: `Unpacking: ${program.name} to: ${binariesPath}/../${name}`,
 									});
 
 									const buffer = fs.readFileSync(`${binariesPath}/../${name}`);

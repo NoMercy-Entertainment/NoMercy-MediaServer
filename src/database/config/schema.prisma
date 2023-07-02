@@ -51,7 +51,6 @@ model Library {
   updated_at DateTime? @updatedAt
 
   Collection Collection[]
-  Special    Special[]
   Artist     Artist[]
   Album      Album[]
 }
@@ -163,12 +162,16 @@ model ActivityLog {
 }
 
 model Device {
-  id       String  @id @default(cuid())
-  deviceId String
-  title    String
-  type     String
-  version  String
-  ip       String?
+  id          String  @id @default(cuid())
+  deviceId    String
+  browser     String
+  os          String
+  device      String?
+  type        String
+  name        String
+  custom_name String?
+  version     String
+  ip          String?
 
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
@@ -381,6 +384,7 @@ model UserData {
   subtitle              String?
   subtitleType          String?
   time                  Int?
+  type                  String?
 
   sub_id String
   User   User   @relation(fields: [sub_id], references: [sub_id], onDelete: Cascade, onUpdate: Cascade)
@@ -393,6 +397,9 @@ model UserData {
 
   tvId Int?
   Tv   Tv?  @relation(fields: [tvId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  specialId String?
+  Special   Special? @relation(fields: [specialId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   videoFileId Int?
   VideoFile   VideoFile? @relation(fields: [videoFileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -874,8 +881,9 @@ model Similar {
 model Special {
   backdrop     String?
   description  String?
-  id           Int     @id @default(autoincrement())
+  id           String  @id @default(cuid())
   poster       String?
+  logo         String?
   title        String  @unique
   blurHash     String?
   colorPalette String?
@@ -883,18 +891,15 @@ model Special {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Item SpecialItem[]
-
-  libraryId String
-  Library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Item     SpecialItem[]
+  UserData UserData[]
 }
 
 model SpecialItem {
-  id    Int    @id @default(autoincrement())
+  id    Int @id @default(autoincrement())
   order Int
-  type  String
 
-  specialId Int?
+  specialId String?
   Special   Special? @relation(fields: [specialId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   episodeId Int?

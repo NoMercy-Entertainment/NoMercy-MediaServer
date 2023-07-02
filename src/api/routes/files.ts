@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response, Application } from 'express';
 import { imagesPath, publicPath, subtitlesPath, transcodesPath } from '@/state';
 
-import { confDb } from '../../database/config';
 import { existsSync } from 'fs';
 import { staticPermissions } from '../middleware/permissions';
-import { unique } from '../../functions/stringArray';
+import { mustHaveToken } from '@/functions/keycloak';
+import { findFoldersDB } from '@/db/media/actions/folders';
 
 export const serveImagesPath = (req: Request, res: Response) => {
 	if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
@@ -78,26 +78,16 @@ export const servePublicPath = (req: Request, res: Response) => {
 	}
 };
 
-export const serveLibraryPaths = async (app) => {
-	await confDb.folder
-		.findMany({
-			include: {
-				Libraries: true,
-			},
-		})
-		.then((folders) => {
-			unique(folders, 'path')
-				.filter(r => r.path)
-				.map((r) => {
-					app.get(`/${r.Libraries[0]?.libraryId}/*`, staticPermissions, (req: Request, res: Response) => {
-						if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
-							return res.status(401).json({
-								status: 'error',
-								message: 'Access denied',
-							});
-						}
-						return res.sendFile(`${r.path}/${req.params[0]}`);
-					});
+export const serveLibraryPaths = (app: Application) => {
+	findFoldersDB().map((r) => {
+		app.get(`/${r.id}/*`, mustHaveToken, staticPermissions, (req: Request, res: Response) => {
+			if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
+				return res.status(401).json({
+					status: 'error',
+					message: 'Access denied',
 				});
+			}
+			return res.sendFile(`${r.path}/${req.params[0]}`);
 		});
+	});
 };

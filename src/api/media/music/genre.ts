@@ -12,7 +12,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 
 	const language = getLanguage(req);
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const music = await confDb.musicGenre.findFirst({
 		where: {
@@ -68,7 +68,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 				folder: a.folder,
 				libraryId: a.libraryId,
 				origin: deviceId,
-				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
+				colorPalette: a.colorPalette,
 			}));
 			const albums = t.Album.map(a => ({
 				id: a.id,
@@ -78,7 +78,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 				description: a?.description,
 				libraryId: t.Album[0].libraryId,
 				origin: deviceId,
-				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
+				colorPalette: a.colorPalette,
 			}));
 
 			return {

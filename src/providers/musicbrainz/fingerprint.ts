@@ -22,7 +22,7 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
 
 	return await axios.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
 		params: {
-			client: 'pXzJ7uXskB',
+			client: process.env.ACOUSTIC_ID,
 			duration: parseInt(fingerprintData.duration, 10),
 			fingerprint: fingerprintData.fingerprint,
 		},

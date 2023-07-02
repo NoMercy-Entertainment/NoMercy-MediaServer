@@ -1,12 +1,14 @@
+import { insertRole } from '@/db/media/actions/roles';
 import { Prisma } from '../../database/config/client';
 import logger from '../../functions/logger';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
 import { CompleteTvAggregate } from './fetchTvShow';
-import { downloadAndHash } from './image';
+import { insertCast } from '@/db/media/actions/casts';
+import Logger from '@/functions/logger/logger';
 
 // import createBlurHash from '../../functions/createBlurHash';
 
-export default async (
+export default (
 	req: CompleteTvAggregate | SeasonAppend,
 	castArray: Array<
 		| Prisma.CastCreateOrConnectWithoutTvInput
@@ -26,42 +28,40 @@ export default async (
 	for (const cast of (req as CompleteTvAggregate | SeasonAppend).aggregate_credits.cast) {
 		if (!people.includes(cast.id)) continue;
 
-		castArray.push({
-			where: {
-				[`personId_${type}Id`]: {
-					personId: cast.id,
-					[`${type}Id`]: req.id,
-				},
-			},
-			create: {
-				personId: cast.id,
-				Roles: {
-					connectOrCreate: cast.roles?.map(role => ({
-						where: {
-							castId_creditId: {
-								castId: cast.id,
-								creditId: role.credit_id,
-							},
-						},
-						create: {
-							creditId: role.credit_id,
-							character: role.character,
-							episodeCount: role.episode_count,
-						},
-					})),
-				},
-			},
-		});
+		for (const role of cast.roles ?? []) {
+			try {
+				insertCast({
+					id: role.credit_id,
+					person_id: cast.id,
+					[`${type}_id`]: req.id,
+				});
 
-		if (cast.profile_path) {
-			await downloadAndHash({
-				src: cast.profile_path,
-				table: 'person',
-				column: 'profile',
-				type: 'crew',
-				only: ['colorPalette', 'blurHash'],
-			});
+				insertRole({
+					cast_id: role.credit_id,
+					character: role.character,
+					credit_id: role.credit_id,
+					episodeCount: role.episode_count,
+				});
+
+			} catch (error) {
+				Logger.log({
+					level: 'error',
+					name: 'App',
+					color: 'red',
+					message: JSON.stringify(['aggregate cast', error]),
+				});
+			}
 		}
+
+		// if (cast.profile_path) {
+		// 	downloadAndHash({
+		// 		src: cast.profile_path,
+		// 		table: 'person',
+		// 		column: 'profile',
+		// 		type: 'crew',
+		// 		only: ['colorPalette', 'blurHash'],
+		// 	});
+		// }
 	}
 
 	logger.log({

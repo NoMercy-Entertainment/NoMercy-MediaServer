@@ -13,7 +13,7 @@ import { pad, unique } from '../../functions/stringArray';
 import { filenameParse, ParsedFilename, ParsedTvInfo } from '../../functions/videoFilenameParser';
 import { ffmpeg, languagesFile } from '@/state';
 import { cleanFileName, yearRegex } from '../../tasks/files/filenameParser';
-import { VideoFFprobe } from '../ffprobe/ffprobe';
+import type { VideoFFprobe } from '../ffprobe/ffprobe';
 
 interface Quality {
     width: number;
@@ -365,7 +365,7 @@ export class NMEncoder {
 		}
 
 		if (this.format!.bit_rate && this.format!.duration) {
-			return Math.floor((this.format!.duration * (this.format!.bit_rate as number)) / 8 / rate);
+			return Math.floor((this.format!.duration as number * (this.format!.bit_rate as number)) / 8 / rate);
 		}
 		if (
             this.format!.bit_rate
@@ -373,14 +373,14 @@ export class NMEncoder {
             && this.format!.duration
 		) {
 			return Math.floor(
-				(this.format!.duration * (this.format!.bit_rate as never as number)) / 8 / rate
+				(this.format!.duration as number * (this.format!.bit_rate as never as number)) / 8 / rate
 			);
 		}
 		if (this.format!.duration) {
 			const size = this.getTotalSize(
                 this.format!.filename.replace(/[\\\/][^\\\/]+(?=.*\w*)$/u, '')
 			);
-			return Math.floor(size / this.format!.duration / 8 / rate);
+			return Math.floor(size / (this.format!.duration as number) / 8 / rate);
 		}
 
 		return 520929;

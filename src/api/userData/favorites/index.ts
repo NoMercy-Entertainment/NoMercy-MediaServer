@@ -6,7 +6,7 @@ import { createTitleSort } from '../../../tasks/files/filenameParser';
 
 export default async function (req: Request, res: Response) {
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const array: any[] = [];
 

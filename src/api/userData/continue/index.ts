@@ -1,81 +1,56 @@
-import { Movie, Tv } from '../../../database/config/client';
 import { Request, Response } from 'express';
-import { sortBy, unique } from '../../../functions/stringArray';
+import { groupBy, mappedEntries, unique } from '../../../functions/stringArray';
 
 import { KAuthRequest } from 'types/keycloak';
-import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
+import { selectFromUserData } from '@/db/media/actions/userData';
 
-export default async function (req: Request, res: Response) {
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+export default function (req: Request, res: Response) {
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
-	const userData = await confDb.userData.findMany({
-		where: {
-			sub_id: user,
-			NOT: {
-				time: null,
-			},
-		},
-		orderBy: {
-			updatedAt: 'desc',
-		},
-	});
+	const result = selectFromUserData({ user_id: user });
 
-	const userDataTvs = unique(
-		userData.filter(u => u.tvId),
-		'tvId'
-	);
-	const userDataMovies = unique(
-		userData.filter(u => u.movieId),
-		'movieId'
-	);
+	const datas = mappedEntries(groupBy(result, 'type'))
+		.map((d) => {
+			if (d[0] == 'tv') {
+				return {
+					type: unique(d[1], 'tv_id'),
+				};
+			}
+			if (d[0] == 'movie') {
+				return {
+					type: unique(d[1], 'movie_id'),
+				};
+			}
+			if (d[0] == 'special') {
+				return {
+					type: unique(d[1], 'special_id'),
+				};
+			}
+		});
 
-	const items: any = [];
+	const data: any[] = [];
 
-	await Promise.all([
-		confDb.tv
-			.findMany({
-				where: {
-					id: {
-						in: userDataTvs.map(u => u.tvId!) ?? [],
-					},
-				},
-			})
-			.then(data => items.push(...data)),
+	for (const t of datas) {
 
-		confDb.movie
-			.findMany({
-				where: {
-					id: {
-						in: userDataMovies.map(u => u.movieId!) ?? [],
-					},
-				},
-			})
-			.then(data => items.push(...data)),
-	]);
+		t?.type?.map((d) => {
+			const x = d?.special ?? d?.tv ?? d?.movie;
+			if (!x) return;
 
-	const newArray = sortBy(userDataTvs.concat(userDataMovies), 'updatedAt', 'desc').map(d => ({
-		...items.find(n => (d.tvId ?? d.movieId) == n.id),
-		time: d.updatedAt,
-	}));
-
-	const data = newArray.map((d: Tv | Movie) => ({
-		id: d.id,
-		mediaType: (d as Tv).mediaType ?? 'movie',
-		poster: d.poster,
-		title: d.title[0].toUpperCase() + d.title.slice(1),
-		titleSort: createTitleSort(d.title),
-		type: (d as Tv).mediaType
-			? 'tv'
-			: 'movies',
-		updatedAt: d.updatedAt,
-		blurHash: d.blurHash
-			? JSON.parse(d.blurHash)
-			: null,
-		colorPalette: d.colorPalette
-			? JSON.parse(d.colorPalette)
-			: null,
-	}));
+			data.push({
+				id: x.id,
+				mediaType: d.type,
+				poster: x.poster,
+				title: x.title[0].toUpperCase() + x.title.slice(1),
+				titleSort: createTitleSort(x.title),
+				type: d.type,
+				updatedAt: x.updated_at,
+				colorPalette: x.colorPalette
+					? JSON.parse(x.colorPalette)
+					: null,
+			});
+		}) ?? [];
+	}
 
 	return res.json(data);
 }

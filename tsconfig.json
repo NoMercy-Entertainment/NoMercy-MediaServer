@@ -8,7 +8,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"downlevelIteration": true,
 		"allowJs": true,
-		"module": "CommonJS",
+		"module": "commonjs",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,
@@ -23,8 +23,27 @@
 		"baseUrl": "./src",
 		"paths": {
 			"@/*": ["./*"]
-		}
+		},
+		"plugins": [
+			{
+				"transform": "@zerollup/ts-transform-paths",
+				"exclude": ["*"]
+			}
+		]
 	},
-	"include": ["./src/**/*.ts", "./src/**/*.d.ts"],
+	"ts-node": {
+		"swc": true,
+		"require": ["tsconfig-paths/register"],
+		"transpileOnly": true
+	},
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.d.ts",
+		"./package.json",
+		"./src/database/config/**/*",
+		"./src/database/queue/**/*",
+		"drizzle.config.ts",
+		"src/db/schema/media/back"
+	],
 	"references": []
 }

@@ -13,6 +13,8 @@ export const setOmdbApiKey = (payload: string) => store.dispatch(config.actions.
 
 export const setMakeMKVKey = (payload: string) => store.dispatch(config.actions.setMakeMKVKey(payload));
 
+export const setAcousticId = (payload: string) => store.dispatch(config.actions.setAcousticId(payload));
+
 export const setQuote = (payload: string) => store.dispatch(config.actions.setQuote(payload));
 
 export const setColors = (payload: CDNInfoResponse['data']['colors']) => store.dispatch(config.actions.setColors(payload));

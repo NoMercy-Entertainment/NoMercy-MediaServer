@@ -1,4 +1,5 @@
 import {
+	setAcousticId,
 	setColors,
 	setDownloads,
 	setMakeMKVKey,
@@ -30,6 +31,10 @@ const cdn = async () => {
 	process.env.OMDB_API_KEY = response.data.data.keys.omdb_key;
 	setMakeMKVKey(response.data.data.keys.makemkv_key);
 	process.env.MAKEMKV_KEY = response.data.data.keys.makemkv_key;
+	setAcousticId(response.data.data.keys.acoustic_id);
+	process.env.ACOUSTIC_ID = response.data.data.keys.acoustic_id;
+	setAcousticId(response.data.data.keys.fanart_key);
+	process.env.FANART_API_KEY = response.data.data.keys.fanart_key;
 	setQuote(response.data.data.quote);
 	setColors(response.data.data.colors);
 	// console.log(response.data.data.downloads[platform]);

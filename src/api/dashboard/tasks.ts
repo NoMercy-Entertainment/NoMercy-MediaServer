@@ -34,7 +34,7 @@ export const deleteTask = async (req: Request, res: Response) => {
 
 	await queDb.queueJob.deleteMany({
 		where: {
-			taskId: id,
+			id: id,
 		},
 	})
 		.catch((error) => {
@@ -164,5 +164,51 @@ export const runningTaskWorkers = (req: Request, res: Response) => {
 		status: 'ok',
 		workers: workers,
 	});
+
+};
+
+export const encoderQueue = (req: Request, res: Response) => {
+
+	queDb.queueJob.findMany({
+		where: {
+			queue: 'encoder',
+		},
+	})
+		.then((data) => {
+			return res.json(
+				data.map((d) => {
+					const args = JSON.parse(d.payload ?? '{}')?.args;
+					const data = (args.onDemand
+						? args.onDemand
+						: args);
+
+					return {
+						id: d.id,
+						fullTitle: data.fullTitle,
+						videoStreams: data.streams.video.map(v => `${v.width}x${v.height}`).join(', '),
+						audioStreams: data.streams.audio.map(a => a.language).join(', '),
+						subtitleStreams: data.streams.subtitle.map(s => s.language).join(', '),
+						hasGpu: data.hasGpu,
+						isHDR: data.isHDR,
+						libraryId: data.library.id,
+						libraryName: data.library.name,
+						libraryType: data.library.type,
+						image: data.episode?.still ?? data.movie?.poster ?? null,
+					};
+				})
+			);
+		})
+		.catch((error) => {
+			Logger.log({
+				level: 'info',
+				name: 'access',
+				color: 'magentaBright',
+				message: `Error getting encoder queue: ${error}`,
+			});
+			return res.json({
+				status: 'ok',
+				message: `Something went wrong getting encoder queue: ${error}`,
+			});
+		});
 
 };

@@ -4,24 +4,18 @@ import { Movie } from '../../providers/tmdb/movie/index';
 import { Prisma } from '../../database/config/client';
 import { TvShow } from '../../providers/tmdb/tv/index';
 import colorPalette from '@/functions/colorPalette/colorPalette';
-import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash';
 import { createTitleSort } from '../../tasks/files/filenameParser';
 import { unique } from '../../functions/stringArray';
+import { insertSimilar } from '@/db/media/actions/similars';
+import { getMoviesDB } from '@/db/media/actions/movies';
+import Logger from '@/functions/logger/logger';
+import { selectTvsDB } from '../../db/media/actions/tvs';
 
-export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[], table: 'movie' | 'tv') => {
+export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: Prisma.PromiseReturnType<any>[], type: 'movie' | 'tv') => {
 
-	const movies = await confDb.movie.findMany({
-		select: {
-			id: true,
-		},
-	}).then(movie => movie.map(m => m.id));
-
-	const tvs = await confDb.tv.findMany({
-		select: {
-			id: true,
-		},
-	}).then(tv => tv.map(m => m.id));
+	const movies = getMoviesDB().map(m => m.id);
+	const tvs = selectTvsDB().map(m => m.id);
 
 	for (const similar of unique<Movie | TvShow>(req.similar.results, 'id')) {
 
@@ -50,40 +44,36 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			}),
 		]);
 
-		const similarInsert = Prisma.validator<Prisma.SimilarUncheckedCreateInput>()({
-			backdrop: similar.backdrop_path,
-			mediaId: similar.id,
-			overview: similar.overview,
-			poster: similar.poster_path,
-			title: (similar as TvShow).name ?? (similar as Movie).title,
-			titleSort: createTitleSort((similar as TvShow).name ?? (similar as Movie).title),
-			blurHash: JSON.stringify(blurHash),
-			colorPalette: JSON.stringify(palette),
-			movieFromId: table === 'movie'
-				? req.id
-				: undefined,
-			movieToId: table === 'movie' && movies.includes(similar.id)
-				? similar.id
-				: undefined,
-			tvFromId: table === 'tv'
-				? req.id
-				: undefined,
-			tvToId: table === 'tv' && tvs.includes(similar.id)
-				? similar.id
-				: undefined,
-		});
-
-		// transaction.push(
-		await	confDb.similar.upsert({
-			where: {
-				[`${table}FromId_mediaId`]: {
-					[`${table}FromId`]: req.id,
-					mediaId: similar.id,
-				},
-			},
-			update: similarInsert,
-			create: similarInsert,
-		});
-		// );
+		try {
+			insertSimilar({
+				backdrop: similar.backdrop_path,
+				media_id: similar.id,
+				overview: similar.overview,
+				poster: similar.poster_path,
+				title: (similar as TvShow).name ?? (similar as Movie).title,
+				titleSort: createTitleSort((similar as TvShow).name ?? (similar as Movie).title),
+				blurHash: JSON.stringify(blurHash),
+				colorPalette: JSON.stringify(palette),
+				movieFrom_id: type === 'movie'
+					? req.id
+					: undefined,
+				movieTo_id: type === 'movie' && movies.includes(similar.id)
+					? similar.id
+					: undefined,
+				tvFrom_id: type === 'tv'
+					? req.id
+					: undefined,
+				tvTo_id: type === 'tv' && tvs.includes(similar.id)
+					? similar.id
+					: undefined,
+			}, type);
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['similar', error]),
+			});
+		}
 	}
 };

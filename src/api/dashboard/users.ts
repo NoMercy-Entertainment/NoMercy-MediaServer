@@ -136,10 +136,34 @@ export const userPermissions = async (req: Request, res: Response): Promise<Resp
 				Libraries: true,
 			},
 		})
+			.then((data) => {
+				return res.json(
+					data.map(d => ({
+						...d,
+						Libraries: undefined,
+						libraries: d.Libraries.map(f => f.libraryId),
+					}))
+				);
+			})
+			.catch((error) => {
+				Logger.log({
+					level: 'info',
+					name: 'access',
+					color: 'magentaBright',
+					message: `Error getting user permissions: ${error}`,
+				});
+				return res.json({
+					status: 'ok',
+					message: `Something went wrong getting permissions: ${error}`,
+				});
+			})
 		: await confDb.user
 			.findMany({
 				include: {
 					Libraries: true,
+				},
+				orderBy: {
+					manage: 'desc',
 				},
 			})
 			.then((data) => {

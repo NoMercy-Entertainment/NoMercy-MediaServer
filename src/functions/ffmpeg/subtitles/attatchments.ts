@@ -1,4 +1,4 @@
-import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
+import type { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import fs from 'fs';
 
 const makeAttachmentsFile = function (attachments: VideoFFprobe['streams']['attachments'], location: string|null = null) {

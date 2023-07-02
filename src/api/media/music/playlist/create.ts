@@ -5,7 +5,7 @@ import { confDb } from '../../../../database/config';
 
 export default async function (req: Request, res: Response) {
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	if (await confDb.playlist.findFirst({
 		where: {

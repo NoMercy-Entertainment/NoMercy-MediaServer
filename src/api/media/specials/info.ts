@@ -1,157 +1,193 @@
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
-import { deviceId } from '../../../functions/system';
-import { getLanguage } from '../../middleware';
-import { isOwner } from '../../middleware/permissions';
+// import { KAuthRequest } from 'types/keycloak';
+// import { getLanguage } from '../../middleware';
+// import { isOwner } from '../../middleware/permissions';
+import { InfoResponse } from '@/types/server';
+// import { confDb } from '@/database/config';
+import { createTitleSort } from '@/tasks/files/filenameParser';
+import { convertToSeconds, parseYear } from '@/functions/dateTime';
+import { getSpecial } from '@/db/media/actions/specials';
+import { unique } from '@/functions/stringArray';
 
 export default function (req: Request, res: Response) {
 
-	const language = getLanguage(req);
+	// const language = getLanguage(req);
 
-	const servers = req.body.servers?.filter((s: any) => !s.includes(deviceId)) ?? [];
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
+	// const user = (req as unknown as KAuthRequest).token.content.sub;
+	// const owner = await isOwner(req as KAuthRequest);
 
-	return res.json({});
+	const data = getSpecial({ id: req.params.id }, true);
 
-	// return res.json({
-	// 	id: data.id,
-	// 	title: title,
-	// 	overview: overview,
-	// 	poster: data.poster,
-	// 	backdrop: data.backdrop,
-	// 	blurHash: {
-	// 		logo: logos[0]?.blurHash ?? null,
-	// 		poster: hash?.poster ?? null,
-	// 		backdrop: hash?.backdrop ?? null,
+	// const data = await confDb.special.findFirst({
+	// 	where: {
+	// 		id: req.params.id,
 	// 	},
-	// 	videos: groupedMedia.Trailer ?? [],
-	// 	backdrops: groupedMedia.backdrop?.map((i: Image) => ({ ...i, colorPalette: JSON.parse(i.colorPalette ?? '{}') })) ?? [],
-	// 	logos: logos,
-	// 	posters: groupedMedia.poster?.map((i: Image) => ({ ...i, colorPalette: JSON.parse(i.colorPalette ?? '{}') })) ?? [],
-	// 	contentRatings: data.Certification.map((r) => {
-	// 		return {
-	// 			rating: r.Certification.rating,
-	// 			meaning: r.Certification.meaning,
-	// 			order: r.Certification.order,
-	// 			iso31661: r.Certification.iso31661,
-	// 		};
-	// 	}),
-	// 	watched: data.UserData?.[0]?.played ?? false,
-	// 	favorite: data.UserData?.[0]?.isFavorite ?? false,
-	// 	titleSort: data.titleSort,
-	// 	duration: data.duration,
-	// 	numberOfEpisodes: data.numberOfEpisodes ?? 1,
-	// 	haveEpisodes: files.length,
-	// 	year: new Date(Date.parse(data.firstAirDate!)).getFullYear(),
-	// 	voteAverage: data.voteAverage,
-	// 	similar: similar.map(s => ({ ...s, blurHash: JSON.parse(s.blurHash ?? '') })),
-	// 	recommendations: recommendations.map(s => ({ ...s, blurHash: JSON.parse(s.blurHash ?? '') })),
-	// 	externalIds: {
-	// 		imdbId: data.imdbId,
-	// 		tvdbId: data.tvdbId,
+	// 	include: {
+	// 		Item: {
+	// 			include: {
+	// 				Episode: {
+	// 					include: {
+	// 						Tv: true,
+	// 						VideoFile: {
+	// 							include: {
+	// 								UserData: {
+	// 									where: {
+	// 										sub_id: user,
+	// 									},
+	// 								},
+	// 							},
+	// 						},
+	// 					},
+	// 				},
+	// 				Movie: {
+	// 					include: {
+	// 						VideoFile: {
+	// 							include: {
+	// 								UserData: {
+	// 									where: {
+	// 										sub_id: user,
+	// 									},
+	// 								},
+	// 							},
+	// 						},
+	// 					},
+	// 				},
+	// 			},
+	// 		},
 	// 	},
-	// 	creators:
-	// 		data.Creators?.filter(c => c.Creator.name)
-	// 			.slice(0, 10)
-	// 			.map(c => ({
-	// 				id: c.Creator.personId,
-	// 				name: c.Creator.name,
-	// 			})) ?? [],
-	// 	directors:
-	// 		data.Crew.filter(c => c.Crew.department == 'Directing')
-	// 			.slice(0, 10)
-	// 			.map(c => ({
-	// 				id: c.Crew.personId,
-	// 				name: c.Crew.name,
-	// 			})) ?? [],
-	// 	writers:
-	// 		data.Crew.filter(c => c.Crew.department == 'Writing')
-	// 			.slice(0, 10)
-	// 			.map(c => ({
-	// 				id: c.Crew.personId,
-	// 				name: c.Crew.name,
-	// 			})) ?? [],
-	// 	genres:
-	// 		data.Genre.map(g => ({
-	// 			id: g.Genre.id,
-	// 			name: g.Genre.name,
-	// 		})) ?? [],
-	// 	keywords: data.Keyword.map(c => c.Keyword.name),
-	// 	type: data.Library.type == 'tv'
-	// 		? 'tv'
-	// 		: 'movies',
-	// 	mediaType: data.Library.type == 'tv'
-	// 		? 'tv'
-	// 		: 'movies',
-	// 	cast: data.Cast.map(c => c.Cast).map((c) => {
-	// 		return {
-	// 			gender: c.gender,
-	// 			id: c.personId,
-	// 			creditId: c.creditId,
-	// 			character: c.character,
-	// 			knownForDepartment: c.knownForDepartment,
-	// 			name: c.name,
-	// 			profilePath: c.profilePath,
-	// 			popularity: c.popularity,
-	// 			deathday: c.Person?.deathday,
-	// 			blurHash: c.blurHash,
-	// 		};
-	// 	}),
-	// 	crew: data.Crew.map(c => c.Crew).map((c) => {
-	// 		return {
-	// 			gender: c.gender,
-	// 			id: c.personId,
-	// 			creditId: c.creditId,
-	// 			job: c.job,
-	// 			department: c.department,
-	// 			knownForDepartment: c.knownForDepartment,
-	// 			name: c.name,
-	// 			profilePath: c.profilePath,
-	// 			popularity: c.popularity,
-	// 			deathday: c.Person?.deathday,
-	// 			blurHash: c.blurHash,
-	// 		};
-	// 	}),
-	// 	director: data.Crew.filter(c => c.Crew.department == 'Directing')
-	// 		.map(c => c.Crew)
-	// 		.map(c => ({
-	// 			id: c.personId,
-	// 			name: c.name,
-	// 			blurHash: c.blurHash,
-	// 		})),
-	// 	seasons: data.Season.map((s) => {
-
-	// 		return {
-	// 			id: s.id,
-	// 			overview: s.overview,
-	// 			poster: s.poster,
-	// 			seasonNumber: s.seasonNumber,
-	// 			title: s.title,
-	// 			blurHash: s.blurHash,
-	// 			Episode: undefined,
-	// 			episodes: s.Episode.map((e) => {
-	// 				let progress: null | number = null;
-
-	// 				if (e.VideoFile[0] && e.VideoFile[0].duration && e.VideoFile[0]?.UserData?.[0]?.time) {
-	// 					progress = (e.VideoFile[0]?.UserData?.[0]?.time / convertToSeconds(e.VideoFile[0].duration) * 100);
-	// 				}
-
-	// 				return {
-	// 					id: e.id,
-	// 					episodeNumber: e.episodeNumber,
-	// 					seasonNumber: e.seasonNumber,
-	// 					title: e.title,
-	// 					overview: e.overview,
-	// 					airDate: e.airDate,
-	// 					still: e.still,
-	// 					blurHash: e.blurHash,
-	// 					progress: progress,
-	// 				};
-	// 			}),
-	// 		};
-	// 	}),
 	// });
+
+	if (!data) {
+		return res.status(404).json({
+			error: 'not_found',
+			error_description: 'Special not found',
+		});
+	}
+
+	const lowestYear = data.specialItems.reduce((a, b) => {
+		return Math.min(a, parseYear(b?.episode?.tv?.firstAirDate as string) ?? parseYear(b?.movie?.releaseDate) ?? 0);
+	}, 9999);
+
+	const totalDuration = data.specialItems.reduce((a, b) => {
+		return a + (convertToSeconds(
+			b?.episode?.videoFiles?.[0]?.duration
+			?? b?.movie?.videoFiles?.[0]?.duration
+			?? '00:00:00'
+		) / 60);
+	}, 0);
+
+	const averageRating = data.specialItems.reduce((a, b) => {
+		return a + (b?.episode?.tv.voteAverage ?? b?.movie?.voteAverage ?? 0);
+	}, 0) / data.specialItems.length;
+
+	const response: InfoResponse = {
+		id: data.id as string,
+		title: data.title,
+		overview: data.description,
+		poster: data.poster,
+		logo: data.logo,
+		creator: {
+			id: '6aa35c70-7136-44f3-baba-e1d464433426',
+			name: data.creator as string,
+		},
+		backdrop: data.backdrop,
+		videos: [],
+		backdrops: [],
+		logos: [],
+		posters: [],
+		contentRatings: [],
+		watched: false,
+		favorite: false,
+		duration: totalDuration,
+		year: lowestYear,
+		type: 'special',
+		mediaType: 'special',
+		// cast: data.credits.cast.map((c) => {
+		// 	return {
+		// 		gender: c.person?.gender ?? null,
+		// 		id: c.person?.id as number,
+		// 		creditId: c.roles[0].credit_id,
+		// 		character: c.roles[0].character,
+		// 		knownForDepartment: c.person?.knownForDepartment ?? null,
+		// 		name: c.person?.name ?? null,
+		// 		profilePath: c.person?.profile ?? null,
+		// 		popularity: c.person?.popularity ?? null,
+		// 		deathday: c.person?.deathday ?? null,
+		// 		// blurHash: c.blurHash,
+		// 	};
+		// }),
+		// crew: data.credits.crew.map((c) => {
+		// 	return {
+		// 		gender: c.person?.gender ?? null,
+		// 		id: c.person?.id as number,
+		// 		creditId: c.jobs[0].credit_id,
+		// 		job: c.jobs[0].job,
+		// 		knownForDepartment: c.person?.knownForDepartment ?? null,
+		// 		name: c.person?.name ?? null,
+		// 		profilePath: c.person?.profile ?? null,
+		// 		popularity: c.person?.popularity ?? null,
+		// 		deathday: c.person?.deathday ?? null,
+		// 		// blurHash: c.blurHash,
+		// 	};
+		// }),
+		cast: [],
+		crew: [],
+		director: [],
+		keywords: [],
+		creators: [],
+		directors: [],
+		writers: [],
+		titleSort: createTitleSort(data.title),
+		voteAverage: averageRating,
+		genres: unique(data.genres, 'id'),
+		movies: data.movies,
+		episodes: data.episodes,
+		casts: data.credits.cast.length,
+		crews: data.credits.crew.length,
+		externalIds: {
+			imdbId: null,
+			tvdbId: null,
+		},
+		similar: [],
+		recommendations: [],
+		seasons: [
+			{
+				id: '1',
+				seasonNumber: 1,
+				name: '',
+				type: 'special',
+				episodes: data.specialItems.map((s, index: number) => {
+					if (s.episode) {
+						const title = s.episode.tv.translation?.title == ''
+							? s.episode.tv.title
+							: s.episode.tv.translation?.title;
+						return {
+							id: s.episode.id,
+							title: `${title} - %S${s.episode.seasonNumber} %E${s.episode.episodeNumber}\n${s.episode.translation?.title ?? s.episode.title}`,
+							overview: s.episode.translation?.overview ?? s.episode.overview,
+							still: s.episode.still,
+							seasonNumber: 1,
+							episodeNumber: index + 1,
+							available: s.episode.videoFiles.length > 0,
+						};
+					}
+					if (s.movie) {
+						return {
+							id: s.movie.id,
+							title: s.movie.translation?.title ?? s.movie.title,
+							overview: s.movie.translation?.overview ?? s.movie.overview,
+							still: s.movie.backdrop,
+							seasonNumber: 1,
+							episodeNumber: index + 1,
+							available: s.movie.videoFiles.length > 0,
+						};
+					}
+				}),
+			},
+		],
+	};
+
+	return res.json(response);
 
 }

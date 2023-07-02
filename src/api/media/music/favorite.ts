@@ -10,7 +10,7 @@ export default async function (req: Request, res: Response): Promise<Response<Fa
 
 	const language = getLanguage(req);
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const music = await confDb.favoriteTrack.findMany({
 		where: {

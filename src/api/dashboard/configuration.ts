@@ -9,6 +9,7 @@ import { confDb } from '../../database/config';
 import reboot from '../../functions/reboot/reboot';
 import { setDeviceName } from '@/state/redux/config/actions';
 import storeConfig from '../../functions/storeConfig';
+import ping from '@/loaders/ping';
 
 export const configuration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
 	await confDb.configuration
@@ -41,7 +42,7 @@ export const configuration = async (req: Request, res: Response): Promise<Respon
 };
 
 export const createConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	await storeConfig(req.body, user)
 		.then(() => {
@@ -73,10 +74,11 @@ export const createConfiguration = async (req: Request, res: Response): Promise<
 };
 
 export const updateConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const body: ConfigParams = req.body;
 	let needsReboot = false;
+	let updateRegistry = false;
 
 	const secureInternalPort = useSelector((state: AppState) => state.system.secureInternalPort);
 
@@ -85,22 +87,30 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 	const data = useSelector((state: AppState) => state.config.dataWorker);
 	const request = useSelector((state: AppState) => state.config.requestWorker);
 	const encoder = useSelector((state: AppState) => state.config.encoderWorker);
+	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
 	await storeConfig(body as unknown as ConfigData, user)
 		.then(() => {
-			queue.setWorkers(body.queueWorkers);
-			cron.setWorkers(body.cronWorkers);
-			data.setWorkers(body.dataWorkers);
-			request.setWorkers(body.requestWorkers);
-			encoder.setWorkers(body.encoderWorkers);
-			setDeviceName(body.deviceName);
+			if (deviceName != body.deviceName) {
+				updateRegistry = true;
+			}
+			body.queueWorkers != null && queue.setWorkers(body.queueWorkers);
+			body.cronWorkers != null && cron.setWorkers(body.cronWorkers);
+			body.dataWorkers != null && data.setWorkers(body.dataWorkers);
+			body.requestWorkers != null && request.setWorkers(body.requestWorkers);
+			body.encoderWorkers != null && encoder.setWorkers(body.encoderWorkers);
+			body.deviceName != null && setDeviceName(body.deviceName);
 
-			if (secureInternalPort != body.secureInternalPort) {
+			if (body.secureInternalPort && secureInternalPort != body.secureInternalPort) {
 				needsReboot = true;
 			}
 
-			setSecureInternalPort(body.secureInternalPort);
-			setSecureExternalPort(body.secureExternalPort);
+			if (updateRegistry) {
+				ping();
+			}
+
+			body.secureInternalPort != null && setSecureInternalPort(body.secureInternalPort);
+			body.secureExternalPort != null && setSecureExternalPort(body.secureExternalPort);
 
 			Logger.log({
 				level: 'info',
@@ -133,7 +143,7 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 				message: 'Error updating configuration',
 			});
 
-			return res.json({
+			return res.status(400).json({
 				status: 'ok',
 				message: 'Something went wrong updating configuration',
 			});

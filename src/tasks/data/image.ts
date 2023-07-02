@@ -9,11 +9,21 @@ import { Image } from '../../providers/tmdb/shared/index';
 import { MovieAppend } from '../../providers/tmdb/movie/index';
 import { PersonAppend } from '../../providers/tmdb/people/index';
 import { SeasonAppend } from '../../providers/tmdb/season/index';
-import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage';
 import { imagesPath } from '@/state';
+import { mediaDb } from '@/db/media';
+import { eq } from 'drizzle-orm';
+import { tvs } from '@/db/media/schema/tvs';
+import { seasons } from '@/db/media/schema/seasons';
+import { episodes } from '@/db/media/schema/episodes';
+import { people } from '@/db/media/schema/people';
+import { medias } from '@/db/media/schema/medias';
+import { guestStars } from '@/db/media/schema/guestStars';
+import { insertImage } from '@/db/media/actions/images';
+import { movies } from '@/db/media/schema/movies';
+import Logger from '@/functions/logger/logger';
 
-export const image = async (
+export const image = (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | MovieAppend | PersonAppend | CompleteMovieAggregate,
 	transaction: Prisma.PromiseReturnType<any>[],
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
@@ -25,64 +35,42 @@ export const image = async (
 
 	for (const image of req.images[`${type}s`] as Array<Image>) {
 
-		const mediaInsert = Prisma.validator<Prisma.MediaUncheckedCreateInput>()({
-			aspectRatio: image.aspect_ratio,
-			height: image.height,
-			iso6391: image.iso_639_1,
-			src: image[`${type}_path`] ?? image.file_path,
-			type: type,
-			voteAverage: image.vote_average,
-			voteCount: image.vote_count,
-			width: image.width,
-			episodeId: table == 'episode'
-				? req.id
-				: undefined,
-			movieId: table == 'movie'
-				? req.id
-				: undefined,
-			personId: table == 'person'
-				? req.id
-				: undefined,
-			seasonId: table == 'season'
-				? req.id
-				: undefined,
-			tvId: table == 'tv'
-				? req.id
-				: undefined,
-			videoFileId: table == 'video'
-				? req.id
-				: undefined,
-		});
+		try {
 
-		transaction.push(
-			confDb.media.upsert({
-				where: {
-					src: image[`${type}_path`] ?? image.file_path,
-				},
-				update: mediaInsert,
-				create: mediaInsert,
-			})
-		);
-
-		const query = await confDb.media.findFirst({
-			where: {
-				src: image[`${type}_path`] ?? image.file_path,
-			},
-		});
-
-		if (!query || (['en', lang, null].includes(image.iso_639_1) && !query?.blurHash && !query?.colorPalette)) {
-			await downloadAndHash({
-				src: image.file_path,
-				table: 'media',
-				column: 'src',
+			const query = insertImage({
+				aspectRatio: image.aspect_ratio,
+				height: image.height,
+				iso6391: image.iso_639_1 ?? undefined,
+				filePath: (image[`${type}_path`] as string) ?? (image.file_path as string),
 				type: type,
-				only: ['colorPalette', 'blurHash'],
+				voteAverage: image.vote_average,
+				voteCount: image.vote_count,
+				width: image.width,
+				[`${table}_id`]: req.id,
+			});
+
+			if (!query || (['en', lang, null].includes(image.iso_639_1) && !query?.blurHash && !query?.colorPalette)) {
+				downloadAndHash({
+					src: image.file_path,
+					table: 'media',
+					column: 'src',
+					type: type,
+					only: ['colorPalette', 'blurHash'],
+				});
+			}
+
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['images', type, error]),
 			});
 		}
 	}
 };
 
-export const downloadAndHash = async ({ src, table, column, type, transaction, only }: {
+export const downloadAndHash = ({ src, table, column, type, transaction, only }: {
 	src: string,
 	column: string,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
@@ -93,11 +81,11 @@ export const downloadAndHash = async ({ src, table, column, type, transaction, o
 
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	// await queue.add({
-	// 	file: __filename,
-	// 	fn: 'execute',
-	// 	args: { src, table, column, type, transaction, only },
-	// });
+	queue.add({
+		file: __filename,
+		fn: 'execute',
+		args: { src, table, column, type, transaction, only },
+	});
 };
 
 export const execute = async ({ src, table, column, type, transaction, only }: {
@@ -109,11 +97,15 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 	only?: Array<'colorPalette' | 'blurHash'>;
 }) => {
 
-	const hasTransaction = !!transaction;
-
-	if (!transaction) {
-		transaction = new Array<Prisma.Prisma__MediaClient<Media, never>>();
-	}
+	const models = {
+		movie: movies,
+		tv: tvs,
+		season: seasons,
+		episode: episodes,
+		person: people,
+		media: medias,
+		guestStar: guestStars,
+	};
 
 	const imageSizes = [
 		{
@@ -176,17 +168,14 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 
 	const newFile = src?.replace(/.jpg$|.png$/u, '.webp');
 
-	const query = await confDb[table].findFirst({
-		where: {
-			[column]: src,
-		},
-	});
+	const query = mediaDb.select()
+		.from(models[table])
+		.where(eq(models[table][column], src))
+		.get();
 
 	if (query?.blurHash && query?.colorPalette && existsSync(`${imagesPath}/${imageSizes[0].size}${newFile}`)) {
 		return;
 	}
-
-	const startTime = Date.now();
 
 	await downloadImage({
 		url: `https://image.tmdb.org/t/p/${imageSizes[0].size}${src}`,
@@ -194,38 +183,26 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 		usableImageSizes: usableImageSizes,
 		only: only,
 	})
-		.then(async ({ colorPalette, blurHash }) => {
-			while (!(await confDb[table].findFirst({ where: { [column]: src } }))?.id) {
-				const now = Date.now();
-				if (now - startTime > 1000 * 60 * 5) {
-					// console.log({ where: { [column]: src } });
-					return new Error('timeout downloadAndHash');
-				}
-			}
-			console.log(table);
-			transaction!.push(
-				confDb[table].update({
-					where: {
-						id: (await confDb[table].findFirst({ where: { [column]: src } }))?.id,
-					},
-					data: {
+		.then(({ colorPalette, blurHash }) => {
+
+			try {
+				mediaDb.update(models[table])
+					.set({
 						colorPalette: colorPalette && (!only || only.includes('colorPalette'))
 							? JSON.stringify(colorPalette)
 							: undefined,
 						blurHash: blurHash && (!only || only.includes('blurHash'))
 							? blurHash
 							: undefined,
-					},
-				})
-			);
+					 })
+					.where(eq(models[table][column], src))
+					.returning();
+			} catch (e) {
+				console.log(e);
+			}
+
 		})
 		.catch(e => console.log(table, e));
 
-	if (!hasTransaction) {
-		// while (await checkDbLock()) {
-		// 	//
-		// }
-		await confDb.$transaction(transaction).catch(e => console.log(e));
-	}
 };
 

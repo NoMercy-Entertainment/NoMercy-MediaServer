@@ -2,7 +2,7 @@ import { AppState, useSelector } from '@/state/redux';
 import { exec, execSync } from 'child_process';
 import { ffmpeg, subtitleEdit } from '@/state';
 
-import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
+import type { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import fs from 'fs';
 import makeAttachmentsFile from './attatchments';
 

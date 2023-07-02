@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { User } from '../../../database/config/client';
 import { LibraryWithFolders } from '../../../database/data';
-import { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
+import type { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
 import { ChromeCast } from '../../../functions/chromeCast/chromeCast';
 import { Queue } from '../../../functions/queue/QueueClass';
 import { deviceName } from '../../../functions/system';
@@ -21,6 +21,7 @@ const initialState = {
 	downloads: new Array<Files>(),
 	keycloakCertificate: '',
 	makemkv_key: '',
+	acoustic_id: '',
 	moderators: new Array<{ id: string; name: string }>(),
 	omdb_apikey: '',
 	openServer: false,
@@ -38,7 +39,7 @@ const initialState = {
 	dataWorkers: 1,
 	requestWorker: new Queue({ name: 'request', workers: 1 }),
 	requestWorkers: 1,
-	encoderWorker: new Queue({ name: 'request', workers: 1 }),
+	encoderWorker: new Queue({ name: 'encoder', workers: 1 }),
 	encoderWorkers: 1,
 
 	libraries: new Array<LibraryWithFolders>(),
@@ -62,6 +63,9 @@ const config = createSlice({
 		},
 		setMakeMKVKey: (state, action: PayloadAction<string>) => {
 			state.makemkv_key = action.payload;
+		},
+		setAcousticId: (state, action: PayloadAction<string>) => {
+			state.acoustic_id = action.payload;
 		},
 		setLanguage: (state, action: PayloadAction<string>) => {
 			state.language = action.payload;

@@ -1,4 +1,4 @@
-import { ArrayElementType, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
+import type { ArrayElementType, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
 
 import { FFMpeg } from './ffmpeg';
 import { isoToName } from './language';

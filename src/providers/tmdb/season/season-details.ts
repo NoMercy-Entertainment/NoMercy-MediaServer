@@ -7,7 +7,7 @@ import { Season } from './season';
 import { SeasonTranslations } from './translations';
 
 export interface SeasonDetails extends Season {
-	_id: string;
+	id: number;
 	episodes: Episode[];
 	name: string;
 	overview: string;

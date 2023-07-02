@@ -1,9 +1,13 @@
 import { ChildProcess, fork } from 'child_process';
 
-import { confDb, queDb } from '../../database/config';
-import { QueueJob } from '../../database/queue/client';
 import { AppState, useSelector } from '@/state/redux';
 import Logger from '../logger';
+import { and, asc, eq, isNull, lt } from 'drizzle-orm';
+import { queueDb } from '@/db/queue';
+import { mediaDb } from '@/db/media';
+import { QueueJob, queueJobs } from '@/db/queue/schema/queueJobs';
+import { runningTasks } from '@/db/media/schema/runningTasks';
+import { configuration } from '@/db/media/schema/configuration';
 
 interface QueueProps {
 	name?: string;
@@ -31,10 +35,32 @@ export class Queue {
 		job: QueueJob;
 	}[] = [];
 
+	maxAttempts = 2;
+
 	constructor({ name = 'default', keepJobs = false, workers = 0 }: QueueProps) {
 		this.name = name;
 		this.keepJobs = keepJobs;
 		this.workers = workers;
+
+		try {
+
+			const attempts = mediaDb.select().from(configuration)
+				.where(eq(configuration.key, 'maxAttempts'))
+				.get()?.value;
+
+			this.maxAttempts = attempts
+				? parseInt(attempts, 10)
+				: 2;
+		} catch (error) {
+			//
+		}
+
+		queueDb.update(queueJobs)
+			.set({
+				runAt: null,
+			})
+			.where(lt(queueJobs.attempts, this.maxAttempts))
+			.run();
 	}
 
 	hasFreeWorker() {
@@ -53,7 +79,6 @@ export class Queue {
 			worker: fork(`${__dirname}/worker`),
 			job: <QueueJob>{},
 		});
-
 		this.run();
 	}
 
@@ -97,63 +122,44 @@ export class Queue {
 		return this;
 	}
 
-	async jobs() {
-		return await queDb.queueJob.findMany({
-			where: {
-				queue: this.name,
-			},
-		});
+	jobs() {
+		return queueDb.select().from(queueJobs)
+			.where(eq(queueJobs.queue, this.name))
+			.all();
 	}
 
-	async add({ file, fn, args }: { file?: string; fn: string; args?: any; }) {
+	add({ file, fn, args }: { file?: string; fn: string; args?: any; }) {
 		if (!file) {
 			file = _getCallerFile();
 		}
 
-		try {
-			const job = await queDb.queueJob.create({
-				data: {
-					queue: this.name,
-					runAt: null,
-					priority: args?.priority ?? 2,
-					taskId: args.task?.id ?? 'manual',
-					payload: JSON.stringify({ file, fn, args }),
-				},
-			});
+		const job = queueDb.insert(queueJobs)
+			.values({
+				queue: this.name,
+				runAt: null,
+				priority: args?.priority ?? 2,
+				task_id: args.task?.id ?? 'manual',
+				payload: JSON.stringify({ file, fn, args }),
+			})
+			.returning()
+			.get();
 
-			return job;
-
-		} catch (error) {
-			console.log(error);
-		}
+		return job;
 
 	}
 
-	async remove(id: number) {
-		try {
-			return await queDb.queueJob.delete({
-				where: {
-					id: id,
-				},
-			});
-		} catch (error) {
-			setTimeout(async () => {
-				return await queDb.queueJob.delete({
-					where: {
-						id: id,
-					},
-				}).catch(() => null);
-			}, 2000);
-		}
+	remove(job: QueueJob) {
+		return queueDb.delete(queueJobs)
+			.where(eq(queueJobs.id, job.id))
+			.run();
 	}
 
-	async cancel(id: number) {
-		const job = await queDb.queueJob.delete({
-			where: {
-				id: id,
-			},
-		});
-		if (!job) return;
+	cancel(job: QueueJob) {
+		const qj = queueDb.delete(queueJobs)
+			.where(eq(queueJobs.id, job.id))
+			.run();
+
+		if (!qj) return;
 
 		const Worker = this.forks.find(w => w.job.id == job.id);
 		if (!Worker) return;
@@ -163,96 +169,81 @@ export class Queue {
 		this.deleteWorker(Worker);
 
 		this.createWorker();
-
-
 	}
 
-	async clear() {
-		return await queDb.queueJob.deleteMany();
+	clear() {
+		return queueDb.delete(queueJobs)
+			.run();
 	}
 
-	async next() {
-		return await queDb.queueJob.findFirst({
-			where: {
-				queue: this.name,
-				runAt: null,
-				attempts: {
-					lt: 2,
-				},
-			},
-			orderBy: {
-				priority: 'asc',
-			},
-		});
+	next() {
+		return queueDb.select().from(queueJobs)
+			.where(
+				and(
+					eq(queueJobs.queue, this.name),
+					isNull(queueJobs.runAt),
+					lt(queueJobs.attempts, this.maxAttempts)
+				)
+			)
+			.orderBy(asc(queueJobs.priority))
+			.get();
 	}
 
-	async running(job: QueueJob) {
-		try {
-			return await queDb.queueJob.update({
-				where: {
-					id: job.id,
-				},
-				data: {
-					runAt: new Date(),
-					attempts: job.attempts + 1,
-				},
-			});
-		} catch (error) {
-			return null;
-		}
+	running(job: QueueJob) {
+		return queueDb.update(queueJobs)
+			.set({
+				runAt: Date.now(),
+				attempts: job.attempts + 1,
+			})
+			.where(eq(queueJobs.id, job.id))
+			.returning()
+			.get();
 	}
 
-	async failed(id: number, error: any) {
+	failed(job: QueueJob, error: any) {
 		if (!error?.code) {
-			return await queDb.queueJob.update({
-				where: {
-					id: id,
-				},
-				data: {
+			return queueDb.update(queueJobs)
+				.set({
 					runAt: null,
+					failedAt: Date.now(),
 					error: error
 						? JSON.stringify(error ?? 'unknown', null, 2)
 						: 'unknown',
-				},
-			});
+				})
+				.where(eq(queueJobs.id, job.id))
+				.run();
 		}
-		return await queDb.queueJob.update({
-			where: {
-				id: id,
-			},
-			data: {
-				failedAt: new Date(),
+		return queueDb.update(queueJobs)
+			.set({
+				failedAt: Date.now(),
 				error: error
 					? JSON.stringify(error ?? 'unknown', null, 2)
 					: 'unknown',
-			},
-		});
-
+			})
+			.where(eq(queueJobs.id, job.id))
+			.returning()
+			.get();
 	}
 
-	async retry(id?: number) {
-		return await queDb.queueJob.updateMany({
-			where: id
-				? {
-					id: id,
-				}
-				: {},
-			data: {
+	retry(job: QueueJob) {
+		return queueDb.update(queueJobs)
+			.set({
 				runAt: null,
-			},
-		});
+			})
+			.where(eq(queueJobs.id, job.id))
+			.returning()
+			.get();
 	}
 
-	async finished(id: number, data: any) {
-		await queDb.queueJob.update({
-			where: {
-				id: id,
-			},
-			data: {
+	finished(job: QueueJob, data: any) {
+		return queueDb.update(queueJobs)
+			.set({
 				result: JSON.stringify(data ?? 'unknown', null, 2),
-				finishedAt: new Date(),
-			},
-		});
+				finishedAt: Date.now(),
+			})
+			.where(eq(queueJobs.id, job.id))
+			.returning()
+			.get();
 	}
 
 	stop() {
@@ -280,45 +271,57 @@ export class Queue {
 
 	sendMessage(message: any) {
 		for (const worker of this.forks) {
-			console.log('send message to worker', worker, message);
-			worker.worker.send(message);
+			console.log('send message to worker', message);
+			// eslint-disable-next-line no-loop-func
+			worker.worker.send(message, (error) => {
+				console.log('error', error);
+			});
 		}
 	}
 
-	async run() {
+	run() {
+
 		if (this.isDisabled) {
-			setTimeout(async () => {
-				await this.run();
-			}, 10000);
+			setTimeout(() => {
+				this.run();
+			}, 1000 * 10);
 			return;
 		};
 
 		const Worker = this.forks.find(w => !w.running);
-		if (!Worker) return;
+		if (!Worker) {
+			// console.log('no free worker');
+			setTimeout(() => {
+				this.run();
+			}, 1000 * 10);
+			return;
+		};
+		// console.log('free worker', Worker.id);
 
-		const job = await this.next();
+		Worker.running = true;
 
-		if (!job || this.runningJobs.includes(job.id)) {
-			setTimeout(async () => {
-				await this.run();
-			}, 1500);
+		const job = this.next();
+
+		if (!job?.id || this.runningJobs.includes(job.id)) {
+			Worker.running = false;
+			// console.log('no job? ', job?.id);
+			setTimeout(() => {
+				this.run();
+			}, 1000 * 10);
 			return;
 		}
 
-		this.runningJobs.push(job.id);
-
-		Worker.running = true;
 		Worker.job = job;
 
-		await this.running(job);
+		this.runningJobs.push(job.id);
 
-		if (job.taskId) {
+		this.running(job);
+
+		if (job.task_id) {
 			try {
-				const runningTask = await confDb.runningTask.findFirst({
-					where: {
-						id: job.taskId,
-					},
-				});
+				const runningTask = mediaDb.select().from(runningTasks)
+					.where(eq(runningTasks.id, job.task_id))
+					.get();
 				if (runningTask?.id) {
 					// while (await checkDbLock()) {
 					// 	//
@@ -347,10 +350,15 @@ export class Queue {
 
 		Worker.worker.send({ type: 'job', job });
 
-		Worker.worker.on('message', async (message: any) => {
+		Worker.worker.on('message', (message: any) => {
+			if (message.type !== 'encoder-progress' && message.type !== 'dependency') {
+				// console.log(message);
+			}
 
 			if (message.type == 'encoder-progress') {
 				socket.emit('encoder-progress', message.data);
+			} else if (message.type == 'custom') {
+				socket.emit(message.event, message.data);
 			} else if (message.type == 'encoder-end') {
 				socket.emit('encoder-clear');
 			} else if (message.type == 'encoder-paused') {
@@ -360,33 +368,31 @@ export class Queue {
 			} else if (message.type == 'dependency') {
 				//
 			} else {
+				// console.log(message);
 
-				const runningTask = await confDb.runningTask.findFirst({
-					where: {
-						id: message.job?.queue?.task?.id,
-					},
-				}).catch(e => console.log(e));
+				const task = mediaDb.select().from(runningTasks)
+					.where(eq(runningTasks.id, message.job?.queue?.task?.id))
+					.get();
 
-				if (runningTask?.value == 100) {
-					await confDb.runningTask.delete({
-						where: {
-							id: runningTask.id,
-						},
-					}).catch(e => console.log(e));
+				if (task?.value == 100) {
+					mediaDb.delete(runningTasks)
+						.where(eq(runningTasks.id, task.id as string))
+						.run();
 				}
 
-				if (message.job?.queue == 'queue') {
-					socket.emit('tasks', runningTask);
+				if (task && (message.job?.queue == 'queue' || message.job?.queue == 'encoder')) {
+					socket.emit('tasks', task);
 					socket.emit('update_content', ['library']);
 				}
 
 				if (message?.error) {
-					console.log(message?.error);
-					await this.failed(job.id, message.result);
-				} else if (this.keepJobs) {
-					await this.finished(job.id, message.result.data);
+					// console.log(message?.error);
+					this.failed(job, message.result);
+				}
+				if (this.keepJobs) {
+					this.finished(job, message.result.data);
 				} else {
-					await this.remove(job.id);
+					this.remove(job);
 				}
 
 				Worker.running = false;
@@ -396,9 +402,9 @@ export class Queue {
 				if (this.workers < this.forks.length) {
 					this.deleteWorker(Worker);
 				}
-				setTimeout(async () => {
-					await this.run();
-				}, 1500);
+				setTimeout(() => {
+					this.run();
+				}, 1000 * 10);
 			}
 		});
 	}

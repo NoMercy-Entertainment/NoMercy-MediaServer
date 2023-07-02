@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { arch, deviceName, platform, version } from '../../functions/system';
+import { arch, platform, version } from '../../functions/system';
 import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '@/state';
 
 import Logger from '../../functions/logger';
@@ -8,8 +8,10 @@ import nosu from 'node-os-utils';
 import osu from 'os-utils';
 import path from 'path';
 import { readFileSync } from 'fs';
+import { AppState, useSelector } from '@/state/redux';
 
 export const serverInfo = async (req: Request, res: Response) => {
+	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 	const json = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
 	const cpu = await nosu.cpu;
 
@@ -64,7 +66,7 @@ export const serverActivity = (req: Request, res: Response) => {
 				data.map(d => ({
 					...d,
 					user: d.user.name,
-					device: d.device.title,
+					device: d.device.name,
 				}))
 			);
 		})

@@ -15,14 +15,15 @@ export default async () => {
 };
 
 const ping = async () => {
-	const deviceName = await confDb.configuration.findFirst({ where: { key: 'deviceName' } });
+	const server_name = await confDb.configuration.findFirst({ where: { key: 'server_name' } });
+	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
 	const data = {
 		internal_ip: useSelector((state: AppState) => state.system.internal_ip),
 		internal_port: useSelector((state: AppState) => state.system.secureInternalPort),
 		external_port: useSelector((state: AppState) => state.system.secureExternalPort),
 		server_version: useSelector((state: AppState) => state.system.server_version),
-		server_name: deviceName?.value ?? deviceName,
+		server_name: server_name?.value ?? deviceName,
 		server_id: deviceId,
 		online: true,
 	};

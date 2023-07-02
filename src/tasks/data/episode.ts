@@ -1,13 +1,16 @@
-import { downloadAndHash, image } from './image';
+import { image } from './image';
 
 import { CombinedSeasons } from './fetchTvShow';
 import Logger from '../../functions/logger';
 import { Prisma } from '../../database/config/client';
-import cast from './cast';
-import { confDb } from '../../database/config';
-import crew from './crew';
 import guest_star from './guest_star';
 import translation from './translation';
+import createBlurHash from '@/functions/createBlurHash/createBlurHash';
+import colorPalette from '@/functions/colorPalette/colorPalette';
+import { insertEpisodeDB } from '@/db/media/actions/episodes';
+import { insertMedia } from '@/db/media/actions/medias';
+import cast from './cast';
+import crew from './crew';
 
 const episode = async (
 	id: number,
@@ -30,83 +33,83 @@ const episode = async (
 		const castInsert: Array<Prisma.CastCreateOrConnectWithoutEpisodeInput> = [];
 		const crewInsert: Array<Prisma.CrewCreateOrConnectWithoutEpisodeInput> = [];
 
-		await guest_star(episode, guestStarInsert, people);
-		await cast(episode, castInsert, people, 'episode');
-		await crew(episode, crewInsert, people, 'episode');
+		const palette: any = {
+			still: undefined,
+		};
 
-		// @ts-ignore
-		const episodesInsert = Prisma.validator<Prisma.EpisodeCreateInput>()({
-			airDate: episode.air_date,
-			episodeNumber: episode.episode_number,
-			id: episode.id,
-			title: episode.name,
-			overview: episode.overview,
-			productionCode: episode.production_code,
-			seasonNumber: episode.season_number,
-			still: episode.still_path,
-			voteAverage: episode.vote_average,
-			voteCount: episode.vote_count,
-			imdbId: episode?.external_ids.imdb_id,
-			Season: {
-				connect: {
-					id: season.id,
-				},
-			},
-			Tv: {
-				connect: {
-					id: id,
-				},
-			},
-			// GuestStar: {
-			// 	connectOrCreate: guestStarInsert,
-			// },
-			// Cast: {
-			// 	connectOrCreate: castInsert,
-			// },
-			// Crew: {
-			// 	connectOrCreate: crewInsert,
-			// },
-		});
+		const blurHash: any = {
+			still: undefined,
+		};
 
-		// transaction.push(
-		await	confDb.episode.upsert({
-			where: {
+		await Promise.all([
+			episode.still_path && createBlurHash(`https://image.tmdb.org/t/p/w185${episode.still_path}`).then((hash) => {
+				blurHash.still = hash;
+			}),
+			episode.still_path && colorPalette(`https://image.tmdb.org/t/p/w185${episode.still_path}`).then((hash) => {
+				palette.still = hash;
+			}),
+		]);
+
+		try {
+			insertEpisodeDB({
+				airDate: episode.air_date,
+				episodeNumber: episode.episode_number,
 				id: episode.id,
-			},
-			update: episodesInsert,
-			create: episodesInsert,
-		});
-		// );
+				title: episode.name,
+				overview: episode.overview,
+				productionCode: episode.production_code,
+				seasonNumber: episode.season_number,
+				still: episode.still_path,
+				voteAverage: episode.vote_average,
+				voteCount: episode.vote_count,
+				imdbId: episode?.external_ids.imdb_id,
+				blurHash: JSON.stringify(blurHash),
+				colorPalette: JSON.stringify(palette),
+				season_id: season.id,
+				tv_id: id,
+			});
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify([`${__filename}`, error]),
+			});
+		}
+
+		guest_star(episode, guestStarInsert, people);
+		cast(episode, castInsert, people, 'episode');
+		crew(episode, crewInsert, people, 'episode');
 
 		if (episode?.still_path != '' && episode.still_path != null) {
-			const mediaInsert = Prisma.validator<Prisma.MediaUncheckedCreateInput>()({
-				src: episode.still_path,
-				type: 'still',
-				episodeId: episode.id,
-			});
-
-			// transaction.push(
-			await	confDb.media.upsert({
-				where: {
+			try {
+				insertMedia({
 					src: episode.still_path,
-				},
-				update: mediaInsert,
-				create: mediaInsert,
-			});
-			// );
+					type: 'still',
+					episode_id: episode.id,
+				});
+			} catch (error) {
+				Logger.log({
+					level: 'error',
+					name: 'App',
+					color: 'red',
+					message: JSON.stringify([`${__filename}`, error]),
+				});
+			}
+
 		}
 
-		await translation(episode, transaction, 'episode');
-		await image(episode, transaction, 'still', 'episode');
+		translation(episode, transaction, 'episode');
+		image(episode, transaction, 'still', 'episode');
 
-		if (episode.still_path) {
-			await downloadAndHash({
-				src: episode.still_path,
-				table: 'episode',
-				column: 'still',
-				type: 'episode',
-			});
-		}
+		// if (episode.still_path) {
+		// 	 downloadAndHash({
+		// 		src: episode.still_path,
+		// 		table: 'episode',
+		// 		column: 'still',
+		// 		type: 'episode',
+		// 	});
+		// }
 	}
 
 	Logger.log({

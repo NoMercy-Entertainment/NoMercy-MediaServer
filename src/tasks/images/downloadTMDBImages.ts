@@ -15,9 +15,10 @@ import { PaletteColors } from '@/types/server';
 import { confDb } from '../../database/config';
 import downloadImage from '../../functions/downloadImage/downloadImage';
 import { imagesPath } from '@/state';
+import { insertImage } from '@/db/media/actions/images';
 
 interface DownloadTMDBImages {
-	type: string;
+	type: 'tv' | 'movie' | 'season' | 'episode' | 'person';
 	// eslint-disable-next-line max-len
 	data: (TvAppend | MovieAppend | SeasonAppend | EpisodeAppend | PersonAppend | CompleteMovieAggregate | CompleteTvAggregate) & {
 		task?: {
@@ -125,38 +126,42 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 							continue;
 						}
 
-						// promises.push(
 						await	downloadImage({
 							url: `https://image.tmdb.org/t/p/${size}${file}`,
 							path: `${imagesPath}/${size}${newFile}`,
 							usableImageSizes,
 						})
 							.then(({ dimensions, stats, colorPalette, blurHash }) => {
-								transaction.push(
-									confDb.image.upsert({
-										where: {
-											id: query?.id,
-										},
-										create: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
-										update: imageQuery(type, data, image, dimensions, stats, colorPalette, blurHash),
-									})
-								);
+								const path = (image as Image).file_path ?? (image as Cast|Crew).profile_path;
+								insertImage({
+									// id: path.match(/\w+/u)![0],
+									aspectRatio: (image as Image).aspect_ratio ?? (dimensions.width && dimensions.height
+										? dimensions.width / dimensions.height
+										: undefined),
+									height: (image as Image).height ?? dimensions.height,
+									iso6391: (image as Image).iso_639_1 ?? undefined,
+									filePath: path,
+									width: (image as Image).width ?? dimensions.width,
+									site: 'themoviedb.org',
+									type: dimensions.type,
+									size: stats.size,
+									name: path,
+									voteAverage: (image as Image).vote_average ?? undefined,
+									voteCount: (image as Image).vote_count ?? undefined,
+									colorPalette: colorPalette
+										? JSON.stringify(colorPalette)
+										: null,
+									blurHash: blurHash,
+								});
 							})
-							.catch(e => console.log(e));
-						// );
+							.catch(console.log);
 					}
 				}
 			}
 
-			// while (await checkDbLock()) {
-			// 	//
-			// }
-			await confDb.$transaction(transaction).catch(e => console.log(e));
-
 			resolve();
 
 		} catch (error) {
-			// console.log(error);
 			reject(error);
 		}
 

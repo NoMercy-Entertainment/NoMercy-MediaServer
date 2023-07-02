@@ -143,7 +143,7 @@ exports.Prisma.CastScalarFieldEnum = makeEnum({
   episodeId: 'episodeId'
 });
 
-exports.Prisma.CertificationMovieScalarFieldEnum = makeEnum({
+exports.Prisma.certification_moviecalarFieldEnum = makeEnum({
   iso31661: 'iso31661',
   certificationId: 'certificationId',
   movieId: 'movieId'
@@ -157,13 +157,13 @@ exports.Prisma.CertificationScalarFieldEnum = makeEnum({
   rating: 'rating'
 });
 
-exports.Prisma.CertificationTvScalarFieldEnum = makeEnum({
+exports.Prisma.certification_tvcalarFieldEnum = makeEnum({
   iso31661: 'iso31661',
   certificationId: 'certificationId',
   tvId: 'tvId'
 });
 
-exports.Prisma.CollectionMovieScalarFieldEnum = makeEnum({
+exports.Prisma.collection_moviecalarFieldEnum = makeEnum({
   id: 'id',
   collectionId: 'collectionId',
   movieId: 'movieId'
@@ -217,8 +217,12 @@ exports.Prisma.CrewScalarFieldEnum = makeEnum({
 exports.Prisma.DeviceScalarFieldEnum = makeEnum({
   id: 'id',
   deviceId: 'deviceId',
-  title: 'title',
+  browser: 'browser',
+  os: 'os',
+  device: 'device',
   type: 'type',
+  name: 'name',
+  custom_name: 'custom_name',
   version: 'version',
   ip: 'ip',
   created_at: 'created_at',
@@ -697,7 +701,6 @@ exports.Prisma.SortOrder = makeEnum({
 exports.Prisma.SpecialItemScalarFieldEnum = makeEnum({
   id: 'id',
   order: 'order',
-  type: 'type',
   specialId: 'specialId',
   episodeId: 'episodeId',
   movieId: 'movieId'
@@ -708,12 +711,12 @@ exports.Prisma.SpecialScalarFieldEnum = makeEnum({
   description: 'description',
   id: 'id',
   poster: 'poster',
+  logo: 'logo',
   title: 'title',
   blurHash: 'blurHash',
   colorPalette: 'colorPalette',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  libraryId: 'libraryId'
+  updatedAt: 'updatedAt'
 });
 
 exports.Prisma.SubtitleLanguageScalarFieldEnum = makeEnum({
@@ -810,11 +813,13 @@ exports.Prisma.UserDataScalarFieldEnum = makeEnum({
   subtitle: 'subtitle',
   subtitleType: 'subtitleType',
   time: 'time',
+  type: 'type',
   sub_id: 'sub_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   movieId: 'movieId',
   tvId: 'tvId',
+  specialId: 'specialId',
   videoFileId: 'videoFileId'
 });
 

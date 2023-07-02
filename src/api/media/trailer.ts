@@ -57,7 +57,7 @@ export default function (req: Request, res: Response) {
 	} catch (error) {
 		res.status(404).json({
 			status: 'error',
-			error,
+			error: error,
 		});
 	}
 }

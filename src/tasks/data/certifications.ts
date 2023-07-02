@@ -1,33 +1,25 @@
+import Logger from '@/functions/logger/logger';
 import { Certification } from '../../providers/tmdb/movie/index';
 import { ContentRating } from '../../providers/tmdb/shared/index';
-import { Prisma } from '../../database/config/client';
-import { commitConfigTransaction } from '../../database';
-import { confDb } from '../../database/config';
+import { insertCertification } from '@/db/media/actions/certifications';
 
-export default async function (certifications: Array<Certification | ContentRating>) {
-	const transaction: any[] = [];
-
+export default function (certifications: Array<Certification | ContentRating>) {
 	for (const cr of certifications) {
-		const certificationsInsert = Prisma.validator<Prisma.CertificationUncheckedCreateInput>()({
-			iso31661: cr.iso_3166_1,
-			rating: (cr as Certification).certification ?? (cr as ContentRating).rating,
-			meaning: cr.meaning,
-			order: parseInt(cr.order, 10),
-		});
+		try {
+			insertCertification({
+				iso31661: cr.iso_3166_1,
+				rating: (cr as Certification).certification ?? (cr as ContentRating).rating,
+				meaning: cr.meaning,
+				order: parseInt(cr.order, 10),
+			});
 
-		// transaction.push(
-		await	confDb.certification.upsert({
-			where: {
-				rating_iso31661: {
-					iso31661: cr.iso_3166_1,
-					rating: (cr as Certification).certification ?? (cr as ContentRating).rating,
-				},
-			},
-			update: certificationsInsert,
-			create: certificationsInsert,
-		});
-		// );
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify([`${__filename}`, error]),
+			});
+		}
 	};
-
-	await commitConfigTransaction(transaction);
 }

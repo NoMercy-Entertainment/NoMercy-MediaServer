@@ -1,19 +1,20 @@
 import { AppState, useSelector } from '@/state/redux';
-import { Folder, Library, LibraryFolder, Movie } from '../../database/config/client';
+import { Movie } from '../../database/config/client';
 import { FolderList, ParsedFileList } from './filenameParser';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 import { TvShow } from '../../providers/tmdb/tv/index';
 import { cachePath } from '@/state';
-import { confDb } from '../../database/config';
 import { fallbackSearch } from '../data/search';
 import fullUpdate from '../../tasks/data/fullUpdate';
 import getFolders from './getFolders';
 import { join } from 'path';
 import { needsUpdate } from '../data/needsUpdate';
+import { LibraryWithRelations, selectLibrariesWithRelations, selectLibraryWithRelations } from '@/db/media/actions/libraries';
+import { RunningTask, insertRunningTask } from '@/db/media/actions/runningTasks';
 
 export interface FolderInfo {
-	lib: Lib;
+	lib: LibraryWithRelations;
 	jobsCount: number;
 	id: string | number;
 	title: string;
@@ -25,9 +26,7 @@ export interface FolderInfo {
 	lastCheck: number;
 	lastUpdate: number;
 	searchProvider: 'tmdb';
-	task: {
-		id: string
-	},
+	task: RunningTask;
 	index: number;
 	priority: number;
 }
@@ -36,34 +35,21 @@ export const scanLibraries = async (forceUpdate = false, synchronous = false) =>
 
 	const socket = useSelector((state: AppState) => state.system.socket);
 
-	const task = await confDb.runningTask.create({
-		data: {
-			title: 'Scan media library',
-			type: 'library',
-			value: 0,
-		},
-		select: {
-			id: true,
-		},
+	const task = insertRunningTask({
+		title: 'Scan media library',
+		type: 'library',
+		value: 0,
 	});
 
 	socket.emit('tasks', task);
 
 	const jobs: {
-		lib: Lib;
+		lib: LibraryWithRelations;
 		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
 	}[] = [];
 
-	const libs = await confDb.library.findMany({
-		include: {
-			Folders: {
-				include: {
-					folder: true,
-				},
-			},
-		},
-	});
+	const libs = selectLibrariesWithRelations();
 
 	for (const lib of libs) {
 		await scan(lib, jobs);
@@ -87,54 +73,29 @@ export const scanLibraries = async (forceUpdate = false, synchronous = false) =>
 	return libs;
 };
 
-type Lib = (Library & {
-    Folders: (LibraryFolder & {
-        folder: Folder | null;
-    })[];
-})
-
-
-export const scanLibrary = async (id: string, forceUpdate = false, synchronous = false): Promise<Lib|void> => {
+export const scanLibrary = async (id: string, forceUpdate = false, synchronous = false) => {
 
 	const socket = useSelector((state: AppState) => state.system.socket);
 
 	const jobs: {
-		lib: Lib;
+		lib: LibraryWithRelations;
 		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
 	}[] = new Array<{
-		lib: Lib;
+		lib: LibraryWithRelations;
 		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
 	}>();
 
-	const lib = await confDb.library.findFirst({
-		include: {
-			Folders: {
-				include: {
-					folder: true,
-				},
-			},
-		},
-		where: {
-			id: id,
-		},
-	})
-		.then(async (lib) => {
-			if (!lib) return;
-			await scan(lib, jobs);
-			return lib;
-		});
+	const lib = selectLibraryWithRelations(id);
 
-	const task = await confDb.runningTask.create({
-		data: {
-			title: 'Scan media library',
-			type: 'library',
-			value: 0,
-		},
-		select: {
-			id: true,
-		},
+	if (!lib) return;
+	await scan(lib, jobs);
+
+	const task = insertRunningTask({
+		title: 'Scan media library',
+		type: 'library',
+		value: 0,
 	});
 
 	socket.emit('tasks', task);
@@ -143,20 +104,19 @@ export const scanLibrary = async (id: string, forceUpdate = false, synchronous =
 	for (const title of jobs) {
 		const index = jobs.indexOf(title);
 
-		await process((title.parsedFolder as FolderList ?? title.parsedFile as ParsedFileList), lib!, forceUpdate, synchronous, jobs, task, index);
+		await process((title.parsedFolder as FolderList ?? title.parsedFile as ParsedFileList), lib, forceUpdate, synchronous, jobs, task, index);
 	}
 
 	return lib;
 
 };
 
-const scan = async (lib: Lib, jobs: {
-	lib: Lib;
+const scan = async (lib: LibraryWithRelations, jobs: {
+	lib: LibraryWithRelations;
 	parsedFolder?: FolderList;
 	parsedFile?: ParsedFileList;
-}[]): Promise<Lib|undefined> => {
-
-	for (const path of lib.Folders) {
+}[]) => {
+	for (const path of lib.folder_library) {
 		if (!path.folder?.path) return;
 
 		if (lib.type == 'tv' || lib.type == 'movie') {
@@ -206,15 +166,15 @@ const scan = async (lib: Lib, jobs: {
 
 const process = async (
 	title: FolderList | ParsedFileList,
-	lib: Lib,
+	lib: LibraryWithRelations,
 	forceUpdate: boolean,
 	synchronous: boolean,
 	jobs: {
-		lib: Lib;
+		lib: LibraryWithRelations;
 		parsedFolder?: FolderList;
 		parsedFile?: ParsedFileList;
 	}[],
-	task: {id: string},
+	task: RunningTask,
 	index: number
 ) => {
 
@@ -224,6 +184,9 @@ const process = async (
 
 	if (existsSync(jsonFile)) {
 		x = JSON.parse(readFileSync(jsonFile, 'utf8'));
+		if (x.libraryId !== lib.id) {
+			x.libraryId = lib.id!;
+		}
 	} else {
 		const search = (await fallbackSearch(lib.type, title)) as TvShow | Movie;
 		if (!search) {
@@ -237,7 +200,7 @@ const process = async (
 			year: title.year,
 			folder: title.path,
 			type: lib.type,
-			libraryId: lib.id,
+			libraryId: lib.id!,
 			jsonFile: jsonFile,
 			lastCheck: updateDate,
 			lastUpdate: new Date('1970-01-01').getTime(),
@@ -248,9 +211,9 @@ const process = async (
 			index: index,
 			priority: 1,
 		};
-
-		writeFileSync(jsonFile, JSON.stringify(x, null, 4));
 	}
+
+	writeFileSync(jsonFile, JSON.stringify(x, null, 4));
 
 	if (
 		new Date(x.lastUpdate + 1000 * 60 * 60 * 24 * 15).getTime() <= updateDate

@@ -1,29 +1,13 @@
 import { Request, Response } from 'express';
 
-import { AlbumsResponse } from './albums.d';
-import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
 import { sortBy } from '../../../functions/stringArray';
+import { selectAlbums } from '@/db/media/actions/albums';
 
-export default async function (req: Request, res: Response): Promise<Response<AlbumsResponse>> {
+export default function (req: Request, res: Response) {
 
-	const music = await confDb.album.findMany({
-		where: {
-			NOT: {
-				Track: {
-					none: {},
-				},
-			},
-		},
-		orderBy: {
-			name: 'asc',
-		},
-		include: {
-			Artist: true,
-			_count: true,
-		},
-	});
+	const music = selectAlbums(req.body.letter);
 
 	if (!music) {
 		return res.json({
@@ -32,13 +16,13 @@ export default async function (req: Request, res: Response): Promise<Response<Al
 		});
 	}
 
-	const result: AlbumsResponse = {
+	const result = {
 		type: 'albums',
 		data: sortBy(music.map((m) => {
 			return {
 				...m,
 				type: 'album',
-				Artist: m.Artist,
+				Artist: m.album_artist,
 				name: m.name?.replace(/["'\[\]*]/gu, ''),
 				titleSort: createTitleSort(m.name?.replace(/["'\[\]*]/gu, '') ?? ''),
 				origin: deviceId,

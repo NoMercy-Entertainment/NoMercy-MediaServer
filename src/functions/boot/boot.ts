@@ -1,4 +1,4 @@
-import { existsSync, rmSync } from 'fs';
+import { existsSync, rmSync, writeFileSync } from 'fs';
 import { get_external_ip, get_internal_ip, portMap } from '../networking';
 import { setupComplete, transcodesPath } from '@/state';
 
@@ -9,6 +9,8 @@ import firstBoot from '../firstBoot';
 import { getKeycloakKeys } from '../keycloak';
 import logo from '../logo';
 import queue from '../queue';
+import seed from '@/db/seed';
+import { watcher } from '@/tasks/files/watcher';
 
 export default async () => {
 	process
@@ -23,11 +25,12 @@ export default async () => {
 	await getKeycloakKeys();
 
 	await get_external_ip();
-	await get_internal_ip();
+	get_internal_ip();
 
 	await cdn();
 	logo();
 
+	writeFileSync('query.log', '');
 	if (existsSync(transcodesPath)) {
 		rmSync(transcodesPath, { recursive: true });
 	}
@@ -44,7 +47,9 @@ export default async () => {
 
 	await (await import('../users/users')).getUsers();
 
-	await (await import('../seed/seed')).seed();
+	// await (await import('../seed/seed')).seed();
+
+	await seed();
 
 	await (await import('../loadConfigs/loadConfigs')).loadConfigs();
 
@@ -57,5 +62,7 @@ export default async () => {
 	chromeCast();
 
 	dev();
+
+	watcher();
 
 };

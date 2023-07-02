@@ -21,7 +21,7 @@ export const hasOwner = () => {
 };
 
 export const verifiedApi = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant?.access_token;
+	const token = req.token;
 
 	if (token.content.sub == 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		const secret = req?.body?.secret;
@@ -56,7 +56,7 @@ export const verifiedApi = (req: KAuthRequest): boolean => {
 };
 
 export const isOwner = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+	const token = req.token;
 	const owner = useSelector((state: AppState) => state.system.owner);
 	return owner == token.content.sub;
 };
@@ -72,7 +72,7 @@ export const ownerMiddleware = (req: Request, res: Response, next: NextFunction)
 };
 
 export const isTestAccount = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+	const token = req.token;
 	return token.content.email == 'test@nomercy.tv';
 };
 
@@ -87,7 +87,7 @@ export const testAccountMiddleware = (req: KAuthRequest, res: Response, next: Ne
 };
 
 export const isModerator = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+	const token = req.token;
 	const moderators = useSelector((state: AppState) => state.config.moderators);
 
 	return moderators.some(m => m.id == token.content.sub);
@@ -104,7 +104,7 @@ export const moderatorMiddleware = (req: Request, res: Response, next: NextFunct
 };
 
 export const hasEditPermissions = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+	const token = req.token;
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
 	return isOwner(req) || isModerator(req) || (allowedUsers.find(m => m.sub_id == token.content.sub)?.manage ?? false);
@@ -121,7 +121,7 @@ export const editMiddleware = (req: Request, res: Response, next: NextFunction) 
 };
 
 export const isAllowed = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+	const token = req.token;
 	const openServer = useSelector((state: AppState) => state.config.openServer);
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
@@ -154,7 +154,13 @@ export const allowedMiddleware = (req: Request, res: Response, next: NextFunctio
 };
 
 export const staticPermissions = (req: Request, res: Response, next: NextFunction) => {
-	return next();
+	if (isOwner(req as KAuthRequest) || isAllowed(req as KAuthRequest)) {
+		return next();
+	}
+	return res.status(403).json({
+		status: 'error',
+		message: 'You do not have access to this resource.',
+	});
 };
 
 export const permissions = (req: Request, res: Response) => {
@@ -165,7 +171,7 @@ export const permissions = (req: Request, res: Response) => {
 		});
 	}
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as KAuthRequest).token.content.sub;
 
 	confDb.user.findFirst({
 		where: {

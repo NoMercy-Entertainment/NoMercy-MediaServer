@@ -6,7 +6,7 @@ import { VideoFile } from '../../../database/config/client';
 import { AppState, useSelector } from '@/state/redux';
 
 export default async function (req: Request, res: Response) {
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 	const { id, type, value } = req.body;
 
 	let data: any = <VideoFile>{};

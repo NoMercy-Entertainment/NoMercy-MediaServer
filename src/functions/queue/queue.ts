@@ -1,11 +1,12 @@
 import { AppState, useSelector } from '@/state/redux';
 
-import { Configuration } from '../../database/config/client';
-import { confDb } from '../../database/config';
+// import { Configuration } from '../../database/config/client';
+// import { confDb } from '../../database/config';
+import { selectConfiguration } from '@/db/media/actions/configuration';
 
-export default async () => {
+export default () => {
 
-	const dbConf: Configuration[] = await confDb.configuration.findMany();
+	const dbConf = selectConfiguration();
 
 	const queueWorkers = dbConf.find(conf => conf.key == 'queueWorkers')?.value as string;
 	const queueWorker = useSelector((state: AppState) => state.config.queueWorker);
@@ -22,5 +23,9 @@ export default async () => {
 	const requestWorkers = dbConf.find(conf => conf.key == 'requestWorkers')?.value as string;
 	const requestWorker = useSelector((state: AppState) => state.config.requestWorker);
 	requestWorker.setWorkers(parseInt(requestWorkers ?? '1', 10)).start();
+
+	const encoderWorkers = dbConf.find(conf => conf.key == 'encoderWorkers')?.value as string;
+	const encoderWorker = useSelector((state: AppState) => state.config.encoderWorker);
+	encoderWorker.setWorkers(parseInt(encoderWorkers ?? '1', 10)).start();
 
 };

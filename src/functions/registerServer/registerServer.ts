@@ -1,5 +1,5 @@
 import { AppState, useSelector } from '@/state/redux';
-import { deviceId, deviceName, platform } from '../system';
+import { deviceId, platform } from '../system';
 import express, { Request, Response } from 'express';
 import { readFileSync, writeFileSync } from 'fs';
 import { setAccessToken, setRefreshToken } from '@/state/redux/user/actions';
@@ -26,6 +26,7 @@ let registerComplete = false;
 const registerServer = async () => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const external_ip = useSelector((state: AppState) => state.system.external_ip);
+	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 	const server_version = useSelector((state: AppState) => state.system.server_version);
 	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
 		? parseInt(process.env.DEFAULT_PORT as string, 10)

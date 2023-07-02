@@ -1,14 +1,37 @@
 import tmdbApiClient from '../tmdbApiClient';
 import { Regions } from './regions';
-import { TvWatchProviders } from '../tv';
+import { WatchProvider, WatchProviders } from '../shared';
 
 export * from './movie';
 export * from './regions';
 export * from './tv';
 export * from './watch_provider_helper';
 
+export async function providers(): Promise<Array<WatchProvider>> {
+	const data: Array<WatchProvider> = [];
+
+	await Promise.all([
+		watchProviderMovie().then((providers) => {
+			for (const provider of providers) {
+				data.push({
+					...provider,
+				});
+			}
+		}),
+		watchProviderTv().then((providers) => {
+			for (const provider of providers) {
+				data.push({
+					...provider,
+				});
+			}
+		}),
+	]);
+
+	return data;
+}
+
 export const watchProviderMovie = async () => {
-	const { data } = await tmdbApiClient.get<TvWatchProviders>('watch/providers/movie');
+	const { data } = await tmdbApiClient.get<WatchProviders>('watch/providers/movie');
 
 	return data.results;
 };
@@ -20,7 +43,7 @@ export const watchProviderRegions = async () => {
 };
 
 export const watchProviderTv = async () => {
-	const { data } = await tmdbApiClient.get<TvWatchProviders>('watch/providers/tv');
+	const { data } = await tmdbApiClient.get<WatchProviders>('watch/providers/tv');
 
 	return data.results;
 };

@@ -2,16 +2,16 @@ import { AppState, useSelector } from '@/state/redux';
 import { Request, Response } from 'express';
 
 import { KAuthRequest } from 'types/keycloak';
-import { confDb } from '../../../database/config';
-import { deviceId } from '../../../functions/system';
+import { insertActivityLog } from '@/db/media/actions/activityLogs';
+import { insertDevice, selectDevice } from '@/db/media/actions/devices';
 
 export default (req: Request, res: Response) => {
 
-	const sub_id = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const sub_id = (req as unknown as KAuthRequest).token;
 
-	const { type, device_os, time, from, device_name, version } = req.body;
+	const { from, id, browser, os, device, type, name, version, activity_type } = req.body as {[key: string]: string};
 
-	storeServerActivity({ sub_id, device_id: deviceId, type, device_os, time, from, device_name, version })
+	storeServerActivity({ sub_id, from, id, browser, os, device, type, name, version, activity_type })
 		.then((data: any) => {
 
 			return res.json({
@@ -28,54 +28,42 @@ export default (req: Request, res: Response) => {
 		});
 };
 
-export const storeServerActivity = ({ sub_id, device_id, type, device_os, time, from, device_name, version }) => {
+export const storeServerActivity = ({ sub_id, from, id, browser, os, device, type, name, version, activity_type }) => {
 
 	const socket = useSelector((state: AppState) => state.system.socket);
 
+	if (!id) {
+		return Promise.resolve();
+	};
+
 	return new Promise((resolve) => {
 		try {
-			confDb.activityLog
-				.create({
-					data: {
-						time,
-						type,
-						user: {
-							connect: {
-								sub_id,
-							},
-						},
-						device: {
-							connectOrCreate: {
-								where: {
-									id: device_id,
-								},
-								create: {
-									id: device_id,
-									ip: from,
-									deviceId: device_id,
-									title: device_name.toTitleCase(),
-									type: device_os,
-									version,
-								},
-							},
-						},
-					},
-					include: {
-						device: true,
-						user: true,
-					},
-				})
-				.then(async (data) => {
-					socket.emit('addActivityLog', data);
-					const devices = await confDb.device.findMany();
-					socket.emit('setDevices', devices);
-					resolve(data);
-				})
-				.catch(() => {
-					//
-				});
+			const d = insertDevice({
+				id: id,
+				device_id: id,
+				browser,
+				os,
+				device,
+				type,
+				name,
+				version,
+				ip: from,
+			});
+
+			const data = insertActivityLog({
+				time: Date.now(),
+				type: activity_type,
+				user_id: sub_id,
+				device_id: d.id as string,
+			});
+
+			socket.emit('addActivityLog', data);
+			const devices = selectDevice();
+			socket.emit('setDevices', devices);
+			socket.emit('update_content', ['devices']);
+			resolve(data);
 		} catch (error) {
-			//
+			console.log(error);
 		}
 	});
 };

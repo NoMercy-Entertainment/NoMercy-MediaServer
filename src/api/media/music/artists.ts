@@ -1,28 +1,13 @@
 import { Request, Response } from 'express';
 
-import { ArtistsResponse } from './artists.d';
-import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
-import { sortBy } from '../../../functions/stringArray';
+import { removeDiacritics, sortBy } from '../../../functions/stringArray';
+import { selectArtists } from '@/db/media/actions/artists';
 
-export default async function (req: Request, res: Response): Promise<Response<ArtistsResponse>> {
+export default function (req: Request, res: Response) {
 
-	const music = await confDb.artist.findMany({
-		where: {
-			NOT: {
-				Track: {
-					none: {},
-				},
-			},
-		},
-		orderBy: {
-			name: 'asc',
-		},
-		include: {
-			_count: true,
-		},
-	});
+	const music = selectArtists(req.body.letter);
 
 	if (!music) {
 		return res.json({
@@ -31,15 +16,15 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 		});
 	}
 
-	const result: ArtistsResponse = {
+	const result = {
 		type: 'artists',
-		data: sortBy(music.filter(m => m._count.Track > 0)
+		data: sortBy(music
 			.map((m) => {
 				return {
 					...m,
 					type: 'artist',
 					name: m.name.replace(/["'\[\]*]/gu, ''),
-					titleSort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
+					titleSort: removeDiacritics(createTitleSort(m.name)),
 					origin: deviceId,
 					colorPalette: JSON.parse(m.colorPalette ?? '{}'),
 				};

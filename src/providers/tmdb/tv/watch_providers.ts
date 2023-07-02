@@ -1,6 +1,6 @@
-import { WatchProvider } from '../shared';
+import { WatchProviderResult } from '../shared';
 
 export interface TvWatchProviders {
 	id: number;
-	results: WatchProvider[];
+	results: WatchProviderResult[];
 }

@@ -1,57 +1,53 @@
 import { setAllowedUsers, setUsers } from '@/state/redux/config/actions';
 
 import Logger from '../../functions/logger';
-import { Prisma } from '../../database/config/client';
 import { UserResponse } from 'types/api';
 import axios from '../axios';
-import { commitConfigTransaction } from '../../database';
-import { confDb } from '../../database/config';
 import { deviceId } from '../system';
+import { AppState, useSelector } from '@/state/redux';
+import { insertUser, selectUser } from '@/db/media/actions/users';
 
 export const getUsers = async () => {
-	const transaction: Prisma.PromiseReturnType<any>[] = [];
+	// const transaction: Prisma.PromiseReturnType<any>[] = [];
+	const moderators = useSelector((state: AppState) => state.config.moderators);
+
 	await axios()
 		.get<UserResponse[]>('https://api.nomercy.tv/server/users', {
 			params: {
 				server_id: deviceId,
 			},
 		})
-		.then(async ({ data }) => {
+		.then(({ data }) => {
 			for (let i = 0; i < data.length; i++) {
 				const user = data[i];
-				transaction.push(
-					confDb.user.upsert({
-						where: {
-							sub_id: user.sub_id,
-						},
-						update: {
-							sub_id: user.sub_id,
-							email: user.email,
-							name: user.name,
-							allowed: user.enabled,
-						},
-						create: {
-							sub_id: user.sub_id,
-							email: user.email,
-							name: user.name,
-						},
-					})
-				);
+
+				insertUser({
+					id: user.sub_id,
+					email: user.email,
+					name: user.name,
+					allowed: user.enabled,
+					manage: moderators.some(m => m.id == user.sub_id),
+				});
+
 			}
-			await commitConfigTransaction(transaction);
 
-			const users = await confDb.user.findMany();
-			setUsers(users);
+			const users = selectUser();
 
-			const newAllowedUsers = users.map((d) => {
+			setUsers(users.map((d) => {
+				return {
+					...d,
+					created_at: new Date(d.created_at),
+					updated_at: new Date(d.created_at),
+				};
+			}));
+
+			setAllowedUsers(users.map((d) => {
 				return {
 					...d,
 					created_at: new Date(d.created_at).getTime(),
 					updated_at: new Date(d.created_at).getTime(),
 				};
-			});
-
-			setAllowedUsers(newAllowedUsers);
+			}));
 
 			Logger.log({
 				level: 'info',

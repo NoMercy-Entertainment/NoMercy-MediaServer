@@ -1,22 +1,18 @@
-import {
-	copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync
-} from 'fs';
-import lyricsFinder from 'lyrics-finder';
-import { join } from 'path';
+import { copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
+// import lyricsFinder from 'lyrics-finder';
+import { join, resolve } from 'path';
 import { PaletteColors } from 'types/server';
 
-import { confDb } from '../../database/config';
-import { Folder, Job, Prisma } from '../../database/config/client';
-import { AudioFFprobe } from '../../encoder/ffprobe/ffprobe';
+import { Folder } from '../../database/config/client';
+import type { AudioFFprobe } from '../../encoder/ffprobe/ffprobe';
 import { getBestArtistImag } from '../../functions/artistImage';
 import colorPalette, { colorPaletteFromFile } from '../../functions/colorPalette';
-import createBlurHash from '../../functions/createBlurHash';
 import { fileChangedAgo, humanTime, sleep } from '../../functions/dateTime';
 import downloadImage from '../../functions/downloadImage';
 import Logger from '../../functions/logger';
 import { jsonToString } from '../../functions/stringArray';
 import i18n from '../../loaders/i18n';
-import { findLyrics } from '../../providers';
+// import { findLyrics } from '../../providers';
 import { Image } from '../../providers/musicbrainz/cover';
 import {
 	Artist, getAcousticFingerprintFromParsedFileList, Medium, Recording, Release
@@ -28,22 +24,53 @@ import { releaseCover } from '../../providers/musicbrainz/release';
 import { cachePath, imagesPath } from '@/state';
 import { ParsedFileList } from '../../tasks/files/filenameParser';
 import FileList from '../../tasks/files/getFolders';
+import { mediaDb } from '@/db/media';
+import { eq } from 'drizzle-orm';
+import { libraries } from '../../db/media/schema/libraries';
+import { insertArtist } from '@/db/media/actions/artists';
+import { insertAlbum } from '@/db/media/actions/albums';
+import { insertTrack } from '@/db/media/actions/tracks';
+import { insertMusicGenre } from '@/db/media/actions/musicGenres';
+import { insertMusicGenreTrack } from '@/db/media/actions/musicGenre_track';
+import { insertAlbumArtist } from '../../db/media/actions/album_artist';
+import { insertAlbumTrack } from '@/db/media/actions/album_track';
+import { Library } from '@/db/media/actions/libraries';
+import { insertArtistTrack } from '@/db/media/actions/artist_track';
+import { insertArtistLibrary } from '@/db/media/actions/artist_library';
+import { insertAlbumLibrary } from '@/db/media/actions/album_library';
+import createBlurHash from '@/functions/createBlurHash/createBlurHash';
+import { album, artist } from '@/providers/fanart/music';
+import { execSync } from 'child_process';
 
-export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }: { id: number | string; folder: string; libraryId: string; job?: Job, task?: { id: string } }) => {
+type Lib = Library & {
+	folder_library: {
+		folder: Folder;
+	}[];
+	folder: Folder;
+};
+
+export const storeMusic = async ({
+	folder,
+	libraryId,
+	task = { id: 'manual' },
+}: {
+	folder: string;
+	libraryId: string;
+	task?: { id: string; };
+}) => {
 
 	console.log({ folder, libraryId, task });
 
 	await i18n.changeLanguage('en');
 
-	const transaction: Prisma.PromiseReturnType<any>[] = [];
-
 	try {
 		await FileList({
 			folder: folder,
 			recursive: true,
-			filter: ['mp3', 'flac'],
+			filter: ['mp3', 'flac', 'm4a'],
 			ignoreBaseFilter: true,
 		}).then(async (fileList) => {
+			// console.log(fileList);
 			const folderFile = join(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
 
 			let parsedFiles: ParsedFileList[] = new Array<ParsedFileList>();
@@ -66,7 +93,7 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 						level: 'error',
 						name: 'App',
 						color: 'red',
-						message: JSON.stringify(error),
+						message: JSON.stringify([`${__filename}`, error]),
 					});
 				}
 
@@ -81,8 +108,26 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 				return;
 			}
 
+			const currentLib: Lib = mediaDb.query.libraries.findFirst({
+				where: eq(libraries.id, libraryId),
+				with: {
+					folder_library: {
+						with: {
+							folder: true,
+						},
+					},
+				},
+			}) as unknown as Lib;
+
 			for (const file of parsedFiles) {
 				const trackInfoFile = join(cachePath, 'temp', file.name.replace(/\.\w{3,}$/u, '.json'));
+
+				const libraryFolder = currentLib.folder_library.find(f => file.path.startsWith(f.folder.path));
+
+				const library = {
+					...currentLib,
+					folder: libraryFolder?.folder ?? currentLib.folder_library[0].folder,
+				};
 
 				let match: Recording = <Recording>{};
 
@@ -118,7 +163,7 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 						} catch (error) {
 							reject(error);
 						}
-					}).catch(e => console.log(e));
+					}).catch(console.log);
 					sleep(1);
 				}
 
@@ -129,26 +174,23 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 				}
 
 				for (const artist of match.artists ?? []) {
-					await createArtist(libraryId, artist, transaction)
-						.catch(() => {
-							// console.log(e);
-
-						});
+					await createArtist(library, artist)
+						.catch(console.log);
 				}
 
-				await createAlbum(libraryId, file, match.releases[0], match.id, match.title, match.artists, transaction)
-					.catch(() => {
-						// console.log(e);
-
-					});
+				await createAlbum(
+					library,
+					file,
+					match.releases[0],
+					(file.ffprobe as AudioFFprobe)?.tags.acoustid_id ?? match.id,
+					match.title,
+					match.artists
+				)
+					.catch(console.log);
 
 				// await createFile(match, file, libraryId);
 			}
 		});
-
-		// console.log('before');
-		await confDb.$transaction(transaction).catch(e => console.log(e));
-		// console.log('after');
 
 		Logger.log({
 			level: 'info',
@@ -156,6 +198,12 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 			color: 'magentaBright',
 			message: `Folder: ${folder} added successfully`,
 		});
+
+		// process.send!({
+		// 	type: 'custom',
+		// 	event: 'update_content',
+		// 	data: ['music'],
+		// });
 
 		return {
 			success: true,
@@ -171,7 +219,7 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 				level: 'error',
 				name: 'App',
 				color: 'red',
-				message: JSON.stringify(error),
+				message: JSON.stringify([`${__filename}`, error]),
 			});
 		}
 
@@ -183,22 +231,20 @@ export const storeMusic = async ({ folder, libraryId, task = { id: 'manual' } }:
 	}
 };
 
-const createArtist = async (libraryId: string, artist: Artist, transaction: Prisma.PromiseReturnType<any>[]) => {
-	const libraryFolder = (await confDb.folder.findFirst({
-		where: {
-			Libraries: {
-				some: {
-					libraryId: libraryId,
-				},
-			},
-		},
-	})) as Folder;
+const createArtist = async (library: Lib, artist: Artist) => {
 
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding artist: ${artist.name}`,
+	});
 	const artistName = artist.name.replace(/[\/]/gu, '_').replace(/“/gu, '');
 
-	const { image, colorPalette, blurHash } = await getArtistImage(libraryFolder.path, artist);
+	const { image, colorPalette, blurHash } = await getArtistImage(library.folder.path, artist);
 
-	const artistInsert = Prisma.validator<Prisma.ArtistCreateWithoutAlbumInput>()({
+	insertArtist({
+		id: artist.id,
 		name: artist.name,
 		cover: image,
 		blurHash: blurHash,
@@ -206,45 +252,44 @@ const createArtist = async (libraryId: string, artist: Artist, transaction: Pris
 			? jsonToString(colorPalette)
 			: undefined,
 		folder: `/${artistName[0].toUpperCase()}/${artistName}`,
-		id: artist.id,
-		Library: {
-			connect: {
-				id: libraryId,
-			},
-		},
+		library_id: library.id as string,
 	});
 
-	// transaction.push(
-	await	confDb.artist.upsert({
-		where: {
-			id: artist.id,
-		},
-		create: artistInsert,
-		update: artistInsert,
+	insertArtistLibrary({
+		artist_id: artist.id,
+		library_id: library.id as string,
 	});
-	// );
 };
 
 const createAlbum = async (
-	libraryId: string,
+	library: Lib,
 	file: ParsedFileList,
 	album: Release,
 	recordingID: string,
 	title: string,
-	artist: Artist[],
-	transaction: Prisma.PromiseReturnType<any>[]
+	artist: Artist[]
 ) => {
+
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding album: ${title}`,
+	});
+
 	for (const artist of album.artists ?? []) {
-		await createArtist(libraryId, artist, transaction);
+		await createArtist(library, artist);
 	}
 
-	const { image, colorPalette, blurHash } = await getAlbumImage(album.id, libraryId, file);
+	const { image, colorPalette, blurHash } = await getAlbumImage(album.id, library, file);
 
-	const albumInsert = Prisma.validator<Prisma.AlbumCreateWithoutFileInput>()({
+	insertAlbum({
+		id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
 		name: album.title,
-		id: album.id,
 		cover: image,
-		folder: `${file.folder}${file.musicFolder}`.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/u, '$1').replace('/Music', ''),
+		folder: `${file.folder}${file.musicFolder}`
+			.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/u, '$1')
+			.replace('/Music', ''),
 		colorPalette: colorPalette
 			? jsonToString(colorPalette)
 			: undefined,
@@ -252,69 +297,86 @@ const createAlbum = async (
 		tracks: album.track_count,
 		country: album.country,
 		blurHash: blurHash,
-		Library: {
-			connect: {
-				id: libraryId,
-			},
-		},
-		Artist: {
-			connect: (album.artists?.concat(...artist) ?? [...artist]).map(a => ({
-				id: a.id,
-			})),
-		},
+		library_id: library.id as string,
 	});
 
-	// transaction.push(
-	await	confDb.album.upsert({
-		where: {
-			id: album.id,
-		},
-		create: albumInsert,
-		update: albumInsert,
+	(album.artists?.concat(...artist) ?? [...artist]).map((a) => {
+		insertAlbumArtist({
+			album_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
+			artist_id: a.id,
+		});
 	});
-	// );
+
+	insertAlbumLibrary({
+		album_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
+		library_id: library.id as string,
+	});
 
 	for (const track of album.mediums) {
-		await createTrack(track, artist, album, file, recordingID, title, transaction);
+		await createTrack(track, artist, album, file, recordingID, title, library);
 	}
 };
 
 const createTrack = async (
 	track: Medium,
-	artist: Artist[],
+	artists: Artist[],
 	album: Release,
 	file: ParsedFileList,
 	recordingID: string,
 	title: string,
-	transaction: Prisma.PromiseReturnType<any>[]
+	library: Lib
 ) => {
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding track: ${title}`,
+	});
+
 	const { image, colorPalette, blurHash } = await getTrackImage(file, recordingID);
 	const duration = humanTime(file.ffprobe?.format.duration);
 
-	let lyrics = await findLyrics({
-		duration: duration,
-		Album: [album],
-		Artist: album.artists?.concat(...artist) ?? [...artist],
-		name: title,
-	});
+	if ((file.ffprobe as AudioFFprobe)?.audio?.codec_name == 'alac') {
+		const newFile = file.path.replace(/(.+)\.\w{3,}$/u, '$1.flac');
 
-	if (!lyrics) {
-		lyrics = await lyricsFinder(album.artists?.[0]?.name ?? artist?.[0]?.name, title);
+		execSync(`ffmpeg -i "${file.path}" -c:a flac -compression_level 12 "${newFile}" -n 2>&1`);
+
+		file.name = file.name.replace(/(.+)\.\w{3,}$/u, '$1.flac');
 	}
 
-	const trackInsert = Prisma.validator<Prisma.TrackCreateInput>()({
+	// Logger.log({
+	// 	level: 'info',
+	// 	name: 'App',
+	// 	color: 'magentaBright',
+	// 	message: `Searching lyrics: ${title}`,
+	// });
+	// let lyrics = await findLyrics({
+	// 	duration: duration,
+	// 	Album: [album],
+	// 	Artist: album.artists?.concat(...artists) ?? [...artists],
+	// 	name: title,
+	// });
+
+	// if (!lyrics) {
+	// 	lyrics = await lyricsFinder(album.artists?.[0]?.name ?? artists?.[0]?.name, title);
+	// }
+
+	insertTrack({
 		id: recordingID,
 		name: title,
-		track: track.position,
-		lyrics: lyrics,
+		disc: track.position,
+		track: track.tracks[0].position,
+		// lyrics: lyrics,
 		cover: image,
 		colorPalette: colorPalette
 			? jsonToString(colorPalette)
 			: undefined,
 		blurHash: blurHash,
-		disc: track.tracks[0].position,
 		date: album.date?.year
 			? new Date(album.date.year, album.date.month ?? 1, album.date.day ?? 1)
+				.toISOString()
+				.slice(0, 19)
+				.replace('T', ' ')
 			: undefined,
 		folder: file.musicFolder
 			? `${file.folder}${file.musicFolder}`.replace('/Music', '')
@@ -323,27 +385,24 @@ const createTrack = async (
 		duration: duration,
 		path: file.path,
 		quality: 320,
-		Artist: {
-			connect: (album.artists?.concat(...artist) ?? [...artist]).map(a => ({
-				id: a.id,
-			})),
-		},
-		Album: {
-			connect: {
-				id: album.id,
-			},
-		},
+		folder_id: library.folder.id,
 	});
 
-	// transaction.push(
-	await	confDb.track.upsert({
-		where: {
-			id: recordingID,
-		},
-		create: trackInsert,
-		update: trackInsert,
+	insertAlbumTrack({
+		album_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
+		track_id: recordingID,
 	});
-	// );
+
+	for (const artist of artists ?? []) {
+		try {
+			insertArtistTrack({
+				artist_id: artist.id,
+				track_id: recordingID,
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
 	const recordingInfoFile = join(cachePath, 'temp', `recordingInfo_${recordingID}.json`);
 
@@ -352,10 +411,18 @@ const createTrack = async (
 	if (existsSync(recordingInfoFile)) {
 		response = JSON.parse(readFileSync(recordingInfoFile, 'utf8'));
 	} else {
+		Logger.log({
+			level: 'info',
+			name: 'App',
+			color: 'magentaBright',
+			message: `Fetching track: ${title} info`,
+		});
+
 		response = await recording(recordingID)
 			.then(res => res)
-			.catch(() => {
-				console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc=artist-credits+artists+releases+tags+genres`);
+			.catch(({ response }) => {
+				// console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc=artist-credits+artists+releases+tags+genres`);
+				// console.log(response?.data);
 				return null;
 			});
 
@@ -366,64 +433,94 @@ const createTrack = async (
 	}
 
 	for (const genre of response?.genres ?? []) {
-		const genreInsert = Prisma.validator<Prisma.MusicGenreCreateInput>()({
+		insertMusicGenre({
 			id: genre.id,
 			name: genre.name,
-			Track: {
-				connect: {
-					id: recordingID,
-				},
-			},
 		});
 
-		// transaction.push(
-		await	confDb.musicGenre.upsert({
-			where: {
-				id: genre.id,
-			},
-			create: genreInsert,
-			update: genreInsert,
+		insertMusicGenreTrack({
+			musicGenre_id: genre.id,
+			track_id: recordingID,
 		});
-		// );
 	};
+
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Track: ${title} added successfully`,
+	});
 };
 
-const getArtistImage = async (folder: string, artist: Artist) => {
+const getArtistImage = async (folder: string, _artist: Artist) => {
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding artist image: ${_artist.name}`,
+	});
 	let image: string | null = null;
 	let palette: PaletteColors | null = null;
 	let blurHash: string | null = null;
 
-	const artistName = artist.name.replace(/[\/]/gu, '_').replace(/“/gu, '')
+	const artistName = _artist.name.replace(/[\/]/gu, '_').replace(/“/gu, '')
 		.replace(/["*?<>|]/gu, '');
-	const base = `${folder}/${artistName[0]}/${artistName}/${artistName}`.replace(/[\\\/]undefined/gu, '');
+	const base = resolve(`${folder}/${artistName[0]}/${artistName}/${artistName}`.replace(/[\\\/]undefined/gu, ''));
+
+	try {
+		const images = await artist(_artist.id);
+
+		if (images?.artistthumb?.[0]?.url) {
+			image = images?.artistthumb?.[0]?.url;
+			palette = await colorPalette(image);
+			blurHash = await createBlurHash(image);
+			await downloadImage({ url: image, path: `${imagesPath}/music/${_artist.id}.jpg` })
+				.catch((e) => {
+					console.log(e);
+				});
+			return {
+				image,
+				colorPalette: palette,
+				blurHash,
+			};
+		}
+	} catch (error) {
+		// console.log(error);
+	}
 
 	try {
 		if (existsSync(`${base}.jpg`)) {
 			image = `/${artistName}.jpg`;
 			palette = await colorPaletteFromFile(`${base}.jpg`);
 			blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
-			copyFileSync(`${base}.jpg`, `${imagesPath}/music/${artist.id}.jpg`);
+			copyFileSync(`${base}.jpg`, `${imagesPath}/music/${_artist.id}.jpg`);
 		} else if (existsSync(`${base}.png`)) {
 			image = `/${artistName}.png`;
 			palette = await colorPaletteFromFile(`${base}.png`);
 			blurHash = await createBlurHash(readFileSync(`${base}.png`));
-			copyFileSync(`${base}.png`, `${imagesPath}/music/${artist.id}.png`);
+			copyFileSync(`${base}.png`, `${imagesPath}/music/${_artist.id}.png`);
 		} else {
 			const x = await getBestArtistImag(artistName, base);
 			if (x) {
+				Logger.log({
+					level: 'info',
+					name: 'App',
+					color: 'magentaBright',
+					message: `Fetching artist image: ${artistName}`,
+				});
 				image = `/${artistName}.${x.extension}`;
 				palette = await colorPalette(x.url);
 				blurHash = await createBlurHash(x.url);
-				await downloadImage({ url: x.url, path: `${imagesPath}/music/${artist.id}.${x.extension}` })
+				await downloadImage({ url: x.url, path: `${imagesPath}/music/${_artist.id}.${x.extension}` })
 					.catch(() => {
 						//
 					});
 
 				if (
-					existsSync(`${imagesPath}/music/${artist.id}.${x.extension}`)
-					&& statSync(`${imagesPath}/music/${artist.id}.${x.extension}`).size == 0
+					existsSync(`${imagesPath}/music/${_artist.id}.${x.extension}`)
+					&& statSync(`${imagesPath}/music/${_artist.id}.${x.extension}`).size == 0
 				) {
-					rmSync(`${imagesPath}/music/${artist.id}.${x.extension}`);
+					rmSync(`${imagesPath}/music/${_artist.id}.${x.extension}`);
 				}
 			}
 		}
@@ -433,16 +530,22 @@ const getArtistImage = async (folder: string, artist: Artist) => {
 			image = `/${artistName}.${x.extension}`;
 			palette = await colorPalette(x.url);
 			try {
-				await downloadImage({ url: x.url, path: `${imagesPath}/music/${artist.id}.${x.extension}` })
+				Logger.log({
+					level: 'info',
+					name: 'App',
+					color: 'magentaBright',
+					message: `Fetching artist image: ${artistName}`,
+				});
+				await downloadImage({ url: x.url, path: `${imagesPath}/music/${_artist.id}.${x.extension}` })
 					.catch(() => {
 						//
 					});
 
 				if (
-					existsSync(`${imagesPath}/music/${artist.id}.${x.extension}`)
-					&& statSync(`${imagesPath}/music/${artist.id}.${x.extension}`).size == 0
+					existsSync(`${imagesPath}/music/${_artist.id}.${x.extension}`)
+					&& statSync(`${imagesPath}/music/${_artist.id}.${x.extension}`).size == 0
 				) {
-					rmSync(`${imagesPath}/music/${artist.id}.${x.extension}`);
+					rmSync(`${imagesPath}/music/${_artist.id}.${x.extension}`);
 				}
 			} catch (error) {
 				console.log(error);
@@ -458,10 +561,17 @@ const getArtistImage = async (folder: string, artist: Artist) => {
 };
 
 const getTrackImage = async (file: ParsedFileList, id) => {
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding track image: ${file.path}`,
+	});
+
 	let image: string | null = null;
 	let colorPalette: PaletteColors | null = null;
 	let blurHash: string | null = null;
-	const base = file.path.replace(/(.+)\.\w{3,}$/u, '$1');
+	const base = resolve(file.path.replace(/(.+)\.\w{3,}$/u, '$1'));
 
 	try {
 		if (existsSync(`${base}.jpg`)) {
@@ -492,7 +602,13 @@ const getTrackImage = async (file: ParsedFileList, id) => {
 	};
 };
 
-const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList) => {
+const getAlbumImage = async (id: string, library: Lib, file: ParsedFileList) => {
+	Logger.log({
+		level: 'info',
+		name: 'App',
+		color: 'magentaBright',
+		message: `Adding album image: ${file.path}`,
+	});
 	let image: string | null = null;
 	let palette: PaletteColors | null = null;
 	let blurHash: string | null = null;
@@ -510,23 +626,41 @@ const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList
 
 	const cover = release?.find(i => i.front) ?? release?.[0];
 	const coverPath = cover?.thumbnails.small ?? cover?.thumbnails.large;
+	const libraryFolder = library.folder_library.find(f => file.folder.startsWith(f.folder.path)) ?? library.folder_library[0];
 
 	if (!coverPath) {
-		const libraryFolder = (await confDb.folder.findFirst({
-			where: {
-				Libraries: {
-					some: {
-						libraryId: libraryId,
-					},
-				},
-			},
-		})) as Folder;
+		const p = resolve(`${libraryFolder.folder.path}${file.folder}${file.musicFolder}`);
 
-		const path = `${libraryFolder.path}${file.folder}${file.musicFolder}`.replace('Music/Music', 'Music');
-
-		const base = `${path}`
+		const base = `${p}`
 			.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/u, '$1')
 			.replace(/[\\\/]undefined/gu, '');
+
+		try {
+			const images = await album(id);
+
+			if (images?.albums?.[id].albumcover?.[0]?.url !== undefined) {
+				image = images?.albums?.[id].albumcover?.[0]?.url as string;
+				palette = image
+					? await colorPalette(image)
+					: null;
+				blurHash = image
+					? await createBlurHash(image)
+					: null;
+				image && await downloadImage({ url: image, path: `${imagesPath}/music/${id}.jpg` })
+					.catch((e) => {
+						console.log(e);
+					});
+
+				return {
+					image,
+					colorPalette: palette,
+					blurHash,
+				};
+			}
+		} catch (error) {
+			// console.log(error);
+		}
+
 		try {
 			if (existsSync(`${base}/cover.jpg`)) {
 				image = '/cover.jpg';
@@ -539,14 +673,14 @@ const getAlbumImage = async (id: string, libraryId: string, file: ParsedFileList
 				blurHash = await createBlurHash(readFileSync(`${base}/cover.png`));
 				copyFileSync(`${base}/cover.png`, `${imagesPath}/music/${id}.png`);
 			} else {
-				const img = readdirSync(`${path}`).find(a => a.endsWith('.jpg') || a.endsWith('.png'));
+				const img = readdirSync(`${p}`).find(a => a.endsWith('.jpg') || a.endsWith('.png'));
 				if (img) {
 					image = img
 						? `/${img}`
 						: null;
-					palette = await colorPaletteFromFile(`${path}/${img}`);
-					blurHash = await createBlurHash(readFileSync(`${path}/${img}`));
-					copyFileSync(`${path}/${img}`, `${imagesPath}/music/${id}.png`);
+					palette = await colorPaletteFromFile(`${p}/${img}`);
+					blurHash = await createBlurHash(readFileSync(`${p}/${img}`));
+					copyFileSync(`${p}/${img}`, `${imagesPath}/music/${id}.png`);
 				}
 			}
 
@@ -647,81 +781,80 @@ const filterRecordings = (data: Recording[], file: ParsedFileList, parsedFiles: 
 	return recording;
 };
 
-const createFile = async (
-	data: Recording,
-	file: ParsedFileList,
-	libraryId: string,
-	transaction: Prisma.PromiseReturnType<any>[]
-) => {
-	const newFile: Prisma.FileCreateWithoutEpisodeInput = Object.keys(file)
-		.filter(key => !['seasons', 'episodeNumbers', 'ep_folder', 'musicFolder'].includes(key))
-		.reduce((obj, key) => {
-			obj[key] = file[key];
-			return obj;
-		}, <Prisma.FileCreateWithoutEpisodeInput>{});
+// const createFile = async (
+// 	data: Recording,
+// 	file: ParsedFileList,
+// 	library: Lib
+// ) => {
+// 	const newFile: Prisma.FileCreateWithoutEpisodeInput = Object.keys(file)
+// 		.filter(key => !['seasons', 'episodeNumbers', 'ep_folder', 'musicFolder'].includes(key))
+// 		.reduce((obj, key) => {
+// 			obj[key] = file[key];
+// 			return obj;
+// 		}, <Prisma.FileCreateWithoutEpisodeInput>{});
 
-	// transaction.push(
-	await	confDb.file.upsert({
-		where: {
-			path_libraryId: {
-				libraryId: libraryId,
-				path: file.path,
-			},
-		},
-		create: {
-			...newFile,
-			episodeFolder: file.musicFolder!,
-			year: file.year
-				? file.year
-				: null,
-			sources: JSON.stringify(file.sources),
-			revision: JSON.stringify(file.revision),
-			languages: JSON.stringify(file.languages),
-			edition: JSON.stringify(file.edition),
-			ffprobe: (file.ffprobe as AudioFFprobe)
-				? JSON.stringify(file.ffprobe as AudioFFprobe)
-				: null,
-			chapters: JSON.stringify([]),
-			seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
-			episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
-			Library: {
-				connect: {
-					id: libraryId,
-				},
-			},
-			Album: {
-				connect: {
-					id: data.id,
-				},
-			},
-		},
-		update: {
-			...newFile,
-			episodeFolder: file.musicFolder!,
-			year: file.year
-				? file.year
-				: null,
-			sources: JSON.stringify(file.sources),
-			revision: JSON.stringify(file.revision),
-			languages: JSON.stringify(file.languages),
-			edition: JSON.stringify(file.edition),
-			ffprobe: (file.ffprobe as AudioFFprobe)
-				? JSON.stringify(file.ffprobe as AudioFFprobe)
-				: null,
-			chapters: JSON.stringify([]),
-			seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
-			episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
-			Library: {
-				connect: {
-					id: libraryId,
-				},
-			},
-			Album: {
-				connect: {
-					id: data.id,
-				},
-			},
-		},
-	});
-	// );
-};
+// 	// transaction.push(
+// 	await confDb.file.upsert({
+// 		where: {
+// 			path_libraryId: {
+// 				libraryId: library.id,
+// 				path: file.path,
+// 			},
+// 		},
+// 		create: {
+// 			...newFile,
+// 			episodeFolder: file.musicFolder!,
+// 			year: file.year
+// 				? file.year
+// 				: null,
+// 			sources: JSON.stringify(file.sources),
+// 			revision: JSON.stringify(file.revision),
+// 			languages: JSON.stringify(file.languages),
+// 			edition: JSON.stringify(file.edition),
+// 			ffprobe: (file.ffprobe as AudioFFprobe)
+// 				? JSON.stringify(file.ffprobe as AudioFFprobe)
+// 				: null,
+// 			chapters: JSON.stringify([]),
+// 			seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
+// 			episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
+// 			Library: {
+// 				connect: {
+// 					id: library.id,
+// 				},
+// 			},
+// 			Album: {
+// 				connect: {
+// 					id: data.id,
+// 				},
+// 			},
+// 		},
+// 		update: {
+// 			...newFile,
+// 			episodeFolder: file.musicFolder!,
+// 			year: file.year
+// 				? file.year
+// 				: null,
+// 			sources: JSON.stringify(file.sources),
+// 			revision: JSON.stringify(file.revision),
+// 			languages: JSON.stringify(file.languages),
+// 			edition: JSON.stringify(file.edition),
+// 			ffprobe: (file.ffprobe as AudioFFprobe)
+// 				? JSON.stringify(file.ffprobe as AudioFFprobe)
+// 				: null,
+// 			chapters: JSON.stringify([]),
+// 			seasonNumber: Number((file.ffprobe as AudioFFprobe).tags?.disc?.split('/')[0]),
+// 			episodeNumber: Number((file.ffprobe as AudioFFprobe).tags?.track?.split('/')[0]),
+// 			Library: {
+// 				connect: {
+// 					id: library.id,
+// 				},
+// 			},
+// 			Album: {
+// 				connect: {
+// 					id: data.id,
+// 				},
+// 			},
+// 		},
+// 	});
+// 	// );
+// };

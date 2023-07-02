@@ -1,16 +1,19 @@
-import { configData, encoderProfiles, libraries, notificationData } from './data';
+// cSpell: disable
+import { configData, encoderProfiles, libraries, notificationData, special } from './data';
 import { countries, languages } from '../../providers/tmdb/config/index';
 
 import Logger from '../../functions/logger';
-import { Prisma } from '../../database/config/client';
 import certifications from '../../providers/tmdb/certification/index';
+import colorPalette from '../colorPalette/colorPalette';
 import { confDb } from '../../database/config';
+import createBlurHash from '../createBlurHash/createBlurHash';
 import { folders } from '../../../folderRoots';
 import genres from '../../providers/tmdb/genres/index';
 import { musicGenres } from '../../providers/musicbrainz/genre';
 import storeConfig from '../storeConfig';
 
 export const seed = async () => {
+
 	Logger.log({
 		level: 'info',
 		name: 'setup',
@@ -18,7 +21,7 @@ export const seed = async () => {
 		message: 'Seeding database',
 	});
 
-	const transaction: Prisma.PromiseReturnType<any>[] = [];
+	const transaction: any[] = [];
 
 	await storeConfig(configData, null, transaction);
 
@@ -130,6 +133,36 @@ export const seed = async () => {
 		}
 	}
 
+
+	for (const profile of encoderProfiles) {
+		transaction.push(
+			confDb.encoderProfile.upsert({
+				where: {
+					name: profile.name,
+				},
+				update: {
+					id: profile.id,
+					name: profile.name,
+					container: profile.container,
+					param: JSON.stringify(profile.params, null, 2),
+				},
+				create: {
+					id: profile.id,
+					name: profile.name,
+					container: profile.container,
+					param: JSON.stringify(profile.params, null, 2),
+				},
+			})
+		);
+	}
+
+
+	if (!process.env.SEED) {
+		await confDb.$transaction(transaction)
+			.catch(error => console.log(error));
+		return;
+	}
+
 	for (const [name, manage] of Object.entries(notificationData)) {
 		transaction.push(
 			confDb.notificationTypes.upsert({
@@ -143,26 +176,6 @@ export const seed = async () => {
 				create: {
 					name: name,
 					manage: manage,
-				},
-			})
-		);
-	}
-
-	for (const profile of encoderProfiles) {
-		transaction.push(
-			confDb.encoderProfile.upsert({
-				where: {
-					name: profile.name,
-				},
-				update: {
-					name: profile.name,
-					container: profile.container,
-					param: JSON.stringify(profile.params, null, 2),
-				},
-				create: {
-					name: profile.name,
-					container: profile.container,
-					param: JSON.stringify(profile.params, null, 2),
 				},
 			})
 		);
@@ -192,10 +205,9 @@ export const seed = async () => {
 	await confDb.$transaction(transaction)
 		.catch(error => console.log(error));
 
-
 	for (const library of libraries) {
 
-		const libraryInsert = Prisma.validator<Prisma.LibraryUncheckedUpdateInput>()({
+		const libraryInsert = {
 			id: library.id,
 			title: library.title,
 			autoRefreshInterval: library.autoRefreshInterval,
@@ -236,11 +248,11 @@ export const seed = async () => {
 			EncoderProfiles: {
 				connectOrCreate: {
 					create: {
-						encoderProfileId: 'clftcfuqj000oefz8p2eclwqq',
+						encoderProfileId: encoderProfiles[encoderProfiles.length - 1].id,
 					},
 					where: {
 						libraryId_encoderProfileId: {
-							encoderProfileId: 'clftcfuqj000oefz8p2eclwqq',
+							encoderProfileId: encoderProfiles[encoderProfiles.length - 1].id,
 							libraryId: library.id,
 						},
 					},
@@ -248,10 +260,10 @@ export const seed = async () => {
 			},
 			country: 'NL',
 			language: 'nl',
-		});
+		};
 
 		// transaction.push(
-		await	confDb.library.upsert({
+		await confDb.library.upsert({
 			where: {
 				id: library.id,
 			},
@@ -261,6 +273,97 @@ export const seed = async () => {
 		// );
 	}
 
+
+	const palette: any = {
+		poster: undefined,
+		backdrop: undefined,
+	};
+
+	const blurHash: any = {
+		poster: undefined,
+		backdrop: undefined,
+	};
+
+	await Promise.all([
+		special.poster && createBlurHash(`https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
+			blurHash.poster = hash;
+		}),
+		special.backdrop && createBlurHash(`https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
+			blurHash.backdrop = hash;
+		}),
+		special.poster && colorPalette(`https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
+			palette.poster = hash;
+		}),
+		special.backdrop && colorPalette(`https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
+			palette.backdrop = hash;
+		}),
+	]);
+
+	const movies = (await confDb.movie.findMany({
+		where: {
+			id: {
+				in: special.Item.map(item => item.movieId!).filter(Boolean) ?? [],
+			},
+		},
+		select: {
+			id: true,
+		},
+	})).map(e => e.id);
+
+	const episodes = (await confDb.episode.findMany({
+		where: {
+			id: {
+				in: special.Item.map(item => item.episodeId!).filter(Boolean) ?? [],
+			},
+		},
+		select: {
+			id: true,
+		},
+	})).map(e => e.id);
+
+	const filteredItems = special.Item.filter(i => (i.movieId && movies.includes(i.movieId)) || (i.episodeId && episodes.includes(i.episodeId)));
+	const missingItems = special.Item.filter(i => !(i.movieId && movies.includes(i.movieId)) && !(i.episodeId && episodes.includes(i.episodeId)));
+	console.log('missingItems', missingItems);
+
+	await confDb.special.upsert({
+		where: {
+			title: special.title,
+		},
+		create: {
+			...special,
+			blurHash: JSON.stringify(blurHash),
+			colorPalette: JSON.stringify(palette),
+			Item: {
+				connectOrCreate: filteredItems.map((item, index: number) => ({
+					where: {
+						movieId: item.movieId ?? undefined,
+						episodeId: item.episodeId ?? undefined,
+					},
+					create: {
+						...item,
+						order: index,
+					},
+				})),
+			},
+		},
+		update: {
+			...special,
+			blurHash: JSON.stringify(blurHash),
+			colorPalette: JSON.stringify(palette),
+			Item: {
+				connectOrCreate: filteredItems.map((item, index: number) => ({
+					where: {
+						movieId: item.movieId ?? undefined,
+						episodeId: item.episodeId ?? undefined,
+					},
+					create: {
+						...item,
+						order: index,
+					},
+				})),
+			},
+		},
+	});
 };
 
 export default seed;

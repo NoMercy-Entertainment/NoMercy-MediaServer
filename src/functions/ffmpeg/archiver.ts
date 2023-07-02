@@ -1,9 +1,7 @@
-import { execSync } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import M3U8FileParser from 'm3u8-file-parser';
+import { ExecException, exec, execSync } from 'child_process';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-import { EncoderProfile, EncoderProfileLibrary, Folder, Library, LibraryFolder, Prisma } from '../../database/config/client';
 import { ArrayElementType, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
 import { dataPath, ffmpeg, transcodesPath } from '@/state';
 import {
@@ -14,17 +12,16 @@ import { matchPercentage, pad, unique } from '../stringArray';
 import { filenameParse, ParsedFilename, ParsedTvInfo } from '../videoFilenameParser';
 import { FFMpeg } from './ffmpeg';
 import { isoToName } from './language';
-import { confDb } from '@/database/config';
 import { searchMovie, searchTv } from '@/providers/tmdb/search';
-
-export type EncodingLibrary = (Library & {
-	EncoderProfiles: (EncoderProfileLibrary & {
-		EncoderProfile: EncoderProfile;
-	})[];
-	Folders: (LibraryFolder & {
-		folder: Folder | null;
-	})[];
-});
+import findMediaFiles from '@/tasks/data/files';
+import { mediaDb } from '@/db/media';
+import { and, eq } from 'drizzle-orm';
+import { movies } from '@/db/media/schema/movies';
+import { episodes } from '@/db/media/schema/episodes';
+import { EncodingLibrary } from '@/db/media/actions/libraries';
+import { insertVideoFileDB } from '@/db/media/actions/videoFiles';
+import i18next from 'i18next';
+import { convertBooleans } from '@/db/helpers';
 
 export class FFMpegArchive extends FFMpeg {
 	file = '';
@@ -32,8 +29,6 @@ export class FFMpegArchive extends FFMpeg {
 	segmentDuration = 4;
 
 	streamMaps: string[] = [];
-	qualities: EncoderProfile[] = [];
-	manifestFile = '';
 	path = transcodesPath;
 
 	defaultStream = 'YES';
@@ -43,7 +38,6 @@ export class FFMpegArchive extends FFMpeg {
 		h: 144,
 	};
 
-	reader = new M3U8FileParser();
 	parsedFile: ParsedFilename = <ParsedFilename>{};
 	preferredOrder: { [x: string]: any; } = {
 		eng: 2,
@@ -59,7 +53,6 @@ export class FFMpegArchive extends FFMpeg {
 	isTvShow = false;
 	filteredAudioStreams: any;
 	wantsPlaylist = false;
-	mp4File = '';
 
 	episode: EP | null = <EP>{};
 	movie: MV | null = <MV>{};
@@ -91,6 +84,7 @@ export class FFMpegArchive extends FFMpeg {
 		if (this.isTvShow) {
 
 			let currentScore = 0;
+			i18next.changeLanguage('en');
 			const searchResult = await searchTv(this.title, this.year ?? undefined)
 				.then((tvs) => {
 					let show = tvs[0];
@@ -112,29 +106,20 @@ export class FFMpegArchive extends FFMpeg {
 				.catch(() => null);
 
 			if (searchResult) {
-				this.episode = await confDb.episode.findFirst({
-					where: {
-						episodeNumber: this.episodeNumber,
-						seasonNumber: this.seasonNumber,
-						Tv: {
-							titleSort: createTitleSort(searchResult.name, searchResult.first_air_date),
-						},
-					},
-					include: {
-						Tv: true,
-						Season: true,
-						File: {
-							include: {
-								Library: {
-									include: {
-										Folders: {
-											include: {
+				this.episode = mediaDb.query.episodes.findFirst({
+					with: {
+						tv: {
+							with: {
+								library: {
+									with: {
+										folder_library: {
+											with: {
 												folder: true,
 											},
 										},
-										EncoderProfiles: {
-											include: {
-												EncoderProfile: true,
+										encoderProfile_library: {
+											with: {
+												encoderProfile: true,
 											},
 										},
 									},
@@ -142,14 +127,19 @@ export class FFMpegArchive extends FFMpeg {
 							},
 						},
 					},
-				});
+					where: and(
+						eq(episodes.episodeNumber, this.episodeNumber),
+						eq(episodes.seasonNumber, this.seasonNumber),
+						eq(episodes.tv_id, searchResult.id)
+					),
+				}) as unknown as EP;
 			}
 
 			if (!this.episode) {
 				throw new Error('Episode not found');
 			}
 
-			this.year = parseYear(this.episode.Tv.firstAirDate)!;
+			this.year = parseYear(this.episode.tv.firstAirDate as string)!;
 			this.baseFolder = createBaseFolder(this.episode);
 
 			if ((this.episode as EP).airDate) {
@@ -159,13 +149,14 @@ export class FFMpegArchive extends FFMpeg {
 
 			this.fileName = createFileName(this.episode);
 
-			this.toDisk(join(this.library.Folders[0].folder!.path, this.baseFolder, this.episodeFolder));
+			this.toDisk(join(this.library.folder_library[0].folder!.path as string, this.baseFolder, this.episodeFolder));
 
 			if (this.episodeNumber % 2 == 0) {
 				this.hasGpu = false;
 			}
 		} else {
 			let currentScore = 0;
+			i18next.changeLanguage('en');
 			const searchResult = await searchMovie(this.title, this.year)
 				.then((movies) => {
 					let show = movies[0];
@@ -183,32 +174,29 @@ export class FFMpegArchive extends FFMpeg {
 					}
 					return show;
 				});
+
+			console.log(searchResult, createTitleSort(searchResult.title, searchResult.release_date));
+
 			if (searchResult) {
-				this.movie = await confDb.movie.findFirst({
-					where: {
-						titleSort: createTitleSort(searchResult.title, searchResult.release_date),
-					},
-					include: {
-						File: {
-							include: {
-								Library: {
-									include: {
-										Folders: {
-											include: {
-												folder: true,
-											},
-										},
-										EncoderProfiles: {
-											include: {
-												EncoderProfile: true,
-											},
-										},
+				this.movie = mediaDb.query.movies.findFirst({
+					with: {
+						library: {
+							with: {
+								folder_library: {
+									with: {
+										folder: true,
+									},
+								},
+								encoderProfile_library: {
+									with: {
+										encoderProfile: true,
 									},
 								},
 							},
 						},
 					},
-				});
+					where: eq(movies.titleSort, createTitleSort(searchResult.title, searchResult.release_date)),
+				}) as unknown as MV;
 			}
 
 			if (!this.movie) {
@@ -220,17 +208,19 @@ export class FFMpegArchive extends FFMpeg {
 
 			this.fileName = createFileName(this.movie);
 
-			this.toDisk(join(this.library.Folders[0].folder!.path, this.baseFolder, this.episodeFolder));
+			this.toDisk(join(this.library.folder_library[0].folder!.path as string, this.baseFolder, this.episodeFolder));
 
 		}
+
+		this.share = this.library.folder_library[0].folder.id ?? '';
 
 		return this;
 	}
 
 	async fromDatabase(data: EP | MV) {
-		await this.open(data.File[0].path);
+		await this.open(data.files[0].library.folder_library[0].folder.path as string);
 
-		this.title = data.title;
+		this.title = data.title as string;
 
 		this.baseFolder = createBaseFolder(data);
 
@@ -240,7 +230,9 @@ export class FFMpegArchive extends FFMpeg {
 
 		this.fileName = createFileName(data);
 
-		this.toDisk(join(data.File[0].Library.Folders[0].folder!.path, this.baseFolder, this.episodeFolder));
+		this.toDisk(join(data.files[0].library.folder_library[0].folder.path as string, this.baseFolder, this.episodeFolder));
+
+		this.share = this.library.folder_library[0].folder.id ?? '';
 
 		return this;
 	}
@@ -274,13 +266,13 @@ export class FFMpegArchive extends FFMpeg {
 		this.title = parsedFile?.title;
 		this.fileName = fileName;
 		this.year = parsedFile!.year!;
-		this.seasonNumber = (parsedFile as ParsedTvInfo)?.seasons?.[0] ?? undefined;
+		this.seasonNumber = (parsedFile as ParsedTvInfo)?.seasons?.[0] ?? 1;
 		this.episodeNumber = (parsedFile as ParsedTvInfo)?.episodeNumbers?.[0] ?? undefined;
 
 		return parsedFile;
 	}
 
-	makeStack() {
+	async makeStack() {
 		this.manifestFile = join(this.path, `${this.fileName}.m3u8`);
 		this.mp4File = join(this.path, `${this.fileName}.mp4`);
 
@@ -289,51 +281,72 @@ export class FFMpegArchive extends FFMpeg {
 		this.spriteFile = join(this.path, '/sprite.webp');
 		this.chaptersFile = join(this.path, '/chapters.vtt');
 		this.subtitleFolder = join(this.path, '/subtitles');
-		this.fontsFile = join(this.path, '/fonts.vtt');
+		this.fontsFolder = join(this.path, '/fonts/');
+		this.fontsFile = join(this.path, '/fonts.json');
 		this.setAllowedLanguages();
 
-		this.fullTitle = this.seasonNumber && this.episodeNumber && this.episode
+		console.log('make stack');
+		mkdirSync(this.subtitleFolder, { recursive: true });
+
+		this.fullTitle = this.seasonNumber != null && this.episodeNumber && this.episode
 			? `${this.title} (${this.year}) S${pad(this.seasonNumber)} E${pad(this.episodeNumber)} - ${this.episode.title}`
 			: `${this.title} (${this.year})`;
 
 		this.filteredAudioStreams = unique(this.streams.audio.sort(this.sortByPriorityKeyed(this.preferredOrder, 'language')), 'language')
 			.filter(a => this.allowedLanguages.includes(a.language)) ?? [];
 
-		this.wantsPlaylist = this.filteredAudioStreams.length > 1 || this.library.EncoderProfiles.length > 1;
-
-		// if (existsSync(this.manifestFile)) {
-		//     return this;
-		// }
-
-		for (const profile of this.library.EncoderProfiles) {
-			const params = JSON.parse(profile.EncoderProfile.param);
-			this.qualities.push(params);
+		for (const profile of this.library.encoderProfile_library) {
+			const params = JSON.parse(profile.encoderProfile.param as string);
+			if (params.width == this.streams.video[0].width || this.streams.video[0].width - 100 > params.width) {
+				this.qualities.push(params);
+			}
 		}
+
+		if (this.qualities.length == 0) {
+			this.qualities.push({
+				width: this.streams.video[0].width,
+				height: this.streams.video[0].height,
+				crf: 23,
+				codec: 'H264',
+			});
+		}
+
+		this.wantsPlaylist = this.filteredAudioStreams.length > 1 || this.qualities.length > 1;
+
+		if (this.qualities.length > 1) {
+			this.isMultiBitrate = true;
+		}
+
 
 		if (this.isHDR) {
 			this.createPipe();
 		}
 
-		if ((this.wantsPlaylist && !existsSync(join(this.path, `${this.fileName}.m3u8`)))
-		|| (!this.wantsPlaylist && !existsSync(join(this.path, `${this.fileName}.mp4`)))) {
-			for (const profile of this.library.EncoderProfiles) {
-				const params = JSON.parse(profile.EncoderProfile.param);
-				this.addVideoStream(this.streams.video[0], params);
-			}
+		if (this.wantsPlaylist) {
+			this.verifyHLS();
 
-			for (const stream of this.filteredAudioStreams) {
-				this.addAudioStream(stream);
+			for (const quality of this.qualities) {
+				this.addVideoStream(this.streams.video[0], quality);
+			}
+		} else {
+			await this.verifyMP4();
+
+			if (existsSync(this.mp4File)) {
+				return this;
+			}
+			for (const quality of this.qualities.slice(0, 1)) {
+				this.addVideoStream(this.streams.video[0], quality);
 			}
 		}
 
-		if (!this.wantsPlaylist && !existsSync(join(this.path, `${this.fileName}.m3u8`))) {
+		for (const stream of this.filteredAudioStreams) {
+			this.addAudioStream(stream);
+		}
+
+		if (!this.wantsPlaylist) {
 			this.addCommand('-bsf:v', 'h264_mp4toannexb');
 			this.addCommand('-use_wallclock_as_timestamps 1');
 			this.addFile([`${this.fileName}.mp4`]);
-		}
-
-		for (const stream of this.streams.subtitle.filter(a => this.allowedLanguages.includes(a.language)) ?? []) {
-			this.addSubtitleStream(stream);
 		}
 
 		this.addThumbnailsStream();
@@ -341,8 +354,6 @@ export class FFMpegArchive extends FFMpeg {
 		if (this.wantsPlaylist && !existsSync(join(this.path, `${this.fileName}.m3u8`))) {
 			this.makeMasterPlaylist();
 		}
-
-		this.makeAttachmentsFile();
 
 		this.makeChapterFile();
 
@@ -354,10 +365,11 @@ export class FFMpegArchive extends FFMpeg {
 		quality: VideoQuality
 	) {
 
-		if (quality?.width && quality?.height) {
+		if (quality?.width) {
 			stream.width = quality.width;
-			stream.height = quality.height;
+			stream.height = quality.height || (quality.width / 16) * 9;
 		}
+		console.log({ size: `${stream.width}x${stream.height}`, quality: quality ?? stream });
 
 		this.videoStreams.push({ size: `${stream.width}x${stream.height}`, quality: quality ?? stream });
 
@@ -367,24 +379,18 @@ export class FFMpegArchive extends FFMpeg {
 			}
 		}
 
-		if (this.videoStreams.length > 1) {
-			this.isMultiBitrate = true;
-		}
-
 		this.addCommand('-map', `0:${stream.index}`);
 
-		if (this.hasGpu) {
+		if (this.isHDR && this.hasGpu) {
 			if (quality.codec == 'H264') {
 				this.addCommand('-c:v', 'h264_nvenc');
 			} else if (quality.codec == 'H265') {
 				this.addCommand('-c:v', 'hevc_nvenc');
 			}
-		} else if (!this.hasGpu) {
-			if (quality.codec == 'H264') {
-				this.addCommand('-c:v', 'libx264');
-			} else if (quality.codec == 'H265') {
-				this.addCommand('-c:v', 'libx265');
-			}
+		} else if (quality.codec == 'H264') {
+			this.addCommand('-c:v', 'libx264');
+		} else if (quality.codec == 'H265') {
+			this.addCommand('-c:v', 'libx265');
 		}
 
 		if (this.wantsPlaylist) {
@@ -395,7 +401,7 @@ export class FFMpegArchive extends FFMpeg {
 			.addCommand('-metadata', `title="${this.title}"`);
 
 		if (quality?.crf) {
-			if (this.hasGpu) {
+			if (this.isHDR && this.hasGpu) {
 				this.addCommand('-cq:v', Math.floor(quality?.crf * 1.12)); // 1.12 is the quality difference between nvenc and libx
 			} else {
 				this.addCommand(`-crf ${quality?.crf}`);
@@ -413,11 +419,13 @@ export class FFMpegArchive extends FFMpeg {
 			this.addCommand(`-maxrate ${quality?.maxrate}`);
 		}
 
-		if (this.isMultiBitrate || !existsSync(this.getFile(['sprite.webp']))) {
-			this.videoFilters = [];
-		}
+		// if (this.isMultiBitrate || !existsSync(this.getFile(['sprite.webp']))) {
+		// 	this.videoFilters = [];
+		// }
 		if (quality?.height) {
-			this.addVideoFilter('scale', `-2:${stream.height}`);
+			this.addVideoFilter('scale', `-2:${quality.height}`);
+		} else if (quality?.width) {
+			this.addVideoFilter('scale', `${quality.width}:-2`);
 		}
 
 		const framerate = this.getFrameRate();
@@ -428,7 +436,7 @@ export class FFMpegArchive extends FFMpeg {
 			.addCommand('-g', framerate)
 			.addCommand('-pix_fmt', 'yuv420p');
 
-		if (this.hasGpu) {
+		if (this.isHDR && this.hasGpu) {
 			this.addCommand('-preset', 'slow')
 				.addCommand('-profile:v', 'high')
 				.addCommand('-tune:v', 'hq')
@@ -480,11 +488,13 @@ export class FFMpegArchive extends FFMpeg {
 		this.addCommand('-c:a', 'aac')
 			.addCommand('-strict', 2);
 
-		if (this.wantsPlaylist) {
-			//
-		} else {
-			this.addCommand('-ac', 2);
-		}
+		// if (this.wantsPlaylist) {
+		// 	if (stream.channels < 5) {
+		// 		this.addCommand('-ac', stream.channels);
+		// 	}
+		// } else {
+		this.addCommand('-ac', 2);
+		// }
 
 		this.addAudioFilters()
 			.addCommand(`-metadata:s:a:${this.audioStreams.length}`, `language="${stream.language}"`)
@@ -499,7 +509,42 @@ export class FFMpegArchive extends FFMpeg {
 		return this;
 	}
 
-	// TODO:
+	async makeSubtitles() {
+		this.commands = [];
+
+		for (const stream of this.streams.subtitle ?? []) {
+			this.addSubtitleStream(stream);
+		}
+
+		await this.start();
+
+		this.convertSubsToVtt();
+
+		this.makeAttachmentsFile();
+
+		const attatchmentsCommand = `"${ffmpeg}" -dump_attachment:t "" -i "${this.format.filename}" -y  -hide_banner -max_muxing_queue_size 9999 -async 1 -loglevel panic 2>&1`;
+
+		if (this.attachments.length > 0) {
+			mkdirSync(this.fontsFolder, { recursive: true });
+		}
+
+		exec(attatchmentsCommand, {
+			cwd: this.fontsFolder,
+			maxBuffer: Infinity,
+		}, (error: ExecException | null) => {
+			if (!error) {
+				if (!existsSync(this.fontsFile)) return;
+
+				JSON.parse(readFileSync(this.fontsFile, 'utf8')).forEach((font: { file: string; }) => {
+					if (existsSync(this.fontsFolder + font.file)) {
+						renameSync(this.fontsFolder + font.file, this.fontsFolder + font.file.toLowerCase());
+					}
+				});
+			}
+		});
+
+	}
+
 	addSubtitleStream(stream: ArrayElementType<VideoFFprobe['streams']['subtitle']>) {
 		const ext = this.getExtension(stream);
 		const type = this.getSubType(stream);
@@ -536,7 +581,7 @@ export class FFMpegArchive extends FFMpeg {
 
 	addThumbnailsStream() {
 
-		if (existsSync(this.getFile(['sprite.webp'])) || existsSync(this.getFile(['thumbs/thumb-0100.jpg']))) {
+		if (existsSync(this.getFile(['sprite.webp'])) || existsSync(this.getFile(['thumbs/thumb-0010.jpg']))) {
 			return this;
 		}
 		this.thumbnailStreams.push('true');
@@ -578,7 +623,7 @@ export class FFMpegArchive extends FFMpeg {
 			const arg: string[] = [];
 
 			arg.push('#EXT-X-MEDIA:TYPE=AUDIO');
-			arg.push('GROUP-ID="group_audio"');
+			arg.push('GROUP-ID="audio"');
 			arg.push(`NAME="${isoToName(stream)}"`);
 			arg.push(`DEFAULT=${this.defaultStream}`);
 			arg.push('AUTOSELECT=YES');
@@ -597,7 +642,7 @@ export class FFMpegArchive extends FFMpeg {
 			arg.push(`#EXT-X-STREAM-INF:BANDWIDTH=${this.getBitrate(stream.quality)}`);
 			arg.push(`RESOLUTION=${stream.size}`);
 			arg.push('CODECS="avc1.640028,mp4a.40.2"');
-			arg.push('AUDIO="group_audio"');
+			arg.push('AUDIO="audio"');
 			arg.push(`LABEL="${stream.size.split('x')[1]}P"`);
 			m3u8_content.push(arg.join(','));
 
@@ -637,7 +682,7 @@ export class FFMpegArchive extends FFMpeg {
 
 		execSync(montageCommand, { maxBuffer: 1024 * 5000 });
 
-		const times = createTimeInterval(this.format.duration, interval);
+		const times = createTimeInterval((this.format.duration as number), interval);
 
 		let dst_x = 0;
 		let dst_y = 0;
@@ -665,7 +710,9 @@ export class FFMpegArchive extends FFMpeg {
 
 		writeFileSync(this.previewFiles, thumb_content.join('\n'));
 
-		existsSync(this.thumbnailsFolder) && rmSync(this.thumbnailsFolder, { recursive: true });
+		if (existsSync(this.thumbnailsFolder)) {
+			rmSync(this.thumbnailsFolder, { recursive: true });
+		}
 
 		return this;
 	}
@@ -711,14 +758,14 @@ export class FFMpegArchive extends FFMpeg {
 		return new FFMpegArchive();
 	}
 
-	verify() {
+	async verify() {
 		if (this.file.endsWith('.mkv')) {
 			this.verifyMkv();
 			return this;
 		}
 
 		if (this.file.endsWith('.mp4')) {
-			this.verifyMP4();
+			await this.verifyMP4();
 			return this;
 		}
 
@@ -726,75 +773,6 @@ export class FFMpegArchive extends FFMpeg {
 			this.verifyHLS();
 			return this;
 		}
-
-		return this;
-	}
-
-	verifyMP4() {
-		return this;
-	}
-
-	verifyMkv() {
-		return this;
-	}
-
-	verifyHLS() {
-
-		if (!existsSync(this.manifestFile)) {
-			console.log(`no manifest: ${this.fileName}.m3u8`);
-			return this;
-		}
-
-		this.reader.read(readFileSync(this.manifestFile, 'utf-8'));
-
-		const manifestFileResult = this.reader.getResult();
-		this.reader.reset();
-
-		if (!manifestFileResult.media) {
-			console.log(`no media: ${this.fileName}.m3u8`);
-			return this;
-		}
-		if (!manifestFileResult.segments) {
-			console.log(`no segments: ${this.fileName}.m3u8`);
-			return this;
-		}
-		console.log(`yes: ${this.fileName}.m3u8`);
-
-		for (const segment of manifestFileResult.segments) {
-
-			if (!existsSync(this.getFile([segment.url]))) {
-				console.log(`no segment: ${segment.url}`);
-				return this;
-			}
-
-			this.reader.read(readFileSync(this.getFile([segment.url]), 'utf-8'));
-
-			const result = this.reader.getResult();
-			this.reader.reset();
-
-			if (!result.endList) {
-				console.log(`no endlist: ${segment.url}`);
-				return this;
-			}
-			console.log(`yes endlist: ${segment.url}`);
-		}
-
-		for (const audio of Object.entries(manifestFileResult.media?.AUDIO?.group_audio) ?? []) {
-			const item = audio[1] as any;
-
-			this.reader.read(readFileSync(this.getFile([item.uri]), 'utf-8'));
-
-			const result = this.reader.getResult();
-			this.reader.reset();
-
-			if (!result.endList) {
-				console.log(`no endlist: ${item.uri}`);
-				return this;
-			}
-			console.log(`yes endlist: ${item.uri}`);
-		}
-
-		console.log('');
 
 		return this;
 	}
@@ -809,76 +787,97 @@ export class FFMpegArchive extends FFMpeg {
 
 		if (this.streams?.video) {
 			if (this.isTvShow) {
-				const videoFileInset = Prisma.validator<Prisma.VideoFileUpdateInput>()({
+
+				insertVideoFileDB({
 					filename: `/${fileName}`,
 					folder: `/${join(this.baseFolder, this.episodeFolder)}`,
 					hostFolder: join(this.path),
 					duration: humanTime(this.format.duration),
 					quality: JSON.stringify(this.getQualityTag(this.qualities)),
-					share: this.library.id,
-					subtitles: JSON.stringify(this.getExistingSubtitles(this.subtitleFolder)),
+					share: this.share,
+					subtitles: JSON.stringify(this.getExistingSubtitles()),
 					languages: JSON.stringify(this.streams.audio.map(a => a.language)),
-					Chapters: JSON.stringify(this.chapters),
-					Episode: {
-						connect: {
-							id: this.episode?.id,
-						},
-					},
+					chapters: JSON.stringify(this.chapters),
+					episode_id: this.episode?.id,
 				});
 
-				await confDb.videoFile.upsert({
-					where: {
-						episodeId: this.episode?.id,
-					},
-					create: videoFileInset,
-					update: videoFileInset,
+				await findMediaFiles({
+					type: this.library.type,
+					data: this.episode?.tv ?? this.movie,
+					folder: join(this.library.folder_library[0].folder!.path as string, this.baseFolder),
+					libraryId: this.library.id,
+					sync: true,
 				});
 
-				const tv = await confDb.tv.findFirst({
-					where: {
-						Episode: {
-							some: {
-								id: this.episode?.id,
-							},
-						},
-					},
-				})!;
+				// const tv = await confDb.tv.findFirst({
+				// 	where: {
+				// 		Episode: {
+				// 			some: {
+				// 				id: this.episode?.id,
+				// 			},
+				// 		},
+				// 	},
+				// })!;
 
-				await confDb.tv.update({
-					where: {
-						id: tv?.id,
-					},
-					data: {
-						haveEpisodes: (tv?.haveEpisodes ?? 0) + 1,
-					},
-				});
+				// await confDb.tv.update({
+				// 	where: {
+				// 		id: tv?.id,
+				// 	},
+				// 	data: {
+				// 		haveEpisodes: (tv?.haveEpisodes ?? 0) + 1,
+				// 	},
+				// });
 			} else {
-				const videoFileInset = Prisma.validator<Prisma.VideoFileUpdateInput>()({
+				insertVideoFileDB({
 					filename: `/${fileName}`,
 					folder: `/${join(this.baseFolder, this.episodeFolder)}`,
 					hostFolder: join(this.path),
 					duration: humanTime(this.format.duration),
 					quality: JSON.stringify(this.getQualityTag(this.qualities)),
-					share: this.library.id,
-					subtitles: JSON.stringify(this.getExistingSubtitles(this.subtitleFolder)),
+					share: this.share,
+					subtitles: JSON.stringify(this.getExistingSubtitles()),
 					languages: JSON.stringify(this.streams.audio.map(a => a.language)),
-					Chapters: JSON.stringify(this.chapters),
-					Movie: {
-						connect: {
-							id: this.movie?.id,
-						},
-					},
+					chapters: JSON.stringify(this.chapters),
+					movie_id: this.movie?.id,
 				});
 
-				await confDb.videoFile.upsert({
-					where: {
-						movieId: this.movie?.id,
-					},
-					create: videoFileInset,
-					update: videoFileInset,
-				});
+				if (this.movie?.id) {
+					mediaDb.update(movies)
+						.set({
+							...convertBooleans({
+								duration: humanTime(this.format.duration),
+								show: true,
+							}),
+						})
+						.where(eq(movies.id, this.movie?.id))
+						.returning()
+						.get();
+				}
+
 			}
 			await Promise.all([]);
+		}
+
+		return this;
+	}
+
+	extractSubs() {
+
+		if (this.streams?.subtitle) {
+			const subs = this.streams.subtitle.filter(s => s.codec_name == 'hdmv_pgs_subtitle');
+
+			if (subs.length > 0) {
+				const subCommand = [
+					`"${ffmpeg}"`,
+					`-i "${this.format.filename}"`,
+					'-map 0:s:0',
+					'-c:s copy',
+					'-y',
+					`"${this.getFile(['subtitles', `${this.fileName}.${subs[0].language}.sup`])}"`,
+				].join(' ');
+
+				execSync(subCommand, { maxBuffer: 1024 * 5000 });
+			}
 		}
 
 		return this;

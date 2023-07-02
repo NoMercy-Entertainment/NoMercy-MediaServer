@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DirectoryTree } from 'directory-tree';
 
-import {
-	EncoderProfile, EncoderProfileLibrary, Episode, File, Folder, Library, LibraryFolder, Movie,
-	Season, Tv
-} from '../../database/config/client';
-import { DBLibraryWithFolders } from '../../database/data';
+// import {
+// 	EncoderProfile, EncoderProfileLibrary, File, Folder, Library, LibraryFolder
+// } from '../../database/config/client';
 import { AudioFFprobe, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
 import getAudioInfo from '../../encoder/ffprobe/getAudioInfo';
 import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
@@ -17,6 +15,11 @@ import { Channels } from '../../functions/videoFilenameParser/audioChannels';
 import { MovieAppend } from '../../providers/tmdb/movie';
 import { TvAppend } from '../../providers/tmdb/tv';
 import { AppState, useSelector } from '@/state/redux';
+import { Episode } from '@/db/media/actions/episodes';
+import { Movie } from '@/db/media/actions/movies';
+import { EncodingLibrary } from '@/db/media/actions/libraries';
+import { Tv } from '@/db/media/actions/tvs';
+import { Season } from '@/db/media/actions/seasons';
 
 interface IObj {
 	[key: string]: any;
@@ -99,7 +102,7 @@ export const parseFileName = async function (file: DirectoryTree<IObj> | { path:
 	res.episodeFolder = file.path.replace(/.+[\\\/].+(\s|\.|\()(?<year>(19|20)[0-9][0-9])(\)|.*|(?!p))([\\\/].+)[\\\/].+/u, '$5');
 	res.folder = file.path.replace(/.+([\\\/].+(\s|\.|\()(?<year>(19|20)[0-9][0-9])(\)|.*|(?!p)))[\\\/].+/u, '$1');
 
-	if (['MP3', 'FLAC'].includes(res.audioCodec! ?? [])) {
+	if (['mp3', 'flac', 'alac'].includes((res.ffprobe as AudioFFprobe)?.audio?.codec_name)) {
 		res.musicFolder = file.path.replace(/.+[\\\/](\[.+)[\\\/].+[\\\/]?/u, '/$1');
 		res.folder = file.path.replace(/.+[\\\/](.+[\\\/].+)[\\\/].+[\\\/].+/u, '/$1');
 		res.episodeFolder = undefined;
@@ -201,6 +204,7 @@ export const createRootFolderName = function (folder: string) {
 
 export const cleanFileName = function (name: string) {
 	return name
+		.replace(/\//gu, '.')
 		.replace(/:\s/gu, '.')
 		.replace(/\s/gu, '.')
 		.replace(/\? {2}/gu, '.')
@@ -245,10 +249,10 @@ export const createTitleSort = function (title: string, date?: string | number) 
 };
 
 export const createMediaFolder = (
-	library: DBLibraryWithFolders,
+	library: EncodingLibrary,
 	data: MovieAppend | TvAppend
 ): string => {
-	const baseFolder = library.Folders[0].folder?.path;
+	const baseFolder = library.folder_library[0].folder?.path;
 
 	const title = cleanFileName((data as MovieAppend).title ?? (data as TvAppend).name);
 
@@ -258,41 +262,27 @@ export const createMediaFolder = (
 };
 
 export type EP = (Episode & {
-	Tv: Tv;
-	Season: Season;
-	File: (File & {
-		Library: Library & {
-			Folders: (LibraryFolder & {
-				folder: Folder | null;
-			})[];
-			EncoderProfiles: (EncoderProfileLibrary & {
-				EncoderProfile: EncoderProfile;
-			})[];
-		};
+	tv: Tv;
+	season: Season;
+	files: (File & {
+		library: EncodingLibrary;
 	})[];
 });
 
 export type MV = (Movie & {
-	File: (File & {
-		Library: Library & {
-			Folders: (LibraryFolder & {
-				folder: Folder | null;
-			})[];
-			EncoderProfiles: (EncoderProfileLibrary & {
-				EncoderProfile: EncoderProfile;
-			})[];
-		};
+	files: (File & {
+		library: EncodingLibrary;
 	})[];
 });
 
 export const createBaseFolder = (data: EP | MV): string => {
-	const name = `${((data as EP).Tv ?? data).title}.(${parseYear((data as EP)?.Tv?.firstAirDate ?? (data as MV)?.releaseDate)})`;
+	const name = `${((data as EP).tv ?? data).title}.(${parseYear((data as EP)?.tv?.firstAirDate ?? (data as MV)?.releaseDate)})`;
 
 	return cleanFileName(name);
 };
 
 export const createEpisodeFolder = function (data: EP) {
-	const name = `${data.Tv.title}.S${pad(data.seasonNumber, 2)}E${pad(data.episodeNumber, 2)}`;
+	const name = `${data.tv.title}.S${pad(data.seasonNumber, 2)}E${pad(data.episodeNumber, 2)}`;
 
 	return cleanFileName(name);
 };
@@ -303,7 +293,7 @@ export const createFileName = function (data: EP | MV) {
 	if ((data as MV).releaseDate) {
 		name = `${(data as MV).title}.(${parseYear((data as MV).releaseDate)}).NoMercy`;
 	} else {
-		name = `${(data as EP).Tv.title}.S${pad((data as EP).seasonNumber, 2)}E${pad((data as EP).episodeNumber, 2)}.${(data as EP).title}.NoMercy`;
+		name = `${(data as EP).tv.title}.S${pad((data as EP).seasonNumber, 2)}E${pad((data as EP).episodeNumber, 2)}.${(data as EP).title}.NoMercy`;
 	}
 
 	return cleanFileName(name);

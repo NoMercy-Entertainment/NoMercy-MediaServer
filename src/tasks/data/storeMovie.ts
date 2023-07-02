@@ -1,17 +1,13 @@
-import { AppState, useSelector } from '@/state/redux';
 
 import Logger from '../../functions/logger';
-import Person from '../../providers/tmdb/people';
 import { Prisma } from '../../database/config/client';
 import { QueueJob } from '../../database/queue/client';
 import alternative_title from './alternative_title';
-import cast from './cast';
 import collection from './collection';
 import colorPalette from '@/functions/colorPalette';
 import { confDb } from '../../database/config';
 import createBlurHash from '../../functions/createBlurHash';
 import { createTitleSort } from '../files/filenameParser';
-import crew from './crew';
 import downloadTVDBImages from '../images/downloadTVDBImages';
 import fetchMovie from './fetchMovie';
 import findMediaFiles from './files';
@@ -23,6 +19,16 @@ import person from './person';
 import recommendation from './recommendation';
 import similar from './similar';
 import translation from './translation';
+import { insertMovie } from '@/db/media/actions/movies';
+import Person from '@/providers/tmdb/people';
+import cast from './cast';
+import crew from './crew';
+import { insertMedia } from '@/db/media/actions/medias';
+import { insertCertificationMovie } from '@/db/media/actions/certification_movie';
+import { insertCertification, selectCertification } from '@/db/media/actions/certifications';
+import { and, eq } from 'drizzle-orm';
+import { certifications } from '@/db/media/schema/certifications';
+import { insertLibraryMovie } from '@/db/media/actions/library_movie';
 
 export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'manual' } }:
 	{ id: number; folder: string, libraryId: string, job?: QueueJob, task?: { id: string; }; }) => {
@@ -52,17 +58,6 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		const genresInsert: Array<Prisma.GenreMovieCreateOrConnectWithoutMovieInput> = [];
 		const keywordsInsert: Array<Prisma.KeywordMovieCreateOrConnectWithoutMovieInput> = [];
 
-		await person(movie, transaction);
-
-		const people = (movie.people as unknown as Person[]).map(p => p.id) as unknown as number[];
-
-		await genre(movie, genresInsert, 'movie');
-		await alternative_title(movie, alternativeTitlesInsert, 'movie');
-		await keyword(movie, transaction, keywordsInsert, 'movie');
-
-		await cast(movie, castInsert, people, 'movie');
-		await crew(movie, crewInsert, people, 'movie');
-
 		const palette: any = {
 			poster: undefined,
 			backdrop: undefined,
@@ -87,126 +82,132 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 				palette.backdrop = hash;
 			}),
 		]);
-		// @ts-ignore
-		const movieInsert = Prisma.validator<Prisma.MovieUncheckedCreateInput>()({
-			adult: movie.adult,
-			backdrop: movie.backdrop_path,
-			budget: movie.budget,
-			homepage: movie.homepage,
-			id: movie.id,
-			imdbId: movie.external_ids?.imdb_id,
-			tvdbId: movie.external_ids?.tvdb_id,
-			originalLanguage: movie.original_language,
-			originalTitle: movie.original_title,
-			overview: movie.overview,
-			popularity: movie.popularity,
-			poster: movie.poster_path,
-			blurHash: JSON.stringify(blurHash),
-			colorPalette: JSON.stringify(palette),
-			releaseDate: movie.release_date,
-			revenue: isNaN(movie.revenue / 1000)
-				? null
-				: Math.floor(movie.revenue / 1000),
-			runtime: movie.runtime,
-			status: movie.status,
-			tagline: movie.tagline,
-			title: movie.title,
-			titleSort: createTitleSort(movie.title, movie.release_date),
-			video: movie.video.toString(),
-			voteAverage: movie.vote_average,
-			voteCount: movie.vote_count,
-			folder: folder.replace(/.*[\\\/](.*)/u, '/$1'),
-			Genre: {
-				connectOrCreate: genresInsert,
-			},
-			AlternativeTitles: {
-				connectOrCreate: alternativeTitlesInsert,
-			},
-			Cast: {
-				connectOrCreate: castInsert,
-			},
-			Crew: {
-				connectOrCreate: crewInsert,
-			},
-			Keyword: {
-				connectOrCreate: keywordsInsert,
-			},
-			libraryId: libraryId,
-		});
 
-		// transaction.push(
-		await confDb.movie.upsert({
-			where: {
+		try {
+			insertMovie({
+				adult: movie.adult,
+				backdrop: movie.backdrop_path,
+				budget: movie.budget,
+				homepage: movie.homepage,
 				id: movie.id,
-			},
-			create: movieInsert,
-			update: movieInsert,
-		});
-		// );
+				imdbId: movie.external_ids?.imdb_id,
+				tvdbId: movie.external_ids?.tvdb_id,
+				originalLanguage: movie.original_language,
+				originalTitle: movie.original_title,
+				overview: movie.overview,
+				popularity: movie.popularity,
+				poster: movie.poster_path,
+				blurHash: JSON.stringify(blurHash),
+				colorPalette: JSON.stringify(palette),
+				releaseDate: movie.release_date,
+				revenue: isNaN(movie.revenue / 1000)
+					? null
+					: Math.floor(movie.revenue / 1000),
+				runtime: movie.runtime,
+				status: movie.status,
+				tagline: movie.tagline,
+				title: movie.title,
+				titleSort: createTitleSort(movie.title, movie.release_date),
+				video: movie.video.toString(),
+				voteAverage: movie.vote_average,
+				voteCount: movie.vote_count,
+				folder: folder.replace(/.*[\\\/](.*)/u, '/$1'),
+				library_id: libraryId,
+			});
+
+			insertLibraryMovie({
+				library_id: libraryId,
+				movie_id: movie.id,
+			});
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['movie', error]),
+			});
+			return {
+				success: false,
+				message: `Something went wrong adding ${movie.title}`,
+				error: error,
+			};
+		}
+
+		person(movie, transaction);
+
+		const people = (movie.people as unknown as Person[]).map(p => p.id) as unknown as number[];
+
+		genre(movie, genresInsert, 'movie');
+
+		alternative_title(movie, alternativeTitlesInsert, 'movie');
+		keyword(movie, transaction, keywordsInsert, 'movie');
+
+		cast(movie, castInsert, people, 'movie');
+		crew(movie, crewInsert, people, 'movie');
 
 		if (movie.belongs_to_collection) {
 			await collection(movie, libraryId, transaction);
+
 		}
 
-		await translation(movie, transaction, 'movie');
+		translation(movie, transaction, 'movie');
 
 		await recommendation(movie, transaction, 'movie');
 		await similar(movie, transaction, 'movie');
 
 		for (const video of movie.videos.results) {
-			const mediaInsert: Prisma.MediaUncheckedCreateInput = {
-				iso6391: video.iso_639_1,
-				name: video.name,
-				site: video.site,
-				size: video.size,
-				src: video.key,
-				type: video.type,
-				movieId: movie.id,
-			};
-
-			// transaction.push(
-			await confDb.media.upsert({
-				where: {
+			try {
+				insertMedia({
+					iso6391: video.iso_639_1,
+					name: video.name,
+					site: video.site,
+					size: video.size,
 					src: video.key,
-				},
-				update: mediaInsert,
-				create: mediaInsert,
-			});
-			// );
+					type: video.type,
+					movie_id: movie.id,
+				});
+			} catch (error) {
+				Logger.log({
+					level: 'error',
+					name: 'App',
+					color: 'red',
+					message: JSON.stringify(['movie media', error]),
+				});
+			}
 		}
 
 		for (const rating of movie.release_dates?.results ?? []) {
 			for (const rate of rating.release_dates) {
 
-				const cert = await confDb.certification.findFirst({
-					where: {
+				try {
+					const certs = selectCertification({
+						where: and(
+							eq(certifications.iso31661, rating.iso_3166_1),
+							eq(certifications.rating, rate.certification)
+						),
+					});
+
+					const cert = certs.map(c => insertCertification({
 						iso31661: rating.iso_3166_1,
+						meaning: c!.meaning,
+						order: c!.order,
 						rating: rate.certification,
-					},
-				});
+					}));
 
-				if (!cert) {
-					continue;
+					cert.map(c => insertCertificationMovie({
+						iso31661: rating.iso_3166_1,
+						movie_id: movie.id,
+						certification_id: c.id,
+					}));
+
+				} catch (error) {
+					Logger.log({
+						level: 'error',
+						name: 'App',
+						color: 'red',
+						message: JSON.stringify(['tv certification', error]),
+					});
 				}
-
-				const movieRatingsInsert: Prisma.CertificationMovieUncheckedCreateInput = {
-					iso31661: rating.iso_3166_1,
-					movieId: movie.id,
-					certificationId: cert.id,
-				};
-
-				// transaction.push(
-				await confDb.certificationMovie.upsert({
-					where: {
-						movieId_iso31661: {
-							iso31661: rating.iso_3166_1,
-							movieId: movie.id,
-						},
-					},
-					create: movieRatingsInsert,
-					update: movieRatingsInsert,
-				});
-				// );
 			}
 		}
 
@@ -237,11 +238,11 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		//   create: productionCountriesInsert,
 		// }));
 
-		await image(movie, transaction, 'backdrop', 'movie');
-		await image(movie, transaction, 'logo', 'movie');
-		await image(movie, transaction, 'poster', 'movie');
+		image(movie, transaction, 'backdrop', 'movie');
+		image(movie, transaction, 'logo', 'movie');
+		image(movie, transaction, 'poster', 'movie');
 
-		await downloadTVDBImages({ type: 'movie', data: movie });
+		downloadTVDBImages({ type: 'movie', data: movie });
 
 		Logger.log({
 			level: 'info',
@@ -261,9 +262,6 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 
 		await findMediaFiles({ type: 'movie', data: movie, folder, libraryId, sync: true });
 
-		const socket = useSelector((state: AppState) => state.system.socket);
-		socket.emit('update_content', ['library']);
-
 		Logger.log({
 			level: 'info',
 			name: 'App',
@@ -282,7 +280,7 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 				level: 'error',
 				name: 'App',
 				color: 'red',
-				message: JSON.stringify(error),
+				message: JSON.stringify([`${__filename}`, error]),
 			});
 		}
 

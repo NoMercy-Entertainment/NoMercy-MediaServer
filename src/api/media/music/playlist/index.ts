@@ -6,7 +6,7 @@ import { deviceId } from '../../../../functions/system';
 
 export default async function (req: Request, res: Response) {
 	try {
-		const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+		const user = (req as unknown as KAuthRequest).token.content.sub;
 
 		const music = await confDb.playlist.findMany({
 			where: {

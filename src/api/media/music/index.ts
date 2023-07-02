@@ -10,7 +10,7 @@ import { deviceId } from '../../../functions/system';
 
 export default async function (req: Request, res: Response): Promise<Response<HomeData[]>> {
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const playlists: (Playlist & {
 		_count: Prisma.PlaylistCountOutputType;
@@ -234,7 +234,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 				};
 			}),
 		},
-		...genreItems,
+		...genreItems.slice(0, 12),
 	];
 
 	return res.json(response);

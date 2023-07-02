@@ -1,5 +1,5 @@
 import dirTree, { DirectoryTree, DirectoryTreeOptions } from 'directory-tree';
-import { existsSync, readFileSync, writeFile } from 'fs';
+import { existsSync, readFileSync, rmSync, writeFile } from 'fs';
 import path from 'path';
 
 import { fileChangedAgo } from '../../functions/dateTime';
@@ -125,7 +125,7 @@ export class FileList {
 						this.tree = JSON.parse(readFileSync(this.folderFile, 'utf-8'));
 						return resolve();
 					} catch (error) {
-						return reject(error);
+						rmSync(this.folderFile);
 					}
 				}
 

@@ -1,29 +1,35 @@
+import { insertAlternativeTitle } from '@/db/media/actions/alternativeTitles';
 import { Prisma } from '../../database/config/client';
 import { MovieAlternativeTitles } from '../../providers/tmdb/movie/index';
 import { AlternativeTitles } from '../../providers/tmdb/tv/index';
 import { CompleteMovieAggregate } from './fetchMovie';
 import { CompleteTvAggregate } from './fetchTvShow';
+import Logger from '@/functions/logger/logger';
 
 export default (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
 	alternative_titleArray: Array<
 		Prisma.AlternativeTitlesCreateOrConnectWithoutMovieInput | Prisma.AlternativeTitlesCreateOrConnectWithoutTvInput
 	>,
-	table: 'movie' | 'tv'
+	type: 'movie' | 'tv'
 ) => {
-	for (const alternative_title of (req.alternative_titles as AlternativeTitles)?.results
+	for (const alternativeTitle of (req.alternative_titles as AlternativeTitles)?.results
 		?? (req.alternative_titles as MovieAlternativeTitles)?.titles ?? []) {
-		alternative_titleArray.push({
-			where: {
-				[`alternative_titles_${table}_unique`]: {
-					[`${table}Id`]: req.id,
-					iso31661: alternative_title.iso_3166_1,
-				},
-			},
-			create: {
-				iso31661: alternative_title.iso_3166_1,
-				title: alternative_title.title,
-			},
-		});
+
+		try {
+			insertAlternativeTitle({
+				[`${type}_id`]: req.id,
+				iso31661: alternativeTitle.iso_3166_1,
+				title: alternativeTitle.title,
+			}, type);
+		} catch (error) {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['alternative_title', error]),
+			});
+		}
+
 	}
 };

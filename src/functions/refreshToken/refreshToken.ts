@@ -30,10 +30,10 @@ export const refreshToken = async () => {
 	setExpiresIn(tokens.expires_in);
 	setRefreshExpiresIn(tokens.refresh_expires_in);
 	setTokenType(tokens.token_type);
-	setAccessToken(tokens.id_token);
+	setIdToken(tokens.id_token);
 	setNotBeforePolicy(tokens['not-before-policy']);
-	setAccessToken(tokens.session_state);
-	setAccessToken(tokens.scope);
+	setSessionState(tokens.session_state);
+	setScope(tokens.scope);
 
 	await refresh();
 	refreshLoop();
@@ -43,9 +43,8 @@ export default refreshToken;
 
 const refreshLoop = () => {
 	const expires_in = useSelector((state: AppState) => state.user.expires_in);
-	setTimeout(async () => {
+	setInterval(async () => {
 		await refresh();
-		refreshLoop();
 	}, (expires_in - 120) * 1000);
 };
 

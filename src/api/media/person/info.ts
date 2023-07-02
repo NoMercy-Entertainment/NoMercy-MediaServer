@@ -14,8 +14,8 @@ export default async function (req: Request, res: Response) {
 
 	const language = getLanguage(req);
 
-	// const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	// const owner = isOwner(req as KAuthRequest);
+	// const user = (req as unknown as KAuthRequest).token
+	// const owner = await isOwner(req as KAuthRequest);
 
 	i18next.changeLanguage('en');
 

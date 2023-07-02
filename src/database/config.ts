@@ -4,6 +4,7 @@ import { PrismaClient as queueDbModel, PrismaClient as queuePrismaClient } from 
 
 import { convertPath } from '../functions/system';
 import { execSync } from 'child_process';
+import { appendFileSync } from 'fs';
 
 export const configDatabaseString = `file:${configDb.replace(/\\/gu, '/')}?socket_timeout=99999&connection_limit=1&timeout=99999&busy_timeout=99999`;
 export const queueDatabaseString = `file:${queueDb.replace(/\\/gu, '/')}?socket_timeout=99999&connection_limit=1&timeout=99999&busy_timeout=99999`;
@@ -24,6 +25,10 @@ try {
 			{
 				emit: 'stdout',
 				level: 'error',
+			},
+			{
+			  emit: 'event',
+			  level: 'query',
 			},
 		],
 	});
@@ -49,12 +54,18 @@ try {
 				emit: 'stdout',
 				level: 'error',
 			},
+			{
+			  emit: 'event',
+			  level: 'query',
+			},
 		],
 	});
 }
 
 export const confDb: configPrismaClient = client;
-
+confDb.$on('query', async (e) => {
+	appendFileSync('query2.log', `${e.query}\n${JSON.stringify(e.params)}\n\n`);
+});
 
 let client2: queuePrismaClient;
 

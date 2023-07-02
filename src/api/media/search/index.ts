@@ -10,8 +10,7 @@ import searchVideo from './searchVideo';
 
 export default async function (req: Request, res: Response) {
 
-	let { query }: { query: string } = req.body;
-	let type: string | null = null;
+	let { query, type }: { query: string; type?: string; } = req.body;
 
 	if (!query || query.length < 3) {
 		return res.json({
@@ -20,19 +19,19 @@ export default async function (req: Request, res: Response) {
 		});
 	}
 
-	if (query.includes('artist:')) {
+	if (query.includes('artist:') || type == 'artist') {
 		type = 'artist';
 		query = query.replace('artist:', '');
-	} else if (query.includes('album:')) {
+	} else if (query.includes('album:') || type == 'album') {
 		type = 'album';
 		query = query.replace('album:', '');
-	} else if (query.includes('track:')) {
+	} else if (query.includes('track:') || type == 'track') {
 		type = 'track';
 		query = query.replace('track:', '');
-	} else if (query.includes('tv:')) {
+	} else if (query.includes('tv:') || type == 'tv') {
 		type = 'tv';
 		query = query.replace('tv:', '');
-	} else if (query.includes('movie:')) {
+	} else if (query.includes('movie:') || type == 'movie') {
 		type = 'movie';
 		query = query.replace('movie:', '');
 	}

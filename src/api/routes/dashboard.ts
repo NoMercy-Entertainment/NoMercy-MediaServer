@@ -25,6 +25,7 @@ import {
 	encoderProfiles,
 	updateEncoderProfiles
 } from '../dashboard/encoder';
+import { createSpecials, searchSpecials, special, specials, updateSpecials } from '../dashboard/specials';
 import {
 	deleteLogs,
 	logOptions,
@@ -32,6 +33,7 @@ import {
 } from '../dashboard/logs';
 import {
 	deleteTask,
+	encoderQueue,
 	pauseTasks,
 	resumeTasks,
 	runningTaskWorkers,
@@ -95,6 +97,12 @@ router.use(
 		route.post('/encoderprofiles/create', createEncoderProfiles);
 		route.post('/encoderprofiles/update', updateEncoderProfiles);
 
+		route.post('/specials', specials);
+		route.post('/special/:id', special);
+		route.post('/specials/create', createSpecials);
+		route.post('/specials/update', updateSpecials);
+		route.post('/specials/search', searchSpecials);
+
 		route.post('/libraries', libraries);
 		route.patch('/libraries', updateLibrary);
 		route.post('/libraries/create', createLibrary);
@@ -102,12 +110,6 @@ router.use(
 		route.post('/libraries/:id/rescan', rescanLibrary);
 		route.post('/libraries/:id/delete', deleteLibrary);
 		route.post('/libraries/:id/add', addNewItem);
-		route.post('/encode/:id', encodeLibrary);
-
-		route.post('/addFiles', addFiles);
-
-		route.post('/directorytree', directoryTree);
-		route.post('/fileList', fileList);
 
 		route.post('/configuration', configuration);
 		route.post('/configuration/create', createConfiguration);
@@ -129,14 +131,21 @@ router.use(
 		route.post('/tasks/pause', pauseTasks);
 		route.post('/tasks/resume', resumeTasks);
 		route.post('/tasks/runners', runningTaskWorkers);
+		route.post('/tasks/queue', encoderQueue);
 
 		route.post('/server/start', startServer);
 		route.post('/server/stop', stopServer);
 
-		route.post('/metadata', metadata);
 		route.post('/logs', logs);
 		route.post('/logs/delete', deleteLogs);
 		route.post('/logs/options', logOptions);
+
+
+		route.post('/encode/:id', encodeLibrary);
+		route.post('/addFiles', addFiles);
+		route.post('/directorytree', directoryTree);
+		route.post('/fileList', fileList);
+		route.post('/metadata', metadata);
 	})
 );
 

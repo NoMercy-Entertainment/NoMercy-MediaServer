@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 
-import { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
+import type { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import getVideoInfo from '../../../encoder/ffprobe/getVideoInfo';
 import { humanTime } from '../../../functions/dateTime';
 import { chunk } from '../../../functions/stringArray';
@@ -61,7 +61,7 @@ export class FFmpegWrapper {
 			this.format = info.format;
 			this.attachments = info.streams.attachments;
 
-			this.limit = limit ?? Math.min(this.format.duration * 0.25, 600);
+			this.limit = limit ?? Math.min(this.format.duration as number * 0.25, 600);
 
 			return resolve(this);
 		});

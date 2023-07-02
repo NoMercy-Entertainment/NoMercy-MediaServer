@@ -5,10 +5,13 @@ import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../functions/logger';
 import winston from 'winston';
 import { writeFileSync } from 'fs';
+import { isOwner } from '../middleware/permissions';
 
 export const logs = (req: Request, res: Response) => {
 
 	const { from, until, limit, start, order, level, name, message, user } = req.body;
+
+	const owner = isOwner(req as KAuthRequest);
 
 	const options: winston.QueryOptions = {
 		// @ts-ignore
@@ -35,12 +38,16 @@ export const logs = (req: Request, res: Response) => {
 				.filter(r => (name?.length > 0
 					? name.includes(r.name)
 					: true))
-				.filter(r => (message
-					? r.message.toLowerCase().includes(message.toLowerCase())
-					: true))
+				.filter(r => (message == ''
+					? true
+					: r.message.toLowerCase().includes(message.toLowerCase())))
 				.filter(r => (user
 					? r.user?.includes(user) ?? false
 					: true));
+
+			if (!owner) {
+				return res.json(filteredResults.filter(r => r.name == 'permisson'));
+			}
 
 			return res.json(filteredResults);
 		});
@@ -68,7 +75,7 @@ export const deleteLogs = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'app',
 			color: 'magentaBright',
-			user: (req as KAuthRequest).kauth.grant?.access_token.content.name,
+			user: (req as KAuthRequest).token.content.name,
 			message: 'Cleared the logs',
 		});
 

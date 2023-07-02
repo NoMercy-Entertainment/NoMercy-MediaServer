@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1686775072049,
+      "tag": "0000_tough_orphan",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1687380806885,
+      "tag": "0001_giant_firebrand",
+      "breakpoints": true
+    }
+  ]
+}

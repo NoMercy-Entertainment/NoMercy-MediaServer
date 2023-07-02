@@ -62,9 +62,9 @@ export const encodeEpisode = async ({ episode }: { episode: EP }) => {
 	await onDemand.fromDatabase(episode);
 
 	onDemand
-		.verifyHLS()
-		.makeStack()
-	// .check()
-		.start()
-		.buildSprite();
+		.verifyHLS();
+
+	await onDemand.makeStack();
+	// onDemand.check();
+	onDemand.start(() => onDemand.buildSprite());
 };

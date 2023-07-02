@@ -16,6 +16,9 @@ import { tokenParser } from '../functions/tokenParser';
 import userData from './routes/userData';
 import { writeFileSync } from 'fs';
 import writeToConfigFile from '../functions/writeToConfigFile';
+// import expressMon from 'express-status-monitor';
+import { deviceId } from '@/functions/system';
+// import { myClientList } from '@/loaders/socket';
 
 const router = express.Router();
 
@@ -23,8 +26,7 @@ const monitorConfig = {
 	title: 'NoMercy MediaServer Status Monitor',
 	theme: 'default.css',
 	path: '/monitor',
-	// socketPath: '/socket.io',
-	// websocket: myClientList[0].io.socket,
+	socketPath: '/socket.io',
 	spans: [
 		{
 			interval: 1,
@@ -48,30 +50,22 @@ const monitorConfig = {
 		mem: true,
 		load: true,
 		eventLoop: true,
-		heap: true,
 		responseTime: true,
-		rps: true,
 		statusCodes: true,
 	},
 	healthChecks: [
 		{
 			protocol: 'https',
-			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
+			host: `${store.getState().system.internal_ip.replace(/\./gu, '-')}.${deviceId}.nomercy.tv`,
 			path: '/status',
-			port: store.getState().system.secureInternalPort,
-		}, {
-			protocol: 'https',
-			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
-			path: '/images/status.txt',
 			port: store.getState().system.secureInternalPort,
 		},
 	],
 };
 
-// router.use(expressMon(monitorConfig));
 
 router.get('/me', (req: Request, res: Response) => {
-	const token = (req as KAuthRequest).kauth.grant.access_token;
+	const token = (req as KAuthRequest).token;
 	return res.json(token.content);
 });
 
@@ -125,11 +119,12 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 		});
 });
 
-
 router.use('/dashboard', dashboard);
 router.use('/userdata', userData);
 router.use('/music', music);
 router.use('/', media);
+
+// router.use(expressMon(monitorConfig));
 
 export default router;
 

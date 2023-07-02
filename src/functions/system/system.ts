@@ -4,11 +4,6 @@ import path, { join } from 'path';
 import diskinfo from '../diskinfo';
 import { machineIdSync } from 'node-machine-id';
 import os from 'os';
-import { readFileSync } from 'fs';
-
-export const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
-
-export const appVersion = packageJson.version;
 
 export const convertPath = (path: string) => {
 	if (process.platform === 'win32') {
@@ -20,15 +15,15 @@ export const convertPath = (path: string) => {
 const getPlatform = (): string => {
 	let platform: string;
 	switch (process.platform) {
-		case 'win32':
-			platform = 'windows';
-			break;
-		case 'darwin':
-			platform = 'mac';
-			break;
-		default:
-			platform = 'linux';
-			break;
+	case 'win32':
+		platform = 'windows';
+		break;
+	case 'darwin':
+		platform = 'mac';
+		break;
+	default:
+		platform = 'linux';
+		break;
 	}
 	return platform;
 };
@@ -37,17 +32,17 @@ export const platform = getPlatform();
 const getAppPath = (): string => {
 	let appPath: string;
 	switch (getPlatform()) {
-		case 'windows':
-			appPath = path.join(process.env.LOCALAPPDATA as string, 'NoMercy');
-			break;
-		case 'mac':
-			appPath = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercy');
-			break;
-		case 'linux':
-			appPath = path.join(process.env.HOME as string, '.local', 'share', 'NoMercy');
-			break;
-		default:
-			throw new Error('Platform unknown');
+	case 'windows':
+		appPath = path.join(process.env.LOCALAPPDATA as string, 'NoMercy');
+		break;
+	case 'mac':
+		appPath = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercy');
+		break;
+	case 'linux':
+		appPath = path.join(process.env.HOME as string, '.local', 'share', 'NoMercy');
+		break;
+	default:
+		throw new Error('Platform unknown');
 	}
 	return appPath;
 };
@@ -64,45 +59,45 @@ export enum ServiceStatus {
 const getServiceStatus = (): ServiceStatus => {
 	let status: ServiceStatus = ServiceStatus.unknown;
 	switch (getPlatform()) {
-		case 'windows':
-			let service = '';
+	case 'windows':
+		let service = '';
 
-			try {
-				service = execSync(`Get-Service ${serviceName} | Select-Object -Property Status | Format-List`, {
-					shell: 'powershell.exe',
-					stdio: 'pipe',
-				}).toString()
-					.replace(/[\n\r]/gu, '');
+		try {
+			service = execSync(`Get-Service ${serviceName} | Select-Object -Property Status | Format-List`, {
+				shell: 'powershell.exe',
+				stdio: 'pipe',
+			}).toString()
+				.replace(/[\n\r]/gu, '');
 
-			} catch (error) {
-				return ServiceStatus.notInstalled;
+		} catch (error) {
+			return ServiceStatus.notInstalled;
+		}
+
+		const newService = service.match(/Status : (\w+)/u) ?? [];
+
+		if (newService?.length > 0) {
+			switch (newService![1]) {
+			case 'Running':
+				status = ServiceStatus.running;
+				break;
+			case 'Stopped':
+				status = ServiceStatus.stopped;
+				break;
+			default:
+				status = ServiceStatus.unknown;
+				break;
 			}
+		}
 
-			const newService = service.match(/Status : (\w+)/u) ?? [];
-
-			if (newService?.length > 0) {
-				switch (newService![1]) {
-					case 'Running':
-						status = ServiceStatus.running;
-						break;
-					case 'Stopped':
-						status = ServiceStatus.stopped;
-						break;
-					default:
-						status = ServiceStatus.unknown;
-						break;
-				}
-			}
-
-			break;
-		case 'mac':
-			// status = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercy');
-			break;
-		case 'linux':
-			// status = path.join(process.env.HOME as string, '.local', 'share', 'NoMercy');
-			break;
-		default:
-			throw new Error('Platform unknown');
+		break;
+	case 'mac':
+		// status = path.join(process.env.HOME as string, 'Library', 'Preferences', 'NoMercy');
+		break;
+	case 'linux':
+		// status = path.join(process.env.HOME as string, '.local', 'share', 'NoMercy');
+		break;
+	default:
+		throw new Error('Platform unknown');
 	}
 
 	return status;
@@ -112,14 +107,14 @@ export const serviceStatus = getServiceStatus();
 const getNpxPath = (): string => {
 	let path = '';
 	switch (getPlatform()) {
-		case 'windows':
-			path = join(process.env.APPDATA!, 'npm', 'node_modules', 'npm', 'bin', 'npx-cli.js');
-			break;
-		case 'mac':
-		case 'linux':
-			path = join(execSync('which npx').toString()
-				.replace(/(.+)npx.*$/u, '$1'), 'npm', 'node_modules', 'npm', 'bin', 'npx-cli.js');
-			break;
+	case 'windows':
+		path = join(process.env.APPDATA!, 'npm', 'node_modules', 'npm', 'bin', 'npx-cli.js');
+		break;
+	case 'mac':
+	case 'linux':
+		path = join(execSync('which npx').toString()
+			.replace(/(.+)npx.*$/u, '$1'), 'npm', 'node_modules', 'npm', 'bin', 'npx-cli.js');
+		break;
 	}
 
 	return convertPath(path);
@@ -129,17 +124,17 @@ export const npxPath = getNpxPath();
 const getInstallPath = (): string => {
 	let appPath: string;
 	switch (getPlatform()) {
-		case 'windows':
-			appPath = path.join(process.env.ProgramFiles as string, 'NoMercy');
-			break;
-		case 'mac':
-			appPath = path.join(process.env.HOME as string, 'Library', 'Application Support', 'NoMercy');
-			break;
-		case 'linux':
-			appPath = path.join(process.env.HOME as string, '.NoMercy');
-			break;
-		default:
-			throw new Error('Platform unknown');
+	case 'windows':
+		appPath = path.join(process.env.ProgramFiles as string, 'NoMercy');
+		break;
+	case 'mac':
+		appPath = path.join(process.env.HOME as string, 'Library', 'Application Support', 'NoMercy');
+		break;
+	case 'linux':
+		appPath = path.join(process.env.HOME as string, '.NoMercy');
+		break;
+	default:
+		throw new Error('Platform unknown');
 	}
 	return appPath;
 };
@@ -148,11 +143,11 @@ export const installPath = getInstallPath();
 const getExecutableSuffix = () => {
 	let executableSuffix = '';
 	switch (getPlatform()) {
-		case 'windows':
-			executableSuffix = '.exe';
-			break;
-		default:
-			break;
+	case 'windows':
+		executableSuffix = '.exe';
+		break;
+	default:
+		break;
 	}
 
 	return executableSuffix;
@@ -190,45 +185,17 @@ export const version = os.type().split('.')[0];
 
 export const hasElevatedPermissions = (): boolean => {
 	switch (platform) {
-		case 'windows':
-			try {
-				execFileSync('net', ['session'], { 'stdio': 'ignore' });
-				return true;
-			} catch (e) {
-				return false;
-			}
-		case 'mac':
-		case 'linux':
-			return process.env.USER == 'root';
-		default:
+	case 'windows':
+		try {
+			execFileSync('net', ['session'], { 'stdio': 'ignore' });
+			return true;
+		} catch (e) {
 			return false;
+		}
+	case 'mac':
+	case 'linux':
+		return process.env.USER == 'root';
+	default:
+		return false;
 	}
 };
-
-// si.get({
-// 	cpu: 'manufacturer, brand, cores, processors',
-// 	osInfo: 'platform, distro, release, arch, hostname, build, uefi, hypervisor, remoteSession',
-// 	baseboard: 'manufacturer, model',
-// 	chassis: 'type',
-// 	uuid: 'os, hardware',
-// 	graphics: 'controllers',
-// 	network: '*',
-// 	diskLayout: '*',
-// 	networkStats: '*',
-// 	networkInterfaces: '*',
-// 	fsSize: '*',
-// 	users: '*',
-// }, (info) => {
-// 	writeFileSync('systeminfo.json', JSON.stringify(info, null, 2));
-// });
-
-// si.getAllData('*', '*', (info) => {
-// 	writeFileSync('systeminfo_all.json', JSON.stringify(info, null, 2));
-// });
-
-// si.dockerAll((info) => {
-// 	writeFileSync('docker.json', JSON.stringify(info, null, 2));
-// });
-
-
-// console.log(npxPath);

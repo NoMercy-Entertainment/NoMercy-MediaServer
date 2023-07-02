@@ -1,37 +1,17 @@
 import { Request, Response } from 'express';
 import { trackSort, uniqBy } from '../../../functions/stringArray';
 
-import { ArtistResponse } from './artist.d';
 import { KAuthRequest } from 'types/keycloak';
-import { confDb } from '../../../database/config';
 import { deviceId } from '../../../functions/system';
 import { getLanguage } from '../../middleware';
+import { selectArtist } from '@/db/media/actions/artists';
 
-export default async function (req: Request, res: Response): Promise<Response<ArtistResponse>> {
+export default function (req: Request, res: Response) {
 	const language = getLanguage(req);
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	const user = (req as unknown as KAuthRequest).token.content.sub;
 
-	const music = await confDb.artist.findFirst({
-		where: {
-			id: req.params.id,
-		},
-		include: {
-			_count: true,
-			Track: {
-				distinct: ['name'],
-				include: {
-					Artist: true,
-					Album: true,
-					FavoriteTrack: {
-						where: {
-							userId: user,
-						},
-					},
-				},
-			},
-		},
-	});
+	const music = selectArtist(req.params.id, user);
 
 	if (!music) {
 		return res.json({
@@ -40,72 +20,66 @@ export default async function (req: Request, res: Response): Promise<Response<Ar
 		});
 	}
 
-	const results: ArtistResponse = {
+	const results = {
 		...music,
 		type: 'artist',
-		cover: (music.cover ?? music.Track?.find(t => t.cover)?.cover ?? music.Track?.[0]?.Artist.find(t => t.cover)?.cover)?.replace(
-			'http://',
-			'https://'
-		),
+		cover: music.cover,
 
-		colorPalette: JSON.parse(
-			music.colorPalette
-			?? music.Track?.find(t => t.cover)?.colorPalette
-			?? music.Track?.[0]?.Artist.find(t => t.cover)?.colorPalette
-			?? '{}'
-		),
+		colorPalette: JSON.parse(music.colorPalette ?? '{}'),
 
-		blurHash: music.blurHash
-			?? music.Track?.find(t => t.cover)?.blurHash
-			?? music.Track?.[0]?.Artist.find(t => t.cover)?.blurHash
-			?? null,
+		blurHash: music.blurHash ?? null,
+		artist_track: undefined,
+		album_artist: undefined,
 
-		Track: uniqBy<typeof music.Track>(music.Track.sort(trackSort), 'name').map((t) => {
-			const albums = t.Album.map(a => ({
-				id: a.id,
-				name: a?.name,
-				folder: a?.folder,
-				cover: (a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null)?.replace('http://', 'https://'),
-				description: a?.description,
-				libraryId: music.libraryId,
+		Track: uniqBy<typeof music.artist_track>(music.artist_track?.map((t) => {
+			const albums = t.track.album_track.map(a => ({
+				id: a.album.id,
+				name: a.album.name,
+				folder: a.album.folder,
+				cover: a.album.cover?.replace('http://', 'https://'),
+				description: a.album.description,
+				libraryId: music.library_id,
 				origin: deviceId,
-				colorPalette: undefined,
+				colorPalette: JSON.parse(a.album.colorPalette ?? '{}'),
 			}));
-			const artists = t.Artist.filter(a => a.id != '89ad4ac3-39f7-470e-963a-56509c546377').map(a => ({
-				id: a.id,
-				name: a.name,
-				cover: (a.cover ?? t.Album.find(t => t.cover)?.cover ?? t.Artist.find(t => t.cover)?.cover ?? null)?.replace('http://', 'https://'),
-				description: a.description,
-				folder: a.folder,
-				libraryId: a.libraryId,
-				origin: deviceId,
-				colorPalette: undefined,
-			}));
+			const artists = t.track.artist_track
+				.filter(a => a.artist.id != '89ad4ac3-39f7-470e-963a-56509c546377').map(a => ({
+					id: a.artist.id,
+					name: a.artist.name,
+					cover: a.artist.cover?.replace('http://', 'https://'),
+					description: a.artist.description,
+					folder: a.artist.folder,
+					libraryId: a.artist.library_id,
+					origin: deviceId,
+					colorPalette: JSON.parse(a.artist.colorPalette ?? '{}'),
+				}));
 
 			return {
-				...t,
+				...t.track,
 				date:
-					t.date
+					t.track.date
 					&& language
-					&& new Date(t.date).toLocaleDateString(language, {
+					&& new Date(t.track.date).toLocaleDateString(language, {
 						year: 'numeric',
 						month: 'short',
 						day: '2-digit',
 					}),
 				type: 'artist',
-				lyrics: undefined,
-				favorite_track: t.FavoriteTrack.length > 0,
+				lyrics: typeof t.track.lyrics === 'string' && t.track.lyrics.includes('{')
+					? JSON.parse(t.track.lyrics)
+					: t.track.lyrics,
+				favorite_track: t.track.track_user.length > 0,
 				origin: deviceId,
 				Artist: artists,
-				cover: (t.cover ?? null)?.replace('http://', 'https://'),
+				cover: (t.track.cover ?? null)?.replace('http://', 'https://'),
 				FavoriteTrack: undefined,
-				libraryId: music.libraryId,
-				blurHash: t.blurHash,
-				colorPalette: JSON.parse(t.colorPalette ?? '{}'),
+				libraryId: t.track.folder_id,
+				blurHash: t.track.blurHash,
+				colorPalette: JSON.parse(t.track.colorPalette ?? '{}'),
 				Album: albums,
 				album: albums[0],
 			};
-		}),
+		}) ?? [], 'name').sort(trackSort),
 	};
 
 	return res.json(results);

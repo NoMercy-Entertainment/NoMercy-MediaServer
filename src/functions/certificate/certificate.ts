@@ -25,6 +25,14 @@ const refreshLoop = () => {
 
 const refresh = async () => {
 	if (certificateNeedsRenewal(sslCert)) {
+
+		Logger.log({
+			level: 'info',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Obtaining SSL certificate',
+		});
+
 		const accessToken = useSelector((state: AppState) => state.user.access_token);
 
 		await axios
