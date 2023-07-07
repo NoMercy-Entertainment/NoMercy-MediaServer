@@ -79,7 +79,7 @@ const refresh = async () => {
 					const redirect_uri = `http://${internal_ip}:${internal_port}/sso-callback`;
 
 					await open(
-						`https://auth.nomercy.tv/auth/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
+						`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
 							redirect_uri
 						)}&client_id=nomercy-server&response_type=code`,
 						{

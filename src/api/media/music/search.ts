@@ -2,14 +2,12 @@ import { Album, Artist, Track } from '../../../database/config/client';
 import { Request, Response } from 'express';
 import { shuffle, uniqBy } from '../../../functions/stringArray';
 
-import { KAuthRequest } from '../../../types/keycloak';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
 
 export default async function (req: Request, res: Response) {
 
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 	const query = req.body.query as string;
 
 	try {
@@ -133,7 +131,7 @@ export default async function (req: Request, res: Response) {
 				OR: [
 					{
 						Playlist: {
-							userId: user,
+							userId: req.user.sub,
 						},
 						Track: {
 							Artist: {
@@ -147,7 +145,7 @@ export default async function (req: Request, res: Response) {
 					},
 					{
 						Playlist: {
-							userId: user,
+							userId: req.user.sub,
 						},
 						Track: {
 							name: {

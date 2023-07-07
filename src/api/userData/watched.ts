@@ -1,37 +1,48 @@
 import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
 
 import { confDb } from '../../database/config';
 import { VideoFile } from '../../database/config/client';
+import { eq } from 'drizzle-orm';
+import { tvs } from '@/db/media/schema/tvs';
+import { mediaDb } from '@/db/media';
+import { movies } from '@/db/media/schema/movies';
 
-export default async function (req: Request, res: Response) {
-	const user = (req as unknown as KAuthRequest).token.content.sub;
+export default function (req: Request, res: Response) {
 	const { id, type, value } = req.body;
 
 	let data: any = <VideoFile>{};
 
 	if (type == 'tv') {
-		data = (await confDb.tv.findFirst({
-			where: {
-				id: id,
-			},
-			include: {
-				Episode: {
-					include: {
-						VideoFile: true,
+		data = mediaDb.query.tvs.findFirst({
+			with: {
+				episodes: {
+					with: {
+						videoFiles: true,
 					},
 				},
 			},
-		}))?.Episode?.find(e => e.seasonNumber == 1 && e.episodeNumber == 1)?.VideoFile?.[0];
-	} else if (type == 'movies') {
-		data = (await confDb.movie.findFirst({
 			where: {
-				id: id,
+				id: eq(tvs.id, id as number),
 			},
-			include: {
-				VideoFile: true,
+		})?.episodes?.find(e => e.seasonNumber == 1 && e.episodeNumber == 1)?.videoFiles[0];
+	} else if (type == 'movies') {
+		data = mediaDb.query.movies.findFirst({
+			with: {
+				videoFiles: true,
 			},
-		}))?.VideoFile?.[0];
+			where: {
+				id: eq(movies.id, id as number),
+			},
+		})?.videoFiles[0];
+	} else if (type == 'specials') {
+		data = mediaDb.query.specials.findFirst({
+			with: {
+				videoFiles: true,
+			},
+			where: {
+				id: eq(tvs.id, id as number),
+			},
+		})?.videoFiles[0];
 	}
 
 	if (!data) {
@@ -48,14 +59,14 @@ export default async function (req: Request, res: Response) {
 			? {
 				tvId_videoFileId_sub_id: {
 					tvId: id,
-					sub_id: user,
+					sub_id: req.user.sub,
 					videoFileId: data.id,
 				},
 			}
 			: {
 				movieId_videoFileId_sub_id: {
 					movieId: id,
-					sub_id: user,
+					sub_id: req.user.sub,
 					videoFileId: data.id,
 				},
 
@@ -67,7 +78,7 @@ export default async function (req: Request, res: Response) {
 			movieId: type == 'movies'
 				? id
 				: undefined,
-			sub_id: user,
+			sub_id: req.user.sub,
 			played: value,
 		},
 		update: {
@@ -77,7 +88,7 @@ export default async function (req: Request, res: Response) {
 			movieId: type == 'movies'
 				? id
 				: undefined,
-			sub_id: user,
+			sub_id: req.user.sub,
 			played: value,
 		},
 	})

@@ -3,8 +3,6 @@ import { InferModel, and, eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 import { mediaDb } from '@/db/media';
 import { libraries } from '../schema/libraries';
-import { KAuthRequest } from '@/types/keycloak';
-import { isOwner } from '@/api/middleware/permissions';
 import { Request } from 'express';
 import { library_user } from '../schema/library_user';
 import { FolderLibrary } from './folder_library';
@@ -153,25 +151,26 @@ export const selectLibraryWithRelations = (id: string): LibraryWithRelations => 
 	}) as unknown as LibraryWithRelations;
 };
 
-export const getAllowedLibraries = (req: Request) => {
+export const getAllowedLibraries = (req: Request | string) => {
 
-	const user = (req as unknown as KAuthRequest).token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
+	if (typeof req == 'string') {
+		return mediaDb.query.library_user.findMany({
+			where: eq(library_user.user_id, req),
+		}).map(l => l.library_id);
+	}
 
-	if (owner) {
+	if (req.isOwner) {
 		return mediaDb.query.libraries.findMany().map(l => l.id);
 	}
 
 	return mediaDb.query.library_user.findMany({
-		where: eq(library_user.user_id, user),
+		where: eq(library_user.user_id, req.user.sub),
 	}).map(l => l.library_id);
 };
 
 export const getLibrary = (req: Request, id: string) => {
-	const user = (req as unknown as KAuthRequest).token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
 
-	if (owner) {
+	if (req.isOwner) {
 		return mediaDb.query.libraries.findFirst({
 			where: eq(libraries.id, id),
 		}) as unknown as Library;
@@ -180,7 +179,7 @@ export const getLibrary = (req: Request, id: string) => {
 	return mediaDb.query.library_user.findFirst({
 		where: and(
 			eq(library_user.library_id, id),
-			eq(library_user.user_id, user)
+			eq(library_user.user_id, req.user.sub)
 		),
 		with: {
 			library: true,

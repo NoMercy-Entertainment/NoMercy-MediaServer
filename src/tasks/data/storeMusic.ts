@@ -10,7 +10,6 @@ import colorPalette, { colorPaletteFromFile } from '../../functions/colorPalette
 import { fileChangedAgo, humanTime, sleep } from '../../functions/dateTime';
 import downloadImage from '../../functions/downloadImage';
 import Logger from '../../functions/logger';
-import { jsonToString } from '../../functions/stringArray';
 import i18n from '../../loaders/i18n';
 // import { findLyrics } from '../../providers';
 import { Image } from '../../providers/musicbrainz/cover';
@@ -27,8 +26,8 @@ import FileList from '../../tasks/files/getFolders';
 import { mediaDb } from '@/db/media';
 import { eq } from 'drizzle-orm';
 import { libraries } from '../../db/media/schema/libraries';
-import { insertArtist } from '@/db/media/actions/artists';
-import { insertAlbum } from '@/db/media/actions/albums';
+import { findArtist, insertArtist } from '@/db/media/actions/artists';
+import { findAlbum, insertAlbum } from '@/db/media/actions/albums';
 import { insertTrack } from '@/db/media/actions/tracks';
 import { insertMusicGenre } from '@/db/media/actions/musicGenres';
 import { insertMusicGenreTrack } from '@/db/media/actions/musicGenre_track';
@@ -85,7 +84,7 @@ export const storeMusic = async ({
 				} else {
 					parsedFiles = (await fileList.getParsedFiles()).sort((a, b) => a.path.localeCompare(b.path));
 
-					writeFileSync(folderFile, jsonToString(parsedFiles));
+					writeFileSync(folderFile, JSON.stringify(parsedFiles));
 				}
 			} catch (error) {
 				if (error) {
@@ -239,7 +238,9 @@ const createArtist = async (library: Lib, artist: Artist) => {
 		color: 'magentaBright',
 		message: `Adding artist: ${artist.name}`,
 	});
-	const artistName = artist.name.replace(/[\/]/gu, '_').replace(/“/gu, '');
+	const artistName = artist.name.replace(/[\/]/gu, '_')
+		.replace(/“/gu, '')
+		.replace(/‐/gu, '-');
 
 	const { image, colorPalette, blurHash } = await getArtistImage(library.folder.path, artist);
 
@@ -249,7 +250,7 @@ const createArtist = async (library: Lib, artist: Artist) => {
 		cover: image,
 		blurHash: blurHash,
 		colorPalette: colorPalette
-			? jsonToString(colorPalette)
+			? JSON.stringify(colorPalette)
 			: undefined,
 		folder: `/${artistName[0].toUpperCase()}/${artistName}`,
 		library_id: library.id as string,
@@ -291,7 +292,7 @@ const createAlbum = async (
 			.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/u, '$1')
 			.replace('/Music', ''),
 		colorPalette: colorPalette
-			? jsonToString(colorPalette)
+			? JSON.stringify(colorPalette)
 			: undefined,
 		year: album.date?.year,
 		tracks: album.track_count,
@@ -339,7 +340,11 @@ const createTrack = async (
 	if ((file.ffprobe as AudioFFprobe)?.audio?.codec_name == 'alac') {
 		const newFile = file.path.replace(/(.+)\.\w{3,}$/u, '$1.flac');
 
-		execSync(`ffmpeg -i "${file.path}" -c:a flac -compression_level 12 "${newFile}" -n 2>&1`);
+		try {
+			execSync(`ffmpeg -i "${file.path}" -c:a flac -compression_level 12 "${newFile}" -n 2>&1`);
+		} catch (error: any) {
+			console.log(error.toString('utf8'));
+		}
 
 		file.name = file.name.replace(/(.+)\.\w{3,}$/u, '$1.flac');
 	}
@@ -369,7 +374,7 @@ const createTrack = async (
 		// lyrics: lyrics,
 		cover: image,
 		colorPalette: colorPalette
-			? jsonToString(colorPalette)
+			? JSON.stringify(colorPalette)
 			: undefined,
 		blurHash: blurHash,
 		date: album.date?.year
@@ -468,16 +473,26 @@ const getArtistImage = async (folder: string, _artist: Artist) => {
 	const base = resolve(`${folder}/${artistName[0]}/${artistName}/${artistName}`.replace(/[\\\/]undefined/gu, ''));
 
 	try {
+
+		const artistResult = findArtist(_artist.id);
+		if (artistResult && artistResult.cover && artistResult.colorPalette && artistResult.blurHash) {
+			return {
+				image: artistResult.cover,
+				colorPalette: JSON.parse(artistResult.colorPalette),
+				blurHash: JSON.parse(artistResult.blurHash),
+			};
+		}
+
 		const images = await artist(_artist.id);
 
 		if (images?.artistthumb?.[0]?.url) {
 			image = images?.artistthumb?.[0]?.url;
-			palette = await colorPalette(image);
-			blurHash = await createBlurHash(image);
 			await downloadImage({ url: image, path: `${imagesPath}/music/${_artist.id}.jpg` })
 				.catch((e) => {
 					console.log(e);
 				});
+			palette = await colorPaletteFromFile(`${imagesPath}/music/${_artist.id}.jpg`);
+			blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${_artist.id}.jpg`));
 			return {
 				image,
 				colorPalette: palette,
@@ -636,6 +651,16 @@ const getAlbumImage = async (id: string, library: Lib, file: ParsedFileList) => 
 			.replace(/[\\\/]undefined/gu, '');
 
 		try {
+
+			const albumResult = findAlbum(id);
+			if (albumResult) {
+				return {
+					image: albumResult.cover,
+					colorPalette: albumResult.colorPalette,
+					blurHash: albumResult.blurHash,
+				};
+			}
+
 			const images = await album(id);
 
 			if (images?.albums?.[id].albumcover?.[0]?.url !== undefined) {
@@ -793,7 +818,6 @@ const filterRecordings = (data: Recording[], file: ParsedFileList, parsedFiles: 
 // 			return obj;
 // 		}, <Prisma.FileCreateWithoutEpisodeInput>{});
 
-// 	// transaction.push(
 // 	await confDb.file.upsert({
 // 		where: {
 // 			path_libraryId: {
@@ -856,5 +880,4 @@ const filterRecordings = (data: Recording[], file: ParsedFileList, parsedFiles: 
 // 			},
 // 		},
 // 	});
-// 	// );
 // };

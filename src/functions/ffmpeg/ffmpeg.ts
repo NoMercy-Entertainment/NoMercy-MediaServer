@@ -337,7 +337,9 @@ export class FFMpeg extends EventEmitter {
 						progress: 'paused',
 						title: this.fullTitle,
 						percent: this.percent,
-						thumbnails: `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`,
+						thumbnails: lastThumb
+							? `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`
+							: null,
 					});
 				}, 500);
 				this.currentProgress.progress = 'paused';
@@ -379,7 +381,9 @@ export class FFMpeg extends EventEmitter {
 					hours: null,
 					minutes: null,
 					seconds: null,
-					thumbnails: `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`,
+					thumbnails: lastThumb
+						? `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`
+						: null,
 				});
 				this.cancelRepeatProgress();
 			}
@@ -435,7 +439,9 @@ export class FFMpeg extends EventEmitter {
 			hasGpu: this.hasGpu,
 			isHDR: this.isHDR,
 			percent: this.percent,
-			thumbnails: `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`,
+			thumbnails: lastThumb
+				? `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`
+				: null,
 			frame: match?.groups?.frame ?? 0,
 			fps: match?.groups?.fps ?? 0,
 			bitrate: match?.groups?.bitrate.trim() ?? 0,
@@ -1018,8 +1024,7 @@ export class FFMpeg extends EventEmitter {
 				name: 'Encoder',
 				color: 'cyanBright',
 				message:
-						`file is not a mp4 file so is not playable on all devices: ${
-							this.mp4File.replace(/.*[\\\/]/u, '')}`,
+					`file is not a mp4 file so is not playable on all devices: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
 			});
 			return false;
 		}
@@ -1031,10 +1036,8 @@ export class FFMpeg extends EventEmitter {
 					name: 'Encoder',
 					color: 'red',
 					message:
-						`Error while getting video info: ${
-						 reason.file
-						 }, reason: ${
-						 reason.error || 'unknown'}`,
+						`Error while getting video info: ${reason.file
+						}, reason: ${reason.error || 'unknown'}`,
 				});
 			});
 
@@ -1044,8 +1047,7 @@ export class FFMpeg extends EventEmitter {
 				name: 'Encoder',
 				color: 'cyanBright',
 				message:
-						`File doesn't have a duration: ${
-							this.mp4File.replace(/.*[\\\/]/u, '')}`,
+					`File doesn't have a duration: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
 			});
 			return false;
 		}
@@ -1057,18 +1059,18 @@ export class FFMpeg extends EventEmitter {
 				name: 'Encoder',
 				color: 'cyanBright',
 				message:
-						`File duration is too ${ffprobe.format.duration < this.format?.duration
-							? 'short: '
-							: 'long: '
-						 }${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+					`File duration is too ${ffprobe.format.duration < this.format?.duration
+						? 'short: '
+						: 'long: '
+					}${this.mp4File.replace(/.*[\\\/]/u, '')}`,
 			});
 			Logger.log({
 				level: 'error',
 				name: 'Encoder',
 				color: 'cyanBright',
 				message:
-						`File input ${ffprobe.format.filename} output: ${this.format?.filename
-						 }${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+					`File input ${ffprobe.format.filename} output: ${this.format?.filename
+					}${this.mp4File.replace(/.*[\\\/]/u, '')}`,
 			});
 			return false;
 		}
@@ -1079,8 +1081,7 @@ export class FFMpeg extends EventEmitter {
 				name: 'Encoder',
 				color: 'cyanBright',
 				message:
-						`File is not playable on all devices: ${
-							this.mp4File.replace(/.*[\\\/]/u, '')}`,
+					`File is not playable on all devices: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
 			});
 			return false;
 		}

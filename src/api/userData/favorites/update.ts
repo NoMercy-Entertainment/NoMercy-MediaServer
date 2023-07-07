@@ -1,12 +1,10 @@
 import { Request, Response } from 'express';
-import { KAuthRequest } from 'types/keycloak';
 
 import { confDb } from '../../../database/config';
 import { VideoFile } from '../../../database/config/client';
 import { AppState, useSelector } from '@/state/redux';
 
 export default async function (req: Request, res: Response) {
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 	const { id, type, value } = req.body;
 
 	let data: any = <VideoFile>{};
@@ -49,14 +47,14 @@ export default async function (req: Request, res: Response) {
 			? {
 				tvId_videoFileId_sub_id: {
 					tvId: parseInt(id, 10),
-					sub_id: user,
+					sub_id: req.user.sub,
 					videoFileId: data.id,
 				},
 			}
 			: {
 				movieId_videoFileId_sub_id: {
 					movieId: parseInt(id, 10),
-					sub_id: user,
+					sub_id: req.user.sub,
 					videoFileId: data.id,
 				},
 
@@ -68,7 +66,7 @@ export default async function (req: Request, res: Response) {
 			movieId: type == 'movies'
 				? id
 				: undefined,
-			sub_id: user,
+			sub_id: req.user.sub,
 			isFavorite: value,
 			videoFileId: data.id,
 		},
@@ -79,7 +77,7 @@ export default async function (req: Request, res: Response) {
 			movieId: type == 'movies'
 				? id
 				: undefined,
-			sub_id: user,
+			sub_id: req.user.sub,
 			isFavorite: value,
 			videoFileId: data.id,
 		},

@@ -557,7 +557,7 @@ export class FFMpegArchive extends FFMpeg {
 
 		this.addCommand('-map', `0:${stream.index}`);
 
-		if (ext == 'sup') {
+		if (ext == 'sup' || ext == 'sub') {
 			this.addCommand('-c:s', 'copy');
 		} else if (ext == 'ass') {
 			this.addCommand('-c:s', 'ass');
@@ -864,7 +864,7 @@ export class FFMpegArchive extends FFMpeg {
 	extractSubs() {
 
 		if (this.streams?.subtitle) {
-			const subs = this.streams.subtitle.filter(s => s.codec_name == 'hdmv_pgs_subtitle');
+			const subs = this.streams.subtitle.filter(s => s.codec_name == 'hdmv_pgs_subtitle' || s.codec_name == 'dvd_subtitle');
 
 			if (subs.length > 0) {
 				const subCommand = [

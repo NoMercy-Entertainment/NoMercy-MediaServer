@@ -1,14 +1,12 @@
 import { Request, Response } from 'express';
 import { groupBy, mappedEntries, unique } from '../../../functions/stringArray';
 
-import { KAuthRequest } from 'types/keycloak';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { selectFromUserData } from '@/db/media/actions/userData';
 
 export default function (req: Request, res: Response) {
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 
-	const result = selectFromUserData({ user_id: user });
+	const result = selectFromUserData({ user_id: req.user.sub });
 
 	const datas = mappedEntries(groupBy(result, 'type'))
 		.map((d) => {

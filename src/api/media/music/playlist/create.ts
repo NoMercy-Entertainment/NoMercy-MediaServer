@@ -1,11 +1,8 @@
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../../database/config';
 
 export default async function (req: Request, res: Response) {
-
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	if (await confDb.playlist.findFirst({
 		where: {
@@ -22,7 +19,7 @@ export default async function (req: Request, res: Response) {
 		data: {
 			name: req.body.name,
 			description: req.body.description,
-			userId: user,
+			userId: req.user.sub,
 		},
 	});
 

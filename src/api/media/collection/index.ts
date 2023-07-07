@@ -1,15 +1,11 @@
 import { Request, Response } from 'express';
 import { sortBy } from '../../../functions/stringArray';
 
-import { getLanguage } from '../../middleware';
 import { mediaDb } from '@/db/media';
 import { eq, isNull, or } from 'drizzle-orm';
 import { translations } from '@/db/media/schema/translations';
 
 export default function (req: Request, res: Response) {
-
-	const language = getLanguage(req);
-
 	try {
 
 		const items = mediaDb.query.collections.findMany({
@@ -24,7 +20,7 @@ export default function (req: Request, res: Response) {
 				},
 				translations: {
 					where: or(
-						eq(translations.iso6391, language),
+						eq(translations.iso6391, req.language),
 						isNull(translations.iso6391)
 					),
 				},

@@ -1,8 +1,6 @@
 import {
 	AddUserParams,
-	NotificationsParams,
-	ResponseStatus,
-	removeUserParams,
+	NotificationsParams, removeUserParams,
 	userPermissionsParams
 } from 'types/server';
 import { AppState, useSelector } from '@/state/redux';
@@ -16,8 +14,15 @@ import {
 import {
 	setAllowedUsers
 } from '@/state/redux/config/actions';
+import { mediaDb } from '@/db/media';
+import { eq, inArray } from 'drizzle-orm';
+import { libraries } from '@/db/media/schema/libraries';
+import { library_user } from '@/db/media/schema/library_user';
+import { insertLibraryUser } from '@/db/media/actions/library_user';
+import { Library } from '@/db/media/actions/libraries';
+import { updateUser } from '@/db/media/actions/users';
 
-export const AddUser = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const AddUser = async (req: Request, res: Response) => {
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 	const { sub_id, email, name }: AddUserParams = req.body;
 
@@ -80,7 +85,7 @@ export const AddUser = async (req: Request, res: Response): Promise<Response<any
 		});
 };
 
-export const removeUser = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const removeUser = async (req: Request, res: Response) => {
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
 	const { sub_id }: removeUserParams = req.body;
@@ -124,7 +129,7 @@ export const removeUser = async (req: Request, res: Response): Promise<Response<
 		});
 };
 
-export const userPermissions = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const userPermissions = async (req: Request, res: Response) => {
 	const { sub_id }: userPermissionsParams = req.body;
 
 	sub_id
@@ -189,100 +194,74 @@ export const userPermissions = async (req: Request, res: Response): Promise<Resp
 			});
 };
 
-export const updateUserPermissions = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	const { sub_id, allowed, manage, audioTranscoding, videoTranscoding, noTranscoding, libraries = [] }: userPermissionsParams = req.body;
+export const updateUserPermissions = (req: Request, res: Response) => {
+	const { sub_id, allowed, manage, audioTranscoding, videoTranscoding, noTranscoding, libraries: libs = [] }: userPermissionsParams = req.body;
 
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-	const libs = await confDb.library.findMany({
-		where: {
-			id: {
-				in: libraries,
-			},
-		},
-	});
+	try {
+		const Libs = mediaDb.query.libraries.findMany({
+			where: inArray(libraries.id, libs),
+		}) as unknown as Library[];
 
-	await confDb.libraryUser.deleteMany({
-		where: {
-			userId: sub_id,
-		},
-	});
+		mediaDb.delete(library_user)
+			.where(eq(library_user.user_id, sub_id))
+			.run();
 
-	await confDb.user
-		.update({
-			where: {
-				sub_id: sub_id,
-			},
-			data: {
-				allowed: allowed,
-				manage: manage,
-				audioTranscoding: audioTranscoding,
-				videoTranscoding: videoTranscoding,
-				noTranscoding: noTranscoding,
-				Libraries: {
-					connectOrCreate: libs.map(lib => ({
-						create: {
-							libraryId: lib.id,
-						},
-						where: {
-							libraryId_userId: {
-								libraryId: lib.id,
-								userId: sub_id,
-							},
-						},
-					})),
-				},
-			},
-			select: {
-				name: true,
-			},
-		})
-		.then((data: { name: string }) => {
-
-			const newAllowedUsers = [
-				...allowedUsers.filter(u => u.sub_id != sub_id),
-				{
-					...allowedUsers.find(u => u.sub_id == sub_id)!,
-					sub_id,
-					allowed,
-					manage,
-					audioTranscoding,
-					videoTranscoding,
-					noTranscoding,
-				},
-			];
-
-			setAllowedUsers(newAllowedUsers);
-
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `User ${data.name} permissions updated.`,
-			});
-
-			return res.json({
-				status: 'ok',
-				message: `Successfully updated user permissions for ${data.name}.`,
-			});
-		})
-		.catch((error) => {
-			console.log(error);
-			// Logger.log({
-			//     level: 'info',
-			//     name: 'access',
-			//     color: 'magentaBright',
-			//     message: `Error updating user permissions: ${error}`
-			// });
-
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong updating permissions: ${error}`,
-			});
+		updateUser({
+			id: sub_id,
+			allowed: allowed,
+			manage: manage,
+			audioTranscoding: audioTranscoding,
+			videoTranscoding: videoTranscoding,
+			noTranscoding: noTranscoding,
 		});
+
+		for (const libr of Libs) {
+			insertLibraryUser({
+				library_id: libr.id as string,
+				user_id: sub_id,
+			});
+		}
+
+		const newAllowedUsers = [
+			...allowedUsers.filter(u => u.sub_id != sub_id),
+			{
+				...allowedUsers.find(u => u.sub_id == sub_id)!,
+				sub_id,
+				allowed,
+				manage,
+				audioTranscoding,
+				videoTranscoding,
+				noTranscoding,
+			},
+		];
+
+		setAllowedUsers(newAllowedUsers);
+
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `User ${sub_id} permissions updated.`,
+		});
+
+		return res.json({
+			status: 'ok',
+			message: `Successfully updated user permissions for ${sub_id}.`,
+		});
+
+	} catch (error) {
+		console.log(error);
+		return res.json({
+			status: 'ok',
+			message: `Something went wrong updating permissions: ${error}`,
+		});
+	}
+
 };
 
-export const notificationSettings = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const notificationSettings = async (req: Request, res: Response) => {
 	const { sub_id, notificationIds }: NotificationsParams = req.body;
 
 	await confDb.user

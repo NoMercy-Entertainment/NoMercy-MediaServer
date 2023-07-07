@@ -1,5 +1,5 @@
 import { AppState, store, useSelector } from '@/state/redux';
-import { KAuthRequest, KeycloakToken } from 'types/keycloak';
+import { KeycloakToken } from 'types/keycloak';
 import express, { Request, Response } from 'express';
 import { setAccessToken, setRefreshToken } from '@/state/redux/user/actions';
 
@@ -65,8 +65,7 @@ const monitorConfig = {
 
 
 router.get('/me', (req: Request, res: Response) => {
-	const token = (req as KAuthRequest).token;
-	return res.json(token.content);
+	return res.json(req.user);
 });
 
 router.get('/sso-callback', async (req: Request, res: Response) => {

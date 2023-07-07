@@ -3,20 +3,13 @@
 import { Request, Response } from 'express';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { getLanguage } from '../../middleware';
 import { mediaDb } from '@/db/media';
 import { collections } from '@/db/media/schema/collections';
 import { translations } from '@/db/media/schema/translations';
 import { and, eq, gt, or, isNull, asc } from 'drizzle-orm';
-import { KAuthRequest } from '@/types/keycloak';
 import { movies } from '@/db/media/schema/movies';
 
 export default function (req: Request, res: Response) {
-
-	const language = getLanguage(req);
-
-	const user = (req as unknown as KAuthRequest).token.content.sub;
-
 	const collection = mediaDb.query.collections.findFirst({
 		where: and(
 			eq(collections.id, parseInt(req.params.id, 10)),
@@ -40,14 +33,14 @@ export default function (req: Request, res: Response) {
 			},
 			translations: {
 				where: or(
-					eq(translations.iso6391, language),
+					eq(translations.iso6391, req.language),
 					isNull(translations.iso6391)
 				),
 			},
 		},
 	});
 
-	return res.json(getContent(collection, user));
+	return res.json(getContent(collection, req.user.sub));
 }
 
 const getContent = (data: any, user: string) => {

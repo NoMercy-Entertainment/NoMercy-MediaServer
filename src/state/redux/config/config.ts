@@ -5,9 +5,10 @@ import { User } from '../../../database/config/client';
 import { LibraryWithFolders } from '../../../database/data';
 import type { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
 import { ChromeCast } from '../../../functions/chromeCast/chromeCast';
-import { Queue } from '../../../functions/queue/QueueClass';
+import { DatabaseQueue } from '../../../functions/queue/DatabaseQueueClass';
 import { deviceName } from '../../../functions/system';
 import { CDNInfoResponse, Files } from '../../../types/cdn';
+import { SyncQueue } from '@/functions/queue/SyncQueueClass';
 
 export const keepOriginal: { [arg: string]: boolean } = {
 	audio: true,
@@ -31,15 +32,15 @@ const initialState = {
 
 	chromeCast: <ChromeCast>{},
 
-	queueWorker: new Queue({ name: 'queue', workers: 1 }),
+	queueWorker: new DatabaseQueue({ name: 'queue', workers: 1 }),
 	queueWorkers: 1,
-	cronWorker: new Queue({ name: 'cron', workers: 1 }),
+	cronWorker: new DatabaseQueue({ name: 'cron', workers: 1 }),
 	cronWorkers: 1,
-	dataWorker: new Queue({ name: 'data', workers: 1 }),
+	dataWorker: new DatabaseQueue({ name: 'data', workers: 1 }),
 	dataWorkers: 1,
-	requestWorker: new Queue({ name: 'request', workers: 1 }),
+	requestWorker: new SyncQueue({ name: 'request', workers: 1 }),
 	requestWorkers: 1,
-	encoderWorker: new Queue({ name: 'encoder', workers: 1 }),
+	encoderWorker: new DatabaseQueue({ name: 'encoder', workers: 1 }),
 	encoderWorkers: 1,
 
 	libraries: new Array<LibraryWithFolders>(),

@@ -12,8 +12,6 @@ export default async function (req: Request, res: Response) {
 		? { id: cursorQuery }
 		: undefined;
 
-	// const language = getLanguage(req);
-
 	const data = await confDb.person.findMany({
 		skip,
 		take: req.body.take,

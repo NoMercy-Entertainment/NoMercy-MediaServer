@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { ffmpeg, imagesPath, tempPath } from '@/state';
 import { jsonToString, unique } from '../../../../functions/stringArray';
 
-import { KAuthRequest } from '../../../../types/keycloak';
 import { colorPaletteFromFile } from '../../../../functions/colorPalette';
 import { confDb } from '../../../../database/config';
 import { convertPath } from '../../../../functions/system';
@@ -13,12 +12,9 @@ import { imageHash } from 'image-hash';
 export default async function (req: Request, res: Response) {
 
 	try {
-
-		const user = (req as unknown as KAuthRequest).token.content.sub;
-
 		const music = await confDb.playlist.findFirst({
 			where: {
-				userId: user,
+				userId: req.user.sub,
 				id: req.params.id,
 			},
 		});
@@ -30,7 +26,7 @@ export default async function (req: Request, res: Response) {
 		const music2 = await confDb.playlist.update({
 			where: {
 				playlist_unique: {
-					userId: user,
+					userId: req.user.sub,
 					id: req.params.id,
 				},
 			},
@@ -71,7 +67,7 @@ export default async function (req: Request, res: Response) {
 								},
 								FavoriteTrack: {
 									where: {
-										userId: user,
+										userId: req.user.sub,
 									},
 								},
 							},
@@ -142,7 +138,7 @@ export default async function (req: Request, res: Response) {
 			await confDb.playlist.update({
 				where: {
 					playlist_unique: {
-						userId: user,
+						userId: req.user.sub,
 						id: req.params.id,
 					},
 				},

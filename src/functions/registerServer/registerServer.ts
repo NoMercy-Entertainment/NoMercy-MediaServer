@@ -87,7 +87,7 @@ const registerServer = async () => {
 			});
 
 			await open(
-				`https://auth.nomercy.tv/auth/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
+				`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
 					redirect_uri
 				)}&client_id=nomercy-server&response_type=code`,
 				{

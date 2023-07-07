@@ -3,7 +3,6 @@ import { ConfigData, ConfigParams, ResponseStatus } from 'types/server';
 import { Request, Response } from 'express';
 import { setSecureExternalPort, setSecureInternalPort } from '@/state/redux/system/actions';
 
-import { KAuthRequest } from 'types/keycloak';
 import Logger from '../../functions/logger';
 import { confDb } from '../../database/config';
 import reboot from '../../functions/reboot/reboot';
@@ -42,9 +41,8 @@ export const configuration = async (req: Request, res: Response): Promise<Respon
 };
 
 export const createConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 
-	await storeConfig(req.body, user)
+	await storeConfig(req.body, req.user.sub)
 		.then(() => {
 			Logger.log({
 				level: 'info',
@@ -74,7 +72,6 @@ export const createConfiguration = async (req: Request, res: Response): Promise<
 };
 
 export const updateConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const body: ConfigParams = req.body;
 	let needsReboot = false;
@@ -89,7 +86,7 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 	const encoder = useSelector((state: AppState) => state.config.encoderWorker);
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
-	await storeConfig(body as unknown as ConfigData, user)
+	await storeConfig(body as unknown as ConfigData, req.user.sub)
 		.then(() => {
 			if (deviceName != body.deviceName) {
 				updateRegistry = true;

@@ -1,12 +1,9 @@
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 
 export default async function (req: Request, res: Response) {
-
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const array: any[] = [];
 
@@ -20,7 +17,7 @@ export default async function (req: Request, res: Response) {
 
 	const userData = await confDb.userData.findMany({
 		where: {
-			sub_id: user,
+			sub_id: req.user.sub,
 			NOT: {
 				isFavorite: null,
 			},

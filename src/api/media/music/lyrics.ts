@@ -5,10 +5,11 @@ import lyricsFinder from 'lyrics-finder';
 import { tracks } from '@/db/media/schema/tracks';
 import { mediaDb } from '@/db/media';
 import { eq } from 'drizzle-orm';
+import { Track } from '@/db/media/actions/tracks';
 
 export default async function (req: Request, res: Response) {
 	let lyrics = '';
-	let song;
+	let song: Track = <Track>{};
 
 	try {
 		song = mediaDb.select()
@@ -19,7 +20,7 @@ export default async function (req: Request, res: Response) {
 		if (!song?.lyrics) {
 			lyrics = await findLyrics(req.body);
 			if (!lyrics) {
-				lyrics = await lyricsFinder(req.body.artists?.[0]?.name, req.body.name);
+				lyrics = await lyricsFinder(req.body.artist_track?.[0]?.name, req.body.name);
 			}
 		}
 
@@ -28,7 +29,7 @@ export default async function (req: Request, res: Response) {
 				.set({
 					lyrics,
 				})
-				.where(eq(tracks.id, req.body.id))
+				.where(eq(tracks.id, song.id))
 				.returning()
 				.get();
 		}

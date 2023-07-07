@@ -1,11 +1,9 @@
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
 import { AppState, useSelector } from '@/state/redux';
 
 export default async function (req: Request, res: Response) {
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 	const { id, type }: {id: string, type: string} = req.body;
 	const socket = useSelector((state: AppState) => state.system.socket);
 
@@ -28,7 +26,7 @@ export default async function (req: Request, res: Response) {
 	const userDatas = await confDb.userData.findMany({
 		where: {
 			...where,
-			sub_id: user,
+			sub_id: req.user.sub,
 			NOT: {
 				time: null,
 			},

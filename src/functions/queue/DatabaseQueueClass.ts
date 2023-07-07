@@ -9,7 +9,7 @@ import { QueueJob, queueJobs } from '@/db/queue/schema/queueJobs';
 import { runningTasks } from '@/db/media/schema/runningTasks';
 import { configuration } from '@/db/media/schema/configuration';
 
-interface QueueProps {
+interface DatabaseQueueProps {
 	name?: string;
 	keepJobs?: boolean;
 	workers?: number;
@@ -21,7 +21,7 @@ interface Worker {
 	job: QueueJob;
 }
 
-export class Queue {
+export class DatabaseQueue {
 	name: string;
 	keepJobs: boolean;
 	workers: number;
@@ -37,7 +37,7 @@ export class Queue {
 
 	maxAttempts = 2;
 
-	constructor({ name = 'default', keepJobs = false, workers = 0 }: QueueProps) {
+	constructor({ name = 'default', keepJobs = false, workers = 0 }: DatabaseQueueProps) {
 		this.name = name;
 		this.keepJobs = keepJobs;
 		this.workers = workers;
@@ -76,7 +76,7 @@ export class Queue {
 		this.forks.push({
 			id: this.forks.length,
 			running: false,
-			worker: fork(`${__dirname}/worker`),
+			worker: fork(`${__dirname}/databaseWorker`),
 			job: <QueueJob>{},
 		});
 		this.run();

@@ -49,11 +49,11 @@ router.post('/person/:id', person);
 
 router.post('/screensaver', screensaver);
 
-router.get('/fonts', fonts);
+router.post('/fonts', fonts);
 router.post('/search', search);
 
-router.get('/trailer/:id', trailer);
-router.delete('/trailer/:id', deleteTrailer);
+router.post('/trailer/:id', trailer);
+router.post('/trailer/:id', deleteTrailer);
 
 router.post('/encodeandcast', encodeAndCast);
 

@@ -2,20 +2,12 @@ import { Cast, Crew, Media, Movie, Person, Tv } from '@/database/config/client';
 import { PersonCast, PersonWithAppends, person } from '@/providers/tmdb/people';
 import { Request, Response } from 'express';
 
-// import { KAuthRequest } from '@/types/keycloak';
 import { confDb } from '@/database/config';
-import { getLanguage } from '@/api/middleware';
 import i18next from 'i18next';
-// import { isOwner } from '@/api/middleware/permissions';
 import { parseYear } from '@/functions/dateTime';
 import { sortBy, unique } from '@/functions/stringArray';
 
 export default async function (req: Request, res: Response) {
-
-	const language = getLanguage(req);
-
-	// const user = (req as unknown as KAuthRequest).token
-	// const owner = await isOwner(req as KAuthRequest);
 
 	i18next.changeLanguage('en');
 
@@ -75,7 +67,7 @@ export default async function (req: Request, res: Response) {
 	const result: any = {
 		...data,
 		...p,
-		biography: p.translations.translations.find((t: any) => t.iso_639_1 === language)?.data?.biography || p.biography,
+		biography: p.translations.translations.find((t: any) => t.iso_639_1 === req.language)?.data?.biography || p.biography,
 		knownFor: unique(sortBy(p.combined_credits.cast, 'popularity', 'desc'), 'title')
 			.map(c => ({
 				...c,

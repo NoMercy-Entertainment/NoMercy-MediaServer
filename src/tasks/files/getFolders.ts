@@ -44,7 +44,7 @@ export class FileList {
 	ignoreBaseFilter: boolean;
 	hasCache = false;
 	folderFile: string;
-	ignoreRegex = /video_.*|audio_.*|subtitles|scans|cds.*|ost|album|music|original|fonts|thumbs|metadata|NCED|NCOP|~/iu;
+	ignoreRegex = /video_.*|audio_.*|subtitles|scans|cds.*|ost|album|music|original|fonts|thumbs|metadata|NCED|NCOP|\s\(\d\)\.|~/iu;
 
 	constructor({
 		folder,

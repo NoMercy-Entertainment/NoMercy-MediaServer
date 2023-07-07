@@ -70,8 +70,8 @@ import {
 
 const router = express.Router();
 
-router.get('/general/languages', languages);
-router.get('/general/countries', countries);
+router.post('/general/languages', languages);
+router.post('/general/countries', countries);
 
 router.post('/manage/users/notificationsettings', notificationSettings);
 

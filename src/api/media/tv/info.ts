@@ -110,7 +110,7 @@ const getContent = (data: TvWithRelations) => {
 		mediaType: data.library.type == 'tv'
 			? 'tv'
 			: 'movies',
-		seasons: data.seasons.map((s) => {
+		seasons: data.seasons.sort((a, b) => a.seasonNumber - b.seasonNumber).map((s) => {
 
 			return {
 				id: s.id,
@@ -121,7 +121,7 @@ const getContent = (data: TvWithRelations) => {
 				blurHash: s.blurHash,
 				colorPalette: JSON.parse(s.colorPalette ?? '{}'),
 				Episode: undefined,
-				episodes: s.episodes.map((e) => {
+				episodes: s.episodes.sort((a, b) => a.episodeNumber - b.episodeNumber).map((e) => {
 					let progress: null | number = null;
 
 					if (e.videoFiles[0] && e.videoFiles[0].duration && e.videoFiles[0]?.userData?.[0]?.time) {

@@ -1,5 +1,5 @@
 import { convertBooleans } from '../../helpers';
-import { InferModel } from 'drizzle-orm';
+import { InferModel, eq } from 'drizzle-orm';
 import { mediaDb } from '@/db/media';
 import { users } from '../schema/users';
 
@@ -36,3 +36,11 @@ export const selectUser = (relations = false) => {
 		.from(users)
 		.all();
 };
+
+export const updateUser = (data: Partial<User> & { id: string }) => mediaDb.update(users)
+	.set({
+		...convertBooleans(data),
+	})
+	.where(eq(users.id, data.id))
+	.returning()
+	.get();

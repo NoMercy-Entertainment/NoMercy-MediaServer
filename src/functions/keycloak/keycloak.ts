@@ -3,10 +3,11 @@ import Logger from '../../functions/logger';
 import axios from 'axios';
 import { setKeycloakCertificate } from '@/state/redux/config/actions';
 import { keycloak_key } from './config';
-import { KAuthRequest } from '@/types/keycloak';
 import { Issuer } from 'openid-client';
 import { NextFunction, Response, Request } from 'express';
 import { AppState, useSelector } from '@/state/redux';
+import { isAllowed, isModerator, isOwner } from '@/api/middleware/permissions';
+import { getLanguage } from '@/api/middleware';
 
 export let _keycloak;
 export let _keycloakBackend;
@@ -17,19 +18,19 @@ export const initKeycloak = async () => {
 	}
 	const internalPort = useSelector((state: AppState) => state.system.secureInternalPort);
 
-	const keycloakIssuer = await Issuer.discover('https://auth.nomercy.tv/auth/realms/NoMercyTV');
+	const keycloakIssuer = await Issuer.discover('https://auth.nomercy.tv/realms/NoMercyTV');
 
 	_keycloak = new keycloakIssuer.Client({
 		client_id: 'nomercy-server',
 		client_secret: keycloak_key,
 		redirect_uris: [`http://localhost:${internalPort}/cb`],
 		response_types: ['token'],
-	  });
+	});
 
 	_keycloakBackend = new KCBackend(
 		{
 			realm: 'NoMercyTV',
-			keycloak_base_url: 'https://auth.nomercy.tv/auth/',
+			keycloak_base_url: 'https://auth.nomercy.tv/',
 			client_id: 'nomercy-server',
 			client_secret: keycloak_key,
 		}
@@ -55,18 +56,20 @@ export const kcMiddleware = async (req: Request, res: Response, next: NextFuncti
 
 		const userinfo = await _keycloak.userinfo(token);
 
-		(req as KAuthRequest).token = {
-			token: token as string,
-			content: {
-				...userinfo,
-			},
-		};
+		req.user = userinfo;
+		req.access_token = token as string;
+		req.isOwner = isOwner(req);
+		req.isModerator = isModerator(req);
+		req.isAllowed = isAllowed(req);
+
+		req.language = getLanguage(req);
 
 		return next();
 	} catch (error) {
 
 		return res.status(401).json({
 			status: 'error',
+			// message: error,
 			message: 'You must provide a valid Bearer token.',
 		});
 
@@ -98,7 +101,7 @@ export const getKeycloak = () => {
 
 export const getKeycloakKeys = async () => {
 
-	const realm = 'https://auth.nomercy.tv/auth/realms/NoMercyTV';
+	const realm = 'https://auth.nomercy.tv/realms/NoMercyTV';
 
 	const info = await axios.get(realm, {
 		headers: {

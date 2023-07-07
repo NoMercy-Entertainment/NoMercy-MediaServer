@@ -2,18 +2,11 @@ import { Request, Response } from 'express';
 import { sortBy, uniqBy } from '../../../functions/stringArray';
 
 import { GenreResponse } from './genre.d';
-import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
-import { getLanguage } from '../../middleware';
 
 export default async function (req: Request, res: Response): Promise<Response<GenreResponse>> {
-
-	const language = getLanguage(req);
-
-	const user = (req as unknown as KAuthRequest).token.content.sub;
-
 	const music = await confDb.musicGenre.findFirst({
 		where: {
 			id: req.params.id,
@@ -36,7 +29,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 					Artist: true,
 					FavoriteTrack: {
 						where: {
-							userId: user,
+							userId: req.user.sub,
 						},
 					},
 					_count: true,
@@ -84,7 +77,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 			return {
 				...t,
 				date: t.date && new Date(t.date)
-					.toLocaleDateString(language, {
+					.toLocaleDateString(req.language, {
 						year: 'numeric',
 						month: 'short',
 						day: '2-digit',

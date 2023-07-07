@@ -1,21 +1,12 @@
 import { Request, Response } from 'express';
 
-// import { KAuthRequest } from 'types/keycloak';
-// import { getLanguage } from '../../middleware';
-// import { isOwner } from '../../middleware/permissions';
 import { InfoResponse } from '@/types/server';
-// import { confDb } from '@/database/config';
 import { createTitleSort } from '@/tasks/files/filenameParser';
 import { convertToSeconds, parseYear } from '@/functions/dateTime';
 import { getSpecial } from '@/db/media/actions/specials';
 import { unique } from '@/functions/stringArray';
 
 export default function (req: Request, res: Response) {
-
-	// const language = getLanguage(req);
-
-	// const user = (req as unknown as KAuthRequest).token.content.sub;
-	// const owner = await isOwner(req as KAuthRequest);
 
 	const data = getSpecial({ id: req.params.id }, true);
 
@@ -33,7 +24,7 @@ export default function (req: Request, res: Response) {
 	// 							include: {
 	// 								UserData: {
 	// 									where: {
-	// 										sub_id: user,
+	// 										sub_id: req.user.sub,
 	// 									},
 	// 								},
 	// 							},
@@ -46,7 +37,7 @@ export default function (req: Request, res: Response) {
 	// 							include: {
 	// 								UserData: {
 	// 									where: {
-	// 										sub_id: user,
+	// 										sub_id: req.user.sub,
 	// 									},
 	// 								},
 	// 							},

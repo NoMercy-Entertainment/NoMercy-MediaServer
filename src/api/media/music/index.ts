@@ -3,14 +3,11 @@ import { Request, Response } from 'express';
 import { shuffle, unique } from '../../../functions/stringArray';
 
 import { HomeData } from './index.d';
-import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '../../../functions/system';
 
 export default async function (req: Request, res: Response): Promise<Response<HomeData[]>> {
-
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 
 	const playlists: (Playlist & {
 		_count: Prisma.PlaylistCountOutputType;
@@ -36,7 +33,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 	await Promise.all([
 		confDb.playlist.findMany({
 			where: {
-				userId: user,
+				userId: req.user.sub,
 			},
 			include: {
 				_count: true,
@@ -46,7 +43,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 
 		confDb.userData.findMany({
 			where: {
-				sub_id: user,
+				sub_id: req.user.sub,
 				NOT: {
 					isFavorite: null,
 				},

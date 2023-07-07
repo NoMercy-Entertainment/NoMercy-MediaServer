@@ -1,5 +1,10 @@
 // import { selectLibraryWithRelations } from '@/db/media/actions/libraries';
 
+// import { mediaDb } from '@/db/media';
+// import { tracks } from '@/db/media/schema/tracks';
+// import { eq, like } from 'drizzle-orm';
+// import { rmSync } from 'fs';
+
 
 // import { mkdirSync, readdirSync, renameSync } from 'fs';
 // import { parseYear } from '../dateTime';
@@ -8,7 +13,18 @@
 // import { insertLibraryMovie } from '@/db/media/actions/library_movie';
 
 
-export default async () => {
+export default () => {
+
+	// const Tracks = mediaDb.query.tracks.findMany({
+	// 	where: like(tracks.filename, '% (2).%'),
+	// });
+
+	// for (const track of Tracks) {
+	// 	rmSync(track.path);
+	// 	mediaDb.delete(tracks)
+	// 		.where(eq(tracks.id, track.id))
+	// 		.run();
+	// }
 
 	// const folder = 'M:\\TV.Shows\\TV.Shows\\Tom.and.Jerry.(1940)';
 	// readdirSync(folder).forEach((f) => {

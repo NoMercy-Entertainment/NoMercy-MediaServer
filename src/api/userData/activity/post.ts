@@ -1,13 +1,12 @@
 import { AppState, useSelector } from '@/state/redux';
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
 import { insertActivityLog } from '@/db/media/actions/activityLogs';
 import { insertDevice, selectDevice } from '@/db/media/actions/devices';
 
 export default (req: Request, res: Response) => {
 
-	const sub_id = (req as unknown as KAuthRequest).token;
+	const sub_id = (req as unknown).token;
 
 	const { from, id, browser, os, device, type, name, version, activity_type } = req.body as {[key: string]: string};
 

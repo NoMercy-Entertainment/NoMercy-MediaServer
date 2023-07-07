@@ -1,16 +1,14 @@
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from '../../../../types/keycloak';
 import { confDb } from '../../../../database/config';
 import { deviceId } from '../../../../functions/system';
 
 export default async function (req: Request, res: Response) {
 	try {
-		const user = (req as unknown as KAuthRequest).token.content.sub;
 
 		const music = await confDb.playlist.findMany({
 			where: {
-				userId: user,
+				userId: req.user.sub,
 			},
 			include: {
 				PlaylistTrack: {

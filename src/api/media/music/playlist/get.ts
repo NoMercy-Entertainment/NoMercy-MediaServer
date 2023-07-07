@@ -1,18 +1,16 @@
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../../database/config';
 import { deviceId } from '../../../../functions/system';
 
 export default async function (req: Request, res: Response) {
 
 	try {
-		const user = (req as unknown as KAuthRequest).token.content.sub;
 
 		const music = await confDb.playlist.findFirst({
 			where: {
 				id: req.params.id,
-				userId: user,
+				userId: req.user.sub,
 			},
 			include: {
 				_count: true,
@@ -24,7 +22,7 @@ export default async function (req: Request, res: Response) {
 								Album: true,
 								FavoriteTrack: {
 									where: {
-										userId: user,
+										userId: req.user.sub,
 									},
 									take: 800,
 								},
@@ -92,7 +90,7 @@ export default async function (req: Request, res: Response) {
 		const lists = await confDb.playlist
 			.findMany({
 				where: {
-					userId: user,
+					userId: req.user.sub,
 				},
 				include: {
 					_count: true,
@@ -104,7 +102,7 @@ export default async function (req: Request, res: Response) {
 				data: {
 					name: req.body.name ?? `My playlist ${lists.length + 1}`,
 					description: '',
-					userId: user,
+					userId: req.user.sub,
 				},
 			});
 

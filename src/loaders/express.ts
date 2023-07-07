@@ -86,6 +86,7 @@ export default async (app: Application) => {
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
 		res.set('owner', owner);
+
 		next();
 	});
 

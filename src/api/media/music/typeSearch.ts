@@ -1,13 +1,11 @@
 import { Request, Response } from 'express';
 import { sortBy, unique } from '../../../functions/stringArray';
 
-import { KAuthRequest } from 'types/keycloak';
 import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 
 export default async function (req: Request, res: Response) {
 
-	const user = (req as unknown as KAuthRequest).token.content.sub;
 	const { query, type } = req.params;
 
 	let result;
@@ -62,7 +60,7 @@ export default async function (req: Request, res: Response) {
 	case 'playlist':
 		result = await confDb.playlist.findMany({
 			where: {
-				userId: user,
+				userId: req.user.sub,
 				name: {
 					contains: query,
 				},

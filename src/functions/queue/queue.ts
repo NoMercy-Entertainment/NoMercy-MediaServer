@@ -1,7 +1,5 @@
 import { AppState, useSelector } from '@/state/redux';
 
-// import { Configuration } from '../../database/config/client';
-// import { confDb } from '../../database/config';
 import { selectConfiguration } from '@/db/media/actions/configuration';
 
 export default () => {

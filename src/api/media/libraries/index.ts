@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 
 import { LibraryResponseContent } from '@/types/server';
 import { createTitleSort } from '@/tasks/files/filenameParser';
-import { getLanguage } from '@/api/middleware';
 import { parseYear } from '@/functions/dateTime';
 import { and, asc, eq, gt, isNotNull, isNull, or } from 'drizzle-orm';
 import { mediaDb } from '@/db/media';
@@ -14,9 +13,6 @@ import { getLibrary } from '@/db/media/actions/libraries';
 import { images } from '@/db/media/schema/images';
 
 export default function (req: Request, res: Response) {
-
-	const language = getLanguage(req);
-
 	try {
 		const library = getLibrary(req, req.params.id);
 		if (!library) return res.status(401).json({
@@ -46,7 +42,7 @@ export default function (req: Request, res: Response) {
 					},
 					translations: {
 						where: or(
-							eq(translations.iso6391, language),
+							eq(translations.iso6391, req.language),
 							isNull(translations.iso6391)
 						),
 					},
@@ -74,7 +70,7 @@ export default function (req: Request, res: Response) {
 					},
 					translations: {
 						where: or(
-							eq(translations.iso6391, language),
+							eq(translations.iso6391, req.language),
 							isNull(translations.iso6391)
 						),
 					},
