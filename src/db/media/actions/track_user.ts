@@ -51,6 +51,10 @@ export const selectFavoriteTracks = (user_id: string) => {
 		});
 	})[];
 
+	if (!result || result?.length == 0) {
+		return null;
+	}
+
 	const artistTrackResults = mediaDb.query.artist_track.findMany({
 		where: inArray(artist_track.track_id, result.map(m => m.track_id)),
 		with: {

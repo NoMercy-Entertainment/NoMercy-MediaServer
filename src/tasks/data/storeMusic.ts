@@ -3,16 +3,16 @@ import { copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, 
 import { join, resolve } from 'path';
 import { PaletteColors } from 'types/server';
 
-import { Folder } from '../../database/config/client';
-import type { AudioFFprobe } from '../../encoder/ffprobe/ffprobe';
-import { getBestArtistImag } from '../../functions/artistImage';
-import colorPalette, { colorPaletteFromFile } from '../../functions/colorPalette';
-import { fileChangedAgo, humanTime, sleep } from '../../functions/dateTime';
-import downloadImage from '../../functions/downloadImage';
-import Logger from '../../functions/logger';
-import i18n from '../../loaders/i18n';
+import { Folder } from '@/database/config/client';
+import type { AudioFFprobe } from '@/encoder/ffprobe/ffprobe';
+import { getBestArtistImag } from '@/functions/artistImage';
+import colorPalette, { colorPaletteFromFile } from '@/functions/colorPalette';
+import { fileChangedAgo, humanTime, sleep } from '@/functions/dateTime';
+import downloadImage from '@/functions/downloadImage';
+import Logger from '@/functions/logger';
+import i18n from '@/loaders/i18n';
 // import { findLyrics } from '../../providers';
-import { Image } from '../../providers/musicbrainz/cover';
+import { Image } from '@/providers/musicbrainz/cover';
 import {
 	Artist, getAcousticFingerprintFromParsedFileList, Medium, Recording, Release
 } from '../../providers/musicbrainz/fingerprint';
@@ -81,11 +81,11 @@ export const storeMusic = async ({
 				) {
 					parsedFiles = JSON.parse(readFileSync(folderFile, 'utf-8')).sort((a: ParsedFileList, b: ParsedFileList) =>
 						a.path.localeCompare(b.path));
-				} else {
-					parsedFiles = (await fileList.getParsedFiles()).sort((a, b) => a.path.localeCompare(b.path));
-
-					writeFileSync(folderFile, JSON.stringify(parsedFiles));
 				}
+				parsedFiles = (await fileList.getParsedFiles()).sort((a, b) => a.path.localeCompare(b.path));
+
+				writeFileSync(folderFile, JSON.stringify(parsedFiles));
+
 			} catch (error) {
 				if (error) {
 					Logger.log({
@@ -181,7 +181,7 @@ export const storeMusic = async ({
 					library,
 					file,
 					match.releases[0],
-					(file.ffprobe as AudioFFprobe)?.tags.acoustid_id ?? match.id,
+					match.id,
 					match.title,
 					match.artists
 				)
@@ -197,12 +197,6 @@ export const storeMusic = async ({
 			color: 'magentaBright',
 			message: `Folder: ${folder} added successfully`,
 		});
-
-		// process.send!({
-		// 	type: 'custom',
-		// 	event: 'update_content',
-		// 	data: ['music'],
-		// });
 
 		return {
 			success: true,
@@ -260,6 +254,13 @@ const createArtist = async (library: Lib, artist: Artist) => {
 		artist_id: artist.id,
 		library_id: library.id as string,
 	});
+
+	process.send!({
+		type: 'custom',
+		event: 'update_content',
+		data: ['music', 'artist', artist.id, '_'],
+	});
+
 };
 
 const createAlbum = async (
@@ -278,14 +279,10 @@ const createAlbum = async (
 		message: `Adding album: ${title}`,
 	});
 
-	for (const artist of album.artists ?? []) {
-		await createArtist(library, artist);
-	}
-
 	const { image, colorPalette, blurHash } = await getAlbumImage(album.id, library, file);
 
 	insertAlbum({
-		id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
+		id: album.id,
 		name: album.title,
 		cover: image,
 		folder: `${file.folder}${file.musicFolder}`
@@ -301,21 +298,38 @@ const createAlbum = async (
 		library_id: library.id as string,
 	});
 
-	(album.artists?.concat(...artist) ?? [...artist]).map((a) => {
+	for (const artist of album.artists ?? []) {
+		await createArtist(library, artist);
 		insertAlbumArtist({
-			album_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
-			artist_id: a.id,
+			album_id: album.id,
+			artist_id: artist.id,
 		});
-	});
+	}
+
+	// if ((!album.artists || album.artists?.length == 0)
+	// 	&& (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_artist_id
+	// 	&& (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id) {
+	// 	insertAlbumArtist({
+	// 		album_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id as string,
+	// 		artist_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_artist_id as string,
+	// 	});
+	// }
 
 	insertAlbumLibrary({
-		album_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
+		album_id: album.id,
 		library_id: library.id as string,
 	});
 
 	for (const track of album.mediums) {
 		await createTrack(track, artist, album, file, recordingID, title, library);
 	}
+
+	process.send!({
+		type: 'custom',
+		event: 'update_content',
+		data: ['music', 'album', album.id, '_'],
+	});
+
 };
 
 const createTrack = async (
@@ -394,7 +408,7 @@ const createTrack = async (
 	});
 
 	insertAlbumTrack({
-		album_id: (file.ffprobe as AudioFFprobe)?.tags.MusicBrainz_album_id ?? album.id,
+		album_id: album.id,
 		track_id: recordingID,
 	});
 

@@ -125,8 +125,8 @@ export const artistImages = async (artist: string) => {
 			});
 
 		await Promise.all(promises)
-			.catch((error) => {
-				console.log(error);
+			.catch(() => {
+				// console.log(error);
 				null;
 			});
 	} catch {

@@ -9,7 +9,7 @@ export const insertTrack = (data: NewTrack) => mediaDb.insert(tracks)
 		...convertBooleans(data),
 	})
 	.onConflictDoUpdate({
-		target: [tracks.filename, tracks.path],
+		target: [tracks.id],
 		set: {
 			...convertBooleans(data),
 			updated_at: new Date().toISOString()

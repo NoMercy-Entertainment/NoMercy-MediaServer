@@ -76,13 +76,18 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 			year: music.year,
 			album_artist: music.description?.includes('Various Artists')
 				? null
-				: music.album_artist?.map((a) => {
-					return {
-						...a.artist,
+				: music.album_artist?.[0]
+					? {
+						id: music.album_artist?.[0].artist.id,
+						name: music.album_artist?.[0].artist.name,
+						cover: music.album_artist?.[0].artist.cover?.replace('http://', 'https://'),
+						description: music.album_artist?.[0].artist.description,
+						folder: music.album_artist?.[0].artist.folder,
+						libraryId: music.album_artist?.[0].artist.library_id,
 						origin: deviceId,
-						cover: a.artist.cover?.replace('http://', 'https://'),
-					};
-				}) ?? [],
+						colorPalette: JSON.parse(music.album_artist?.[0].artist.colorPalette ?? '{}'),
+					}
+					: null,
 		};
 
 		return resolve(results);
