@@ -1,12 +1,26 @@
-import { ParsedFileList } from '../../tasks/files/filenameParser';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
+import { ParsedFileList } from '@server/tasks/files/filenameParser';
 import { execSync } from 'child_process';
-import { fingerprintCalc } from '@/state';
+import { fingerprintCalc } from '@server/state';
+import Logger from '@server/functions/logger';
+import mbApiClient from './mbApiClient';
 
 export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileList): Promise<void | Result> => {
 
-	const fingerprintData = JSON.parse(execSync(`${fingerprintCalc} -json "${file.path}"`).toString() ?? '{}');
+    Logger.log({
+        name: 'fingerprint',
+        color: 'blue',
+        level: 'info',
+        message: `Getting fingerprint for: ${file.path}`,
+    });
+
+    const fingerprint = execSync(`${fingerprintCalc} -json "${file.path}"`).toString();
+
+    console.log(fingerprint);
+    if (!fingerprint) {
+        return;
+    }
+
+	const fingerprintData = JSON.parse(fingerprint ?? '{}');
 
 	const meta = [
 		'recordings',
@@ -15,23 +29,22 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
 		'compress',
 	].join('+');
 
-	axiosRetry(axios, {
-		retries: 2,
-		retryDelay: axiosRetry.exponentialDelay,
-	});
+    try {
+        const response = await mbApiClient.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
+            params: {
+                client: process.env.ACOUSTIC_ID,
+                duration: parseInt(fingerprintData.duration, 10),
+                fingerprint: fingerprintData.fingerprint,
+            },
+        });
 
-	return await axios.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
-		params: {
-			client: 'pXzJ7uXskB',
-			duration: parseInt(fingerprintData.duration, 10),
-			fingerprint: fingerprintData.fingerprint,
-		},
-	})
-		.then((response) => {
-			return response.data.results[0];
-		})
-		.catch(error => console.log(error.response.data.error));
+        console.log(response.data);
 
+        return response.data?.results?.[0];
+        
+    } catch (error: any) {
+        console.log(error.response.data.error)
+    }
 };
 
 

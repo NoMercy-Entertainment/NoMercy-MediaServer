@@ -1,8 +1,8 @@
-import { AppState, useSelector } from '@/state/redux';
-import { setExternalIp, setInternalIp } from '@/state/redux/system/actions';
+import { AppState, useSelector } from '@server/state/redux';
+import { setExternalIp, setInternalIp } from '@server/state/redux/system/actions';
 
 import { Client } from '@runonflux/nat-upnp';
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import { ServerOptions } from 'socket.io';
 import axios from 'axios';
 import chalk from 'chalk';
@@ -119,6 +119,7 @@ export const allowedOrigins = [
 	'https://node.nomercy.tv',
 	'http://localhost:3000',
 	'http://localhost:5173',
+	'http://localhost:5174',
 	`https://${get_internal_ip()}:3000`,
 	`https://${get_internal_ip()}:5173`,
 	`http://${get_internal_ip()}:3000`,

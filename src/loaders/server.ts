@@ -1,7 +1,7 @@
-import { AppState, useSelector } from '@/state/redux';
-import { setHttpsServer, setSocketServer } from '@/state/redux/system/actions';
+import { AppState, useSelector } from '@server/state/redux';
+import { setHttpsServer, setSocketServer } from '@server/state/redux/system/actions';
 // import https from '../functions/server/lib/spdy';
-import { sslCA, sslCert, sslKey } from '@/state';
+import { sslCA, sslCert, sslKey } from '@server/state';
 
 import Logger from '../functions/logger';
 import { Server } from 'socket.io';

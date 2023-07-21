@@ -34,8 +34,6 @@ module.exports = {
             },
         ],
         win32metadata: {
-            // 'requested-execution-level': 'requireAdministrator',
-            // 'requested-execution-level': 'highestAvailable',
             'CompanyName': 'NoMercy Entertainment',
             'FileDescription': 'The Effortless Encoder',
             'ProductName': 'NoMercy MediaServer',

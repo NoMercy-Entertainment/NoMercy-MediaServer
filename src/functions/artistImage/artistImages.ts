@@ -1,13 +1,12 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
-import { PaletteColors } from 'types/server';
+import { PaletteColors } from '@server/types/server';
 import axios from 'axios';
-import { cachePath } from '@/state';
+import { cachePath } from '@server/state';
 import colorPalette from '../colorPalette';
-import { confDb } from '../../database/config';
 import downloadImage from '../downloadImage';
-import { jsonToString } from '../stringArray';
 import { load } from 'cheerio';
+import { findArtist, insertArtist } from '@server/db/media/actions/artists';
 
 export interface Urls {
 	page: string;
@@ -125,8 +124,8 @@ export const artistImages = async (artist: string) => {
 			});
 
 		await Promise.all(promises)
-			.catch((error) => {
-				console.log(error);
+			.catch(() => {
+				// console.log(error);
 				null;
 			});
 	} catch {
@@ -170,26 +169,15 @@ export const artistImages = async (artist: string) => {
 	return response.filter(r => !!r.palette);
 };
 
-export const storageArtistImageInDatabase = async function (id: string, colorPalette: PaletteColors | null) {
+export const storageArtistImageInDatabase = function (id: string, colorPalette: PaletteColors | null) {
 
-	const artist = await confDb.artist.findFirst({
-		where: {
-			id: id,
-		},
-	});
-	if (!artist?.id) {
-		return;
-	}
+	const artist = findArtist(id);
 
-	await confDb.artist.update({
-		where: {
-			id: artist.id,
-		},
-		data: {
-			colorPalette: colorPalette
-				? jsonToString(colorPalette)
-				: undefined,
-		},
+	insertArtist({
+		...artist!,
+		colorPalette: colorPalette
+			? JSON.stringify(colorPalette)
+			: undefined,
 	});
 };
 

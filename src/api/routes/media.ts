@@ -16,8 +16,9 @@ import people from '../media/person';
 import person from '../media/person/info';
 import screensaver from '../media/screensaver';
 import search from '../media/search';
-import specialInfo from '../media/specials/info';
 import specials from '../media/specials';
+import specialInfo from '../media/specials/info';
+import specialWatch from '../media/specials/watch';
 import tvAvailable from '../media/tv/available';
 import tvInfo from '../media/tv/info';
 import tvWatch from '../media/tv/watch';
@@ -38,6 +39,7 @@ router.post('/collection/:id', collectionInfo);
 
 router.post('/specials', specials);
 router.post('/special/:id', specialInfo);
+router.post('/special/:id/watch', specialWatch);
 
 router.post('/libraries', libraries);
 router.post('/libraries/:id', library);
@@ -47,11 +49,11 @@ router.post('/person/:id', person);
 
 router.post('/screensaver', screensaver);
 
-router.get('/fonts', fonts);
+router.post('/fonts', fonts);
 router.post('/search', search);
 
-router.get('/trailer/:id', trailer);
-router.delete('/trailer/:id', deleteTrailer);
+router.post('/trailer/:id', trailer);
+router.post('/trailer/:id', deleteTrailer);
 
 router.post('/encodeandcast', encodeAndCast);
 

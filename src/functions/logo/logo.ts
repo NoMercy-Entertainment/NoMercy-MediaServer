@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 
 import chalk from 'chalk';
 
@@ -11,7 +11,7 @@ export default () => {
 	const o = () => chalk.hex(colors[1]);
 	const t = () => chalk.hex(colors[2]);
 
-	console.clear();
+	// console.clear();
 	console.log(
 		b()`╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════` + b()`╗\n`
 		+ b()`║                                                                                                                                                                                        ` + b()`║\n`

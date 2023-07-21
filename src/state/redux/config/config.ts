@@ -1,13 +1,14 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { User } from '../../../database/config/client';
-import { LibraryWithFolders } from '../../../database/data';
-import { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
-import { ChromeCast } from '../../../functions/chromeCast/chromeCast';
-import { Queue } from '../../../functions/queue/QueueClass';
-import { deviceName } from '../../../functions/system';
+import type { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
+import { ChromeCast } from '@server/functions/chromeCast/chromeCast';
+import { DatabaseQueue } from '@server/functions/queue/DatabaseQueueClass';
+import { deviceName } from '@server/functions/system';
 import { CDNInfoResponse, Files } from '../../../types/cdn';
+import { SyncQueue } from '@server/functions/queue/SyncQueueClass';
+import { User } from '@server/db/media/actions/users';
+import { LibraryWithRelations } from '@server/db/media/actions/libraries';
 
 export const keepOriginal: { [arg: string]: boolean } = {
 	audio: true,
@@ -21,6 +22,7 @@ const initialState = {
 	downloads: new Array<Files>(),
 	keycloakCertificate: '',
 	makemkv_key: '',
+	acoustic_id: '',
 	moderators: new Array<{ id: string; name: string }>(),
 	omdb_apikey: '',
 	openServer: false,
@@ -30,18 +32,18 @@ const initialState = {
 
 	chromeCast: <ChromeCast>{},
 
-	queueWorker: new Queue({ name: 'queue', workers: 1 }),
+	queueWorker: new DatabaseQueue({ name: 'queue', workers: 1 }),
 	queueWorkers: 1,
-	cronWorker: new Queue({ name: 'cron', workers: 1 }),
+	cronWorker: new DatabaseQueue({ name: 'cron', workers: 1 }),
 	cronWorkers: 1,
-	dataWorker: new Queue({ name: 'data', workers: 1 }),
+	dataWorker: new DatabaseQueue({ name: 'data', workers: 1 }),
 	dataWorkers: 1,
-	requestWorker: new Queue({ name: 'request', workers: 1 }),
+	requestWorker: new SyncQueue({ name: 'request', workers: 1 }),
 	requestWorkers: 1,
-	encoderWorker: new Queue({ name: 'request', workers: 1 }),
+	encoderWorker: new DatabaseQueue({ name: 'encoder', workers: 1 }),
 	encoderWorkers: 1,
 
-	libraries: new Array<LibraryWithFolders>(),
+	libraries: new Array<LibraryWithRelations>(),
 	preferredOrder: <PreferredOrder>{},
 	keepOriginal: keepOriginal,
 	assToVtt: true,
@@ -62,6 +64,9 @@ const config = createSlice({
 		},
 		setMakeMKVKey: (state, action: PayloadAction<string>) => {
 			state.makemkv_key = action.payload;
+		},
+		setAcousticId: (state, action: PayloadAction<string>) => {
+			state.acoustic_id = action.payload;
 		},
 		setLanguage: (state, action: PayloadAction<string>) => {
 			state.language = action.payload;

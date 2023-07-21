@@ -1,10 +1,12 @@
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import Device from 'chromecast-api/lib/device';
-import { Http2SecureServer } from 'http2';
 import { Server } from 'socket.io';
 // import { SocketIoServer } from '../../../loaders/socket';
 import { store } from '..';
 import system from './system';
+import { IncomingMessage } from 'http';
+import { ServerResponse } from 'http';
+import https from 'https';
 
 export const setInternalIp = (payload: string) => store.dispatch(system.actions.setInternalIp(payload));
 
@@ -20,7 +22,7 @@ export const setHasMakeMkv = (payload: boolean) => store.dispatch(system.actions
 
 export const setHasSubtitleEdit = (payload: boolean) => store.dispatch(system.actions.setHasSubtitleEdit(payload));
 
-export const setHttpsServer = (payload: Http2SecureServer) => store.dispatch(system.actions.setHttpsServer(payload));
+export const setHttpsServer = (payload: https.Server<typeof IncomingMessage, typeof ServerResponse>) => store.dispatch(system.actions.setHttpsServer(payload));
 
 export const setSocketServer = (payload: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) =>
 	store.dispatch(system.actions.setSocketServer(payload));

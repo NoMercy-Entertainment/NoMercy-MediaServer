@@ -1,44 +1,21 @@
-import { ConfigData } from 'types/server';
-import { Prisma } from '../../database/config/client';
-import { confDb } from '../../database/config';
+import { ConfigData } from '@server/types/server';
 import loadConfigs from '../loadConfigs';
+import { insertConfiguration } from '@server/db/media/actions/configuration';
 
-export default async (data: ConfigData, user: string | null, transaction?: Prisma.PromiseReturnType<any>[]) => {
-	const hasTransaction = !!transaction;
-	if (!transaction) {
-		transaction = [];
-	}
+export default async (data: ConfigData, user: string | null) => {
 
 	for (const [key, value] of Object.entries(data)) {
 		if (key == 'owner') {
 			continue;
 		}
-		transaction.push(
-			confDb.configuration.upsert({
-				where: {
-					key: key.toString(),
-				},
-				update: user
-					? {
-						key: key.toString(),
-						value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
-						modified_by: user,
-					}
-					: {
-						key: key.toString(),
-						value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
-						modified_by: null,
-					},
-				create: {
-					key: key.toString(),
-					value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
-				},
-			})
-		);
+		insertConfiguration({
+			key: key.toString(),
+			value: JSON.stringify(value)?.replace(/^"|"$/gu, ''),
+			modified_by: user,
+		});
+
 	}
 
-	if (!hasTransaction) {
-		await confDb.$transaction(transaction);
-		await loadConfigs();
-	}
+	await loadConfigs();
+
 };

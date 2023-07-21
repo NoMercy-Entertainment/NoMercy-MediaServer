@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import { SeasonChanges } from './changes';
 import { SeasonImages } from './images';
 import { SeasonTranslations } from './translations';

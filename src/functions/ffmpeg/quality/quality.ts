@@ -1,5 +1,5 @@
 export const getQualityTag = function (ffprobe) {
-	const sizes = ffprobe.streams.video?.map((s) => {
+	const sizes = (ffprobe.streams?.video ?? [ffprobe])?.map((s) => {
 		if (s.width >= 600 && s.width < 1200) {
 			return 'SD';
 		}

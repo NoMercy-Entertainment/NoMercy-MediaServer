@@ -1,113 +1,65 @@
 import { Request, Response } from 'express';
 
-import { confDb } from '../../../database/config';
-import { Prisma } from '../../../database/config/client';
-import logger from '../../../functions/logger';
-import { KAuthRequest } from '../../../types/keycloak';
-import { isOwner } from '../../middleware/permissions';
+import { mediaDb } from '@server/db/media';
+import { tvs } from '@server/db/media/schema/tvs';
+import { eq } from 'drizzle-orm';
+import { requestWorker } from '@server/api/requestWorker';
 
-export default function (req: Request, res: Response) {
+export default async function (req: Request, res: Response) {
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		language: req.language,
+		user_id: req.user.sub,
+	});
 
-	if (owner) {
-		confDb.tv
-			.findFirst(ownerQuery(req.params.id))
-			.then((tv) => {
-				if (!tv) {
-					return res.status(404).json({
-						available: false,
-					});
-				}
-				return res.json({
-					available: tv.Season.map(s => s.Episode.map(e => e.VideoFile?.[0])).flat()
-						.filter(Boolean).length > 0,
-					server: 'local',
-				});
-			})
-			.catch((error) => {
-				logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
-	} else {
-		confDb.tv
-			.findFirst(userQuery(req.params.id, user))
-			.then((tv) => {
-				if (!tv) {
-					return res.status(404).json({
-						available: false,
-					});
-				}
-				return res.json({
-					available: true,
-					server: 'local',
-				});
-			})
-			.catch((error) => {
-				logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
+		});
 	}
+	return res.json(result.result);
 }
 
-const ownerQuery = (id: string) => {
-	return Prisma.validator<Prisma.TvFindFirstArgsBase>()({
-		where: {
-			id: parseInt(id, 10),
-		},
-		include: {
-			Season: {
-				include: {
-					Episode: {
-						include: {
-							VideoFile: true,
-						},
-					},
-				},
-			},
-		},
-	});
-};
+export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve, reject) => {
 
-const userQuery = (id: string, userId: string) => {
-	return Prisma.validator<Prisma.TvFindFirstArgs>()({
-		where: {
-			id: parseInt(id, 10),
-			Library: {
-				User: {
-					some: {
-						userId: userId,
-					},
-				},
-			},
-		},
-		include: {
-			Season: {
-				include: {
-					Episode: {
-						include: {
-							VideoFile: true,
+		const tv = mediaDb.query.tvs.findFirst({
+			where: eq(tvs.id, parseInt(id, 10)),
+			with: {
+				seasons: {
+					with: {
+						episodes: {
+							with: {
+								videoFiles: true,
+							},
 						},
 					},
 				},
+				library: {
+					with: {
+						library_user: true,
+					},
+				},
 			},
-		},
+		});
+
+		if (!tv || !tv?.library?.library_user?.some(l => l.user_id === user_id)) {
+			return reject({
+				available: false,
+				server: 'local',
+			});
+		}
+
+		resolve({
+			available: tv.seasons
+				.map(s => s.episodes.map(e => e.videoFiles?.[0]))
+				.flat()
+				.filter(Boolean)
+				.length > 0,
+			server: 'local',
+		});
 	});
 };

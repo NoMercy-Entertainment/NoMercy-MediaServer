@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { load } from 'cheerio';
+import { AnyNode, load } from 'cheerio';
+import Logger from '../logger';
 
 export interface ImageData {
     id: number;
@@ -17,23 +18,23 @@ export default class TVDBImageCrawler {
 		this.#url = url;
 	}
 
-	getData = () => {
-		console.log(this.#url);
-		return axios.get(this.#url)
-			.then((response) => {
-				if (response.status == 200) {
-					const parsedData = this.#parseData(response.data, this.#url);
-					return parsedData;
-				}
-
-				console.log(response);
-
-
-			});
+	getData = async () => {
+		Logger.info({
+			name: 'TVDBImageCrawler',
+			color: 'blueBright',
+			message: `Getting data${this.#url}`,
+			level: 'info',
+		});
+		const response = await axios.get(this.#url);
+		if (response.status == 200) {
+			const parsedData = this.#parseData(response.data, this.#url);
+			return parsedData;
+		}
+		console.log(response);
 
 	};
 
-	#parseData = (response, url) => {
+	#parseData = (response: string | AnyNode | AnyNode[] | Buffer, url: string) => {
 
 		const result: ImageData[] = [];
 

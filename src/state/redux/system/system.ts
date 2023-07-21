@@ -1,15 +1,15 @@
-import https from 'https';
 import {
 	createSlice,
 	PayloadAction
 } from '@reduxjs/toolkit';
 import { existsSync } from 'fs';
-import { Http2SecureServer } from 'http2';
 
-import { libraryDb, makeMkv, subtitleEdit } from '../..';
+import { makeMkv, mediaDbFile, subtitleEdit } from '../..';
 import Device from 'chromecast-api/lib/device';
 import { Server } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+import { IncomingMessage, ServerResponse } from 'http';
+import https from 'https';
 
 export interface InitialState {
 	database: string;
@@ -21,13 +21,13 @@ export interface InitialState {
 	server_version: number;
 	hasMakeMkv: boolean;
 	hasSubtitleEdit: boolean;
-	server: Http2SecureServer;
+	server: https.Server<typeof IncomingMessage, typeof ServerResponse>;
 	socket: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
 	cast: Device[];
 	clientList: any[];
 }
 export const initialState: InitialState = {
-	database: libraryDb,
+	database: mediaDbFile,
 	internal_ip: '',
 	external_ip: '',
 	server_version: 2,
@@ -36,7 +36,7 @@ export const initialState: InitialState = {
 	owner: '',
 	hasMakeMkv: existsSync(makeMkv),
 	hasSubtitleEdit: existsSync(subtitleEdit),
-	server: new https.Server(),
+	server: <https.Server<typeof IncomingMessage, typeof ServerResponse>>{},
 	socket: <Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>{},
 	clientList: [],
 	cast: new Array<Device>(),
@@ -70,7 +70,7 @@ const system = createSlice({
 		setHasSubtitleEdit: (state, action: PayloadAction<boolean>) => {
 			state.hasSubtitleEdit = action.payload;
 		},
-		setHttpsServer: (state, action: PayloadAction<Http2SecureServer>) => {
+		setHttpsServer: (state, action: PayloadAction<https.Server<typeof IncomingMessage, typeof ServerResponse>>) => {
 			state.server = action.payload;
 		},
 		setSocketServer: (state, action: PayloadAction<Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>) => {

@@ -1,7 +1,7 @@
 import { Genre } from '../shared/genre';
 import { movieGenre } from '../movie';
 import { tvGenre } from '../tv';
-import { unique } from '../../../functions/stringArray';
+import { unique } from '@server/functions/stringArray';
 
 export * from './movie_genre';
 export * from './tv_genres';

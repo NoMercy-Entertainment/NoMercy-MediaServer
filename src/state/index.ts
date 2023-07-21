@@ -7,6 +7,7 @@ import path from 'path';
 export const userName = process.env.USERNAME;
 
 export const cachePath = path.resolve(appPath, 'cache');
+export const apiCachePath = path.resolve(appPath, 'cache', 'apiData');
 export const imagesPath = path.resolve(cachePath, 'images');
 export const omdbPath = path.resolve(cachePath, 'omdb');
 export const tempPath = path.resolve(cachePath, 'temp');
@@ -34,6 +35,7 @@ export const applicationPaths = {
 	appPath,
 	binariesPath,
 	cachePath,
+	apiCachePath,
 	certPath,
 	collectionsPath,
 	configPath,
@@ -66,9 +68,8 @@ export const winstonLog = path.join(logPath, `serverLog-${new Date().toISOString
 export const winstonRejectionLog = path.join(logPath, `rejectionLog-${new Date().toISOString()
 	.split('T')[0].replace(/-/gu, '')}.log`);
 
-export const libraryDb = path.resolve(dataPath, 'library.db');
-export const configDb = path.resolve(dataPath, 'config.db');
-export const queueDb = path.resolve(dataPath, 'queue.db');
+export const mediaDbFile = path.resolve(dataPath, 'media.db');
+export const queueDbFile = path.resolve(dataPath, 'queue.db');
 
 export const sslCA = path.resolve(certPath, 'ca.pem');
 export const sslCert = path.resolve(certPath, 'cert.pem');
@@ -92,8 +93,8 @@ export const subtitleEdit = path.resolve(binariesPath, 'SubtitleEdit', `Subtitle
 export const setupComplete = existsSync(path.resolve(dataPath, 'setupComplete'));
 
 export const applicationFiles = {
-	libraryDb,
-	configDb,
+	mediaDbFile,
+	queueDbFile,
 	tokenFile,
 	configFile,
 	sslCA,

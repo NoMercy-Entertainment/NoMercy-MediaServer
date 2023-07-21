@@ -1,12 +1,12 @@
 import dirTree, { DirectoryTree, DirectoryTreeOptions } from 'directory-tree';
-import { existsSync, readFileSync, writeFile } from 'fs';
+import { existsSync, readFileSync, rmSync, writeFile } from 'fs';
 import path from 'path';
 
-import { fileChangedAgo } from '../../functions/dateTime';
-import Logger from '../../functions/logger';
-import { chunk, jsonToString, sortBy } from '../../functions/stringArray';
-import { cpuCores } from '../../functions/system';
-import { cachePath } from '@/state';
+import { fileChangedAgo } from '@server/functions/dateTime';
+import Logger from '@server/functions/logger';
+import { chunk, jsonToString, sortBy } from '@server/functions/stringArray';
+import { cpuCores } from '@server/functions/system';
+import { cachePath } from '@server/state';
 import { FolderList, ParsedFileList, parseFileName, parseFolderName } from './filenameParser';
 
 interface FileListProps {
@@ -44,7 +44,7 @@ export class FileList {
 	ignoreBaseFilter: boolean;
 	hasCache = false;
 	folderFile: string;
-	ignoreRegex = /video_.*|audio_.*|subtitles|scans|cds.*|ost|album|music|original|fonts|thumbs|metadata|NCED|NCOP|~/iu;
+	ignoreRegex = /video_.*|audio_.*|subtitles|scans|cds.*|ost|album|music|original|fonts|thumbs|metadata|NCED|NCOP|\s\(\d\)\.|~/iu;
 
 	constructor({
 		folder,
@@ -125,7 +125,7 @@ export class FileList {
 						this.tree = JSON.parse(readFileSync(this.folderFile, 'utf-8'));
 						return resolve();
 					} catch (error) {
-						return reject(error);
+						rmSync(this.folderFile);
 					}
 				}
 

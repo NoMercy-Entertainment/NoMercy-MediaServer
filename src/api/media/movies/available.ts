@@ -1,92 +1,55 @@
 import { Request, Response } from 'express';
 
-import { confDb } from '../../../database/config';
-import { Prisma } from '../../../database/config/client';
-import logger from '../../../functions/logger';
-import { KAuthRequest } from '../../../types/keycloak';
-import { isOwner } from '../../middleware/permissions';
+import { mediaDb } from '@server/db/media';
+import { eq } from 'drizzle-orm';
+import { movies } from '@server/db/media/schema/movies';
+import { requestWorker } from '@server/api/requestWorker';
 
-export default function (req: Request, res: Response) {
+export default async function (req: Request, res: Response) {
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		language: req.language,
+		user_id: req.user.sub,
+	});
 
-	if (owner) {
-		confDb.movie
-			.findFirst(ownerQuery(req.params.id))
-			.then((movie) => {
-				if (!movie) {
-					return res.status(404).json({
-						available: false,
-						server: 'local',
-					});
-				}
-				return res.json({
-					available: !!movie.VideoFile?.[0],
-					server: 'local',
-				});
-			})
-			.catch((error) => {
-				logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
-	} else {
-		confDb.movie
-			.findFirst(userQuery(req.params.id, user))
-			.then(() => {
-				return res.json({
-					status: 'ok',
-					available: true,
-				});
-			})
-			.catch((error) => {
-				logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
+		});
 	}
+	return res.json(result.result);
 }
 
-const ownerQuery = (id: string) => {
-	return Prisma.validator<Prisma.MovieFindFirstArgsBase>()({
-		where: {
-			id: parseInt(id, 10),
-		},
-		include: {
-			VideoFile: true,
-		},
-	});
-};
+export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve, reject) => {
 
-const userQuery = (id: string, userId: string) => {
-	return Prisma.validator<Prisma.MovieFindFirstArgs>()({
-		where: {
-			id: parseInt(id, 10),
-			Library: {
-				User: {
-					some: {
-						userId: userId,
+		const movie = mediaDb.query.movies.findFirst({
+			where: eq(movies.id, parseInt(id, 10)),
+			with: {
+				videoFiles: true,
+				library: {
+					with: {
+						library_user: true,
 					},
 				},
 			},
-		},
-		include: {
-			VideoFile: true,
-		},
+		});
+
+		if (!movie?.library?.library_user?.some(l => l.user_id === user_id)) {
+			return resolve({
+				error: {
+					code: 404,
+					message: 'Movie not found',
+				},
+			});
+		}
+
+		resolve({
+			available: true,
+			server: 'local',
+		});
 	});
-};
+}

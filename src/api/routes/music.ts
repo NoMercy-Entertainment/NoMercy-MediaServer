@@ -33,7 +33,7 @@ router.post('/playlists', musicPlaylists);
 router.post('/playlist/:id', musicPlaylist);
 router.post('/playlist/:id/edit', musicEdit);
 router.post('/playlist/:id/add', musicAdd);
-router.delete('/playlist/:id', musicDelete);
+router.post('/playlist/:id/delete', musicDelete);
 
 router.post('/collection/tracks', musicFavorites);
 router.post('/collection/artists', musicArtists);

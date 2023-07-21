@@ -1,99 +1,67 @@
 /* eslint-disable indent */
 
 import { Request, Response } from 'express';
-import { TvWithInfo, getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helpers';
+import { getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helpers';
 
 import { InfoResponse } from '../../../types/server';
-import { KAuthRequest } from '../../../types/keycloak';
-import Logger from '../../../functions/logger';
-import { Prisma } from '../../../database/config/client';
 import { tv as TV } from '../../../providers/tmdb/tv';
-import { confDb } from '../../../database/config';
-import { convertToSeconds } from '../../../functions/dateTime';
-import createBlurHash from '../../../functions/createBlurHash';
+// import createBlurHash from '@server/functions/createBlurHash';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { getLanguage } from '../../middleware';
-import { groupBy } from '../../../functions/stringArray';
-import i18next from 'i18next';
-import { isOwner } from '../../middleware/permissions';
+import i18n from '@server/loaders/i18n';
+import { TvWithRelations, getTv } from '@server/db/media/actions/tvs';
+import { groupBy } from '@server/functions/stringArray';
+import { convertToSeconds } from '@server/functions/dateTime';
+import { requestWorker } from '@server/api/requestWorker';
 
-export default function (req: Request, res: Response) {
+export default async function (req: Request, res: Response) {
 
-	const language = getLanguage(req);
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		language: req.language,
+		user_id: req.user.sub,
+	});
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
-
-	if (owner) {
-		confDb.tv
-			.findFirst(ownerQuery(req.params.id, user))
-			.then(async (tv) => {
-				if (!tv) {
-					return res.json(await getTvData(req.params.id));
-				}
-				return res.json(await getContent(tv, language));
-			})
-			.catch((error) => {
-				Logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
-	} else {
-		confDb.tv
-			.findFirst(userQuery(req.params.id, user))
-			.then(async (tv) => {
-				if (!tv) {
-					return res.json(await getTvData(req.params.id));
-				}
-				return res.json(await getContent(tv, language));
-			})
-			.catch((error) => {
-				Logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
+		});
 	}
+	return res.json(result.result);
 }
 
-const getContent = async (
-	data: TvWithInfo,
-	language: string
-): Promise<InfoResponse> => {
-	const translations: any[] = [];
-	await confDb.translation.findMany(translationQuery({ id: data.id, language })).then(data => translations.push(...data));
+export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve, reject) => {
 
-	const groupedMedia = groupBy(data.Media, 'type');
+		const tv = getTv({ id: parseInt(id, 10), user_id, language });
 
-	const title = translations.find(t => t.ttvId == data.id)?.title || data.title;
-	const overview = translations.find(t => t.ttvId == data.id)?.overview || data.overview;
+		if (!tv) {
+			resolve(await getTvData(id));
+		}
+		resolve(getContent(tv));
+	});
+}
+
+const getContent = (data: TvWithRelations) => {
+	if (!data) return;
+
+	const groupedMedia = groupBy(data.images, 'type');
+	
+	const title = data.translations[0]?.title || data.title;
+	const overview = data.translations[0]?.overview || data.overview;
 
 	const files = [
-		...data.Season.filter(t => t.seasonNumber > 0)
-			.map(s => s.Episode.map(e => e.VideoFile).flat())
+		...data.seasons.filter(t => t.seasonNumber > 0)
+			.map(s => s.episodes.map(e => e.videoFiles).flat())
 			.flat()
-			.map(f => f.episodeId),
+			.map(f => f.episode_id),
 		// ...external?.find(t => t.id == tv.id && t.files)?.files ?? [],
 	];
 	// .filter((v, i, a) => a.indexOf(v) === i);
 
-	const logos = await imageMap(groupedMedia.logo);
+	const logos = imageMap(groupedMedia.logo);
 	const palette = JSON.parse(data.colorPalette ?? '{}');
-
-	// console.log(files);
 
 	const response: InfoResponse = {
 		id: data.id,
@@ -101,36 +69,37 @@ const getContent = async (
 		overview: overview,
 		poster: data.poster,
 		backdrop: data.backdrop,
+		logo: logos[0]?.src ?? null,
 		colorPalette: {
 			logo: logos[0]?.colorPalette,
 			poster: palette?.poster ?? null,
 			backdrop: palette?.backdrop ?? null,
 		},
-		videos: groupedMedia.Trailer?.map((v) => {
+		videos: data.medias?.map((v) => {
 			return {
 				src: v.src,
-				name: v.name,
-				type: v.type,
-				site: v.site,
+				type: v.type!,
+				name: v.name!,
+				site: v.site!,
 			};
 		}) ?? [],
-		backdrops: await imageMap(groupedMedia.backdrop),
-		posters: await imageMap(groupedMedia.poster),
+		backdrops: imageMap(groupedMedia.backdrop),
+		posters: imageMap(groupedMedia.poster),
 		logos: logos,
-		similar: relatedMap(data.SimilarFrom, 'tv'),
-		recommendations: relatedMap(data.RecommendationFrom, 'tv'),
-		cast: peopleMap(data.Cast, 'Roles'),
-		crew: peopleMap(data.Crew, 'Jobs'),
-		contentRatings: data.Certification.map((r) => {
+		similar: relatedMap(data.similar_from, 'tv'),
+		recommendations: relatedMap(data.recommendation_from, 'tv'),
+		cast: peopleMap(data.casts, 'roles'),
+		crew: peopleMap(data.crews, 'jobs'),
+		contentRatings: data.certification_tv.map((r) => {
 			return {
-				rating: r.Certification.rating,
-				meaning: r.Certification.meaning,
-				order: r.Certification.order,
-				iso31661: r.Certification.iso31661,
+				rating: r.certification.rating,
+				// meaning: r.certification.meaning,
+				// order: r.certification.order,
+				iso31661: r.certification.iso31661,
 			};
 		}),
-		watched: data.UserData?.[0]?.played ?? false,
-		favorite: data.UserData?.[0]?.isFavorite ?? false,
+		watched: data.userData?.[0]?.played == 1 ?? false,
+		favorite: data.userData?.[0]?.isFavorite == 1 ?? false,
 		titleSort: data.titleSort,
 		duration: data.duration,
 		numberOfEpisodes: data.numberOfEpisodes ?? 1,
@@ -142,28 +111,28 @@ const getContent = async (
 			tvdbId: data.tvdbId,
 		},
 		creators:
-			data.Creator?.filter(c => c?.Person?.name)
+			data.crews.filter(c => c.jobs.find(j => j.job === 'Creator'))?.filter(c => c?.person?.name)
 				?.slice(0, 10)
 				?.map(c => ({
-					id: c.Person!.id,
-					name: c.Person!.name,
+					id: c.person!.id,
+					name: c.person!.name,
 				})) ?? [],
-		directors: getFromDepartmentMap(data.Crew, 'job', 'Director'),
-		writers: getFromDepartmentMap(data.Crew, 'job', 'Writer'),
-		director: getFromDepartmentMap(data.Crew, 'job', 'Director'),
-		genres:
-			data.Genre.map(g => ({
-				id: g.Genre.id,
-				name: g.Genre.name,
-			})) ?? [],
-		keywords: data.Keyword.map(c => c.Keyword.name),
-		type: data.Library.type == 'tv'
+		directors: getFromDepartmentMap(data.crews, 'job', 'Director'),
+		writers: getFromDepartmentMap(data.crews, 'job', 'Writer'),
+		director: getFromDepartmentMap(data.crews, 'job', 'Director'),
+
+		genres: data.genre_tv.map(g => ({
+			id: g.genre.id,
+			name: g.genre.name ?? '',
+		})) ?? [],
+		keywords: data.keyword_tv.map(c => c.keyword.name),
+		type: data.library.type == 'tv'
 			? 'tv'
 			: 'movies',
-		mediaType: data.Library.type == 'tv'
+		mediaType: data.library.type == 'tv'
 			? 'tv'
 			: 'movies',
-		seasons: data.Season.map((s) => {
+		seasons: data.seasons.sort((a, b) => a.seasonNumber - b.seasonNumber).map((s) => {
 
 			return {
 				id: s.id,
@@ -171,14 +140,13 @@ const getContent = async (
 				poster: s.poster,
 				seasonNumber: s.seasonNumber,
 				title: s.title,
-				blurHash: s.blurHash,
+				// blurHash: s.blurHash,
 				colorPalette: JSON.parse(s.colorPalette ?? '{}'),
-				Episode: undefined,
-				episodes: s.Episode.map((e) => {
+				episodes: s.episodes.sort((a, b) => a.episodeNumber - b.episodeNumber).map((e) => {
 					let progress: null | number = null;
 
-					if (e.VideoFile[0] && e.VideoFile[0].duration && e.VideoFile[0]?.UserData?.[0]?.time) {
-						progress = (e.VideoFile[0]?.UserData?.[0]?.time / convertToSeconds(e.VideoFile[0].duration) * 100);
+					if (e.videoFiles[0] && e.videoFiles[0].duration && e.videoFiles[0]?.userData?.[0]?.time) {
+						progress = (e.videoFiles[0]?.userData?.[0]?.time / convertToSeconds(e.videoFiles[0].duration) * 100);
 					}
 
 					return {
@@ -189,10 +157,10 @@ const getContent = async (
 						overview: e.overview,
 						airDate: e.airDate,
 						still: e.still,
-						blurHash: e.blurHash,
+						// blurHash: e.blurHash,
 						colorPalette: JSON.parse(e.colorPalette ?? '{}'),
 						progress: progress,
-						available: !!e.VideoFile[0],
+						available: !!e.videoFiles[0],
 					};
 				}),
 			};
@@ -202,271 +170,9 @@ const getContent = async (
 	return response;
 };
 
-const translationQuery = ({ id, language }) => {
-	return Prisma.validator<Prisma.TranslationFindManyArgs>()({
-		where: {
-			tvId: id,
-			iso6391: language,
-		},
-	});
-};
-
-const ownerQuery = (id: string, userId: string) => {
-	return Prisma.validator<Prisma.TvFindFirstArgsBase>()({
-		where: {
-			id: parseInt(id, 10),
-		},
-		include: {
-			AlternativeTitles: true,
-			Cast: {
-				include: {
-					Person: true,
-					Image: true,
-					Roles: {
-						orderBy: {
-							episodeCount: 'desc',
-						},
-					},
-				},
-				where: {
-					Roles: {
-						some: {
-							episodeCount: {
-								gt: 3,
-							},
-						},
-					},
-				},
-			},
-			Certification: {
-				include: {
-					Certification: true,
-				},
-			},
-			Creator: {
-				include: {
-					Person: true,
-				},
-			},
-			Crew: {
-				include: {
-					Jobs: {
-						orderBy: {
-							episodeCount: 'desc',
-						},
-					},
-					Person: true,
-				},
-				where: {
-					Jobs: {
-						some: {
-							episodeCount: {
-								gt: 3,
-							},
-						},
-					},
-				},
-			},
-			Genre: {
-				include: {
-					Genre: true,
-				},
-			},
-			Keyword: {
-				include: {
-					Keyword: true,
-				},
-			},
-			Library: true,
-			Media: {
-				orderBy: {
-					voteAverage: 'desc',
-				},
-				where: {
-					OR: [
-						{
-							iso6391: 'en',
-							type: {
-								not: null,
-							},
-						},
-						{
-							iso6391: null,
-						},
-					],
-				},
-			},
-			RecommendationFrom: {
-				include: {
-					TvTo: true,
-				},
-			},
-			Season: {
-				include: {
-					Episode: {
-						include: {
-							VideoFile: {
-								include: {
-									UserData: {
-										where: {
-											sub_id: userId,
-										},
-									},
-								},
-							},
-						},
-						orderBy: {
-							episodeNumber: 'asc',
-						},
-					},
-				},
-				orderBy: {
-					seasonNumber: 'asc',
-				},
-			},
-			SimilarFrom: {
-				include: {
-					TvTo: true,
-				},
-			},
-			UserData: true,
-		},
-	});
-};
-
-const userQuery = (id: string, userId: string) => {
-	return Prisma.validator<Prisma.TvFindFirstArgs>()({
-		where: {
-			id: parseInt(id, 10),
-			Library: {
-				User: {
-					some: {
-						userId: userId,
-					},
-				},
-			},
-		},
-		include: {
-			AlternativeTitles: true,
-			Cast: {
-				include: {
-					Image: true,
-					Person: true,
-					Roles: {
-						orderBy: {
-							episodeCount: 'desc',
-						},
-					},
-				},
-				where: {
-					Roles: {
-						some: {
-							episodeCount: {
-								gt: 3,
-							},
-						},
-					},
-				},
-			},
-			Certification: {
-				include: {
-					Certification: true,
-				},
-			},
-			Creator: {
-				include: {
-					Person: true,
-				},
-			},
-			Crew: {
-				include: {
-					Jobs: {
-						orderBy: {
-							episodeCount: 'desc',
-						},
-					},
-					Person: true,
-				},
-				where: {
-					Jobs: {
-						some: {
-							episodeCount: {
-								gt: 3,
-							},
-						},
-					},
-				},
-			},
-			Genre: {
-				include: {
-					Genre: true,
-				},
-			},
-			Keyword: {
-				include: {
-					Keyword: true,
-				},
-			},
-			Library: true,
-			Media: {
-				orderBy: {
-					voteAverage: 'desc',
-				},
-				where: {
-					OR: [
-						{
-							iso6391: 'en',
-							type: {
-								not: null,
-							},
-						},
-						{
-							iso6391: null,
-						},
-					],
-				},
-			},
-			RecommendationFrom: {
-				include: {
-					TvTo: true,
-				},
-			},
-			Season: {
-				include: {
-					Episode: {
-						include: {
-							VideoFile: {
-								include: {
-									UserData: {
-										where: {
-											sub_id: userId,
-										},
-									},
-								},
-							},
-						},
-						orderBy: {
-							episodeNumber: 'asc',
-						},
-					},
-				},
-				orderBy: {
-					seasonNumber: 'asc',
-				},
-			},
-			SimilarFrom: {
-				include: {
-					TvTo: true,
-				},
-			},
-			UserData: true,
-		},
-	});
-};
-
 const getTvData = async (id: string) => {
 
-	i18next.changeLanguage('en');
+	i18n.changeLanguage('en');
 
 	const data = await TV(parseInt(id, 10));
 
@@ -479,14 +185,14 @@ const getTvData = async (id: string) => {
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			blurHash: {
-				poster: index < 10 && s.poster_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-					: null,
-				backdrop: index < 10 && s.backdrop_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-					: null,
-			},
+			// blurHash: {
+			// 	poster: index < 10 && s.poster_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
+			// 		: null,
+			// 	backdrop: index < 10 && s.backdrop_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
+			// 		: null,
+			// },
 		});
 	}
 
@@ -496,14 +202,14 @@ const getTvData = async (id: string) => {
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			blurHash: {
-				poster: index < 10 && s.poster_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-					: null,
-				backdrop: index < 10 && s.backdrop_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-					: null,
-			},
+			// blurHash: {
+			// 	poster: index < 10 && s.poster_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
+			// 		: null,
+			// 	backdrop: index < 10 && s.backdrop_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
+			// 		: null,
+			// },
 		});
 	}
 
@@ -513,18 +219,18 @@ const getTvData = async (id: string) => {
 		overview: data.overview,
 		poster: data.poster_path,
 		backdrop: data.backdrop_path,
-		blurHash: {
-			logo: data.images.logos[0]?.file_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`)
-				: null,
-			poster: data?.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`)
-				: null,
-			backdrop: data?.backdrop_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`)
-				: null,
-		},
-		// videos: data.videos.results.map(v => ({ ...v, src: v.key })) as unknown as ExtendedVideo[],
+		logo: data.images.logos[0]?.file_path ?? null,
+		// blurHash: {
+		// 	logo: data.images.logos[0]?.file_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`)
+		// 		: null,
+		// 	poster: data?.poster_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`)
+		// 		: null,
+		// 	backdrop: data?.backdrop_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`)
+		// 		: null,
+		// },
 		videos: data.videos.results?.map((v) => {
 			return {
 				src: v.key,
@@ -533,9 +239,9 @@ const getTvData = async (id: string) => {
 				site: v.site,
 			};
 		}) ?? [],
-		backdrops: await imageMap(data.images.backdrops),
-		logos: await imageMap(data.images.logos),
-		posters: await imageMap(data.images.posters),
+		backdrops: imageMap(data.images.backdrops),
+		logos: imageMap(data.images.logos),
+		posters: imageMap(data.images.posters),
 		contentRatings: data.content_ratings.results.map((r) => {
 			return {
 				rating: r.rating,
@@ -598,7 +304,6 @@ const getTvData = async (id: string) => {
 				profilePath: c.profile_path,
 				popularity: c.popularity,
 				deathday: null,
-				// blurHash: c.blurHash,
 			};
 		}),
 		crew: data.credits.crew.map((c) => {
@@ -613,21 +318,13 @@ const getTvData = async (id: string) => {
 				profilePath: c.profile_path,
 				popularity: c.popularity,
 				deathday: null,
-				// blurHash: c.blurHash,
 			};
 		}),
 		director: data.credits.crew.filter(c => c.department == 'Directing')
 			.map(c => ({
 				id: c.id,
 				name: c.name,
-				// blurHash: c.blurHash,
 			})),
-		// seasons: data.seasons.map((s) => {
-		// 	return {
-		// 		...s,
-		// 		Episode: undefined,
-		// 	};
-		// }),
 		seasons: data.seasons.map((s) => {
 			return {
 				id: s.id,

@@ -1,8 +1,8 @@
 import { Movie } from '../../../providers/tmdb/movie';
 import { TvShow } from '../../../providers/tmdb/tv';
 import i18n from '../../../loaders/i18n';
-import { parseTitleAndYear } from '../../../functions/videoFilenameParser';
-import { parseYear } from '../../../functions/dateTime';
+import { parseTitleAndYear } from '@server/functions/videoFilenameParser';
+import { parseYear } from '@server/functions/dateTime';
 import { searchMulti } from '../../../providers/tmdb/search';
 
 const searchVideo = async (query) => {

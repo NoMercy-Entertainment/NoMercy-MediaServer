@@ -1,6 +1,6 @@
 import { CollectionTranslations } from './collection_translations';
 import { CollectionWithAppends } from './collection-details';
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import i18next from 'i18next';
 import tmdbApiClient from '../tmdbApiClient';
 

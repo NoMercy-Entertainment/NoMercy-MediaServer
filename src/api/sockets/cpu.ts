@@ -1,11 +1,16 @@
-import { convertToHuman } from '../../functions/dateTime';
+import child_process from 'child_process';
+import { convertToHuman } from '@server/functions/dateTime';
 import nosu from 'node-os-utils';
 import os from 'os';
 import osu from 'os-utils';
+import { platform } from '@server/functions/system';
+import util from 'util';
 const memTotal = os.totalmem();
 const threads = osu.cpuCount();
 
-const cpuIAverage = function (i: string | number) {
+const exec = util.promisify(child_process.exec);
+
+const cpuIAverage = (i: string | number) => {
 	let totalIdle: number;
 	let totalTick: number;
 	let type: string | number;
@@ -27,7 +32,7 @@ const cpuIAverage = function (i: string | number) {
 	};
 };
 
-const cpuILoadInit = function (index) {
+const cpuILoadInit = (index) => {
 	return function () {
 		const start = cpuIAverage(index);
 		return function (dif: any = {}) {
@@ -46,7 +51,7 @@ const cpuILoadInit = function (index) {
 	};
 };
 
-const cpuILoad = function (info: any[]) {
+const cpuILoad = (info: any[]) => {
 	const cpus = os.cpus();
 	for (let i = 0, len = cpus.length; i < len; i++) {
 		const a = cpuILoadInit(i)();
@@ -62,13 +67,55 @@ const cpuILoad = function (info: any[]) {
 	};
 };
 
+const gpuLoad = async () => {
+
+	if (platform == 'windows') {
+
+		let encoder;
+		let decoder;
+		let _3d;
+
+		const gpuEncodeLoad = '$([math]::Round((((Get-Counter "\\GPU Engine(*engtype_VideoEncode)\\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))';
+		const EncodeLoad = exec(gpuEncodeLoad, {
+			shell: 'powershell.exe',
+		}).then((res) => {
+			encoder = parseFloat(res.stdout.replace(/[\n\r]+/u, '').trim()
+				.replace(',', '.'));
+		});
+
+		const gpuDecodeLoad = '$([math]::Round((((Get-Counter "\\GPU Engine(*engtype_VideoDecode)\\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))';
+		const DecodeLoad = exec(gpuDecodeLoad, {
+			shell: 'powershell.exe',
+		}).then((res) => {
+			decoder = parseFloat(res.stdout.replace(/[\n\r]+/u, '').trim()
+				.replace(',', '.'));
+		});
+
+		// const _3dDecodeLoad = '$([math]::Round((((Get-Counter "\\GPU Engine(*engtype_3D)\\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))';
+		// const _3dLoad = exec(_3dDecodeLoad, {
+		// 	shell: 'powershell.exe',
+		// }).then((res) => {
+		// 	_3d = parseFloat(res.stdout.replace(/[\n\r]+/u, '').trim()
+		// 		.replace(',', '.'));
+		// });
+
+		await Promise.all([EncodeLoad, DecodeLoad]);
+
+		return {
+			encoder,
+			decoder,
+			_3d,
+		};
+	}
+};
+
 let info = [];
 setInterval(() => {
 	info = info.slice(info.length - threads, info.length);
-}, 1000);
+}, 1500);
 
 
-export default (socket: { on: (arg0: string, arg1: { (): void; (): void; (): void; }) => void; emit: (arg0: string, arg1: { model: any; os: any; threads: number; platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'; memUsage: number; memTotal: number; sysUptime: any; Uptime: any; coreUtil: never[]; }) => void; }, io: any) => {
+export default (socket: { on: (arg0: string, arg1: { (): void; (): void; (): void; }) => void; emit: (arg0: string, arg1: { model: any; os: any; threads: number; platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'; memUsage: number; memTotal: number; sysUptime: any; Uptime: any; coreUtil: never[]; }) => void; }) => {
 
 	let watcher: string | number | NodeJS.Timeout | undefined;
 	clearInterval(watcher);
@@ -92,7 +139,7 @@ export default (socket: { on: (arg0: string, arg1: { (): void; (): void; (): voi
 		watcher = setInterval(async () => {
 			const stat = await cpuStats();
 			socket.emit('system', stat);
-		}, 500);
+		}, 1000);
 	}
 };
 
@@ -106,6 +153,7 @@ const cpuStats = async () => {
 		? os.type().split('_')[0]
 		: operatingSystem;
 	const coreUtil = await cpuILoad(info)();
+	const gpuUtil = await gpuLoad();
 
 	return {
 		model: cpu.model().replace(/\s{2,}/gu, ''),
@@ -117,5 +165,6 @@ const cpuStats = async () => {
 		sysUptime: convertToHuman(Math.round(osu.sysUptime())),
 		Uptime: convertToHuman(Math.round(osu.processUptime())),
 		coreUtil,
+		gpuUtil,
 	};
 };

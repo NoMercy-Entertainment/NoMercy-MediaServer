@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import jwt_decode, { JwtPayload } from 'jwt-decode';
-import { KeycloakToken } from 'types/keycloak';
+import { KeycloakToken } from '@server/types/keycloak';
 
 interface Payload extends JwtPayload {
 	email: string;

@@ -20,8 +20,8 @@ export interface Music {
     playlists: any[];
     audio: HTMLAudioElement;
     backLog: Song[];
-    currentItem: Song;
-    currentItemIndex: number;
+    currentSong: Song;
+    currentSongIndex: number;
     crossfadeSteps: number;
     displayList: DisplayList;
     filteredList: Song[];
@@ -45,8 +45,8 @@ export interface Music {
 export interface Item {
     id: string;
     name: string;
-    track?: number | null;
-    disc?: number | null;
+    track?: number | null | undefined | null;
+    disc?: number | null | undefined | null;
     cover: string | null;
     date?: string | null;
     folder: string;
@@ -55,7 +55,6 @@ export interface Item {
     quality: number;
     path: string;
     colorPalette: ColorPalette;
-    blurHash: string | null;
     Artist?: Artist[];
     Album?: Album[];
     type: string;
@@ -91,10 +90,10 @@ export interface DisplayList {
     cover: string | null;
     folder: string;
     colorPalette: ColorPalette;
-    blurHash: string | null;
     libraryId: string;
     trackId: null;
     Track: Song[];
+    Artist: Artist[];
     _count: Count;
     type: string;
 }
@@ -115,7 +114,7 @@ export enum MusicType {
 }
 
 export interface ListItem {
-	_count: any;
+    _count: Count;
     id: string;
     libraryId: string;
     albumId?: string;
@@ -135,7 +134,7 @@ export interface Song {
     id: string;
     name: string;
     track: number | null;
-    disc: string;
+    disc: number | null;
     cover: string | null;
     date: string;
     share: string;
@@ -156,6 +155,8 @@ export interface Song {
     path: string;
     libraryId: string;
     colorPalette: PaletteColors;
+    artist_track: Artist[];
+    album_track: Album[];
 }
 
 export interface Album {
@@ -180,7 +181,6 @@ export interface Artist {
     origin: string;
 }
 
-
 export interface HomeData {
     title: string;
     moreLink: string;
@@ -190,9 +190,9 @@ export interface HomeData {
 export interface Item {
     id: string;
     name: string;
-    track?: number | null;
-    disc?: number | null;
-    cover: string | null;
+    track?: number | null | undefined;
+    disc?: number | null | undefined;
+    cover: null | string;
     date?: null | string;
     folder: string;
     filename: string;
@@ -201,7 +201,6 @@ export interface Item {
     path: string;
     lyrics?: null | string;
     colorPalette: ColorPalette;
-    blurHash: string | null;
     MusicGenre?: MusicGenre[];
     libraryId: string;
     type: string;
@@ -222,7 +221,6 @@ export interface Artist {
     cover: string | null;
     folder: string;
     colorPalette: null | string;
-    blurHash: null | string;
     libraryId: string;
     trackId: null;
 }
@@ -230,4 +228,70 @@ export interface Artist {
 export interface MusicGenre {
     id: string;
     name: string;
+}
+
+export interface Playlist {
+    colorPalette: any;
+    track: Song[];
+    id: string;
+    userId: string;
+    name: string;
+    description: string | null;
+    cover: string | null;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface PlaylistResponse {
+    type: string;
+    data: Playlist[];
+}
+
+export interface Lyric {
+    text: string;
+    time: Time;
+}
+
+export interface Time {
+    total: number;
+    minutes: number;
+    seconds: number;
+    hundredths: number;
+}
+
+
+export interface MusicCardPageResponse {
+    type: string;
+    data: MusicCardPageResponseData[];
+}
+
+export interface MusicCardPageResponseData {
+    id: string;
+    name: string;
+    description: null;
+    folder: string;
+    cover: null | string;
+    country: null | string;
+    year: number | null;
+    tracks: number;
+    colorPalette: PaletteColors;
+    blurHash: null | string;
+    libraryId: string;
+    Artist: Artist[];
+    _count: Count;
+    type: string;
+    titleSort: string;
+    origin: string;
+}
+
+export interface Artist {
+    id: string;
+    name: string;
+    description?: string | null;
+    cover: null | string;
+    folder: string;
+    colorPalette: null | string;
+    blurHash: null | string;
+    libraryId: string;
+    trackId: null;
 }

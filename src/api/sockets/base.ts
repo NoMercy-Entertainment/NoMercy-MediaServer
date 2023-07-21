@@ -1,4 +1,4 @@
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import audio from './audio';
 import cast from './cast';
 // import progress from '../../controllers/encoder/ffmpeg/progress';
@@ -7,16 +7,16 @@ import cpuStats from './cpu';
 import dashboard from './dashboard';
 import video from './video';
 
-export default function (socket, io) {
-	socket.on('notification', (data) => {
+export default function (socket) {
+	socket.on('notify', (data) => {
 		Logger.log({
 			level: 'http',
-			name: 'notification',
+			name: 'notify',
 			color: 'yellow',
 			user: socket.decoded_token.name,
 			message: data.value,
 		});
-		socket.nsp.to(socket.decoded_token.sub).emit('notification', data);
+		socket.nsp.to(socket.decoded_token.sub).emit('notify', data);
 	});
 
 	socket.on('command', (data) => {
@@ -45,7 +45,7 @@ export default function (socket, io) {
 	// content(socket, io);
 	dashboard(socket);
 	// progress(socket, io);
-	cpuStats(socket, io);
+	cpuStats(socket);
 
 	cast(socket);
 

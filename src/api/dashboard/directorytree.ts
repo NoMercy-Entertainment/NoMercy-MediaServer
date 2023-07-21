@@ -1,26 +1,33 @@
 import { Request, Response } from 'express';
 
 import { execSync } from 'child_process';
-import { ParsedShow, filenameParse } from '@/functions/videoFilenameParser';
+import { ParsedShow, filenameParse } from '@server/functions/videoFilenameParser';
 import fs from 'fs';
 import { join } from 'path';
 import { platform } from 'os-utils';
-import { matchPercentage, sortBy } from '../../functions/stringArray';
-import { confDb } from '@/database/config';
-import { Episode, Movie } from '@/database/config/client';
-import { createMediaFolder, createTitleSort } from '@/tasks/files/filenameParser';
-import { searchMovie, searchTv } from '@/providers/tmdb/search';
+import { matchPercentage, sortBy } from '@server/functions/stringArray';
+import { createMediaFolder, createTitleSort } from '@server/tasks/files/filenameParser';
+import { searchMovie, searchTv } from '@server/providers/tmdb/search';
 
-import { movie as fetchMovie } from '../../providers/tmdb/movie';
-import { tv as fetchTv } from '../../providers/tmdb/tv';
+import { movie as fetchMovie } from '@server/providers/tmdb/movie';
+import { tv as fetchTv } from '@server/providers/tmdb/tv';
 
-import storeMovie from '../../tasks/data/storeMovie';
-import Logger from '@/functions/logger/logger';
-import storeTvShow from '@/tasks/data/storeTvShow';
+import storeMovie from '@server/tasks/data/movie';
+import Logger from '@server/functions/logger/logger';
+import storeTvShow from '@server/tasks/data/tv';
 import i18next from 'i18next';
+import { AppState, useSelector } from '@server/state/redux';
+import { mediaDb } from '@server/db/media';
+import { and, eq } from 'drizzle-orm';
+import { Episode } from '@server/db/media/actions/episodes';
+import { episodes } from '@server/db/media/schema/episodes';
+import { tvs } from '@server/db/media/schema/tvs';
+import { Movie } from '@server/db/media/actions/movies';
+import { movies } from '@server/db/media/schema/movies';
+import { getEncoderLibraryByType } from '@server/db/media/actions/libraries';
 
 export default function (req: Request, res: Response) {
-	let path: string | string[] = req.query.path as string;
+	let path: string | string[] = req.body.path as string;
 	if (platform() == 'win32') {
 		path = path?.replace(/^\//u, '');
 	}
@@ -70,7 +77,7 @@ export default function (req: Request, res: Response) {
 		} catch (error) {
 			return res.status(400).json({
 				status: 'error',
-				message: 'Specified path is not a directory.',
+				message: error,
 			});
 		}
 	}
@@ -162,6 +169,7 @@ const extensions = [
 export const fileList = async (req: Request, res: Response) => {
 	const folder = req.body.folder as string;
 	const type = req.body.type as string;
+	i18next.changeLanguage('en');
 
 	if (!folder || folder == null || folder == undefined || folder == '' || folder == '/') {
 		return res.status(400).json({
@@ -199,29 +207,24 @@ export const fileList = async (req: Request, res: Response) => {
 	} catch (error) {
 		return res.status(400).json({
 			status: 'error',
-			message: 'Specified path is not a directory.',
+			message: error,
 		});
 	}
 };
+
+interface SnackbarProps {
+	body: string;
+	variant: 'info' | 'success' | 'warn' | 'error' | 'default' | 'promise';
+}
 
 const createFileObject = async (parent: string, path: string, type: string) => {
 	const fullPath = join(parent, path);
 	const stats = fs.statSync(fullPath);
 	const parsed = filenameParse(path, type == 'tv') as ParsedShow;
 
-	const library = await confDb.library
-		.findFirst({
-			where: {
-				type: type,
-			},
-			include: {
-				Folders: {
-					include: {
-						folder: true,
-					},
-				},
-			},
-		}).catch(e => console.log(e));
+	const socket = useSelector((state: AppState) => state.system.socket);
+
+	const library = getEncoderLibraryByType(type);
 
 	if (!library?.id) {
 		Logger.log({
@@ -236,17 +239,20 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 		};
 	}
 
-	let episode: Episode | null = <Episode>{};
-	if (type == 'tv' && parsed.title != null && parsed.seasons?.[0] != null && parsed.episodeNumbers?.[0] != null) {
-		episode = await confDb.episode.findFirst({
-			where: {
-				seasonNumber: parsed.seasons[0],
-				episodeNumber: parsed.episodeNumbers[0],
-				Tv: {
-					titleSort: createTitleSort(parsed.title),
+	let episode: Episode | undefined = <Episode>{};
+	if (type == 'tv' && parsed.title != null && parsed.episodeNumbers?.[0] != null) {
+		episode = mediaDb.query.tvs.findFirst({
+			where: eq(tvs.titleSort, createTitleSort(parsed.title)),
+			with: {
+				episodes: {
+					where: and(
+						eq(episodes.seasonNumber, parsed.seasons[0] ?? 1),
+						eq(episodes.episodeNumber, parsed.episodeNumbers[0])
+					),
 				},
 			},
-		});
+		})?.episodes?.[0];
+
 		if (!episode) {
 
 			let currentScore = 0;
@@ -271,16 +277,24 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 				.catch(() => null);
 
 			if (searchResult) {
-				episode = await confDb.episode.findFirst({
-					where: {
-						seasonNumber: parsed.seasons[0],
-						episodeNumber: parsed.episodeNumbers[0],
-						Tv: {
-							titleSort: createTitleSort(searchResult.name, searchResult.first_air_date),
+
+				episode = mediaDb.query.tvs.findFirst({
+					where: eq(tvs.titleSort, createTitleSort(parsed.title)),
+					with: {
+						episodes: {
+							where: and(
+								eq(episodes.seasonNumber, parsed.seasons[0] ?? 1),
+								eq(episodes.episodeNumber, parsed.episodeNumbers[0])
+							),
 						},
 					},
-				});
+				})?.episodes?.[0];
+
 				if (!episode) {
+					socket.emit('notify', {
+						body: `One moment, we're fetching ${searchResult.name} from TMDB.`,
+						variant: 'info',
+					} as SnackbarProps);
 					i18next.changeLanguage('en');
 					const tvData = await fetchTv(searchResult.id);
 
@@ -288,17 +302,15 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 						id: tvData.id,
 						folder: createMediaFolder(library, tvData),
 						libraryId: library.id,
-					}).then(async (response) => {
+					}).then((response) => {
 						if (!response?.data) return;
 
-						episode = await confDb.episode.findFirst({
-							where: {
-								seasonNumber: parsed.seasons[0],
-								episodeNumber: parsed.episodeNumbers[0],
-								Tv: {
-									titleSort: createTitleSort(searchResult.name, searchResult.first_air_date),
-								},
-							},
+						episode = mediaDb.query.episodes.findFirst({
+							where: and(
+								eq(episodes.seasonNumber, parsed.seasons[0] ?? 1),
+								eq(episodes.episodeNumber, parsed.episodeNumbers[0]),
+								eq(tvs.titleSort, createTitleSort(parsed.title))
+							),
 						});
 					});
 
@@ -307,14 +319,18 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 		}
 	}
 
-	let movie: Movie | null = <Movie>{};
+	let movie: Movie | undefined = <Movie>{};
 	if (type == 'movie' && parsed.title != null) {
-		movie = await confDb.movie.findFirst({
-			where: {
-				titleSort: createTitleSort(parsed.title, parsed.year ?? undefined),
-			},
+
+		movie = mediaDb.query.movies.findFirst({
+			where: eq(movies.titleSort, createTitleSort(parsed.title, parsed.year ?? undefined)),
 		});
+
 		if (!movie) {
+			socket.emit('notify', {
+				body: `One moment, we're fetching ${parsed.title} from TMDB.`,
+				variant: 'info',
+			} as SnackbarProps);
 			let currentScore = 0;
 			i18next.changeLanguage('en');
 			const searchResult = await searchMovie(parsed.title, parsed.year)
@@ -335,11 +351,11 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 					return show;
 				});
 			if (searchResult) {
-				movie = await confDb.movie.findFirst({
-					where: {
-						titleSort: createTitleSort(searchResult.title, searchResult.release_date),
-					},
+
+				movie = mediaDb.query.movies.findFirst({
+					where: eq(movies.titleSort, createTitleSort(parsed.title, parsed.year ?? undefined)),
 				});
+
 				if (!movie) {
 
 					const movieData = await fetchMovie(searchResult.id);
@@ -348,13 +364,11 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 						id: movieData.id,
 						folder: createMediaFolder(library, movieData),
 						libraryId: library.id,
-					}).then(async (response) => {
+					}).then((response) => {
 						if (!response?.data) return;
 
-						movie = await confDb.movie.findFirst({
-							where: {
-								titleSort: createTitleSort(response.data.title, response.data.release_date),
-							},
+						movie = mediaDb.query.movies.findFirst({
+							where: eq(movies.titleSort, createTitleSort(response.data.title, response.data.release_date)),
 						});
 					});
 				}

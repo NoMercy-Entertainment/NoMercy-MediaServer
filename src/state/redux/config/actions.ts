@@ -1,9 +1,9 @@
-import { CDNInfoResponse, Files } from 'types/cdn';
+import { CDNInfoResponse, Files } from '@server/types/cdn';
 
 import { store } from '../';
-import { User } from '../../../database/config/client';
-import { ChromeCast } from '../../../functions/chromeCast/chromeCast';
+import { ChromeCast } from '@server/functions/chromeCast/chromeCast';
 import config, { AllowedUser } from './';
+import { User } from '@server/db/media/actions/users';
 
 export const setTmdbApiKey = (payload: string) => store.dispatch(config.actions.setTmdbApiKey(payload));
 
@@ -12,6 +12,8 @@ export const setLanguage = (payload: string) => store.dispatch(config.actions.se
 export const setOmdbApiKey = (payload: string) => store.dispatch(config.actions.setOmdbApiKey(payload));
 
 export const setMakeMKVKey = (payload: string) => store.dispatch(config.actions.setMakeMKVKey(payload));
+
+export const setAcousticId = (payload: string) => store.dispatch(config.actions.setAcousticId(payload));
 
 export const setQuote = (payload: string) => store.dispatch(config.actions.setQuote(payload));
 

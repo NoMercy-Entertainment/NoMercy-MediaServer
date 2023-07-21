@@ -1,7 +1,7 @@
-import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '@/state';
+import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '@server/state';
 import fs, { existsSync } from 'fs';
 
-import { pad } from '../../functions/stringArray';
+import { pad } from '@server/functions/stringArray';
 
 export const convertToHuman = function (time: any) {
 	time = parseInt(time, 10);

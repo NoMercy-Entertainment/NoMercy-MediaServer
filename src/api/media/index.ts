@@ -1,168 +1,191 @@
-import { Movie, Tv } from '../../database/config/client';
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
-import { confDb } from '../../database/config';
-import { getLanguage } from '../middleware';
-import { isOwner } from '../middleware/permissions';
-import { parseYear } from '@/functions/dateTime';
+import { parseYear } from '@server/functions/dateTime';
+import { mediaDb } from '@server/db/media';
+import { asc, inArray } from 'drizzle-orm';
+import { genres } from '@server/db/media/schema/genres';
+import { tvs } from '@server/db/media/schema/tvs';
+import { getAllowedLibraries } from '@server/db/media/actions/libraries';
+import { Movie } from '@server/db/media/actions/movies';
+import { Tv } from '@server/db/media/actions/tvs';
+import { requestWorker } from '../requestWorker';
 
 export default async function (req: Request, res: Response) {
 
-	const language = getLanguage(req);
-
-	const cursorQuery = (req.body.page as number) ?? undefined;
-	const skip = cursorQuery
-		? 1
-		: 0;
-	const cursor = cursorQuery
-		? { id: cursorQuery }
-		: undefined;
-
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
-
-	const genres = await confDb.genre.findMany({
-		orderBy: {
-			name: 'asc',
-		},
-		skip,
+	const result = await requestWorker({
+		filename: __filename,
+		language: req.language,
+		user_id: req.user.sub,
+		limit: req.body.limit,
+		offset: req.body.page,
 		take: req.body.take,
-		cursor,
-		include: {
-			Movie: {
-				where: {
-					Movie: {
-						VideoFile: {
-							some: {
-								duration: {
-									not: null,
-								},
-							},
-						},
-						Library: {
-							User: {
-								some: {
-									userId: owner
-										? undefined
-										: user,
-								},
-							},
-						},
-					},
-				},
-				include: {
-					Movie: {
-						include: {
-							Translation: {
-								where: {
-									iso6391: language,
-								},
-							},
-							Media: true,
-						},
-					},
-				},
-			},
-			Tv: {
-				where: {
-					Tv: {
-						Episode: {
-							some: {
-								VideoFile: {
-									some: {
-										duration: {
-											not: null,
-										},
-									},
-								},
-							},
-						},
-						Library: {
-							User: {
-								some: {
-									userId: owner
-										? undefined
-										: user,
-								},
-							},
-						},
-					},
-				},
-				include: {
-					Tv: {
-						include: {
-							Translation: {
-								where: {
-									iso6391: language,
-								},
-							},
-							Media: {
-								orderBy: {
-									voteAverage: 'desc',
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+		page: req.body.page,
 	});
 
-	const data = genres.map((genre) => {
-		const items = [
-			...genre.Movie.map(m => ({
-				...m.Movie,
-				Translation: m.Movie.Translation,
-				Media: m.Movie.Media,
-			})),
-			...genre.Tv.map(t => ({
-				...t.Tv,
-				Translation: t.Tv.Translation,
-				Media: t.Tv.Media,
-			})),
-		];
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
+		});
+	}
+	return res.json(result.result);
+}
 
-		return {
-			id: genre.id,
-			title: genre.name,
-			moreLink: '',
-			items: items.map((d) => {
+export const exec = ({ user_id, language, limit, offset, take, page }: 
+	{ user_id: string; language: string; limit: number; offset: number; take: number; page: number }) => {
+	return new Promise(async (resolve, reject) => {
 
-				const logo = d.Media.find(m => m.type == 'logo');
-				const palette = JSON.parse(d.colorPalette ?? '{}');
+		const allowedLibraries = getAllowedLibraries(user_id);
+
+		if (!allowedLibraries || allowedLibraries.length == 0) {
+			return reject({
+				error: {
+					code: 404,
+					message: 'No libraries found',
+				},
+			});
+		}
+
+		try {
+			const genresResponse = mediaDb.query.genres.findMany({
+				limit,
+				offset,
+				orderBy: asc(genres.name),
+				with: {
+					genre_movie: true,
+					genre_tv: true,
+				},
+			});
+
+			const movieGids = genresResponse.map(g => g.genre_movie.map(m => m.movie_id)).flat();
+			const moviesResponse = movieGids.length == 0
+				? []
+				: mediaDb.query.movies.findMany({
+					where: (movies, { sql, and }) => and(
+						sql`json_array_length(${movies.videoFiles}) > 0`,
+						inArray(movies.id, movieGids)
+					),
+					with: {
+						videoFiles: true,
+					},
+				});
+
+			const tvGids = genresResponse.map(g => g.genre_tv.map(t => t.tv_id)).flat();
+			const tvsResponse = tvGids.length == 0
+				? []
+				: mediaDb.query.tvs.findMany({
+					where: inArray(tvs.id, tvGids),
+				});
+
+			const translationsResponse = mediaDb.query.translations.findMany({
+				where: (translations, { eq, and, or }) => or(
+					and(
+						eq(translations.iso6391, language),
+						inArray(translations.tv_id, tvGids)
+					),
+					and(
+						eq(translations.iso6391, language),
+						inArray(translations.movie_id, movieGids)
+					)
+				),
+			});
+
+			const imagesResponse = mediaDb.query.images.findMany({
+				where: (images, { eq, and, or }) => or(
+					and(
+						eq(images.type, 'logo'),
+						inArray(images.tv_id, tvGids)
+					),
+					and(
+						eq(images.type, 'logo'),
+						inArray(images.movie_id, movieGids)
+					)
+				),
+			});
+
+			const episodesResponse = mediaDb.query.episodes.findMany({
+				where: (episodes) => inArray(episodes.tv_id, tvsResponse.map(t => t.id)),
+				columns: {
+					id: true,
+				},
+				with: {
+					videoFiles: {
+						columns: {
+							id: true,
+							duration: true,
+						},
+					},
+				},
+			});
+
+			const data = genresResponse.map((genre) => {
+				const items = [
+					...genre.genre_movie.map(m => ({
+						...moviesResponse.find(mr => mr.id == m.movie_id),
+						translations: translationsResponse.filter(tr => tr.movie_id == m.movie_id),
+						images: imagesResponse.filter(ir => ir.movie_id == m.movie_id),
+					})).filter(m => m?.videoFiles && m.videoFiles?.length > 0),
+
+					...genre.genre_tv.map(t => ({
+						...tvsResponse.find(tr => tr.id == t.tv_id),
+						translations: translationsResponse.filter(tr => tr.tv_id == t.tv_id),
+						images: imagesResponse.filter(ir => ir.tv_id == t.tv_id),
+						videoFiles: episodesResponse?.map(e => e.videoFiles).flat(),
+					})).filter(t => t?.videoFiles?.length > 0),
+				];
 
 				return {
-					id: d.id,
-					backdrop: d.backdrop,
-					logo: logo?.src ?? undefined,
-					overview: d.overview,
-					poster: d.poster,
-					title: d.title,
-					titleSort: d.titleSort,
-					type: (d as Tv).firstAirDate
-						? 'tv'
-						: 'movie',
-					year: parseYear((d as Tv).firstAirDate ?? (d as Movie).releaseDate),
-					mediaType: (d as Tv).firstAirDate
-						? 'tv'
-						: 'movie',
-					colorPalette: palette,
+					id: genre.id,
+					title: genre.name,
+					moreLink: '',
+					items: items.map((d) => {
+						const type = (d as Tv).firstAirDate
+							? 'tv'
+							: 'movie';
+
+						const logo = d.images?.find(m => m.type == 'logo');
+
+						const palette = JSON.parse(d.colorPalette ?? '{}');
+
+						const translation = d.translations?.[0];
+
+						return {
+							id: d.id,
+							backdrop: d.backdrop,
+							// @ts-ignore
+							logo: logo?.filePath ?? logo?.src ?? undefined,
+							overview: !translation?.overview || translation?.overview == ''
+								? d.overview
+								: translation?.overview,
+							poster: d.poster,
+							title: d.title,
+							titleSort: d.titleSort,
+							type: type,
+							year: parseYear((d as Tv).firstAirDate ?? (d as Movie).releaseDate),
+							mediaType: type,
+							colorPalette: palette,
+						};
+					})
+						.sort(() => Math.random() - 0.5)
+						.slice(0, 35),
 				};
-			})
-				.sort(() => Math.random() - 0.5)
-				.slice(0, 35),
-		};
+			});
+
+			const nextId = data.length < take
+				? undefined
+				: data.length + page;
+
+			return resolve({
+				nextId: nextId,
+				data: data.filter(d => d.items.length > 0),
+			});
+		} catch (error) {
+			return reject({
+				error: {
+					code: 500,
+					message: error,
+				},
+			});
+		}
 	});
-
-
-	const nextId = data.length < req.body.take
-		? undefined
-		: data[req.body.take - 1]?.id;
-
-	return res.json({
-		nextId: nextId,
-		data: data,
-	});
-
-}
+};

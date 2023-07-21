@@ -1,36 +1,37 @@
 import { Request, Response } from 'express';
 
-import { confDb } from '../../../database/config';
 import { findLyrics } from '../../../providers';
 import lyricsFinder from 'lyrics-finder';
+import { tracks } from '@server/db/media/schema/tracks';
+import { mediaDb } from '@server/db/media';
+import { eq } from 'drizzle-orm';
+import { track } from '@server/db/media/actions/tracks';
 
 export default async function (req: Request, res: Response) {
 	let lyrics = '';
-	let song;
+	let song: track = <track>{};
 
 	try {
-		song = await confDb.track.findFirst({
-			where: {
-				id: req.body.id,
-			},
-		});
+		song = mediaDb.select()
+			.from(tracks)
+			.where(eq(tracks.id, req.body.id))
+			.get();
 
 		if (!song?.lyrics) {
 			lyrics = await findLyrics(req.body);
 			if (!lyrics) {
-				lyrics = await lyricsFinder(req.body.artists?.[0]?.name, req.body.name);
+				lyrics = await lyricsFinder(req.body.artist_track?.[0]?.name, req.body.name);
 			}
 		}
 
 		if (lyrics) {
-			song = await confDb.track.update({
-				data: {
+			song = mediaDb.update(tracks)
+				.set({
 					lyrics,
-				},
-				where: {
-					id: req.body.id,
-				},
-			});
+				})
+				.where(eq(tracks.id, song.id))
+				.returning()
+				.get();
 		}
 
 	} catch (error) {
@@ -38,7 +39,7 @@ export default async function (req: Request, res: Response) {
 	}
 
 	if (lyrics == '' && !song?.lyrics) {
-		return res.json({
+		return res.status(404).json({
 			message: 'No Lyrics found',
 		});
 	}
@@ -52,6 +53,4 @@ export default async function (req: Request, res: Response) {
 			lyrics: song?.lyrics ?? lyrics,
 		});
 	}
-
-
 }

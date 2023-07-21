@@ -1,22 +1,22 @@
-import { AppState, useSelector } from '@/state/redux';
-import { configFile, tokenFile } from '@/state';
+import { AppState, useSelector } from '@server/state/redux';
+import { configFile, tokenFile } from '@server/state';
 import { readFileSync, writeFileSync } from 'fs';
 import {
-	setAccessToken,
-	setExpiresIn,
-	setIdToken,
-	setNotBeforePolicy,
-	setRefreshExpiresIn,
-	setRefreshToken,
-	setScope,
-	setSessionState,
-	setTokenType
-} from '@/state/redux/user/actions';
+    setAccessToken,
+    setExpiresIn,
+    setIdToken,
+    setNotBeforePolicy,
+    setRefreshExpiresIn,
+    setRefreshToken,
+    setScope,
+    setSessionState,
+    setTokenType
+} from '@server/state/redux/user/actions';
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import { keycloak_key } from '../keycloak/config';
 import qs from 'qs';
-import { setOwner } from '@/state/redux/system/actions';
+import { setOwner } from '@server/state/redux/system/actions';
 
 export const refreshToken = async () => {
 
@@ -30,10 +30,10 @@ export const refreshToken = async () => {
 	setExpiresIn(tokens.expires_in);
 	setRefreshExpiresIn(tokens.refresh_expires_in);
 	setTokenType(tokens.token_type);
-	setAccessToken(tokens.id_token);
+	setIdToken(tokens.id_token);
 	setNotBeforePolicy(tokens['not-before-policy']);
-	setAccessToken(tokens.session_state);
-	setAccessToken(tokens.scope);
+	setSessionState(tokens.session_state);
+	setScope(tokens.scope);
 
 	await refresh();
 	refreshLoop();
@@ -43,9 +43,8 @@ export default refreshToken;
 
 const refreshLoop = () => {
 	const expires_in = useSelector((state: AppState) => state.user.expires_in);
-	setTimeout(async () => {
+	setInterval(async () => {
 		await refresh();
-		refreshLoop();
 	}, (expires_in - 120) * 1000);
 };
 

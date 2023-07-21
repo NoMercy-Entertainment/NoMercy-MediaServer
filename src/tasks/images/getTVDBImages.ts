@@ -1,10 +1,10 @@
-import { Cast } from '../../providers/tmdb/shared';
-import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
-import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
+import { Cast } from '@server/providers/tmdb/shared';
+import { CompleteMovieAggregate } from '../data/movie/fetchMovie';
+import { CompleteTvAggregate } from '../data/tv/fetchTvShow';
 import axios from 'axios';
-import { imageCrawler } from '../../providers/tvdb';
-import { person } from '../../providers/tmdb/people/index';
-import { searchPeople } from '../../providers/tmdb/search/index';
+import { imageCrawler } from '@server/providers/tvdb';
+import { person } from '@server/providers/tmdb/people/index';
+import { searchPeople } from '@server/providers/tmdb/search/index';
 
 export interface ImageResult extends Cast {
 	href: string;
@@ -95,10 +95,10 @@ export default (type: string, req: CompleteTvAggregate | CompleteMovieAggregate)
 												.find(c => c.character?.toLowerCase().includes(p.character.toLowerCase()));
 										}
 
-										if (!characterResult) {
-											characterResult = personDetails.credits.cast
-												.find(c => c.name == p.actor) as unknown as Cast;
-										}
+										// if (!characterResult) {
+										// 	characterResult = personDetails.credits.cast
+										// 		.find(c => c.name == p.actor);
+										// }
 
 										if (characterResult) {
 											imageResult.push({

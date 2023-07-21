@@ -1,8 +1,8 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 
 import { FFMpegArchive } from './archiver';
-import { confDb } from '@/database/config';
 import { readdirSync } from 'fs';
+import { getEncoderLibraryById } from '@server/db/media/actions/libraries';
 
 export const execute = async ({ onDemand }: { onDemand: FFMpegArchive}) => {
 
@@ -29,11 +29,15 @@ export const execute = async ({ onDemand }: { onDemand: FFMpegArchive}) => {
 	});
 
 	process.on('message', (message: any) => {
+		// console.log(message);
 		instance.emit('message', message);
 	});
 
+	console.log('starting');
+
 	await instance.start(async () => {
 		instance.buildSprite();
+		instance.makeSubtitles();
 		await instance.addToDatabase();
 		process.send!({
 			type: 'encoder-end',
@@ -45,23 +49,7 @@ export const execute = async ({ onDemand }: { onDemand: FFMpegArchive}) => {
 
 export const encodeFolder = async ({ folder, libraryId }) => {
 
-	const library = await confDb.library.findFirst({
-		where: {
-			id: libraryId,
-		},
-		include: {
-			EncoderProfiles: {
-				include: {
-					EncoderProfile: true,
-				},
-			},
-			Folders: {
-				include: {
-					folder: true,
-				},
-			},
-		},
-	});
+	const library = getEncoderLibraryById(libraryId);
 
 	const episodes = readdirSync(folder)
 		.map((f) => {
@@ -81,10 +69,11 @@ export const encodeFolder = async ({ folder, libraryId }) => {
 
 			onDemand
 				.setAllowedLanguages()
-				.verifyHLS()
-				.makeStack();
+				.verifyHLS();
 
-			await queue.add({
+			await onDemand.makeStack();
+
+			queue.add({
 				file: __filename,
 				fn: 'execute',
 				args: { onDemand },
@@ -98,36 +87,18 @@ export const encodeFolder = async ({ folder, libraryId }) => {
 
 export const encodeFile = async ({ path, libraryId }) => {
 
-	const library = await confDb.library.findFirst({
-		where: {
-			id: libraryId,
-		},
-		include: {
-			EncoderProfiles: {
-				include: {
-					EncoderProfile: true,
-				},
-			},
-			Folders: {
-				include: {
-					folder: true,
-				},
-			},
-		},
-	});
+	const library = getEncoderLibraryById(libraryId);
 
-	const queue = useSelector((state: AppState) => state.config.queueWorker);
+	const queue = useSelector((state: AppState) => state.config.encoderWorker);
 	try {
 		const onDemand = new FFMpegArchive();
 
 		onDemand.setLibrary(library!);
 		await onDemand.fromFile(path);
 
-		onDemand
-			.verifyHLS()
-			.makeStack();
+		await onDemand.makeStack();
 
-		await queue.add({
+		queue.add({
 			file: __filename,
 			fn: 'execute',
 			args: { onDemand },

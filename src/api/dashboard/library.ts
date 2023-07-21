@@ -1,89 +1,177 @@
 import { Request, Response } from 'express';
 
-import Logger from '../../functions/logger';
-import { confDb } from '../../database/config';
+import Logger from '@server/functions/logger';
 import {
 	createMediaFolder
-} from '../../tasks/files/filenameParser';
-import { encodeInput } from '../../functions/ffmpeg/encodeInput';
+} from '@server/tasks/files/filenameParser';
+import { encodeInput } from '@server/functions/ffmpeg/encodeInput';
 import i18n from '../../loaders/i18n';
-import { movie } from '../../providers/tmdb/movie';
+import { movie } from '@server/providers/tmdb/movie';
 import path from 'path';
-import { platform } from '../../functions/system';
+import { platform } from '@server/functions/system';
 import {
 	scanLibrary
-} from '../../tasks/files/scanLibraries';
-import storeMovie from '../../tasks/data/storeMovie';
-import storeTvShow from '../../tasks/data/storeTvShow';
-import { tv } from '../../providers/tmdb/tv';
-import { updateEncoderProfilesParams } from 'types/server';
+} from '@server/tasks/files/scanLibraries';
+import storeMovie from '@server/tasks/data/movie';
+import storeTvShow from '@server/tasks/data/tv';
+import { tv } from '@server/providers/tmdb/tv';
+import { updateEncoderProfilesParams } from '@server/types/server';
+import { insertLibrary, selectLibrariesWithRelations } from '@server/db/media/actions/libraries';
+import { mediaDb } from '@server/db/media';
+import { eq, inArray } from 'drizzle-orm';
+import { libraries } from '@server/db/media/schema/libraries';
+import { insertFolder } from '@server/db/media/actions/folders';
+import { folders } from '@server/db/media/schema/folders';
+import { encoderProfiles } from '@server/db/media/schema/encoderProfiles';
+import { languages } from '@server/db/media/schema/languages';
 
-export const libraries = async (req: Request, res: Response) => {
-	await confDb.library
-		.findMany({
-			include: {
-				Folders: {
-					include: {
-						folder: true,
-					},
-				},
-				EncoderProfiles: true,
-				SubtitleLanguages: {
-					include: {
-						language: true,
-					},
-				},
-				Metadata: true,
-				// user: true,
-			},
-		})
-		.then((data) => {
-			const lib = data.map((d) => {
-				return {
-					...d,
-					extractChaptersDuring: d.extractChaptersDuring,
-					language: d.language,
-					country: d.country,
-					folders: d.Folders.map(f => f.folder?.path),
-					subtitleLanguages: undefined,
-					encoderProfiles: d.EncoderProfiles.map(e => e.encoderProfileId),
-					subtitles: d.SubtitleLanguages.map(s => s.language.iso_639_1),
-					EncoderProfiles: undefined,
-					SubtitleLanguages: undefined,
-					Metadata: undefined,
-					Folders: undefined,
-				};
-			});
-			return res.json(lib);
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting encoder profiles: ${error}`,
-			});
-			return res.json({
-				status: 'error',
-				message: `Something went wrong getting encoder profiles: ${error}`,
-			});
-		});
+export const librarie = (req: Request, res: Response) => {
+
+	const data = selectLibrariesWithRelations();
+
+	const lib = data.map((d) => {
+		return {
+			...d,
+			extractChaptersDuring: d.extractChaptersDuring,
+			language: d.language,
+			country: d.country,
+			folders: d.folder_library.map(f => f.folder?.path),
+			subtitleLanguages: undefined,
+			encoderProfiles: d.encoderProfile_library.map(e => e.encoderProfile_id),
+			subtitles: d.language_library.map(s => s.language.iso_639_1),
+			EncoderProfiles: undefined,
+			SubtitleLanguages: undefined,
+			Metadata: undefined,
+			Folders: undefined,
+		};
+	});
+	return res.json(lib);
+
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createLibrary = async (req: Request, res: Response) => {
+export const createLibrary = (req: Request, res: Response) => {
 	//
+	const {
+		type,
+		folders,
+		chapterImages,
+		specialSeasonName,
+		title,
+		subtitles,
+		encoderProfiles: profiles,
+	} = req.body;
+
+	const users = mediaDb.query.users.findMany();
+
+	const lib = mediaDb.query.libraries.findFirst({
+		where: eq(libraries.title, title),
+	});
+
+	const library = lib
+		? lib
+		: insertLibrary({
+			title: title,
+			autoRefreshInterval: 30,
+			chapterImages: chapterImages,
+			extractChapters: chapterImages,
+			extractChaptersDuring: true,
+			perfectSubtitleMatch: true,
+			realtime: true,
+			specialSeasonName: specialSeasonName,
+			type: type,
+			country: 'NL',
+			language: 'nl',
+		}, 'title');
+
+	folders.map((folder: string) => {
+		insertFolder({
+			path: folder,
+		});
+	});
+
+	const Folders = mediaDb.query.folders.findMany();
+	const Languages = mediaDb.query.languages.findMany();
+
+	// mediaDb.query.libraries.update({
+	// 	where: {
+	// 		id: library.id,
+	// 	},
+	// 	data: {
+	// 		Folders: {
+	// 			connectOrCreate: Folders.map(folder => ({
+	// 				create: {
+	// 					folderId: folder.id,
+	// 				},
+	// 				where: {
+	// 					libraryId_folderId: {
+	// 						folderId: folder.id,
+	// 						libraryId: library.id,
+	// 					},
+	// 				},
+	// 			})),
+	// 		},
+	// 		User: {
+	// 			connectOrCreate: users.map(user => ({
+	// 				create: {
+	// 					userId: user.sub_id,
+	// 				},
+	// 				where: {
+	// 					libraryId_userId: {
+	// 						userId: user.sub_id,
+	// 						libraryId: library.id,
+	// 					},
+	// 				},
+	// 			})),
+	// 		},
+	// 		EncoderProfiles: {
+	// 			connectOrCreate: profiles.map((encoderProfile) => {
+	// 				return {
+	// 					create: {
+	// 						encoderProfileId: encoderProfile,
+	// 					},
+	// 					where: {
+	// 						libraryId_encoderProfileId: {
+	// 							encoderProfileId: encoderProfile,
+	// 							libraryId: library.id,
+	// 						},
+	// 					},
+	// 				};
+	// 			}),
+	// 		},
+	// 		SubtitleLanguages: {
+	// 			connectOrCreate: subtitles.map((subtitle) => {
+	// 				const language = Languages.find(l => l.iso_639_1 == subtitle)!;
+	// 				return {
+	// 					create: {
+	// 						languageId: language.id,
+	// 					},
+	// 					where: {
+	// 						libraryId_languageId: {
+	// 							languageId: language.id,
+	// 							libraryId: library.id,
+	// 						},
+	// 					},
+	// 				};
+	// 			}),
+	// 		},
+	// 	},
+	// });
+
+	return res.json({
+		status: 'ok',
+		message: `Successfully created ${title} library.`,
+	});
 };
 
-export const updateLibrary = async (req: Request, res: Response) => {
+export const updateLibrary = (req: Request, res: Response) => {
 	const {
 		autoRefreshInterval,
 		chapterImages,
 		country,
-		encoderProfiles,
+		encoderProfiles: E,
 		extractChapters,
 		extractChaptersDuring,
-		folders,
+		folders: F,
 		id,
 		image,
 		language,
@@ -95,125 +183,114 @@ export const updateLibrary = async (req: Request, res: Response) => {
 		type,
 	}: updateEncoderProfilesParams = req.body;
 
-	const Folders = await confDb.folder.findMany({
-		where: {
-			path: {
-				in: folders.map(f => (platform == 'windows'
-					? path.resolve(f)?.replace(/\/$/u, '')
-					: f?.replace(/\/$/u, ''))),
-			},
-		},
+	const Folders = mediaDb.query.folders.findMany({
+		where: inArray(folders.path,
+			F.map(f => (platform == 'windows'
+				? path.resolve(f)?.replace(/\/$/u, '')
+				: f?.replace(/\/$/u, '')))),
 	});
 
-	const EncoderProfiles = await confDb.encoderProfile.findMany({
-		where: {
-			id: {
-				in: encoderProfiles,
-			},
-		},
+	const EncoderProfiles = mediaDb.query.encoderProfiles.findMany({
+		where: inArray(encoderProfiles.id, E),
 	});
 
-	const Languages = await confDb.language.findMany({
-		where: {
-			iso_639_1: {
-				in: subtitles,
-			},
-		},
+	const Languages = mediaDb.query.languages.findMany({
+		where: inArray(languages.iso_639_1, subtitles),
 	});
 
-	confDb.library
-		.update({
-			where: {
-				id: id,
-			},
-			data: {
-				id: id,
-				autoRefreshInterval: autoRefreshInterval,
-				chapterImages: chapterImages,
-				extractChapters: extractChapters,
-				extractChaptersDuring: extractChaptersDuring,
-				image: image,
-				perfectSubtitleMatch: perfectSubtitleMatch,
-				realtime: realtime,
-				specialSeasonName: specialSeasonName,
-				title: title,
-				type: type,
-				Folders: {
-					// set: [],
-					connectOrCreate: Folders.map(f => ({
-						where: {
-							libraryId_folderId: {
-								folderId: f.id,
-								libraryId: id,
-							},
-						},
-						create: {
-							folderId: f.id,
-						},
-					})),
-				},
-				EncoderProfiles: {
-					// set: [],
-					connectOrCreate: EncoderProfiles.map(f => ({
-						where: {
-							libraryId_encoderProfileId: {
-								encoderProfileId: f.id,
-								libraryId: id,
-							},
-						},
-						create: {
-							encoderProfileId: f.id,
-						},
-					})),
-				},
-				SubtitleLanguages: {
-					// set: [],
-					connectOrCreate: Languages.map(f => ({
-						where: {
-							libraryId_languageId: {
-								languageId: f.id,
-								libraryId: id,
-							},
-						},
-						create: {
-							languageId: f.id,
-						},
-					})),
-				},
-				country: country,
-				language: language.toLowerCase(),
+	// mediaDb.query.libraries
+	// 	.update({
+	// 		where: {
+	// 			id: id,
+	// 		},
+	// 		data: {
+	// 			id: id,
+	// 			autoRefreshInterval: autoRefreshInterval,
+	// 			chapterImages: chapterImages,
+	// 			extractChapters: extractChapters,
+	// 			extractChaptersDuring: extractChaptersDuring,
+	// 			image: image,
+	// 			perfectSubtitleMatch: perfectSubtitleMatch,
+	// 			realtime: realtime,
+	// 			specialSeasonName: specialSeasonName,
+	// 			title: title,
+	// 			type: type,
+	// 			Folders: {
+	// 				// set: [],
+	// 				connectOrCreate: Folders.map(f => ({
+	// 					where: {
+	// 						libraryId_folderId: {
+	// 							folderId: f.id,
+	// 							libraryId: id,
+	// 						},
+	// 					},
+	// 					create: {
+	// 						folderId: f.id,
+	// 					},
+	// 				})),
+	// 			},
+	// 			EncoderProfiles: {
+	// 				// set: [],
+	// 				connectOrCreate: EncoderProfiles.map(f => ({
+	// 					where: {
+	// 						libraryId_encoderProfileId: {
+	// 							encoderProfileId: f.id,
+	// 							libraryId: id,
+	// 						},
+	// 					},
+	// 					create: {
+	// 						encoderProfileId: f.id,
+	// 					},
+	// 				})),
+	// 			},
+	// 			SubtitleLanguages: {
+	// 				// set: [],
+	// 				connectOrCreate: Languages.map(f => ({
+	// 					where: {
+	// 						libraryId_languageId: {
+	// 							languageId: f.id,
+	// 							libraryId: id,
+	// 						},
+	// 					},
+	// 					create: {
+	// 						languageId: f.id,
+	// 					},
+	// 				})),
+	// 			},
+	// 			country: country,
+	// 			language: language.toLowerCase(),
 
-				// metadata: metadata,
-			},
-			select: {
-				title: true,
-			},
-		})
-		.then((data) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Updated ${data.title} library.`,
-			});
+	// 			// metadata: metadata,
+	// 		},
+	// 		select: {
+	// 			title: true,
+	// 		},
+	// 	})
+	// 	.then((data) => {
+	// 		Logger.log({
+	// 			level: 'info',
+	// 			name: 'access',
+	// 			color: 'magentaBright',
+	// 			message: `Updated ${data.title} library.`,
+	// 		});
 
-			return res.json({
-				status: 'ok',
-				message: `Successfully updated ${data.title} library.`,
-			});
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error updating user permissions: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong updating permissions: ${error}`,
-			});
-		});
+	// 		return res.json({
+	// 			status: 'ok',
+	// 			message: `Successfully updated ${data.title} library.`,
+	// 		});
+	// 	})
+	// 	.catch((error) => {
+	// 		Logger.log({
+	// 			level: 'info',
+	// 			name: 'access',
+	// 			color: 'magentaBright',
+	// 			message: `Error updating user permissions: ${error}`,
+	// 		});
+	// 		return res.json({
+	// 			status: 'ok',
+	// 			message: `Something went wrong updating permissions: ${error}`,
+	// 		});
+	// 	});
 };
 
 export const rescanLibrary = (req: Request, res: Response) => {
@@ -239,81 +316,70 @@ export const rescanLibrary = (req: Request, res: Response) => {
 				level: 'info',
 				name: 'job',
 				color: 'magentaBright',
-				message: `Updated ${data.title} library.`,
-			});
-
-			return res.json({
-				status: 'ok',
-				message: `Successfully updated ${data.title} library.`,
-			});
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'job',
-				color: 'magentaBright',
-				message: `Error updating the library: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong updating the library: ${error}`,
+				message: 'Updated library.',
 			});
 		});
+
+	return res.json({
+		status: 'ok',
+		message: 'Successfully updated library.',
+	});
 };
 
 export const deleteLibrary = (req: Request, res: Response) => {
 	const { id } = req.params;
 
-	confDb.library
-		.delete({
-			where: {
-				id: id,
-			},
-		})
-		.then((data) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Deleted ${data.title} library.`,
-			});
+	try {
+		const data = mediaDb.delete(libraries)
+			.where(eq(libraries.id, id))
+			.returning()
+			.get();
 
-			return res.json({
-				status: 'error',
-				message: `Successfully deleted ${data.title} library.`,
-			});
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error deleting the library: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong deleting the library: ${error}`,
-			});
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Deleted ${data?.title} library.`,
 		});
+
+		return res.json({
+			status: 'error',
+			message: `Successfully deleted ${data?.title} library.`,
+		});
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Error deleting the library: ${error}`,
+		});
+		return res.json({
+			status: 'ok',
+			message: `Something went wrong deleting the library: ${error}`,
+		});
+
+	}
 };
 
 export const addNewItem = async (req: Request, res: Response) => {
 
 	const { id } = req.params;
 
-	const library = await confDb.library
-		.findFirst({
-			where: {
-				id: id,
-			},
-			include: {
-				Folders: {
-					include: {
-						folder: true,
-					},
+	const library = mediaDb.query.libraries.findFirst({
+		where: eq(libraries.id, id),
+		with: {
+			folder_library: {
+				with: {
+					folder: true,
 				},
 			},
-		}).catch(e => console.log(e));
+			encoderProfile_library: {
+				with: {
+					encoderProfile: true,
+				},
+			},
+		},
+	});
 
 	if (!library?.id) {
 		Logger.log({

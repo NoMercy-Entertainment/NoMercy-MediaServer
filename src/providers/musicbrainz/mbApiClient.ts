@@ -1,7 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-import Logger from '../../functions/logger';
-import { appVersion } from '../../functions/system';
 
 const onRequest = (config: AxiosRequestConfig) => {
 	config.params = {
@@ -10,7 +8,7 @@ const onRequest = (config: AxiosRequestConfig) => {
 	};
 
 	config.headers = {
-		'User-Agent': `NoMercy MediaServer v${appVersion}`,
+		'User-Agent': 'NoMercy MediaServer',
 	};
 
 	config.timeout = 2000;
@@ -19,12 +17,12 @@ const onRequest = (config: AxiosRequestConfig) => {
 };
 
 const onRequestError = (error: AxiosError): Promise<AxiosError> => {
-	Logger.log({
-		level: 'error',
-		name: 'musicBrainz',
-		color: 'red',
-		message: JSON.stringify(error, null, 2),
-	});
+	// Logger.log({
+	// 	level: 'error',
+	// 	name: 'musicBrainz',
+	// 	color: 'red',
+	// 	message: JSON.stringify(error, null, 2),
+	// });
 
 	return Promise.reject(error);
 };
@@ -36,12 +34,12 @@ const onResponse = (response: AxiosResponse<any>): AxiosResponse => {
 };
 
 const onResponseError = (error: AxiosError): Promise<AxiosError> => {
-	Logger.log({
-		level: 'error',
-		name: 'musicBrainz',
-		color: 'red',
-		message: JSON.stringify(error, null, 2),
-	});
+	// Logger.log({
+	// 	level: 'error',
+	// 	name: 'musicBrainz',
+	// 	color: 'red',
+	// 	message: JSON.stringify(error, null, 2),
+	// });
 
 	return Promise.reject(error);
 };
@@ -56,7 +54,7 @@ const mbApiClient = setupInterceptorsTo(
 	axios.create({
 		baseURL: 'https://musicbrainz.org/ws/2/',
 		headers: {
-			'User-Agent': `NoMercy MediaServer v${appVersion}`,
+			'User-Agent': 'NoMercy MediaServer',
 		},
 	})
 );

@@ -1,23 +1,24 @@
-import {
-	Certification,
-	CertificationTv,
-	Episode,
-	Folder,
-	Library,
-	LibraryFolder,
-	Media,
-	Translation,
-	Tv,
-	UserData,
-	VideoFile
-} from '../../../database/config/client';
-import { convertToSeconds } from '../../../functions/dateTime';
 
-import { deviceId } from '../../../functions/system';
+import { convertToSeconds } from '@server/functions/dateTime';
+
+import { deviceId } from '@server/functions/system';
 import i18next from 'i18next';
-import { sortBy } from '../../../functions/stringArray';
+import { sortBy } from '@server/functions/stringArray';
+import { PlaylistItem } from '@server/types//video';
+import { AppState, useSelector } from '@server/state/redux';
+import { Episode } from '@server/db/media/actions/episodes';
+import { Media } from '@server/db/media/actions/medias';
+import { Translation } from '@server/db/media/actions/translations';
+import { Tv } from '@server/db/media/actions/tvs';
+import { CertificationTv } from '@server/db/media/actions/certification_tv';
+import { Certification } from '@server/db/media/actions/certifications';
+import { FolderLibrary } from '@server/db/media/actions/folder_library';
+import { Folder } from '@server/db/media/actions/folders';
+import { VideoFile } from '@server/db/media/actions/videoFiles';
+import { UserData } from '@server/db/media/actions/userData';
+import { Library } from '@server/db/media/actions/libraries';
 
-export type PlaylistItem = (Episode & {
+export type PlaylistItemData = (Episode & {
 	Media: Media[];
 	Translation: Translation[];
 	Tv: Tv & {
@@ -26,7 +27,7 @@ export type PlaylistItem = (Episode & {
 		})[];
 		Media: Media[];
 		Library: (Library & {
-			Folders: (LibraryFolder & {
+			Folders: (FolderLibrary & {
 				folder: Folder | null;
 			})[];
 		});
@@ -37,11 +38,13 @@ export type PlaylistItem = (Episode & {
 	})[];
 });
 
-export default ({ data }: { data: PlaylistItem; }) => {
+export default ({ data }: { data: PlaylistItemData; }): PlaylistItem => {
+
+	const access_token = useSelector((state: AppState) => state.user.access_token);
 
 	const videoFile = data.VideoFile?.[0];
 
-	const showTitle = data.Tv.Translation[0].title;
+	const showTitle = data.Tv.Translation[0]?.title;
 
 	const episodeTranslations = data.Translation[0];
 
@@ -75,10 +78,10 @@ export default ({ data }: { data: PlaylistItem; }) => {
 
 	return {
 		id: data.id,
-		title: title,
+		title: title as string,
 		description: overview,
 		duration: videoFile?.duration,
-
+		special_id: undefined,
 		poster: data.Tv.poster
 			? data.Tv.poster
 			: null,
@@ -90,7 +93,7 @@ export default ({ data }: { data: PlaylistItem; }) => {
 			? data.still ?? data.Tv.poster
 			: null,
 
-		year: data.Tv.firstAirDate?.split('-')[0] ?? null,
+		year: data.Tv.firstAirDate?.split('-')[0] ?? '',
 		video_type: 'tv',
 		production: data.Tv.status != 'Ended',
 		season: data.seasonNumber,
@@ -98,7 +101,7 @@ export default ({ data }: { data: PlaylistItem; }) => {
 		episode_id: data.id,
 		origin: deviceId,
 		uuid: data.Tv.id + data.id,
-		video_id: videoFile?.id,
+		video_id: videoFile?.id as string,
 		tmdbid: data.Tv.id,
 		show: show,
 		playlist_type: 'tv',
@@ -106,12 +109,12 @@ export default ({ data }: { data: PlaylistItem; }) => {
 		rating:
 			data.Tv.Certification.map((cr) => {
 				return {
-					country: cr.iso31661,
+					country: cr.iso31661 as string,
 					rating: cr.Certification?.rating,
 					meaning: cr.Certification?.meaning,
 					image: `/${cr.iso31661}/${cr.iso31661}_${cr.Certification?.rating}.svg`,
 				};
-			})?.[0] ?? {},
+			})?.[0] ?? null,
 
 		progress: data.VideoFile && data.VideoFile?.[0]?.UserData?.[0]?.time
 			? (data.VideoFile[0].UserData[0].time / convertToSeconds(data.VideoFile[0].duration)) * 100
@@ -120,7 +123,9 @@ export default ({ data }: { data: PlaylistItem; }) => {
 		textTracks: sortBy(textTracks, 'language'),
 		sources: [
 			{
-				src: `${baseFolder}${videoFile?.filename.replace('.mkv', '.m3u8')}`,
+				src: `${baseFolder}${videoFile?.filename}${videoFile?.filename.includes('.mp4')
+					? `?token=${access_token}`
+					: ''}`,
 				type: videoFile?.filename.includes('.mp4')
 					? 'video/mp4'
 					: 'application/x-mpegURL',

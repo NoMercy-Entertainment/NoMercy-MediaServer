@@ -1,109 +1,163 @@
+/* eslint-disable prefer-promise-reject-errors */
 import { Request, Response } from 'express';
-import { trackSort, uniqBy } from '../../../functions/stringArray';
+import { trackSort, uniqBy } from '@server/functions/stringArray';
 
-import { AlbumResponse } from './album.d';
-import { KAuthRequest } from 'types/keycloak';
-import { confDb } from '../../../database/config';
-import { deviceId } from '../../../functions/system';
-import { getLanguage } from '../../middleware';
+import { deviceId } from '@server/functions/system';
+import { selectAlbum } from '@server/db/media/actions/albums';
+import { requestWorker } from '@server/api/requestWorker';
+import { PaletteColors } from '@server/types/server';
 
-export default async function (req: Request, res: Response): Promise<Response<AlbumResponse>> {
+export default async function (req: Request, res: Response) {
 
-	const language = getLanguage(req);
-
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-
-	const music = await confDb.album.findFirst({
-		where: {
-			id: req.params.id,
-		},
-		include: {
-			_count: true,
-			Track: {
-				distinct: ['name'],
-				include: {
-					Artist: true,
-					Album: true,
-					FavoriteTrack: {
-						where: {
-							userId: user,
-						},
-					},
-				},
-			},
-			Artist: true,
-		},
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		user: req.user.sub,
 	});
 
-	if (!music) {
-		return res.json({
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
 			status: 'error',
-			message: 'Nothing found for this album',
+			message: result.error.message,
 		});
 	}
+	return res.json(result.result);
 
-	const results: AlbumResponse = {
-		...music,
-		type: 'album',
-		cover: music.cover?.replace('http://', 'https://'),
-		colorPalette: JSON.parse(music.colorPalette ?? '{}'),
-		Track: uniqBy<typeof music.Track>(music.Track.sort(trackSort), 'name').map((t) => {
+}
 
-			const artists = t.Artist
-				.filter(a => a.id != '89ad4ac3-39f7-470e-963a-56509c546377')
-				.map(a => ({
-					id: a.id,
-					name: a.name,
-					cover: (a.cover ?? t.Artist.find(t => t.cover)?.cover ?? null)?.replace('http://', 'https://'),
-					description: a.description,
-					folder: a.folder,
-					libraryId: a.libraryId,
-					origin: deviceId,
-					colorPalette: a.colorPalette,
-				}));
+export const exec = ({ id, user }: { id: string; user: string; }) => {
+	return new Promise((resolve, reject) => {
+		const music = selectAlbum(id, user);
 
-			// const albums = t.Album.map(a => ({
-			// 	id: a.id,
-			// 	name: a?.name,
-			// 	folder: a?.folder,
-			// 	cover: (a?.cover ?? t.Artist[0]?.cover ?? t.cover ?? null)?.replace('http://', 'https://'),
-			// 	description: a?.description,
-			// 	libraryId: music.libraryId,
-			// 	origin: deviceId,
-			// 	colorPalette: a.colorPalette,
-			// }));
+		if (!music) {
+			return reject({
+				message: 'You are not authorized to access this album',
+				code: 401,
+			});
+		}
 
-			return {
-				...t,
-				date: t.date && new Date(t.date)
-					.toLocaleDateString(language, {
-						year: 'numeric',
-						month: 'short',
-						day: '2-digit',
-					}),
-				type: 'album',
-				lyrics: undefined,
-				favorite_track: t.FavoriteTrack.length > 0,
-				artistId: music.Artist[0]?.id,
-				origin: deviceId,
-				cover: t.cover?.replace('http://', 'https://'),
-				libraryId: music.libraryId,
-				colorPalette: JSON.parse(t.colorPalette ?? '{}'),
-				FavoriteTrack: undefined,
-				Artist: artists,
-			};
-		}),
-		year: music.year,
-		Artist: music.description?.includes('Various Artists')
-			? null
-			: music.Artist.map((a) => {
+		const results = {
+			...music,
+			type: 'album',
+			cover: music.cover?.replace('http://', 'https://'),
+			colorPalette: JSON.parse(music.colorPalette ?? '{}'),
+			blurHash: music.blurHash ?? null,
+
+			track: uniqBy(music.album_track?.map((t) => {
+				const artists = t.track.artist_track
+					// .filter(a => a.artist.id != '89ad4ac3-39f7-470e-963a-56509c546377')
+					.map(a => ({
+						id: a.artist.id,
+						name: a.artist.name,
+						cover: a.artist.cover?.replace('http://', 'https://'),
+						description: a.artist.description,
+						folder: a.artist.folder,
+						libraryId: a.artist.library_id,
+						origin: deviceId,
+						colorPalette: JSON.parse(a.artist.colorPalette ?? '{}'),
+					}));
+
 				return {
-					...a,
+					...t.track,
+					date: t.track.date,
+					type: 'album',
+					lyrics: typeof t.track.lyrics === 'string' && t.track.lyrics.includes('{')
+						? JSON.parse(t.track.lyrics)
+						: t.track.lyrics,
+					favorite_track: t.track.track_user.length > 0,
+					artistId: music.album_artist[0]?.artist_id,
 					origin: deviceId,
-					cover: a.cover?.replace('http://', 'https://'),
+					cover: t.track.cover?.replace('http://', 'https://'),
+					libraryId: t.track.folder_id,
+					colorPalette: JSON.parse(t.track.colorPalette ?? '{}'),
+					artist_track: artists,
+					artist: artists[0],
 				};
-			}),
-	};
+			}) ?? [], 'name').sort(trackSort),
+			year: music.year,
+			album_artist: music.description?.includes('Various Artists')
+				? null
+				: music.album_artist?.[0]
+					? {
+						id: music.album_artist?.[0].artist.id,
+						name: music.album_artist?.[0].artist.name,
+						cover: music.album_artist?.[0].artist.cover?.replace('http://', 'https://'),
+						description: music.album_artist?.[0].artist.description,
+						folder: music.album_artist?.[0].artist.folder,
+						libraryId: music.album_artist?.[0].artist.library_id,
+						origin: deviceId,
+						colorPalette: JSON.parse(music.album_artist?.[0].artist.colorPalette ?? '{}'),
+					}
+					: null,
+		};
 
-	return res.json(results);
+		return resolve(results);
+	});
+};
+
+export interface AlbumResponse {
+    id: string;
+    name: string;
+    description: string | null;
+    folder: string | null;
+    cover: string | undefined | null;
+    country: string | null;
+    year: number | null;
+    tracks: number | null;
+    colorPalette: PaletteColors | null;
+    blurHash: string | null;
+    libraryId: string;
+    Artist: Artist[] | null;
+    type: string;
+    track: track[];
+}
+
+interface Artist {
+    id: string;
+    name: string;
+    description: string | null;
+    cover: string | null | undefined;
+    folder: string | null;
+    colorPalette: string | null;
+    blurHash?: string | null;
+    libraryId: string;
+    trackId?: string | null;
+    origin: string;
+}
+
+interface track {
+    id: string;
+    name: string;
+    track: number | null;
+    disc: number | null;
+    cover: string | null | undefined;
+    date: string | null;
+    folder: string | null;
+    filename: string;
+    duration: string | null;
+    quality: number | null;
+    path: string;
+    colorPalette: PaletteColors | null;
+    blurHash: string | null;
+    Artist: Artist[];
+    Album: Album[];
+    type: string;
+    favorite_track: boolean;
+    artistId: string;
+    origin: string;
+    libraryId: string;
+}
+
+interface Album {
+    id: string;
+    name: string;
+    description: string | null;
+    folder: string | null;
+    cover: string | null;
+    country: string | null;
+    year: number | null;
+    tracks: number | null;
+    colorPalette: string | null;
+    blurHash: string | null;
+    libraryId: string;
 }

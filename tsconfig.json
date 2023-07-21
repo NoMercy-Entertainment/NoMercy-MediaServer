@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "ES6",
+		"target": "ESNext",
 		"declaration": false,
 		"outDir": "./dist",
 		"strict": true,
@@ -8,13 +8,14 @@
 		"forceConsistentCasingInFileNames": true,
 		"downlevelIteration": true,
 		"allowJs": true,
-		"module": "CommonJS",
+		"module": "NodeNext",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,
 		"isolatedModules": true,
 		"moduleDetection": "force",
 		"noImplicitAny": false,
+		"noEmit": true,
 		"sourceMap": false,
 		"moduleResolution": "Node",
 		"resolveJsonModule": true,
@@ -22,9 +23,21 @@
 		"lib": ["DOM", "ES6", "DOM.Iterable", "ScriptHost", "ES2016.Array.Include", "ESNext", "ES2015", "ES5"],
 		"baseUrl": "./src",
 		"paths": {
-			"@/*": ["./*"]
-		}
+			"@server/*": ["./*"]
+		},
+		"plugins": [
+			{
+				"transform": "@zerollup/ts-transform-paths",
+				"exclude": ["*"]
+			}
+		]
 	},
-	"include": ["./src/**/*.ts", "./src/**/*.d.ts"],
+	"ts-node": {
+		"swc": true,
+		"require": ["tsconfig-paths/register"],
+		"transpileOnly": true
+	},
+	"exclude": ["./node_modules"],
+	"include": ["./src/**/*.ts", "./src/**/*.d.ts", "./package.json", "./src/db/media/**/*", "./src/db/queue/**/*", "drizzle.config.ts"],
 	"references": []
 }

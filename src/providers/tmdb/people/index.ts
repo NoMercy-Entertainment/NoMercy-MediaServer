@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios';
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import { PaginatedResponse } from '../helpers';
-import { Person } from '../people/person';
+import type { Person } from '../people/person';
 import { PersonImages } from './images';
 import { PersonTranslations } from './translations';
 import { PersonWithAppends } from '../people/details';
@@ -99,4 +99,3 @@ export const peopleTranslations = async (id: number) => {
 	return data;
 };
 
-export default Person;

@@ -10,7 +10,7 @@ import {
 	createLibrary,
 	deleteLibrary,
 	encodeLibrary,
-	libraries,
+	librarie,
 	rescanLibrary,
 	updateLibrary
 } from '../dashboard/library';
@@ -19,12 +19,13 @@ import {
 	createConfiguration,
 	updateConfiguration
 } from '../dashboard/configuration';
-import { countries, languages } from '../dashboard/general';
+import { countries, language } from '../dashboard/general';
 import {
 	createEncoderProfiles,
 	encoderProfiles,
 	updateEncoderProfiles
 } from '../dashboard/encoder';
+import { createSpecials, searchSpecials, special, specialz, updateSpecials } from '../dashboard/specials';
 import {
 	deleteLogs,
 	logOptions,
@@ -32,6 +33,7 @@ import {
 } from '../dashboard/logs';
 import {
 	deleteTask,
+	encoderQueue,
 	pauseTasks,
 	resumeTasks,
 	runningTaskWorkers,
@@ -43,7 +45,7 @@ import {
 	permissions
 } from '../middleware/permissions';
 import {
-	metadata,
+	metadatas,
 	serverInfo,
 	serverPaths
 } from '../dashboard/serverInfo';
@@ -53,7 +55,7 @@ import {
 } from '../dashboard/server';
 
 import addFiles from '../dashboard/contentManagement/addFiles';
-import deleteDevices from '../userData/devices/delete';
+import { deleteDevices } from '../userData/devices/delete';
 import deleteServerActivity from '../userData/activity/delete';
 import devices from '../userData/devices/get';
 import express from 'express';
@@ -68,8 +70,8 @@ import {
 
 const router = express.Router();
 
-router.get('/general/languages', languages);
-router.get('/general/countries', countries);
+router.post('/general/languages', language);
+router.post('/general/countries', countries);
 
 router.post('/manage/users/notificationsettings', notificationSettings);
 
@@ -95,19 +97,19 @@ router.use(
 		route.post('/encoderprofiles/create', createEncoderProfiles);
 		route.post('/encoderprofiles/update', updateEncoderProfiles);
 
-		route.post('/libraries', libraries);
+		route.post('/specials', specialz);
+		route.post('/special/:id', special);
+		route.post('/specials/create', createSpecials);
+		route.post('/specials/update', updateSpecials);
+		route.post('/specials/search', searchSpecials);
+
+		route.post('/libraries', librarie);
 		route.patch('/libraries', updateLibrary);
 		route.post('/libraries/create', createLibrary);
 		route.post('/libraries/update', updateLibrary);
 		route.post('/libraries/:id/rescan', rescanLibrary);
 		route.post('/libraries/:id/delete', deleteLibrary);
 		route.post('/libraries/:id/add', addNewItem);
-		route.post('/encode/:id', encodeLibrary);
-
-		route.post('/addFiles', addFiles);
-
-		route.post('/directorytree', directoryTree);
-		route.post('/fileList', fileList);
 
 		route.post('/configuration', configuration);
 		route.post('/configuration/create', createConfiguration);
@@ -129,14 +131,21 @@ router.use(
 		route.post('/tasks/pause', pauseTasks);
 		route.post('/tasks/resume', resumeTasks);
 		route.post('/tasks/runners', runningTaskWorkers);
+		route.post('/tasks/queue', encoderQueue);
 
 		route.post('/server/start', startServer);
 		route.post('/server/stop', stopServer);
 
-		route.post('/metadata', metadata);
 		route.post('/logs', logs);
 		route.post('/logs/delete', deleteLogs);
 		route.post('/logs/options', logOptions);
+
+
+		route.post('/encode/:id', encodeLibrary);
+		route.post('/addFiles', addFiles);
+		route.post('/directorytree', directoryTree);
+		route.post('/fileList', fileList);
+		route.post('/metadata', metadatas);
 	})
 );
 

@@ -1,13 +1,13 @@
-import { AppState, useSelector } from '@/state/redux';
-import { deviceId, deviceName, platform } from '../system';
+import { AppState, useSelector } from '@server/state/redux';
+import { deviceId, platform } from '../system';
 import express, { Request, Response } from 'express';
 import { readFileSync, writeFileSync } from 'fs';
-import { setAccessToken, setRefreshToken } from '@/state/redux/user/actions';
+import { setAccessToken, setRefreshToken } from '@server/state/redux/user/actions';
 
 import DetectBrowsers from '../detectBrowsers';
-import { KeycloakToken } from 'types/keycloak';
-import Logger from '../../functions/logger';
-import { ServerRegisterResponse } from 'types/api';
+import { KeycloakToken } from '@server/types/keycloak';
+import Logger from '@server/functions/logger';
+import { ServerRegisterResponse } from '@server/types/api';
 import axios from 'axios';
 import { getLanguage } from '../../api/middleware';
 import http from 'http';
@@ -15,17 +15,19 @@ import inquirer from 'inquirer';
 import { keycloak_key } from '../keycloak/config';
 import open from 'open';
 import qs from 'qs';
-import { setOwner } from '@/state/redux/system/actions';
+import { setOwner } from '@server/state/redux/system/actions';
 import storeConfig from '../storeConfig';
-import { tokenFile } from '@/state';
+import { tokenFile } from '@server/state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
+// import open from '@server/functions/open';
 
 let registerComplete = false;
 
 const registerServer = async () => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const external_ip = useSelector((state: AppState) => state.system.external_ip);
+	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 	const server_version = useSelector((state: AppState) => state.system.server_version);
 	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
@@ -86,7 +88,7 @@ const registerServer = async () => {
 			});
 
 			await open(
-				`https://auth.nomercy.tv/auth/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
+				`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
 					redirect_uri
 				)}&client_id=nomercy-server&response_type=code`,
 				{

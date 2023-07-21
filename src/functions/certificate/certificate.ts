@@ -1,13 +1,14 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import axios, { AxiosResponse } from 'axios';
 import { promises, readFileSync } from 'fs';
-import { sslCA, sslCert, sslKey, tokenFile } from '@/state';
+import { sslCA, sslCert, sslKey, tokenFile } from '@server/state';
 
-import Logger from '../../functions/logger';
-import { ServerCertificate } from 'types/api';
+import Logger from '@server/functions/logger';
+import { ServerCertificate } from '@server/types/api';
 import certificateNeedsRenewal from './certificateNeedsRenewal';
 import { deviceId } from '../system';
 import open from 'open';
+// import open from '@server/functions/open';
 
 export const certificate = async () => {
 	await refresh();
@@ -25,6 +26,14 @@ const refreshLoop = () => {
 
 const refresh = async () => {
 	if (certificateNeedsRenewal(sslCert)) {
+
+		Logger.log({
+			level: 'info',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Obtaining SSL certificate',
+		});
+
 		const accessToken = useSelector((state: AppState) => state.user.access_token);
 
 		await axios
@@ -71,7 +80,7 @@ const refresh = async () => {
 					const redirect_uri = `http://${internal_ip}:${internal_port}/sso-callback`;
 
 					await open(
-						`https://auth.nomercy.tv/auth/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
+						`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
 							redirect_uri
 						)}&client_id=nomercy-server&response_type=code`,
 						{

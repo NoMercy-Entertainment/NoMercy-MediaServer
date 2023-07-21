@@ -1,129 +1,54 @@
 /* eslint-disable indent */
 
-import {
-	AlternativeTitles,
-	Certification,
-	CertificationMovie,
-	Collection,
-	CollectionMovie,
-	Crew,
-	Genre,
-	GenreMovie,
-	Keyword,
-	KeywordMovie,
-	Library,
-	Media,
-	Movie,
-	Person,
-	Prisma,
-	SpecialItem,
-	UserData,
-	VideoFile
-} from '../../../database/config/client';
 import { Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
-import Logger from '../../../functions/logger';
-import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { getLanguage } from '../../middleware';
-import { isOwner } from '../../middleware/permissions';
+import { mediaDb } from '@server/db/media';
+import { collections } from '@server/db/media/schema/collections';
+import { translations } from '@server/db/media/schema/translations';
+import { and, eq, gt, or, isNull, asc } from 'drizzle-orm';
+import { movies } from '@server/db/media/schema/movies';
 
 export default function (req: Request, res: Response) {
+	const collection = mediaDb.query.collections.findFirst({
+		where: and(
+			eq(collections.id, parseInt(req.params.id, 10)),
+			gt(collections.parts, 0)
+		),
+		with: {
+			collection_movie: {
+				columns: {},
+				with: {
+					movie: {
+						with: {
+							library: {
+								with: {
+									library_user: true,
+								},
+							},
+						},
+						orderBy: asc(movies.releaseDate),
+					},
+				},
+			},
+			translations: {
+				where: or(
+					eq(translations.iso6391, req.language),
+					isNull(translations.iso6391)
+				),
+			},
+		},
+	});
 
-	const language = getLanguage(req);
-
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-	const owner = isOwner(req as KAuthRequest);
-
-	if (owner) {
-		confDb.collection
-			.findFirst(ownerQuery(req.params.id))
-			.then(async (collection) => {
-				if (!collection) {
-					return res.json({
-						status: 'error',
-						message: 'Something went wrong getting library',
-					});
-				}
-				return res.json(await getContent(collection, language));
-			})
-			.catch((error) => {
-				Logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
-	} else {
-		confDb.collection
-			.findFirst(userQuery(req.params.id, user))
-			.then(async (collection) => {
-				if (!collection) {
-					return res.json({
-						status: 'error',
-						message: 'Something went wrong getting library',
-					});
-				}
-				return res.json(await getContent(collection, language));
-			})
-			.catch((error) => {
-				Logger.log({
-					level: 'info',
-					name: 'access',
-					color: 'magentaBright',
-					message: `Error getting library: ${error}`,
-				});
-				return res.status(404).json({
-					status: 'error',
-					message: `Something went wrong getting library: ${error}`,
-				});
-			});
-	}
+	return res.json(getContent(collection, req.user.sub));
 }
 
-type MovieWithInfo = (Collection & {
-    Parts: (CollectionMovie & {
-        Movie: (Movie & {
-            Library: Library;
-            AlternativeTitles: AlternativeTitles[];
-            Cast: any[];
-            Crew: (Crew & {
-                Person: Person | null;
-            })[];
-            Certification: (CertificationMovie & {
-                Certification: Certification;
-            })[];
-            Genre: (GenreMovie & {
-                Genre: Genre;
-            })[];
-            SpecialItem: SpecialItem[];
-            VideoFile: VideoFile[];
-            Keyword: (KeywordMovie & {
-                Keyword: Keyword;
-            })[];
-            Media: Media[];
-            UserData: UserData[];
-            CollectionTo: (CollectionMovie & {
-                Movie: Movie | null;
-            })[];
-        }) | null;
-    })[];
-});
+const getContent = (data: any, user: string) => {
 
-const getContent = async (data: MovieWithInfo, language: string) => {
-	const translations: any[] = [];
-	await confDb.translation.findMany(translationQuery({ id: data.id, language })).then(data => translations.push(...data));
+	const title = data.translations?.title || data.title;
+	const overview = data.translations?.overview || data.overview;
 
-	const title = translations.find(t => t.movieId == data.id)?.title || data.title;
-	const overview = translations.find(t => t.movieId == data.id)?.overview || data.overview;
-
-	const userData = data.Parts[0].Movie?.UserData[0];
+	const userData = data.collection_movie?.[0]?.movie?.[0]?.userData?.[0];
 
 	const response = {
 		id: data.id,
@@ -142,184 +67,28 @@ const getContent = async (data: MovieWithInfo, language: string) => {
 		colorPalette: data.colorPalette
 			? JSON.parse(data.colorPalette)
 			: null,
-		collection: data.Parts?.map((c) => {
-			if (!c.Movie) return;
+		collection: data.collection_movie?.map((c) => {
+			if (!c.movie || !c.movie?.library.library_user.some(u => u.user_id == user)) return;
+
 			return {
-				id: c.Movie?.id,
-				backdrop: c.Movie?.backdrop,
+				id: c.movie?.id,
+				backdrop: c.movie?.backdrop,
 				mediaType: 'movie',
-				poster: c.Movie?.poster,
-				title: c.Movie?.title?.[0].toUpperCase() + c.Movie?.title?.slice(1) ?? '',
-				titleSort: createTitleSort(c.Movie?.title, c.Movie?.releaseDate),
-				type: 'movies',
-				logo: c.Movie?.[0]?.Media?.find(m => m.type == 'logo')?.src,
-				blurHash: c.Movie?.blurHash
-					? JSON.parse(c.Movie?.blurHash)
+				poster: c.movie?.poster,
+				title: c.movie?.title?.[0].toUpperCase() + c.movie?.title?.slice(1) ?? '',
+				titleSort: createTitleSort(c.movie?.title, c.movie?.releaseDate),
+				type: 'movie',
+				releaseDate: c.movie?.releaseDate,
+				logo: c.movie?.[0]?.Media?.find(m => m.type == 'logo')?.src,
+				blurHash: c.movie?.blurHash
+					? JSON.parse(c.movie?.blurHash)
 					: null,
-				colorPalette: c.Movie?.colorPalette
-					? JSON.parse(c.Movie?.colorPalette)
+				colorPalette: c.movie?.colorPalette
+					? JSON.parse(c.movie?.colorPalette)
 					: null,
 			};
-		}),
+		}).sort((a, b) => a.releaseDate.localeCompare(b.releaseDate)) ?? [],
 	};
 
 	return response;
-};
-
-const translationQuery = ({ id, language }) => {
-	return Prisma.validator<Prisma.TranslationFindManyArgs>()({
-		where: {
-			collectionId: id,
-			iso6391: language,
-		},
-	});
-};
-
-const ownerQuery = (id: string) => {
-	return Prisma.validator<Prisma.CollectionFindFirstArgs>()({
-		where: {
-			id: parseInt(id, 10),
-		},
-		include: {
-			Parts: {
-				include: {
-					Movie: {
-						include: {
-							AlternativeTitles: true,
-							CollectionTo: {
-								include: {
-									Movie: true,
-								},
-							},
-							Cast: {
-								include: {
-									Person: true,
-								},
-							},
-							Certification: {
-								include: {
-									Certification: true,
-								},
-							},
-							Crew: {
-								include: {
-									Person: true,
-								},
-							},
-							Genre: {
-								include: {
-									Genre: true,
-								},
-							},
-							SpecialItem: true,
-							VideoFile: true,
-							Keyword: {
-								include: {
-									Keyword: true,
-								},
-							},
-							Library: true,
-							Media: {
-								where: {
-									OR: [
-										{
-											iso6391: null,
-										},
-										{
-											iso6391: 'en',
-											type: {
-												not: null,
-											},
-										},
-									],
-								},
-								orderBy: {
-									voteAverage: 'desc',
-								},
-							},
-							UserData: true,
-						},
-					},
-				},
-			},
-		},
-	});
-};
-
-const userQuery = (id: string, userId: string) => {
-	return Prisma.validator<Prisma.CollectionFindFirstArgs>()({
-		where: {
-			id: parseInt(id, 10),
-			Library: {
-				User: {
-					some: {
-						userId: userId,
-					},
-				},
-			},
-		},
-		include: {
-			Parts: {
-				include: {
-					Movie: {
-						include: {
-							AlternativeTitles: true,
-							CollectionTo: {
-								include: {
-									Movie: true,
-								},
-							},
-							Cast: {
-								include: {
-									Person: true,
-								},
-							},
-							Certification: {
-								include: {
-									Certification: true,
-								},
-							},
-							Crew: {
-								include: {
-									Person: true,
-								},
-							},
-							Genre: {
-								include: {
-									Genre: true,
-								},
-							},
-							SpecialItem: true,
-							VideoFile: true,
-							Keyword: {
-								include: {
-									Keyword: true,
-								},
-							},
-							Library: true,
-							Media: {
-								where: {
-									OR: [
-										{
-											iso6391: null,
-										},
-										{
-											iso6391: 'en',
-											type: {
-												not: null,
-											},
-										},
-									],
-								},
-								orderBy: {
-									voteAverage: 'desc',
-								},
-							},
-							UserData: true,
-						},
-					},
-				},
-			},
-		},
-	});
 };

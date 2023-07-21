@@ -1,13 +1,13 @@
-import { setDeviceName, setLanguage, setLibraries } from '@/state/redux/config/actions';
-import { setSecureExternalPort, setSecureInternalPort } from '@/state/redux/system/actions';
+import { setDeviceName, setLanguage, setLibraries } from '@server/state/redux/config/actions';
+import { setSecureExternalPort, setSecureInternalPort } from '@server/state/redux/system/actions';
 
-import { Configuration } from '../../database/config/client';
-import { confDb } from '../../database/config';
-import { getLibrariesWithFolders } from '../../database/data';
+import { deviceName } from '../system';
+import { selectConfiguration } from '@server/db/media/actions/configuration';
+import { getEncoderLibraries } from '@server/db/media/actions/libraries';
 
 export const loadConfigs = async () => {
 
-	const dbConf: Configuration[] = await confDb.configuration.findMany();
+	const dbConf = selectConfiguration();
 
 	const secureInternalPort = (dbConf.find(conf => conf.key == 'secureInternalPort')?.value as string) ?? process.env.DEFAULT_PORT;
 	setSecureInternalPort(parseInt(secureInternalPort, 10));
@@ -15,13 +15,13 @@ export const loadConfigs = async () => {
 	const secureExternalPort = (dbConf.find(conf => conf.key == 'secureExternalPort')?.value as string) ?? process.env.DEFAULT_PORT;
 	setSecureExternalPort(parseInt(secureExternalPort, 10));
 
-	const deviceName = dbConf.find(conf => conf.key == 'deviceName')?.value as string;
-	setDeviceName(deviceName);
+	const name = dbConf.find(conf => conf.key == 'deviceName')?.value as string;
+	setDeviceName(name ?? deviceName);
 
 	const language = dbConf.find(conf => conf.key == 'language')?.value as string;
 	setLanguage(language);
 
-	const libraries = await getLibrariesWithFolders();
+	const libraries = await getEncoderLibraries();
 	setLibraries(libraries);
 
 };

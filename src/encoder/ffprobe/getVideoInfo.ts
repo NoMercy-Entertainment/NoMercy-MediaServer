@@ -1,11 +1,11 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { ExecException, exec } from 'child_process';
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import { VideoFFprobe } from './ffprobe';
-import { errorLog } from '@/state';
+import { errorLog } from '@server/state';
 import fs from 'fs';
-import { sortByPriorityKeyed } from '../../functions/stringArray';
+import { sortByPriorityKeyed } from '@server/functions/stringArray';
 
 export default (file: string): Promise<VideoFFprobe> => {
 	return new Promise((resolve, reject) => {

@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-import { store } from '@/state/redux';
+import { store } from '@server/state/redux';
 
 export interface AxiosInstance {
 	request<T = any> (config: AxiosRequestConfig): Promise<AxiosResponse<T>>;

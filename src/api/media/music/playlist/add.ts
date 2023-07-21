@@ -1,173 +1,162 @@
 import { Request, Response } from 'express';
-import { ffmpeg, imagesPath, tempPath } from '@/state';
-import { jsonToString, unique } from '../../../../functions/stringArray';
 
-import { KAuthRequest } from '../../../../types/keycloak';
-import { colorPaletteFromFile } from '../../../../functions/colorPalette';
-import { confDb } from '../../../../database/config';
-import { convertPath } from '../../../../functions/system';
-import { exec } from 'child_process';
-import fs from 'fs';
-import { imageHash } from 'image-hash';
+// import { imageHash } from 'image-hash';
 
-export default async function (req: Request, res: Response) {
+export default function (req: Request, res: Response) {
 
 	try {
+		// const music = await confDb.playlist.findFirst({
+		// 	where: {
+		// 		userId: req.user.sub,
+		// 		id: req.params.id,
+		// 	},
+		// });
 
-		const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+		// if (!music?.name) {
+		// 	return;
+		// }
 
-		const music = await confDb.playlist.findFirst({
-			where: {
-				userId: user,
-				id: req.params.id,
-			},
-		});
+		// const music2 = await confDb.playlist.update({
+		// 	where: {
+		// 		playlist_unique: {
+		// 			userId: req.user.sub,
+		// 			id: req.params.id,
+		// 		},
+		// 	},
+		// 	data: {
+		// 		cover: `/playlistCovers/${music.name}.jpg`,
+		// 		PlaylistTrack: {
+		// 			connectOrCreate: {
+		// 				where: {
+		// 					playlist_track_unique: {
+		// 						trackId: req.body.id,
+		// 						playlistId: req.params.id,
+		// 					},
+		// 				},
+		// 				create: {
+		// 					trackId: req.body.id,
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// 	include: {
+		// 		PlaylistTrack: {
+		// 			include: {
+		// 				track: {
+		// 					include: {
+		// 						Artist: true,
+		// 						Album: {
+		// 							include: {
+		// 								Library: {
+		// 									include: {
+		// 										Folders: {
+		// 											include: {
+		// 												folder: true,
+		// 											},
+		// 										},
+		// 									},
+		// 								},
+		// 							},
+		// 						},
+		// 						FavoriteTrack: {
+		// 							where: {
+		// 								userId: req.user.sub,
+		// 							},
+		// 						},
+		// 					},
+		// 				},
+		// 			},
+		// 			orderBy: {
+		// 				updated_at: 'asc',
+		// 			},
+		// 		},
+		// 	},
+		// });
 
-		if (!music?.name) {
-			return;
-		}
+		// const images:any [] = [];
 
-		const music2 = await confDb.playlist.update({
-			where: {
-				playlist_unique: {
-					userId: user,
-					id: req.params.id,
-				},
-			},
-			data: {
-				cover: `/playlistCovers/${music.name}.jpg`,
-				PlaylistTrack: {
-					connectOrCreate: {
-						where: {
-							playlist_track_unique: {
-								trackId: req.body.id,
-								playlistId: req.params.id,
-							},
-						},
-						create: {
-							trackId: req.body.id,
-						},
-					},
-				},
-			},
-			include: {
-				PlaylistTrack: {
-					include: {
-						Track: {
-							include: {
-								Artist: true,
-								Album: {
-									include: {
-										Library: {
-											include: {
-												Folders: {
-													include: {
-														folder: true,
-													},
-												},
-											},
-										},
-									},
-								},
-								FavoriteTrack: {
-									where: {
-										userId: user,
-									},
-								},
-							},
-						},
-					},
-					orderBy: {
-						updated_at: 'asc',
-					},
-				},
-			},
-		});
+		// for (let i = 0; i < music2.PlaylistTrack.length; i++) {
+		// 	const t = music2.PlaylistTrack[i];
 
-		const images:any [] = [];
+		// 	if (!t.track.cover) { continue; }
+		// 	let image: any;
+		// 	let hash: any;
 
-		for (let i = 0; i < music2.PlaylistTrack.length; i++) {
-			const t = music2.PlaylistTrack[i];
+		// 	try {
+		// 		image = `${imagesPath}/${t.track.Album[0].id}.jpg`;
+		// 		hash = await createImageHash(image);
+		// 	} catch (error) {
+		// 		image = `${t.track.Album[0].Library.Folders[0].folder?.path}/${t.track.folder}/${t.track.cover}`;
+		// 		hash = await createImageHash(image);
+		// 	}
 
-			if (!t.Track.cover) { continue; }
-			let image: any;
-			let hash: any;
+		// 	images.push({
+		// 		hash,
+		// 		image,
+		// 		outputFile: convertPath(`${imagesPath}/playlistCovers/${music2.name}.jpg`),
+		// 	});
 
-			try {
-				image = `${imagesPath}/${t.Track.Album[0].id}.jpg`;
-				hash = await createImageHash(image);
-			} catch (error) {
-				image = `${t.Track.Album[0].Library.Folders[0].folder?.path}/${t.Track.folder}/${t.Track.cover}`;
-				hash = await createImageHash(image);
-			}
+		// }
 
-			images.push({
-				hash,
-				image,
-				outputFile: convertPath(`${imagesPath}/playlistCovers/${music2.name}.jpg`),
-			});
+		// const imageList = unique(images.sort((b, a) => a.image - b.image), 'hash');
 
-		}
+		// if (!fs.existsSync(`${tempPath}/${music2.name}`)) {
+		// 	fs.mkdirSync(`${tempPath}/${music2.name}`, { recursive: true });
+		// }
 
-		const imageList = unique(images.sort((b, a) => a.image - b.image), 'hash');
+		// for (let i = 0; i < imageList.length; i++) {
+		// 	const t = imageList[i];
 
-		if (!fs.existsSync(`${tempPath}/${music2.name}`)) {
-			fs.mkdirSync(`${tempPath}/${music2.name}`, { recursive: true });
-		}
+		// 	fs.copyFileSync(t.image, `${tempPath}/${music2.name}/thumb-${i}.jpg`);
 
-		for (let i = 0; i < imageList.length; i++) {
-			const t = imageList[i];
+		// }
 
-			fs.copyFileSync(t.image, `${tempPath}/${music2.name}/thumb-${i}.jpg`);
+		// if (!fs.existsSync(`${imagesPath}/playlistCovers`)) {
+		// 	fs.mkdirSync(`${imagesPath}/playlistCovers`, { recursive: true });
+		// }
 
-		}
+		// const montageCommand = `"${ffmpeg}" -i "${tempPath}/${music2.name}/thumb-%d.jpg" -frames:v 1 -filter_complex tile='2x2' -y "${imageList[0].outputFile}"`;
 
-		if (!fs.existsSync(`${imagesPath}/playlistCovers`)) {
-			fs.mkdirSync(`${imagesPath}/playlistCovers`, { recursive: true });
-		}
+		// exec(montageCommand, async (error) => {
+		// 	if (error) {
+		// 		console.error(`exec error: ${error}`);
+		// 		return;
+		// 	}
 
-		const montageCommand = `"${ffmpeg}" -i "${tempPath}/${music2.name}/thumb-%d.jpg" -frames:v 1 -filter_complex tile='2x2' -y "${imageList[0].outputFile}"`;
+		// 	fs.existsSync(`${tempPath}/${music2.name}`)
+		// 		&& fs.rmSync(`${tempPath}/${music2.name}`, { recursive: true });
 
-		exec(montageCommand, async (error) => {
-			if (error) {
-				console.error(`exec error: ${error}`);
-				return;
-			}
+		// 	const palette = await colorPaletteFromFile(`${imageList[0].outputFile}`);
 
-			fs.existsSync(`${tempPath}/${music2.name}`)
-				&& fs.rmSync(`${tempPath}/${music2.name}`, { recursive: true });
+		// 	await confDb.playlist.update({
+		// 		where: {
+		// 			playlist_unique: {
+		// 				userId: req.user.sub,
+		// 				id: req.params.id,
+		// 			},
+		// 		},
+		// 		data: {
+		// 			colorPalette: palette
+		// 				? jsonToString(palette)
+		// 				: null,
+		// 		},
+		// 	});
 
-			const palette = await colorPaletteFromFile(`${imageList[0].outputFile}`);
-
-			await confDb.playlist.update({
-				where: {
-					playlist_unique: {
-						userId: user,
-						id: req.params.id,
-					},
-				},
-				data: {
-					colorPalette: palette
-						? jsonToString(palette)
-						: null,
-				},
-			});
-
-		});
+		// });
 
 
-		return res.json(music);
+		// return res.json(music);
 	} catch (error) {
 		console.log(error);
 	}
 }
 
-const createImageHash = (image) => {
-	return new Promise((resolve, reject) => {
-		imageHash(image, 25, true, (error, data) => {
-			if (error) { reject(error); }
+// const createImageHash = (image) => {
+// 	return new Promise((resolve, reject) => {
+// 		imageHash(image, 25, true, (error, data) => {
+// 			if (error) { reject(error); }
 
-			resolve(data);
-		});
-	});
-};
+// 			resolve(data);
+// 		});
+// 	});
+// };

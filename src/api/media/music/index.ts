@@ -1,166 +1,135 @@
-import { Album, Artist, MusicGenre, Playlist, Prisma, Track, UserData } from '../../../database/config/client';
+import { mediaDb } from '@server/db/media';
+import { AlbumMusicGenre } from '@server/db/media/actions/album_musicGenre';
+import { Album } from '@server/db/media/actions/albums';
+import { ArtistMusicGenre } from '@server/db/media/actions/artist_musicGenre';
+import { Artist } from '@server/db/media/actions/artists';
+import { MusicGenreTrack } from '@server/db/media/actions/musicGenre_track';
+import { MusicGenre } from '@server/db/media/actions/musicGenres';
+import { Playlist } from '@server/db/media/actions/playlists';
+import { track } from '@server/db/media/actions/tracks';
+import { UserData } from '@server/db/media/actions/userData';
+import { tracks } from '@server/db/media/schema/tracks';
+import { userData } from '@server/db/media/schema/userData';
+import { users } from '@server/db/media/schema/users';
+import { shuffle, unique } from '@server/functions/stringArray';
+import { deviceId } from '@server/functions/system';
+import { createTitleSort } from '@server/tasks/files/filenameParser';
+import { and, desc, eq, isNotNull } from 'drizzle-orm';
 import { Request, Response } from 'express';
-import { shuffle, unique } from '../../../functions/stringArray';
 
-import { HomeData } from './index.d';
-import { KAuthRequest } from 'types/keycloak';
-import { confDb } from '../../../database/config';
-import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { deviceId } from '../../../functions/system';
-
-export default async function (req: Request, res: Response): Promise<Response<HomeData[]>> {
-
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
-
-	const playlists: (Playlist & {
-		_count: Prisma.PlaylistCountOutputType;
-	})[] = [];
-	const userData: UserData[] = [];
-	const tracks: (Track & {
-		Artist: (Artist & {
-			_count: Prisma.ArtistCountOutputType;
-		})[];
-		Album: (Album & {
-			_count: Prisma.AlbumCountOutputType;
-		})[];
-		MusicGenre: MusicGenre[];
-		_count: Prisma.TrackCountOutputType;
-	})[] = [];
-	const albums: Album[] = [];
-	const artists: (Artist & {
-		_count: Prisma.ArtistCountOutputType;
-	})[] = [];
+export default function (req: Request, res: Response) {
 
 	const genres: MusicGenre[] = [];
+	const playlistsItems: Playlist[] = [];
+	const userDataItems: UserData[] = [];
+	const trackItems: (track & {
+		musicGenre_track: (MusicGenreTrack & {
+			musicGenre: MusicGenre;
+		})[];
+	})[] = [];
 
-	await Promise.all([
-		confDb.playlist.findMany({
-			where: {
-				userId: user,
-			},
-			include: {
-				_count: true,
-			},
-			take: 12,
-		}).then(d => playlists.push(...d)),
+	const albumItems: (AlbumMusicGenre & {
+		album: Album;
+	})[] = [];
 
-		confDb.userData.findMany({
-			where: {
-				sub_id: user,
-				NOT: {
-					isFavorite: null,
-				},
-			},
-			take: 12,
-			orderBy: {
-				updatedAt: 'desc',
-			},
-		}).then(d => userData.push(...d)),
+	const artistItems: (ArtistMusicGenre & {
+		artist: Artist;
+	})[] = [];
 
-		confDb.track.findMany({
-			where: {
-				cover: {
-					not: null,
-				},
-			},
-			include: {
-				MusicGenre: true,
-				Artist: {
-					where: {
-						NOT: {
-							Track: {
-								none: {},
-							},
-						},
-					},
-					include: {
-						_count: true,
-					},
-				},
-				Album: {
-					where: {
-						NOT: {
-							Track: {
-								none: {},
-							},
-						},
-					},
-					include: {
-						_count: true,
-					},
-				},
-				_count: true,
-			},
-			// take: 12,
-		}).then(d => tracks.push(...d)),
-
-		confDb.album.findMany({
-			include: {
-				Artist: true,
-				_count: true,
-			},
-			// take: 12,
-
-		}).then(d => albums.push(...d)),
-
-		confDb.artist.findMany({
-			where: {
-				NOT: {
-					Track: {
-						none: {},
-					},
-				},
-			},
-			include: {
-				_count: true,
-			},
-			// take: 12,
-
-		}).then(d => artists.push(...d)),
-
-		confDb.musicGenre.findMany({
-			orderBy: {
-				Track: {
-					_count: 'desc',
-				},
-			},
-		}).then(d => genres.push(...d)),
-	]);
+	// @ts-ignore
+	const musicGenreData = mediaDb.query.musicGenres.findMany({
+	}) as MusicGenre[];
+	genres.push(...musicGenreData);
 
 	const genreItems: any[] = [];
+
+	// @ts-ignore
+	const playlistData = mediaDb.query.playlists.findMany({
+		where: eq(users.id, req.user.sub),
+		take: 12,
+	}) as Playlist[];
+	playlistsItems.push(...playlistData);
+
+	// @ts-ignore
+	const userDataData = mediaDb.query.userData.findMany({
+		where: and(
+			eq(userData.user_id, req.user.sub),
+			isNotNull(userData.isFavorite)
+		),
+		take: 12,
+		orderBy: desc(userData.updated_at),
+	}) as UserData[];
+	userDataItems.push(...userDataData);
+
+	// @ts-ignore
+	const tracksData = mediaDb.query.tracks.findMany({
+		where: isNotNull(tracks.cover),
+		with: {
+			musicGenre_track: {
+				with: {
+					musicGenre: true,
+				},
+			},
+		},
+	}) as (track & {
+		musicGenre_track: (MusicGenreTrack & {
+			musicGenre: MusicGenre;
+		})[];
+	})[];
+	trackItems.push(...tracksData);
+
+	// @ts-ignore
+	const albumData = mediaDb.query.album_musicGenre.findMany({
+		with: {
+			album: true,
+		},
+		unique: ['album_id'],
+	}) as (AlbumMusicGenre & {
+		album: Album;
+	})[];
+	albumItems.push(...albumData);
+
+	// @ts-ignore
+	const artistData = mediaDb.query.artist_musicGenre.findMany({
+		with: {
+			artist: true,
+		},
+		unique: ['artist_id'],
+	}) as (ArtistMusicGenre & {
+		artist: Artist;
+	})[];
+	artistItems.push(...artistData);
 
 	try {
 
 		genres.map((g) => {
-			const x = unique(tracks
-				.filter(d => d.MusicGenre && d.MusicGenre.map(g => g.id).includes(g.id))
+			const x = shuffle(unique(trackItems
+				.filter(d => d.musicGenre_track.some(m => m.musicGenre_id == g.id))
 				.map((d, index) => {
+
+					const artist = shuffle(artistItems).find(a => d.musicGenre_track.some(m => m.musicGenre.id == a.musicGenre_id));
+					const album = shuffle(albumItems).find(a => d.musicGenre_track.some(m => m.musicGenre.id == a.musicGenre_id));
+
 					if (index % 2 == 0) {
 						return {
-							...d.Artist[0],
-							Album: d.Album,
+							...artist?.artist,
+							album: album?.album,
 							type: 'artist',
-							libraryId: d.Artist[0].libraryId,
-							colorPalette: JSON.parse(d.Artist[0].colorPalette ?? '{}'),
+							libraryId: artist?.artist?.library_id,
+							colorPalette: JSON.parse(artist?.artist?.colorPalette ?? '{}'),
 						};
 					}
 					return {
-						...d.Album[0],
-						Artist: d.Artist,
+						...album?.album,
+						artist: artist?.artist,
 						type: 'album',
-						libraryId: d.Album[0].libraryId,
-						colorPalette: JSON.parse(d.Album[0].colorPalette ?? '{}'),
+						libraryId: album?.album?.library_id,
+						colorPalette: JSON.parse(album?.album?.colorPalette ?? '{}'),
 					};
-				}), 'id')
-				.filter((g: any) => {
-					if (g.type == 'album') return true;
-					if (g._count.Track > 10) return true;
-					return false;
-				})
-				.sort(() => Math.random() - 0.5)
-				.slice(0, 12);
+				}), 'id'))
+				.slice(0, 14);
 
-			if (x.length > 7) {
+			if (x.length > 13) {
 				genreItems.push({
 					title: g.name,
 					moreLink: `/music/genre/${g.id}`,
@@ -178,7 +147,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 			title: 'Your top mixes',
 			moreLink: '',
 			// items: shuffle(tracks)
-			// 	.slice(0, 12)
+			// 	.slice(0, 14)
 			// 	.map(t => ({ ...t, libraryId: albums[0].libraryId, type: 'track' })),
 			items: [],
 		},
@@ -190,40 +159,39 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 		{
 			title: 'Artists',
 			moreLink: '/music/collection/artists',
-			items: shuffle(artists
-				.filter((m: any) => m._count.Track > 10))
-				.slice(0, 12)
+			items: shuffle(artistItems)
+				.slice(0, 14)
 				.map((m) => {
 					return {
-						...m,
+						...m.artist,
 						type: 'artist',
-						name: m.name.replace(/["'\[\]*]/gu, ''),
-						title_sort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
+						name: m.artist.name.replace(/["'\[\]*]/gu, ''),
+						title_sort: createTitleSort(m.artist.name.replace(/["'\[\]*]/gu, '')),
 						origin: deviceId,
-						colorPalette: JSON.parse(m.colorPalette ?? '{}'),
+						colorPalette: JSON.parse(m.artist.colorPalette ?? '{}'),
 					};
 				}),
 		},
 		{
 			title: 'Albums',
 			moreLink: '/music/collection/albums',
-			items: shuffle(albums)
-				.slice(0, 12)
+			items: shuffle(albumItems)
+				.slice(0, 14)
 				.map((m) => {
 					return {
-						...m,
+						...m.album,
 						type: 'album',
-						name: m.name.replace(/["'\[\]*]/gu, ''),
-						title_sort: createTitleSort(m.name.replace(/["'\[\]*]/gu, '')),
+						name: m.album.name.replace(/["'\[\]*]/gu, ''),
+						title_sort: createTitleSort(m.album.name.replace(/["'\[\]*]/gu, '')),
 						origin: deviceId,
-						colorPalette: JSON.parse(m.colorPalette ?? '{}'),
+						colorPalette: JSON.parse(m.album.colorPalette ?? '{}'),
 					};
 				}),
 		},
 		{
 			title: 'Playlists',
 			moreLink: '/music/collection/playlists',
-			items: playlists.map((m) => {
+			items: playlistsItems.map((m) => {
 				return {
 					...m,
 					type: 'playlist',
@@ -234,9 +202,52 @@ export default async function (req: Request, res: Response): Promise<Response<Ho
 				};
 			}),
 		},
+		// ...genreItems.slice(0, 14),
 		...genreItems,
 	];
 
-	return res.json(response);
+	// return res.json(response);
+	return res.json(response.filter(d => d.items.length > 0));
 
+}
+
+export interface HomeData {
+    title: string;
+    moreLink: string;
+    items: HomeDataItem[];
+}
+
+export interface HomeDataItem {
+    id: string;
+    name: string;
+    description: null;
+    cover: null | string;
+    folder: string;
+    colorPalette: null | string;
+    blurHash: null | string;
+    libraryId: string;
+    trackId?: null;
+    _count: Count;
+    type: Type;
+    title_sort?: string;
+    origin?: string;
+    country?: string | null;
+    year?: number | null;
+    tracks?: number;
+    Artist?: Artist[];
+    Album?: Album[];
+}
+
+export interface Count {
+    track: number;
+    Artist?: number;
+    File?: number;
+    Album?: number;
+}
+
+export enum Type {
+    Album = 'album',
+    Artist = 'artist',
+    Genre = 'genre',
+    Playlist = 'playlist',
 }

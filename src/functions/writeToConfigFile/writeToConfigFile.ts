@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
-import { configFile } from '@/state';
+import { configFile } from '@server/state';
 
 export default (key: string, val: any) => {
 	if (!existsSync(configFile)) {

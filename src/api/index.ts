@@ -1,21 +1,24 @@
-import { AppState, store, useSelector } from '@/state/redux';
-import { KAuthRequest, KeycloakToken } from 'types/keycloak';
+import { AppState, store, useSelector } from '@server/state/redux';
+import { KeycloakToken } from '@server/types/keycloak';
 import express, { Request, Response } from 'express';
-import { setAccessToken, setRefreshToken } from '@/state/redux/user/actions';
+import { setAccessToken, setRefreshToken } from '@server/state/redux/user/actions';
 
 import Logger from '../functions/logger';
 import axios from 'axios';
-import dashboard from './routes/dashboard';
 import { keycloak_key } from '../functions/keycloak/config';
-import media from './routes/media';
-import music from './routes/music';
 import qs from 'qs';
-import { setOwner } from '@/state/redux/system/actions';
-import { tokenFile } from '@/state';
+import { setOwner } from '@server/state/redux/system/actions';
+import { tokenFile } from '@server/state';
 import { tokenParser } from '../functions/tokenParser';
-import userData from './routes/userData';
 import { writeFileSync } from 'fs';
 import writeToConfigFile from '../functions/writeToConfigFile';
+// import expressMon from 'express-status-monitor';
+import { deviceId } from '@server/functions/system';
+
+import dashboard from './routes/dashboard';
+import media from './routes/media';
+import music from './routes/music';
+import userData from './routes/userData';
 
 const router = express.Router();
 
@@ -23,8 +26,7 @@ const monitorConfig = {
 	title: 'NoMercy MediaServer Status Monitor',
 	theme: 'default.css',
 	path: '/monitor',
-	// socketPath: '/socket.io',
-	// websocket: myClientList[0].io.socket,
+	socketPath: '/socket.io',
 	spans: [
 		{
 			interval: 1,
@@ -48,31 +50,21 @@ const monitorConfig = {
 		mem: true,
 		load: true,
 		eventLoop: true,
-		heap: true,
 		responseTime: true,
-		rps: true,
 		statusCodes: true,
 	},
 	healthChecks: [
 		{
 			protocol: 'https',
-			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
+			host: `${store.getState().system.internal_ip.replace(/\./gu, '-')}.${deviceId}.nomercy.tv`,
 			path: '/status',
-			port: store.getState().system.secureInternalPort,
-		}, {
-			protocol: 'https',
-			host: '192-168-2-201.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv',
-			path: '/images/status.txt',
 			port: store.getState().system.secureInternalPort,
 		},
 	],
 };
 
-// router.use(expressMon(monitorConfig));
-
 router.get('/me', (req: Request, res: Response) => {
-	const token = (req as KAuthRequest).kauth.grant.access_token;
-	return res.json(token.content);
+	return res.json(req.user);
 });
 
 router.get('/sso-callback', async (req: Request, res: Response) => {
@@ -125,11 +117,12 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 		});
 });
 
-
 router.use('/dashboard', dashboard);
 router.use('/userdata', userData);
 router.use('/music', music);
 router.use('/', media);
+
+// router.use(expressMon(monitorConfig));
 
 export default router;
 

@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 
 import { SessionOptions } from 'express-session';
 
@@ -21,7 +21,7 @@ export const session_config: SessionOptions = {
 export default {
 	realm: 'NoMercyTV',
 	'bearer-only': true,
-	'auth-server-url': 'https://auth.nomercy.tv/auth/',
+	'auth-server-url': 'https://auth.nomercy.tv',
 	'ssl-required': 'all',
 	resource: 'nomercy-server',
 	'verify-token-audience': true,

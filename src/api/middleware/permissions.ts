@@ -1,13 +1,14 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { NextFunction, Request, Response } from 'express';
 
-import { KAuthRequest } from 'types/keycloak';
-import Logger from '../../functions/logger';
-import { confDb } from '../../database/config';
-import crypto from 'crypto';
+import Logger from '@server/functions/logger';
+import nodeCrypto from 'crypto';
 import { readFileSync } from 'fs';
-import { sleep } from '../../functions/dateTime';
-import { sslCert } from '@/state';
+import { sleep } from '@server/functions/dateTime';
+import { sslCert } from '@server/state';
+import { eq } from 'drizzle-orm';
+import { users } from '@server/db/media/schema/users';
+import { mediaDb } from '@server/db/media';
 
 let delay = 0;
 let timeout: NodeJS.Timeout;
@@ -20,15 +21,13 @@ export const hasOwner = () => {
 	return true;
 };
 
-export const verifiedApi = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant?.access_token;
-
-	if (token.content.sub == 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
+export const verifiedApi = (req: Request): boolean => {
+	if (req.user.sub == 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		const secret = req?.body?.secret;
 
 		if (!secret) return false;
 		try {
-			const dec = crypto.publicDecrypt(readFileSync(sslCert, 'utf-8'), Buffer.from(secret, 'base64')).toString('utf8');
+			const dec = nodeCrypto.publicDecrypt(readFileSync(sslCert, 'utf-8'), Buffer.from(secret, 'base64')).toString('utf8');
 
 			return dec == 'NoMercy MediaServer';
 		} catch (error) {
@@ -55,14 +54,13 @@ export const verifiedApi = (req: KAuthRequest): boolean => {
 	}
 };
 
-export const isOwner = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+export const isOwner = (req: Request): boolean => {
 	const owner = useSelector((state: AppState) => state.system.owner);
-	return owner == token.content.sub;
+	return owner == req.user.sub;
 };
 
 export const ownerMiddleware = (req: Request, res: Response, next: NextFunction) => {
-	if (isOwner(req as KAuthRequest)) {
+	if (isOwner(req)) {
 		return next();
 	}
 	return res.status(403).json({
@@ -71,13 +69,12 @@ export const ownerMiddleware = (req: Request, res: Response, next: NextFunction)
 	});
 };
 
-export const isTestAccount = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
-	return token.content.email == 'test@nomercy.tv';
+export const isTestAccount = (req: Request): boolean => {
+	return req.user.email == 'test@nomercy.tv';
 };
 
-export const testAccountMiddleware = (req: KAuthRequest, res: Response, next: NextFunction) => {
-	if (isTestAccount(req as KAuthRequest)) {
+export const testAccountMiddleware = (req: Request, res: Response, next: NextFunction) => {
+	if (isTestAccount(req)) {
 		return next();
 	}
 	return res.status(403).json({
@@ -86,15 +83,14 @@ export const testAccountMiddleware = (req: KAuthRequest, res: Response, next: Ne
 	});
 };
 
-export const isModerator = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+export const isModerator = (req: Request): boolean => {
 	const moderators = useSelector((state: AppState) => state.config.moderators);
 
-	return moderators.some(m => m.id == token.content.sub);
+	return moderators.some(m => m.id == req.user.sub);
 };
 
 export const moderatorMiddleware = (req: Request, res: Response, next: NextFunction) => {
-	if (isModerator(req as KAuthRequest)) {
+	if (isModerator(req)) {
 		return next();
 	}
 	return res.status(403).json({
@@ -103,15 +99,14 @@ export const moderatorMiddleware = (req: Request, res: Response, next: NextFunct
 	});
 };
 
-export const hasEditPermissions = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+export const hasEditPermissions = (req: Request): boolean => {
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-	return isOwner(req) || isModerator(req) || (allowedUsers.find(m => m.sub_id == token.content.sub)?.manage ?? false);
+	return isOwner(req) || isModerator(req) || (allowedUsers.find(m => m.sub_id == req.user.sub)?.manage ?? false);
 };
 
 export const editMiddleware = (req: Request, res: Response, next: NextFunction) => {
-	if (hasEditPermissions(req as KAuthRequest)) {
+	if (hasEditPermissions(req)) {
 		return next();
 	}
 	return res.status(403).json({
@@ -120,31 +115,24 @@ export const editMiddleware = (req: Request, res: Response, next: NextFunction) 
 	});
 };
 
-export const isAllowed = (req: KAuthRequest): boolean => {
-	const token = req.kauth.grant.access_token;
+export const isAllowed = (req: Request): boolean => {
 	const openServer = useSelector((state: AppState) => state.config.openServer);
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-	// const allowedUsers = await confDb.user.findMany({
-	// 	where:{
-	// 		allowed: true,
-	// 	}
-	// });
-
-	if (!allowedUsers.some(u => u.email == token.content.email) && token.content.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
+	if (!allowedUsers.some(u => u.email == req.user.email) && req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		Logger.log({
 			level: 'http',
 			name: 'http',
 			color: 'redBright',
-			message: `Unauthorized access attempt from ${token.content.email}`,
+			message: `Unauthorized access attempt from ${req.user.email}`,
 		});
 	}
 
-	return isOwner(req) || isModerator(req) || allowedUsers.some(u => u.email == token.content.email) || openServer;
+	return isOwner(req) || isModerator(req) || allowedUsers.some(u => u.email == req.user.email) || openServer;
 };
 
 export const allowedMiddleware = (req: Request, res: Response, next: NextFunction) => {
-	if (isAllowed(req as KAuthRequest)) {
+	if (isAllowed(req)) {
 		return next();
 	}
 	return res.status(403).json({
@@ -154,38 +142,44 @@ export const allowedMiddleware = (req: Request, res: Response, next: NextFunctio
 };
 
 export const staticPermissions = (req: Request, res: Response, next: NextFunction) => {
-	return next();
+	if (isOwner(req) || isAllowed(req)) {
+		return next();
+	}
+	return res.status(403).json({
+		status: 'error',
+		message: 'You do not have access to this resource.',
+	});
 };
 
 export const permissions = (req: Request, res: Response) => {
 
-	if (isOwner(req as KAuthRequest) || isModerator(req as KAuthRequest)) {
+	if (isOwner(req) || isModerator(req)) {
 		return res.json({
 			edit: true,
 		});
 	}
 
-	const user = (req as KAuthRequest).kauth.grant?.access_token.content.sub;
+	try {
 
-	confDb.user.findFirst({
-		where: {
-			sub_id: user,
-		},
-	}).then((data) => {
+		const data = mediaDb.query.users.findFirst({
+			where: eq(users.id, req.user.sub),
+		});
+
 		return res.json({
 			edit: data?.manage ?? false,
 		});
-	})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting user permissions: ${error}`,
-			});
-			return res.json({
-				status: 'error',
-				message: `Something went wrong getting user permissions: ${error}`,
-			});
+	} catch (error) {
+
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Error getting user permissions: ${error}`,
 		});
+		return res.json({
+			status: 'error',
+			message: `Something went wrong getting user permissions: ${error}`,
+		});
+	}
+
 };

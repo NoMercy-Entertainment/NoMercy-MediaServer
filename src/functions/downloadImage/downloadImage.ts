@@ -1,11 +1,11 @@
 import { ExecException, exec } from 'child_process';
 import { PathLike, Stats, createWriteStream, mkdirSync, readFileSync, rmSync, statSync } from 'fs';
-import { ffmpeg, tempPath } from '@/state';
+import { ffmpeg, tempPath } from '@server/state';
 import { join, resolve as pathResolve } from 'path';
 
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import Logger from '../../functions/logger';
-import { PaletteColors } from 'types/server';
+import Logger from '@server/functions/logger';
+import { PaletteColors } from '@server/types/server';
 import axios from 'axios';
 import colorPalette from '../colorPalette';
 import createBlurHash from '../createBlurHash';
@@ -104,13 +104,14 @@ export const fetch = (url: string, path: string, tempName: string): Promise<{ si
 		let type = '';
 
 		try {
+			console.log(url);
 			mkdirSync(path.replace(/(.+)[\\\/].+\.\w+$/u, '$1'), { recursive: true });
 
 			const writer = createWriteStream(tempName, { mode: 0o777 });
 			await axios.get(url, {
 				method: 'GET',
 				responseType: 'stream',
-				timeout: 30000,
+				timeout: 3000,
 			})
 				.then((response) => {
 					size = parseInt(response?.headers?.['content-length'] ?? '0', 10);

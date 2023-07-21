@@ -1,7 +1,8 @@
 /* eslint-disable */
 
-const execSync = require('child_process').execSync;
-const os = require('os');
+import os from 'os';
+import { execSync } from 'child_process';
+
 const aDrives: any = [];
 
 export default () => {

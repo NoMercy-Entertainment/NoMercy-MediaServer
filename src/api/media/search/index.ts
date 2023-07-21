@@ -1,17 +1,26 @@
-import { Album, Artist, Movie, Track, Tv } from '../../../database/config/client';
 import { Request, Response } from 'express';
-import { groupBy, matchPercentage, sortBy } from '../../../functions/stringArray';
+import { groupBy, matchPercentage, sortBy } from '@server/functions/stringArray';
 
-import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { parseTitleAndYear } from '../../../functions/videoFilenameParser';
-import { parseYear } from '../../../functions/dateTime';
+import { parseTitleAndYear } from '@server/functions/videoFilenameParser';
+import { parseYear } from '@server/functions/dateTime';
 import searchVideo from './searchVideo';
+import { mediaDb } from '@server/db/media';
+import { inArray, like } from 'drizzle-orm';
+import { tvs } from '@server/db/media/schema/tvs';
+import { Tv } from '@server/db/media/actions/tvs';
+import { Movie } from '@server/db/media/actions/movies';
+import { Artist } from '@server/db/media/actions/artists';
+import { Album } from '@server/db/media/actions/albums';
+import { track } from '@server/db/media/actions/tracks';
+import { movies } from '@server/db/media/schema/movies';
+import { albums } from '@server/db/media/schema/albums';
+import { artists } from '@server/db/media/schema/artists';
+import { tracks } from '@server/db/media/schema/tracks';
 
 export default async function (req: Request, res: Response) {
 
-	let { query }: { query: string } = req.body;
-	let type: string | null = null;
+	let { query, type }: { query: string; type?: string; } = req.body;
 
 	if (!query || query.length < 3) {
 		return res.json({
@@ -20,19 +29,19 @@ export default async function (req: Request, res: Response) {
 		});
 	}
 
-	if (query.includes('artist:')) {
+	if (query.includes('artist:') || type == 'artist') {
 		type = 'artist';
 		query = query.replace('artist:', '');
-	} else if (query.includes('album:')) {
+	} else if (query.includes('album:') || type == 'album') {
 		type = 'album';
 		query = query.replace('album:', '');
-	} else if (query.includes('track:')) {
+	} else if (query.includes('track:') || type == 'track') {
 		type = 'track';
 		query = query.replace('track:', '');
-	} else if (query.includes('tv:')) {
+	} else if (query.includes('tv:') || type == 'tv') {
 		type = 'tv';
 		query = query.replace('tv:', '');
-	} else if (query.includes('movie:')) {
+	} else if (query.includes('movie:') || type == 'movie') {
 		type = 'movie';
 		query = query.replace('movie:', '');
 	}
@@ -55,51 +64,47 @@ export default async function (req: Request, res: Response) {
 	const MOVIE: Movie[] = [];
 	const ARTIST: Artist[] = [];
 	const ALBUM: Album[] = [];
-	const TRACK: Track[] = [];
+	const TRACK: track[] = [];
 
-	await Promise.all([
-		(!type || type == 'tv') && confDb.tv.findMany({
-			where: {
-				id: {
-					in: tv?.map((t: { id: any; }) => t.id) ?? [],
-				},
-				firstAirDate: {
-					contains: year ?? undefined,
-				},
-			},
-		}).then(data => TV.push(...data)),
-		(!type || type == 'movie') && confDb.movie.findMany({
-			where: {
-				id: {
-					in: movie?.map((m: { id: any; }) => m.id) ?? [],
-				},
-				releaseDate: {
-					contains: year ?? undefined,
-				},
-			},
-		}).then(data => MOVIE.push(...data)),
-		(!type || type == 'album') && confDb.album.findMany({
-			where: {
-				name: {
-					contains: query,
-				},
-			},
-		}).then(data => ALBUM.push(...data)),
-		(!type || type == 'artist') && confDb.artist.findMany({
-			where: {
-				name: {
-					contains: query,
-				},
-			},
-		}).then(data => ARTIST.push(...data)),
-		(!type || type == 'track') && confDb.track.findMany({
-			where: {
-				name: {
-					contains: query,
-				},
-			},
-		}).then(data => TRACK.push(...data)),
-	]);
+	if ((!type || type == 'tv') && tv?.length > 0) {
+		const tvRes = mediaDb.select().from(tvs)
+  			.where(inArray(tvs.id, tv?.map((t: { id: any; }) => t.id) ?? []))
+			.all();
+		TV.push(...tvRes);
+		// console.log(tvRes);
+	}
+
+	if ((!type || type == 'movie') && movie?.length > 0) {
+		const movieRes = mediaDb.select().from(movies)
+  			.where(inArray(movies.id, movie?.map((t: { id: any; }) => t.id) ?? []))
+			.all();
+		MOVIE.push(...movieRes);
+		// console.log( movieRes);
+	}
+
+	if (!type || type == 'album') {
+		const albumRes = mediaDb.select().from(albums)
+  			.where(like(albums.name, `%${query}%`))
+			.all();
+		ALBUM.push(...albumRes);
+		// console.log(albumRes);
+	}
+
+	if (!type || type == 'artist') {
+		const artistRes = mediaDb.select().from(artists)
+  			.where(like(artists.name, `%${query}%`))
+			.all();
+		ARTIST.push(...artistRes);
+		// console.log(artistRes);
+	}
+
+	if (!type || type == 'track') {
+		const trackRes = mediaDb.select().from(tracks)
+  			.where(like(tracks.name, `%${query}%`))
+			.all();
+		TRACK.push(...trackRes);
+		// console.log(trackRes);
+	}
 
 	const videoResponse: any[] = [
 		...(movie?.map((m: { id: number; title: string; release_date: any; }) => {
@@ -154,11 +159,11 @@ export default async function (req: Request, res: Response) {
 		...(TRACK?.map((t) => {
 			return {
 				...t,
-				titleSort: createTitleSort(t.name),
+				titleSort: createTitleSort(t.name as string),
 				media_type: 'track',
 				year: t.date,
-				match: t.name.toLowerCase().startsWith(query.toLowerCase()),
-				matchPercentage: matchPercentage(query.toLowerCase(), t.name.toLowerCase()),
+				match: (t.name as string).toLowerCase().startsWith(query.toLowerCase()),
+				matchPercentage: matchPercentage(query.toLowerCase(), (t.name as string).toLowerCase()),
 			};
 		}) ?? []),
 	];
@@ -166,10 +171,10 @@ export default async function (req: Request, res: Response) {
 	// console.log(data);
 
 	return res.json({
-		video: sortBy(videoResponse, 'matchPercentage', 'desc'),
 		artist: sortBy(artistResponseData, 'matchPercentage', 'desc'),
 		album: sortBy(albumResponseData, 'matchPercentage', 'desc'),
 		track: sortBy(trackResponseData, 'matchPercentage', 'desc'),
+		video: sortBy(videoResponse, 'matchPercentage', 'desc'),
 		person,
 	});
 

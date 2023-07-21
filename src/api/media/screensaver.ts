@@ -1,206 +1,112 @@
-import { Keyword, KeywordMovie, KeywordTv, Media, Movie, Tv } from '../../database/config/client';
 import { Request, Response } from 'express';
-import { shuffle, unique } from '../../functions/stringArray';
+import { shuffle, unique } from '@server/functions/stringArray';
 
-import Logger from '../../functions/logger';
-import { LogoResponse } from 'types/server';
-import { confDb } from '../../database/config';
+import Logger from '@server/functions/logger';
+import { LogoResponse } from '@server/types/server';
+import { Media } from '@server/db/media/actions/medias';
+import { mediaDb } from '@server/db/media';
+import { and, desc, gte, inArray, isNull } from 'drizzle-orm';
+import { medias } from '@server/db/media/schema/medias';
 
-export default async function (req: Request, res: Response) {
-	const backdrops: (Media & {
-		Movie:
-		| (Movie & {
-			Keyword: (KeywordMovie & {
-				Keyword: Keyword;
-			})[];
-		})
-		| null;
-		Tv:
-		| (Tv & {
-			Keyword: (KeywordTv & {
-				Keyword: Keyword;
-			})[];
-		})
-		| null;
-	})[] = [];
+export default function (req: Request, res: Response) {
 
-	const logos: Media[] = [];
-	const tvLogos: Media[] = [];
-	const movieLogos: Media[] = [];
+	try {
 
-	await confDb.media
-		.findMany({
-			where: {
-				type: 'backdrop',
-				voteAverage: {
-					gte: 5,
-				},
-				iso6391: null,
+		const logos: Media[] = [];
+		const tvLogos: Media[] = [];
+		const movieLogos: Media[] = [];
+
+		const data = mediaDb.query.medias.findMany({
+			where: and(
+				inArray(medias.type, ['backdrop', 'poster', 'logo']),
+				gte(medias.voteAverage, 5),
+				isNull(medias.iso6391)
+			),
+			orderBy: desc(medias.voteAverage),
+			with: {
+				movie: true,
+				tv: true,
 			},
-			orderBy: {
-				voteAverage: 'desc',
-			},
-			include: {
-				Movie: {
-					include: {
-						Keyword: {
-							include: {
-								Keyword: true,
-							},
-						},
-					},
-				},
-				Tv: {
-					include: {
-						Keyword: {
-							include: {
-								Keyword: true,
-							},
-						},
-					},
-				},
-			},
-		})
-		.then(data => backdrops.push(...data))
-		.catch((error) => {
-			Logger.log({
-				level: 'error',
-				name: 'moviedb',
-				color: 'redBright',
-				message: `Error fetching backdrops ${error}`,
-			});
 		});
 
-	const tvCollection: (Media & {
-		Movie:
-		| (Movie & {
-			Keyword: (KeywordMovie & {
-				Keyword: Keyword;
-			})[];
-		})
-		| null;
-		Tv:
-		| (Tv & {
-			Keyword: (KeywordTv & {
-				Keyword: Keyword;
-			})[];
-		})
-		| null;
-	})[] = [];
+		const tvCollection: typeof data = [];
 
-	unique(
-		backdrops.filter(i => i.Tv),
-		'tvId'
-	).map(data => tvCollection.push(data));
+		unique(
+			data.filter(i => i.tv),
+			'tvId'
+		).map(data => tvCollection.push(data));
 
-	const movieCollection: (Media & {
-		Movie:
-		| (Movie & {
-			Keyword: (KeywordMovie & {
-				Keyword: Keyword;
-			})[];
-		})
-		| null;
-		Tv:
-		| (Tv & {
-			Keyword: (KeywordTv & {
-				Keyword: Keyword;
-			})[];
-		})
-		| null;
-	})[] = [];
+		const movieCollection: typeof data = [];
 
-	unique(
-		backdrops.filter(i => i.Movie),
-		'movieId'
-	).map(data => movieCollection.push(data));
+		unique(
+			data.filter(i => i.movie),
+			'movieId'
+		).map(data => movieCollection.push(data));
 
-	await confDb.media
-		.findMany({
-			where: {
-				OR: [
-					{
-						type: 'logo',
-						tvId: {
-							in: tvCollection.map(b => b.tvId!),
-						},
-					},
-					{
-						type: 'logo',
-						movieId: {
-							in: movieCollection.map(b => b.movieId!),
-						},
-					},
-				],
-			},
-		})
-		.then(data => logos.push(...data))
-		.catch((error) => {
-			Logger.log({
-				level: 'error',
-				name: 'moviedb',
-				color: 'redBright',
-				message: `Error fetching logos ${error}`,
-			});
+		unique(
+			logos.filter(i => i.movie_id),
+			'movieId'
+		).map(data => movieLogos.push(data));
+
+		unique(
+			logos.filter(i => i.tv_id),
+			'tvId'
+		).map(data => tvLogos.push(data));
+
+		const tv: LogoResponse[] = tvCollection.map((r) => {
+			const logo = tvLogos.find(l => l.tv_id == r.tv_id);
+
+			return {
+				aspectRatio: r.aspectRatio,
+				src: r.src,
+				colorPalette: JSON.parse(r.colorPalette ?? '{}'),
+				meta: {
+					title: r?.tv?.title as string,
+					logo: logo
+						? {
+							aspectRatio: logo.aspectRatio,
+							src: logo.src,
+						}
+						: null,
+				},
+			};
+		}).filter(r => r?.meta?.logo);
+
+		const movie: LogoResponse[] = movieCollection.map((r) => {
+			const logo = movieLogos.find(l => l.movie_id == r.movie_id);
+
+			return {
+				aspectRatio: r.aspectRatio,
+				src: r.src,
+				colorPalette: JSON.parse(r.colorPalette ?? '{}'),
+				meta: {
+					title: r?.movie?.title as string,
+					logo: logo
+						? {
+							aspectRatio: logo.aspectRatio,
+							src: logo.src,
+						}
+						: null,
+				},
+			};
+		}).filter(r => r?.meta?.logo);
+
+		const response: LogoResponse[] = shuffle([...tv, ...movie]);
+
+		return res.json(response);
+	} catch (error) {
+
+		Logger.log({
+			level: 'error',
+			name: 'moviedb',
+			color: 'redBright',
+			message: `Error fetching backdrops ${error}`,
 		});
 
-	unique(
-		logos.filter(i => i.movieId),
-		'movieId'
-	).map(data => movieLogos.push(data));
+		return res.json({
+			status: 'error',
+			message: `Something went wrong getting backdrops: ${error}`,
+		});
 
-	unique(
-		logos.filter(i => i.tvId),
-		'tvId'
-	).map(data => tvLogos.push(data));
-
-	const tv: LogoResponse[] = tvCollection.map((r) => {
-		const logo = tvLogos.find(l => l.tvId == r.tvId);
-
-		return {
-			aspectRatio: r.aspectRatio,
-			src: r.src,
-			colorPalette: JSON.parse(r.colorPalette ?? '{}'),
-			meta: {
-				title: r?.Tv?.title,
-				tags: r?.Tv?.Keyword?.map((k: { Keyword: Keyword }) => k.Keyword.name)
-					.sort((a, b) => a.length - b.length)
-					.filter(k => k.split(' ').length < 3)
-					.slice(0, 3),
-				logo: logo
-					? {
-						aspectRatio: logo.aspectRatio,
-						src: logo.src,
-					}
-					: null,
-			},
-		};
-	}).filter(r => r?.meta?.logo);
-
-	const movie: LogoResponse[] = movieCollection.map((r) => {
-		const logo = movieLogos.find(l => l.movieId == r.movieId);
-
-		return {
-			aspectRatio: r.aspectRatio,
-			src: r.src,
-			colorPalette: JSON.parse(r.colorPalette ?? '{}'),
-			meta: {
-				title: r?.Movie?.title,
-				tags: r?.Movie?.Keyword?.map((k: { Keyword: Keyword }) => k.Keyword.name)
-					.sort((a, b) => a.length - b.length)
-					.filter(k => k.split(' ').length < 3)
-					.slice(0, 3),
-				logo: logo
-					? {
-						aspectRatio: logo.aspectRatio,
-						src: logo.src,
-					}
-					: null,
-			},
-		};
-	}).filter(r => r?.meta?.logo);
-
-	const response: LogoResponse[] = shuffle([...tv, ...movie]);
-
-	return res.json(response);
+	}
 }

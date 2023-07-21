@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { logLevels, logNames, winstonLog } from '@/state';
+import { logLevels, logNames, winstonLog } from '@server/state';
 
-import { KAuthRequest } from 'types/keycloak';
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import winston from 'winston';
 import { writeFileSync } from 'fs';
 
@@ -35,12 +34,16 @@ export const logs = (req: Request, res: Response) => {
 				.filter(r => (name?.length > 0
 					? name.includes(r.name)
 					: true))
-				.filter(r => (message
-					? r.message.toLowerCase().includes(message.toLowerCase())
-					: true))
+				.filter(r => (message == ''
+					? true
+					: r.message.toLowerCase().includes(message.toLowerCase())))
 				.filter(r => (user
 					? r.user?.includes(user) ?? false
 					: true));
+
+			if (!req.isOwner) {
+				return res.json(filteredResults.filter(r => r.name == 'permisson'));
+			}
 
 			return res.json(filteredResults);
 		});
@@ -68,7 +71,7 @@ export const deleteLogs = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'app',
 			color: 'magentaBright',
-			user: (req as KAuthRequest).kauth.grant?.access_token.content.name,
+			user: req.user.name,
 			message: 'Cleared the logs',
 		});
 

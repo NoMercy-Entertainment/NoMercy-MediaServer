@@ -1,17 +1,19 @@
 import { ChildProcess, exec, execSync } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, statSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync } from 'fs';
 import osu from 'os-utils';
 import { join } from 'path';
 import events, { EventEmitter } from 'events';
 import { resume, suspend } from 'ntsuspend';
 
-
-import { ArrayElementType, Audio, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
+import type { ArrayElementType, Audio, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
 import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
-import { ffmpeg, transcodesPath, userDataPath } from '@/state';
-import { EncodingLibrary } from './archiver';
+import { ffmpeg, subtitleEdit, transcodesPath, userDataPath } from '@server/state';
 import { convertToHuman, convertToSeconds } from '../dateTime';
 import { setInterval } from 'timers';
+import Logger from '../logger/logger';
+import M3U8FileParser from 'm3u8-file-parser';
+import { getQualityTag } from './quality/quality';
+import { EncodingLibrary } from '@server/db/media/actions/libraries';
 
 export class FFMpeg extends EventEmitter {
 	file = '';
@@ -63,12 +65,17 @@ export class FFMpeg extends EventEmitter {
 	chaptersFile = '';
 	fontsFile = '';
 	subtitleFolder = '';
+	manifestFile = '';
+	mp4File = '';
+	fontsFolder = '';
 
 	year = 0;
 	seasonNumber: any;
 	episodeNumber: any;
 
 	library: EncodingLibrary = <EncodingLibrary>{};
+	qualities: VideoQuality[] = [];
+	share = '';
 
 	videoStreams: { size: string; quality: VideoQuality; }[] = [];
 	audioStreams: string[] = [];
@@ -80,6 +87,8 @@ export class FFMpeg extends EventEmitter {
 	fullTitle = '';
 	currentProgress: any = {};
 	repeatInterval: NodeJS.Timeout = <NodeJS.Timeout>{};
+
+	reader = new M3U8FileParser();
 
 	constructor() {
 		super();
@@ -133,8 +142,7 @@ export class FFMpeg extends EventEmitter {
 
 	getEncoderType() {
 		try {
-			execSync(`${ffmpeg} -hide_banner -init_hw_device opencl=ocl -version 2>&1`)
-				.toString('utf-8');
+			execSync(`${ffmpeg} -hide_banner -init_hw_device opencl=ocl -version 2>&1`).toString('utf-8');
 			this.hasGpu = true;
 		} catch (error: any) {
 			this.hasGpu = false;
@@ -160,12 +168,10 @@ export class FFMpeg extends EventEmitter {
 		}
 
 		if (this.isMultiBitrate || !existsSync(this.getFile(['sprite.webp']))) {
-			this.addCommand(ffmpeg, undefined, true)
-				.addCommand('-', '|', true)
+			this.addCommand(ffmpeg, undefined, true).addCommand('-', '|', true)
 				.addCommand('-f', 'matroska', true);
 
-			this.addCommand('-c:s', 'copy', true)
-				.addCommand('-c:a', 'copy', true)
+			this.addCommand('-c:s', 'copy', true).addCommand('-c:a', 'copy', true)
 				.addCommand('-map', '0:s', true)
 				.addCommand('-map', '0:a', true);
 
@@ -176,9 +182,7 @@ export class FFMpeg extends EventEmitter {
 				.addVideoFilters(true)
 				.addCommand('-c:v', 'rawvideo', true)
 				.addCommand('-map', '0:0', true);
-
 		} else {
-
 			this.addCommand('-keyint_min', framerate, true)
 				.addCommand('-x264opts', `"keyint=${framerate}:min-keyint=${framerate}:no-scenecut"`, true)
 				.addCommand('-g', framerate, true)
@@ -212,13 +216,10 @@ export class FFMpeg extends EventEmitter {
 		this.addCommand(ffmpeg, undefined, true);
 
 		return this;
-
 	}
 
 	#openCommand() {
-
 		if (!this.isHDR) {
-
 			this.addCommand('-i', `"${this.file}"`, true);
 
 			for (const [key, val] of this.beforeInputCommands) {
@@ -286,7 +287,7 @@ export class FFMpeg extends EventEmitter {
 				.filter(f => f.endsWith('.jpg'))
 				.pop();
 		} catch (error) {
-			return null;
+			return '';
 		}
 	}
 
@@ -297,7 +298,7 @@ export class FFMpeg extends EventEmitter {
 			.slice(1)
 			.filter(line => line.match(/\d+/u))
 			.map(id => parseInt(id.trim(), 10));
-	};
+	}
 
 	repeatProgress() {
 		this.repeatInterval = setInterval(() => {
@@ -314,14 +315,14 @@ export class FFMpeg extends EventEmitter {
 			const ids = this.getChildProcesses(makeProcess.pid);
 			let pids = ids.length + 1;
 			if (suspend(makeProcess.pid)) {
-				// console.log(`Suspended process: ${makeProcess.pid}`);
+				console.log(`Suspended process: ${makeProcess.pid}`);
 				pids -= 1;
 			} else {
 				console.log(`Could not suspend process: ${makeProcess.pid}`);
 			}
 			for (const id of ids ?? []) {
 				if (suspend(id)) {
-					// console.log(`Suspended process: ${id}`);
+					console.log(`Suspended process: ${id}`);
 					pids -= 1;
 				} else {
 					console.log(`Could not suspend process: ${id}`);
@@ -336,7 +337,9 @@ export class FFMpeg extends EventEmitter {
 						progress: 'paused',
 						title: this.fullTitle,
 						percent: this.percent,
-						thumbnails: `/${this.library.id}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`,
+						thumbnails: lastThumb
+							? `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`
+							: null,
 					});
 				}, 500);
 				this.currentProgress.progress = 'paused';
@@ -352,14 +355,14 @@ export class FFMpeg extends EventEmitter {
 			const ids = this.getChildProcesses(makeProcess.pid);
 			let pids = ids.length + 1;
 			if (resume(makeProcess.pid)) {
-				// console.log(`Resumed process: ${makeProcess.pid}`);
+				console.log(`Resumed process: ${makeProcess.pid}`);
 				pids -= 1;
 			} else {
 				console.log(`Could not suspend process: ${makeProcess.pid}`);
 			}
 			for (const id of ids ?? []) {
 				if (resume(id)) {
-					// console.log(`Resumed process: ${id}`);
+					console.log(`Resumed process: ${id}`);
 					pids -= 1;
 				} else {
 					console.log(`Could not resume process: ${id}`);
@@ -378,7 +381,9 @@ export class FFMpeg extends EventEmitter {
 					hours: null,
 					minutes: null,
 					seconds: null,
-					thumbnails: `/${this.library.id}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`,
+					thumbnails: lastThumb
+						? `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`
+						: null,
 				});
 				this.cancelRepeatProgress();
 			}
@@ -389,15 +394,24 @@ export class FFMpeg extends EventEmitter {
 
 	sendProgress(data: string) {
 		// eslint-disable-next-line max-len
-		const match = /frame=(?<frame>\d+)\nfps=(?<fps>[\d\.]+)(\n.+){2}\nbitrate=(?<bitrate>[\d\.]+)kbits\/s(\n.+){3}\nout_time=(?<time>\d{2}:\d{2}:\d{2})\.\d*(\n.+){2}\nspeed=(?<speed>[\d\.]+)x\nprogress=(?<progress>\w+)/gmu.exec(data);
+		const match
+			// eslint-disable-next-line max-len
+			= /(frame=(?<frame>\d+)\n)?(fps=(?<fps>[\d\.]+)(\n.+){1,}\n)?(bitrate=(?<bitrate>(\s+)?([\d\s\.-]+|N\/A))(kbits\/s|N\/A)?(\n.+){1,}\n)(out_time=(?<time>(-)?\d{2,}:\d{2,}:\d{2,})\.\d*(\n.+){1,}\n)(speed=(\s+)?(?<speed>([\d\s\.-]+x|N\/A))\n)(progress=(\s+)?(?<progress>\w+))/gmu.exec(
+				data
+			);
 
-		if (!match?.groups) return;
+		// console.log(data);
+		if (!match?.groups) {
+			// console.log(data);
+			return;
+		}
 
 		const currentTime = convertToSeconds(match?.groups?.time);
 		const duration = this.format.duration;
 		const speed = parseFloat(match?.groups?.speed);
-		const remaining = Math.floor((duration - currentTime) / speed);
-		this.percent = Math.floor((currentTime / duration) * 100);
+		const remaining = Math.floor(((duration as number) - currentTime) / speed);
+		this.percent = Math.floor((currentTime / (duration as number)) * 100);
+		// console.log({ duration, currentTime, remaining, speed, percent: this.percent });
 		const remainingHMS = convertToHuman(remaining);
 		const remainingSplit = remainingHMS.split(':');
 
@@ -418,15 +432,19 @@ export class FFMpeg extends EventEmitter {
 			id: this.index,
 			title: this.fullTitle,
 			path: this.path,
-			videoStreams: this.videoStreams,
-			audioStreams: this.audioStreams,
-			subtitleStreams: this.subtitleStreams,
 			thumbnailStreams: this.thumbnailStreams,
+			videoStreams: this.qualities.map(v => getQualityTag(v)).join(', '),
+			audioStreams: this.streams.audio.map(a => a.language).join(', '),
+			subtitleStreams: this.streams.subtitle.map(s => s.language).join(', '),
+			hasGpu: this.hasGpu,
+			isHDR: this.isHDR,
 			percent: this.percent,
-			thumbnails: `/${this.library.id}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`,
+			thumbnails: lastThumb
+				? `/${this.share}/${this.baseFolder}/${this.episodeFolder}/thumbs/${lastThumb}`
+				: null,
 			frame: match?.groups?.frame ?? 0,
 			fps: match?.groups?.fps ?? 0,
-			bitrate: match?.groups?.bitrate ?? 0,
+			bitrate: match?.groups?.bitrate.trim() ?? 0,
 			progress: match?.groups?.progress,
 			status: 'running',
 			speed,
@@ -441,11 +459,10 @@ export class FFMpeg extends EventEmitter {
 			seconds,
 		};
 
-		this.emit.bind(this)('progress', this.currentProgress);
+		this.emit('progress', this.currentProgress);
 	}
 
 	start(cb?: (arg?: any) => unknown) {
-
 		return new Promise(async (resolve, reject) => {
 			if (this.commands.length == 0) {
 				console.error('No commands to execute');
@@ -455,49 +472,58 @@ export class FFMpeg extends EventEmitter {
 
 			const path = join(this.path);
 			const command = this.buildCommand();
+			console.log(command);
 
-			try {
-				const makeProcess = exec.bind(this)(command, {
+			const makeProcess = exec.bind(this)(
+				command,
+				{
 					cwd: path,
-				}, async (error, stdout, stderr) => {
+					maxBuffer: Infinity,
+				},
+				(error) => {
 					if (error) {
 						console.error(error);
-						reject(error);
-						return;
+						// reject(error);
 					}
+				}
+			);
 
-					await cb?.();
-					resolve(stdout);
-				});
+			makeProcess.stdout?.on('data', (data) => {
+				this.sendProgress.bind(this)(data);
+				if (data.includes('progress=end')) {
+					cb?.();
 
-				makeProcess.stdout?.on('data', (data) => {
-					this.sendProgress.bind(this)(data);
-				});
+					resolve(this);
+				}
+			});
 
-				makeProcess.on('exit', async (code) => {
-					await cb?.();
-					console.log('exit', code);
-				});
+			makeProcess.on('exit', async (code) => {
+				console.log('exit', code);
 
-				this.on('message', ({ type, id }: { type: string, id: number }) => {
-					if (id !== this.index) return;
+				await cb?.();
+				if (code == 1) {
+					reject(new Error('Failed to encode file'));
+				} else {
+					resolve(this);
+				}
+			});
 
-					if (type == 'encoder-pause') {
-						this.suspendChildren(makeProcess);
-					} else if (type == 'encoder-resume') {
-						this.resumeChildren(makeProcess);
-					} else if (type == 'encoder-stop') {
-						makeProcess.kill('SIGTERM');
-					} else if (type == 'encoder-restart') {
-						makeProcess.kill('SIGTERM');
-						this.start();
-					}
-				});
+			this.on('message', (data) => {
+				// console.log('msg', data);
+				if (data.id !== this.index) return;
 
-			} catch (error) {
-				console.log(error);
-				return reject(error);
-			}
+				if (data.type == 'encoder-pause') {
+					this.suspendChildren(makeProcess);
+				} else if (data.type == 'encoder-resume') {
+					this.resumeChildren(makeProcess);
+				} else if (data.type == 'encoder-stop') {
+					makeProcess.kill('SIGTERM');
+				} else if (data.type == 'encoder-restart') {
+					makeProcess.kill('SIGTERM');
+					this.start();
+				}
+			});
+
 		});
 	}
 
@@ -529,10 +555,9 @@ export class FFMpeg extends EventEmitter {
 		this.#openCommand();
 
 		return this.commands
-			.map(([key, val]) => (
-				val
-					? `${key} ${val}`
-					: key))
+			.map(([key, val]) => (val
+				? `${key} ${val}`
+				: key))
 			.join(' ')
 			.replace(/[\n\r]*/gu, '');
 	}
@@ -545,6 +570,7 @@ export class FFMpeg extends EventEmitter {
 
 	buildVideoFilter() {
 		let filter = '';
+
 		const array = Object.entries(this.videoFilters);
 		array.map(([key, val], index) => {
 			if (val) {
@@ -556,6 +582,7 @@ export class FFMpeg extends EventEmitter {
 				filter += ',';
 			}
 		});
+		this.videoFilters = [];
 
 		return filter;
 	}
@@ -626,9 +653,9 @@ export class FFMpeg extends EventEmitter {
 		const path = join(...name.slice(0, name.length - 1), name[name.length - 1]);
 
 		const dir = `${folder}/${path.split(/[\\\/]/u)[0].replace(/\w+\.\w{3,4}$/u, '')}`;
-		console.log('making folder:', `${folder}/${path.split(/[\\\/]/u)[0].replace(/\w+\.\w{3,4}$/u, '')}`);
 
 		if (!dir.endsWith('.')) {
+			console.log('making folder:', `${folder}/${path.split(/[\\\/]/u)[0].replace(/\w+\.\w{3,4}$/u, '')}`);
 			mkdirSync(dir, { recursive: true });
 		}
 
@@ -637,10 +664,7 @@ export class FFMpeg extends EventEmitter {
 	}
 
 	getHDRFilter() {
-
-		this.isHDR = this.streams.video.some(stream =>
-			stream.color_space?.includes('bt2020')
-			|| stream.color_primaries?.includes('bt2020'));
+		this.isHDR = this.streams.video.some(stream => stream.color_space?.includes('bt2020') || stream.color_primaries?.includes('bt2020'));
 
 		if (this.lutFile && this.isHDR && !this.#wantsSDR) {
 			this.addVideoFilter('lut3d', `"${userDataPath}/${this.lutFile}"`);
@@ -649,24 +673,20 @@ export class FFMpeg extends EventEmitter {
 			this.addVideoFilter('eq', 'saturation=0.95');
 		}
 
+		if (this.isHDR && this.hasGpu) {
+			this.addPreInputCommand('-vsync', '0');
+			this.addPreInputCommand('-extra_hw_frames', '3');
+			this.addPreInputCommand('-init_hw_device', 'opencl=ocl');
+		}
 		if (this.isHDR && !this.#wantsSDR) {
-
 			if (this.hasGpu) {
-				this.addPreInputCommand('-vsync', '0');
-				this.addPreInputCommand('-extra_hw_frames', '3');
-				this.addPreInputCommand('-init_hw_device', 'opencl=ocl');
-
 				this.addVideoFilter('format', 'p010');
 				this.addVideoFilter('hwupload', '');
-				this.addVideoFilter('tonemap_opencl',
-					'tonemap=mobius:param=0.01:desat=0:r=tv:p=bt709:t=bt709:m=bt709:format=nv12');
+				this.addVideoFilter('tonemap_opencl', 'tonemap=mobius:param=0.01:desat=0:r=tv:p=bt709:t=bt709:m=bt709:format=nv12');
 				this.addVideoFilter('hwdownload', '');
 				this.addVideoFilter('format=nv12', '');
-
 			} else {
-
-				this.addVideoFilter('zscale',
-					'tin=smpte2084:min=bt2020nc:pin=bt2020:rin=tv:t=smpte2084:m=bt2020nc:p=bt2020:r=tv');
+				this.addVideoFilter('zscale', 'tin=smpte2084:min=bt2020nc:pin=bt2020:rin=tv:t=smpte2084:m=bt2020nc:p=bt2020:r=tv');
 				this.addVideoFilter('zscale', 't=linear:npl=100');
 				this.addVideoFilter('format', 'gbrpf32le');
 				this.addVideoFilter('zscale', 'p=bt709');
@@ -679,7 +699,6 @@ export class FFMpeg extends EventEmitter {
 	}
 
 	getCropFilter() {
-
 		function chooseCrop(crops) {
 			return Object.keys(crops).reduce(
 				(res, key) => {
@@ -693,8 +712,9 @@ export class FFMpeg extends EventEmitter {
 			).key;
 		}
 
-		const crop = execSync(`${ffmpeg} -ss 120 -i "${this.file}" -max_muxing_queue_size 999 -vframes 1000 -vf cropdetect -t 1000 -f null - 2>&1`)
-			.toString('utf-8');
+		const crop = execSync(
+			`${ffmpeg} -ss 120 -i "${this.file}" -max_muxing_queue_size 999 -vframes 1000 -vf cropdetect -t 1000 -f null - 2>&1`
+		).toString('utf-8');
 
 		const counts = {};
 		const regex = /crop=(\d+:\d+:\d+:\d+)$/gmu;
@@ -770,7 +790,6 @@ export class FFMpeg extends EventEmitter {
 	}
 
 	#burnSubTitle(stream: ArrayElementType<VideoFFprobe['streams']['subtitle']>, externalFile?: string) {
-
 		const ext = this.getExtension(stream);
 
 		if (externalFile) {
@@ -801,7 +820,6 @@ export class FFMpeg extends EventEmitter {
 	}
 
 	burnSubtitle(index: number, file: string) {
-
 		if (!this.streams.subtitle.length) return this;
 
 		this.#burnSubTitle(this.streams.subtitle[index], file);
@@ -809,6 +827,44 @@ export class FFMpeg extends EventEmitter {
 
 		return this;
 	}
+
+	convertSubsToVtt() {
+		if (existsSync(this.subtitleFolder)) {
+
+			const files = readdirSync(this.subtitleFolder);
+
+			for (const s of files) {
+
+				if ((!s.match(/.ass$|.vtt$/u) && !existsSync(this.subtitleFolder + s.replace(/\.\w{3}$/u, '.vtt')))) {
+					try {
+
+						if (!existsSync(`${this.subtitleFolder}/${s}`)) {
+							execSync(`${subtitleEdit} /convert "${this.subtitleFolder}/${s}" WebVtt`);
+						}
+
+						if (JSON.parse(process.env.CONFIG as string).keepOriginal.subtitles
+							&& existsSync(this.subtitleFolder + s)
+							&& !s.match(/.ass$|.vtt$/u)
+						) {
+							try {
+								renameSync(this.subtitleFolder + s, `${this.subtitleFolder}../original/${s}`);
+							} catch (error) {
+								//
+							}
+						} else if (existsSync(this.subtitleFolder + s) && !s.match(/.ass$|.vtt$/u)) {
+							try {
+								rmSync(this.subtitleFolder + s);
+							} catch (error) {
+								//
+							}
+						}
+					} catch (error) {
+						//
+					}
+				}
+			}
+		}
+	};
 
 	sortByPriorityKeyed = (sortingOrder: { [x: string]: any; }, key: PropertyKey, order = 'desc') => {
 		if (Array.isArray(sortingOrder)) {
@@ -824,14 +880,12 @@ export class FFMpeg extends EventEmitter {
 				return 0;
 			}
 
-			const first
-				= a[key].toString().toLowerCase() in sortingOrder
-					? sortingOrder[a[key]]
-					: Number.MAX_SAFE_INTEGER;
-			const second
-				= b[key].toString().toLowerCase() in sortingOrder
-					? sortingOrder[b[key]]
-					: Number.MAX_SAFE_INTEGER;
+			const first = a[key].toString().toLowerCase() in sortingOrder
+				? sortingOrder[a[key]]
+				: Number.MAX_SAFE_INTEGER;
+			const second = b[key].toString().toLowerCase() in sortingOrder
+				? sortingOrder[b[key]]
+				: Number.MAX_SAFE_INTEGER;
 
 			let result = 0;
 			if (first > second) {
@@ -846,16 +900,13 @@ export class FFMpeg extends EventEmitter {
 	};
 
 	#createEnumFromArray = (array: any[]) => {
-		return array.reduce(
-			(res: { [x: string]: any; }, key: string | number, index: number) => {
-				res[key] = index + 1;
-				return res;
-			},
-			{}
-		);
+		return array.reduce((res: { [x: string]: any; }, key: string | number, index: number) => {
+			res[key] = index + 1;
+			return res;
+		}, {});
 	};
 
-	getQualityTag(qualities) {
+	getQualityTag(qualities: VideoQuality[]) {
 		const sizes = qualities?.map((s) => {
 			if (s.width >= 600 && s.width < 1200) {
 				return 'SD';
@@ -879,7 +930,6 @@ export class FFMpeg extends EventEmitter {
 	}
 
 	getBitrate(quality: VideoQuality) {
-
 		let rate = 1024 * 2;
 		if ((quality.width ?? 0) >= 600 && (quality.width ?? 0) < 1200) {
 			rate = 1024 * 5;
@@ -894,26 +944,25 @@ export class FFMpeg extends EventEmitter {
 		}
 
 		if (quality.bitrate && this.format.duration) {
-			return Math.floor((this.format.duration * quality.bitrate) / 8 / rate);
+			return Math.floor(((this.format.duration as number) * quality.bitrate) / 8 / rate);
 		}
 
 		if (this.format.bit_rate && this.format.bit_rate != 'N/A' && this.format.duration) {
-			return Math.floor((this.format.duration * this.format.bit_rate) / 8 / rate);
+			return Math.floor(((this.format.duration as number) * this.format.bit_rate) / 8 / rate);
 		}
 
 		if (this.format.duration) {
 			const size = this.#getTotalSize(this.format.filename.replace(/[\\\/][^\\\/]+(?=.*\w*)$/u, ''));
-			return Math.floor(size / this.format.duration / 8 / rate);
+			return Math.floor(size / (this.format.duration as number) / 8 / rate);
 		}
 
 		return 520929;
 	}
 
-	getExistingSubtitles(path: string) {
-
+	getExistingSubtitles() {
 		const arr: any[] = [];
 
-		if (!existsSync(path)) {
+		if (!existsSync(this.subtitleFolder)) {
 			this.streams.subtitle.forEach((s) => {
 				arr.push({
 					language: s.language,
@@ -925,7 +974,7 @@ export class FFMpeg extends EventEmitter {
 			return arr;
 		}
 
-		const files = readdirSync(path);
+		const files = readdirSync(this.subtitleFolder);
 		files
 			.filter(f => !f.match(/-\w{5,}\.\w{3}$/u))
 			.filter(f => f.match(/.ass$|.vtt$/u))
@@ -952,6 +1001,245 @@ export class FFMpeg extends EventEmitter {
 			});
 		}
 		return totalSize;
-	};
+	}
 
+	async verifyMP4() {
+
+		Logger.log({
+			level: 'info',
+			name: 'Encoder',
+			color: 'cyanBright',
+			message: `Verifying: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+		});
+
+		if (!existsSync(this.mp4File)) {
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message: `no file: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+			});
+			return false;
+		}
+
+		if (!this.mp4File.endsWith('.mp4')) {
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message:
+					`file is not a mp4 file so is not playable on all devices: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+			});
+			return false;
+		}
+
+		const ffprobe = await getVideoInfo(this.mp4File)
+			.catch((reason) => {
+				Logger.log({
+					level: 'error',
+					name: 'Encoder',
+					color: 'red',
+					message:
+						`Error while getting video info: ${reason.file
+						}, reason: ${reason.error || 'unknown'}`,
+				});
+			});
+
+		if (!ffprobe || !ffprobe.streams || !ffprobe.format || ffprobe.format.duration == 'N/A') {
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message:
+					`File doesn't have a duration: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+			});
+			return false;
+		}
+
+		if (this.format && (ffprobe.format.duration != this.format?.duration) && typeof this.format?.duration == 'number') {
+
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message:
+					`File duration is too ${ffprobe.format.duration < this.format?.duration
+						? 'short: '
+						: 'long: '
+					}${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+			});
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message:
+					`File input ${ffprobe.format.filename} output: ${this.format?.filename
+					}${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+			});
+			return false;
+		}
+
+		if (ffprobe.streams.video[0].level > 40) {
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message:
+					`File is not playable on all devices: ${this.mp4File.replace(/.*[\\\/]/u, '')}`,
+			});
+			return false;
+		}
+
+		Logger.log({
+			level: 'info',
+			name: 'Encoder',
+			color: 'cyanBright',
+			message: `File: ${this.mp4File.replace(/.*[\\\/]/u, '')} Ok`,
+		});
+
+		return true;
+	}
+
+	verifyMkv() {
+		return false;
+	}
+
+	verifyHLS() {
+
+		if (!existsSync(this.manifestFile)) {
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message: `no manifest: ${this.fileName}.m3u8`,
+			});
+			return false;
+		}
+
+		this.reader.read(readFileSync(this.manifestFile, 'utf-8'));
+		const manifestFileResult = this.reader.getResult();
+		this.reader.reset();
+
+		for (const item of manifestFileResult.segments ?? []) {
+
+			if (!existsSync(this.getFile([item.url]))) {
+				Logger.log({
+					level: 'error',
+					name: 'Encoder',
+					color: 'cyanBright',
+					message: `no segment: ${item.url}`,
+				});
+				return false;
+			}
+
+			this.reader.read(readFileSync(this.getFile([item.url]), 'utf-8'));
+			const fileResult = this.reader.getResult();
+			this.reader.reset();
+
+			if (!fileResult.endList) {
+				Logger.log({
+					level: 'error',
+					name: 'Encoder',
+					color: 'cyanBright',
+					message: `no endlist: ${item.url}`,
+				});
+				return false;
+			}
+			Logger.log({
+				level: 'info',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message: `yes endlist: ${item.url}`,
+			});
+
+			// for (const file of fileResult.segments ?? []) {
+			// 	if (!existsSync(join(this.path, item.url.split('/')[0], file.url))) {
+			// 		Logger.log({
+			// 			level: 'error',
+			// 			name: 'Encoder',
+			// 			color: 'cyanBright',
+			// 			message: `no segment: ${join(this.path, item.url.split('/')[0], file.url)}`,
+			// 		});
+			// 		return false;
+			// 	}
+			// }
+		}
+
+		if (!manifestFileResult.media) {
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message: `no media: ${this.fileName}.m3u8`,
+			});
+			return false;
+		}
+		if (!manifestFileResult.segments) {
+			Logger.log({
+				level: 'error',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message: `no segments: ${this.fileName}.m3u8`,
+			});
+			return false;
+		}
+		Logger.log({
+			level: 'info',
+			name: 'Encoder',
+			color: 'cyanBright',
+			message: `yes: ${this.fileName}.m3u8`,
+		});
+
+		for (const audio of Object.entries(manifestFileResult.media?.AUDIO?.[Object.keys(manifestFileResult.media?.AUDIO)[0]]) ?? []) {
+			const item = audio[1] as any;
+			if (!existsSync(this.getFile([item.uri]))) {
+				Logger.log({
+					level: 'error',
+					name: 'Encoder',
+					color: 'cyanBright',
+					message: `no segment: ${item.uri}`,
+				});
+				return false;
+			}
+			this.reader.read(readFileSync(this.getFile([item.uri]), 'utf-8'));
+			const result = this.reader.getResult();
+			this.reader.reset();
+
+			// for (const file of result.segments ?? []) {
+			// 	if (!existsSync(join(this.path, item.uri.split('/')[0], file.url))) {
+			// 		Logger.log({
+			// 			level: 'error',
+			// 			name: 'Encoder',
+			// 			color: 'cyanBright',
+			// 			message: `no segment: ${join(this.path, item.uri.split('/')[0], file.url)}`,
+			// 		});
+			// 		return false;
+			// 	}
+			// }
+
+			if (!result.endList) {
+				Logger.log({
+					level: 'error',
+					name: 'Encoder',
+					color: 'cyanBright',
+					message: `no endlist: ${item.uri}`,
+				});
+				return false;
+			}
+			Logger.log({
+				level: 'info',
+				name: 'Encoder',
+				color: 'cyanBright',
+				message: `yes endlist: ${item.uri}`,
+			});
+		}
+		Logger.log({
+			level: 'info',
+			name: 'Encoder',
+			color: 'cyanBright',
+			message: 'm3u8 ok',
+		});
+
+		return true;
+	}
 }

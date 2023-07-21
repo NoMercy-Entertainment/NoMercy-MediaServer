@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import i18next from 'i18next';
 
 const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {

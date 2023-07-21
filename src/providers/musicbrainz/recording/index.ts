@@ -1,7 +1,7 @@
 // artists, releases, isrcs, url-
 
 import { Genre } from '../genre';
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import mbApiClient from '../mbApiClient';
 
 export interface Recording {

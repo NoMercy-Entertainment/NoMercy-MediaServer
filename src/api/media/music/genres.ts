@@ -1,30 +1,29 @@
 import { Request, Response } from 'express';
 
-import type { GenreResponse } from './genres.d';
-import { confDb } from '../../../database/config';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { deviceId } from '../../../functions/system';
-import { generateBlurHash } from '../../../functions/createBlurHash/createBlurHash';
-import { sortBy } from '../../../functions/stringArray';
+import { deviceId } from '@server/functions/system';
+// import { generateBlurHash } from '@server/functions/createBlurHash/createBlurHash';
+import { sortBy } from '@server/functions/stringArray';
+import { mediaDb } from '@server/db/media';
+import { asc } from 'drizzle-orm';
+import { musicGenres } from '@server/db/media/schema/musicGenres';
 
-export default async function (req: Request, res: Response): Promise<Response<GenreResponse>> {
+export default function (req: Request, res: Response) {
 
-	const music = await confDb.musicGenre.findMany({
-		where: {
-			Track: {
-				some: {
-					id: {
-						not: undefined,
-					},
-				},
-			},
+	const music = mediaDb.query.musicGenres.findMany({
+		// where: {
+		// 	track: {
+		// 		some: {
+		// 			id: {
+		// 				not: undefined,
+		// 			},
+		// 		},
+		// 	},
+		// },
+		with: {
+			musicGenre_track: true,
 		},
-		orderBy: {
-			name: 'asc',
-		},
-		include: {
-			_count: true,
-		},
+		orderBy: asc(musicGenres.name),
 	});
 
 	if (!music) {
@@ -36,7 +35,7 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 
 	const result: GenreResponse = {
 		type: 'genres',
-		data: sortBy(music.filter(m => m._count.Track > 10)
+		data: sortBy(music.filter(m => m.musicGenre_track.length > 10)
 			.map((m) => {
 				return {
 					...m,
@@ -44,10 +43,24 @@ export default async function (req: Request, res: Response): Promise<Response<Ge
 					name: m.name?.replace(/["'\[\]*]/gu, ''),
 					titleSort: createTitleSort(m.name?.replace(/["'\[\]*]/gu, '') ?? ''),
 					origin: deviceId,
-					blurHash: generateBlurHash(),
+					// blurHash: generateBlurHash(),
+					blurHash: '',
+
 				};
 			}), 'titleSort'),
 	};
 
 	return res.json(result);
+}
+
+export interface GenreResponse {
+    type: string;
+    data: {
+        type: string;
+        name: string | undefined;
+        titleSort: string;
+        origin: string;
+        blurHash: string;
+        id: string | null;
+    }[];
 }

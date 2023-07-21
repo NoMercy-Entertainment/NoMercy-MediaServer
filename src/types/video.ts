@@ -44,19 +44,19 @@ export interface VideoPlayer extends videojs.Player {
 	overlay: HTMLDivElement;
 	Vhs: any;
 	on: (event: string, callback: (arg0: any, arg1: unknown) => any) => void;
-	registerPlugin: typeof videojs.Plugin.registerPlugin;
-	plugin: typeof videojs.Plugin.registerPlugin;
-	browser: videojs.Browser;
+	registerPlugin: typeof videojs.registerPlugin;
+	plugin: typeof videojs.registerPlugin;
+	browser: typeof videojs.dom;
 }
 
-interface AudioTracks extends videojs.AudioTrackList {
+interface AudioTracks extends videojs.AudioTrack {
 	tracks_: AudioTrack[];
 }
-interface AudioTrack extends videojs.VideojsAudioTrack {
+interface AudioTrack extends videojs.AudioTrack {
 	enabled: boolean;
 }
 
-interface TextTracks extends videojs.TextTrackList {
+interface TextTracks extends videojs.TextTrack {
 	tracks_: TextTrack[];
 }
 interface TextTrack extends videojs.TextTrack {
@@ -75,4 +75,46 @@ interface QualityLevel {
 	height: number;
 	bitrate: number;
 	selectedIndex: number;
+}
+
+
+export interface PlaylistItem {
+    id: number;
+	special_id?: string;
+    title: string;
+    description: string | null;
+    duration: string | null | undefined;
+    poster: string | null;
+    backdrop: string | null;
+    image: string | null;
+    year: string;
+    video_type: string;
+    production: boolean;
+    season: number;
+    episode: number;
+    episode_id: number;
+    origin: string;
+    uuid: number;
+    video_id: string | number | undefined;
+    tmdbid: number;
+    show: string | null | undefined;
+    playlist_type: string;
+    logo: string | null;
+    rating: {
+        country: string;
+        rating: string | undefined;
+        meaning: string | undefined;
+        image: string;
+    };
+    progress: number | null;
+    textTracks: any[];
+    sources: {
+        src: string;
+        type: string;
+        languages: any;
+    }[];
+    tracks: {
+        file: string;
+        kind: string;
+    }[];
 }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { readFileSync } from 'fs';
 import colorThief from 'pure-color-thief-node';
-import { PaletteColors } from 'types/server';
+import { PaletteColors } from '@server/types/server';
 
 export default async (data: string| Buffer, type?: string): Promise<PaletteColors | null> => {
 
@@ -44,7 +44,6 @@ export const colorPaletteFromFile = async (path: string): Promise<PaletteColors|
 
 	const img = new colorThief();
 	const file = path.replace(/[\\\/]undefined/gu, '');
-	console.log(file);
 
 	await img.loadImage(readFileSync(file), path.replace(/.*\.(\w{3,4})$/u, 'image/$1').replace('jpg', 'jpeg'));
 	const palette = img.getColorPalette(5);

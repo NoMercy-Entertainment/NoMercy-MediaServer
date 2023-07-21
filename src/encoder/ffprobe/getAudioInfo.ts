@@ -1,7 +1,7 @@
-import { errorLog, ffprobe } from '@/state';
+import { errorLog, ffprobe } from '@server/state';
 
-import { AudioFFprobe } from './ffprobe';
-import Logger from '../../functions/logger';
+import type { AudioFFprobe } from './ffprobe';
+import Logger from '@server/functions/logger';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 
@@ -82,7 +82,7 @@ export default (file: string): Promise<AudioFFprobe> => {
 
 					ARTISTS:
 						(audioInfo.format.tags?.ARTISTS as string)?.split(';').map(a => a.trim())
-						|| (audioInfo.format.tags?.ALBUMARTISTSORT as string)?.split(';').map(a => a.trim()),
+						|| (audioInfo.format.tags?.album_artistORT as string)?.split(';').map(a => a.trim()),
 					ASIN: audioInfo.format.tags?.ASIN,
 					BARCODE: audioInfo.format.tags?.BARCODE,
 					CATALOGNUMBER: audioInfo.format.tags?.CATALOGNUMBER || audioInfo.format.tags?.CATALOGNUMBER,

@@ -28,6 +28,7 @@
 		"connnection",
 		"cropdetect",
 		"cuid",
+		"cygwin",
 		"datasource",
 		"datasources",
 		"desat",
@@ -38,6 +39,7 @@
 		"dvdsub",
 		"encoderprofiles",
 		"endlist",
+		"engtype",
 		"eqeqeq",
 		"EXTM",
 		"faststart",
@@ -155,11 +157,5 @@
 		"zscale"
 	],
 	"cSpell.language": "en,lorem,en-US",
-	"cSpell.enableFiletypes": ["ass", "prisma", "srt", "tailwindcss"],
-	"logViewer.watch": [
-		{
-		"title": "encoder log",
-		"pattern": "C:\\Users\\Stoney\\AppData\\Local\\NoMercy\\cache\\transcodes\\*.txt"
-		},
-	]
+	"cSpell.enableFiletypes": ["ass", "prisma", "srt", "tailwindcss"]
 }
