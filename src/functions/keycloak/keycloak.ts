@@ -1,13 +1,14 @@
 import { Keycloak as KCBackend } from 'keycloak-backend';
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import axios from 'axios';
-import { setKeycloakCertificate } from '@/state/redux/config/actions';
+import { setKeycloakCertificate } from '@server/state/redux/config/actions';
 import { keycloak_key } from './config';
 import { Issuer } from 'openid-client';
 import { NextFunction, Response, Request } from 'express';
-import { AppState, useSelector } from '@/state/redux';
-import { isAllowed, isModerator, isOwner } from '@/api/middleware/permissions';
-import { getLanguage } from '@/api/middleware';
+import { AppState, useSelector } from '@server/state/redux';
+import { isAllowed, isModerator, isOwner } from '@server/api/middleware/permissions';
+import { getLanguage } from '@server/api/middleware';
+import i18next from 'i18next';
 
 export let _keycloak;
 export let _keycloakBackend;
@@ -63,6 +64,7 @@ export const kcMiddleware = async (req: Request, res: Response, next: NextFuncti
 		req.isAllowed = isAllowed(req);
 
 		req.language = getLanguage(req);
+		i18next.changeLanguage(req.language);
 
 		return next();
 	} catch (error) {

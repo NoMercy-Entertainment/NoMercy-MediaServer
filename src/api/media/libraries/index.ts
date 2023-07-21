@@ -1,98 +1,111 @@
 import { Request, Response } from 'express';
 
-import { LibraryResponseContent } from '@/types/server';
-import { createTitleSort } from '@/tasks/files/filenameParser';
-import { parseYear } from '@/functions/dateTime';
-import { and, asc, eq, gt, isNotNull, isNull, or } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { movies } from '@/db/media/schema/movies';
-import { tvs } from '@/db/media/schema/tvs';
-import { translations } from '@/db/media/schema/translations';
-import { medias } from '@/db/media/schema/medias';
-import { getLibrary } from '@/db/media/actions/libraries';
-import { images } from '@/db/media/schema/images';
+import { LibraryResponseContent } from '@server/types//server';
+import { createTitleSort } from '@server/tasks/files/filenameParser';
+import { parseYear } from '@server/functions/dateTime';
+import { asc, gt, isNotNull, isNull } from 'drizzle-orm';
+import { mediaDb } from '@server/db/media';
+import { movies } from '@server/db/media/schema/movies';
+import { tvs } from '@server/db/media/schema/tvs';
+import { getAllowedLibrary } from '@server/db/media/actions/libraries';
+import { requestWorker } from '@server/api/requestWorker';
 
-export default function (req: Request, res: Response) {
-	try {
-		const library = getLibrary(req, req.params.id);
-		if (!library) return res.status(401).json({
-			nextId: undefined,
-			data: [],
+export default async function (req: Request, res: Response) {
+
+	const result = await requestWorker({
+		filename: __filename,
+		language: req.language,
+		user_id: req.user.sub,
+		take: req.body.take,
+		page: req.body.page,
+		id: req.params.id,
+	});
+
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
 		});
-
-		const data = {
-			tvs: mediaDb.query.tvs.findMany({
-				limit: req.body.take,
-				offset: req.body.page,
-				where: and(
-					eq(tvs.library_id, library.id!),
-					gt(tvs.haveEpisodes, 0)
-				),
-				with: {
-					userData: true,
-					medias: {
-						orderBy: asc(medias.voteAverage),
-					},
-					images: {
-						columns: {
-							filePath: true,
-							type: true,
-						},
-						where: (table: typeof images, { eq }) => (eq(table.type, 'logo')),
-					},
-					translations: {
-						where: or(
-							eq(translations.iso6391, req.language),
-							isNull(translations.iso6391)
-						),
-					},
-				},
-				orderBy: asc(tvs.titleSort),
-			}),
-			movies: mediaDb.query.movies.findMany({
-				limit: req.body.take,
-				offset: req.body.page,
-				where: and(
-					eq(tvs.library_id, library.id!),
-					isNotNull(movies.folder)
-				),
-				with: {
-					userData: true,
-					medias: {
-						orderBy: asc(medias.voteAverage),
-					},
-					images: {
-						columns: {
-							filePath: true,
-							type: true,
-						},
-						where: (table: typeof images, { eq }) => (eq(table.type, 'logo')),
-					},
-					translations: {
-						where: or(
-							eq(translations.iso6391, req.language),
-							isNull(translations.iso6391)
-						),
-					},
-					videoFiles: true,
-				},
-				orderBy: asc(movies.titleSort),
-			}),
-		};
-
-		const response = getContent(data);
-
-		const nextId = response.length < req.body.take
-			? undefined
-			: response.length + req.body.page;
-
-		return res.json({
-			nextId: nextId,
-			data: response,
-		});
-	} catch (error) {
-		console.log(error);
 	}
+	return res.json(result.result);
+}
+
+export const exec = ({ id, take, page, user_id, language }: { id: string, take: number; page: number; user_id: string, language: string }) => {
+	return new Promise(async (resolve, reject) => {
+		try {
+			const library = getAllowedLibrary(user_id, id);
+			if (!library) return reject({
+				error: {
+					code: 404,
+					message: 'Library not found',
+				},
+			});
+
+			const data = {
+				tvs: mediaDb.query.tvs.findMany({
+					limit: take,
+					offset: page,
+					where: (tvs, { eq, and }) => and(
+						eq(tvs.library_id, id),
+						gt(tvs.haveEpisodes, 0)
+					),
+					with: {
+						images: {
+							columns: {
+								filePath: true,
+								type: true,
+							},
+							where: (images, { eq }) => eq(images.type, 'logo'),
+						},
+						translations: {
+							where: (translations, { eq, or }) => or(
+								eq(translations.iso6391, language),
+								isNull(translations.iso6391)
+							),
+						},
+					},
+					orderBy: asc(tvs.titleSort),
+				}),
+				movies: mediaDb.query.movies.findMany({
+					limit: take,
+					offset: page,
+					where: (tvs, { eq, and }) => and(
+						eq(tvs.library_id, id),
+						isNotNull(movies.folder)
+					),
+					with: {
+						images: {
+							columns: {
+								filePath: true,
+								type: true,
+							},
+							where: (images, { eq }) => (eq(images.type, 'logo')),
+						},
+						translations: {
+							where: (translations, { eq, or }) => or(
+								eq(translations.iso6391, language),
+								isNull(translations.iso6391)
+							),
+						},
+					},
+					orderBy: asc(movies.titleSort),
+				}),
+			};
+
+			const response = getContent(data);
+
+			const nextId = response.length < take
+				? undefined
+				: response.length + page;
+
+			return resolve({
+				nextId: nextId,
+				data: response,
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	});
 
 }
 

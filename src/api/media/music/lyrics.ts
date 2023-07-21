@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 
 import { findLyrics } from '../../../providers';
 import lyricsFinder from 'lyrics-finder';
-import { tracks } from '@/db/media/schema/tracks';
-import { mediaDb } from '@/db/media';
+import { tracks } from '@server/db/media/schema/tracks';
+import { mediaDb } from '@server/db/media';
 import { eq } from 'drizzle-orm';
-import { Track } from '@/db/media/actions/tracks';
+import { track } from '@server/db/media/actions/tracks';
 
 export default async function (req: Request, res: Response) {
 	let lyrics = '';
-	let song: Track = <Track>{};
+	let song: track = <track>{};
 
 	try {
 		song = mediaDb.select()

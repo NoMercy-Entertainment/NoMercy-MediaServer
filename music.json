@@ -1,1 +1,996 @@
 [
+  {
+    "level": "warning",
+    "message": "New update is available",
+    "type": "UpdateCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#new-update-is-available",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "All search-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerSearchCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-searchcapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All rss-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerRssCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-rsscapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "All indexers are unavailable due to failures for more than 6 hours",
+    "type": "IndexerLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#indexers-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "New update is available",
+    "type": "UpdateCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#new-update-is-available",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "All download clients are unavailable due to failures",
+    "type": "DownloadClientStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#download-clients-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "Unable to communicate with Transmission. Connection refused (172.16.0.6:9091)",
+    "type": "DownloadClientCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#unable-to-communicate-with-download-client",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "New update is available",
+    "type": "UpdateCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#new-update-is-available",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr, Sonarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "album": {
+      "id": 12345,
+      "mbId": "0511c4a7-1081-4227-ab25-3e53a8f59fc8",
+      "title": "[unknown]",
+      "overview": "",
+      "albumType": "Single",
+      "secondaryAlbumTypes": [],
+      "genres": []
+    },
+    "deletedFiles": true,
+    "eventType": "AlbumDelete",
+    "instanceName": "Lidarr"
+  },
+  {
+    "album": {
+      "id": 12394,
+      "mbId": "f9eafe04-0329-4b9d-a1b3-8de56f35aafd",
+      "title": "Between the Lines",
+      "overview": "",
+      "albumType": "Single",
+      "secondaryAlbumTypes": [],
+      "genres": []
+    },
+    "deletedFiles": true,
+    "eventType": "AlbumDelete",
+    "instanceName": "Lidarr"
+  },
+  {
+    "album": {
+      "id": 12401,
+      "mbId": "350ba8d5-9570-4176-a791-6ece46ea1e4d",
+      "title": "In the Mix",
+      "overview": "",
+      "albumType": "Album",
+      "secondaryAlbumTypes": [
+        "Soundtrack"
+      ],
+      "genres": []
+    },
+    "deletedFiles": true,
+    "eventType": "AlbumDelete",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All rss-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerRssCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-rsscapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All search-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerSearchCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-searchcapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "Indexers unavailable due to failures: Nyaa",
+    "type": "IndexerStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#indexers-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "album": {
+      "id": 12408,
+      "mbId": "fa236320-8ab3-3d4c-8c63-c4a35f76f4b2",
+      "title": "Rattle and Hum",
+      "overview": "",
+      "albumType": "Album",
+      "secondaryAlbumTypes": [
+        "Soundtrack"
+      ],
+      "genres": []
+    },
+    "deletedFiles": true,
+    "eventType": "AlbumDelete",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All rss-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerRssCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-rsscapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All search-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerSearchCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-searchcapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "Indexers unavailable due to failures: Nyaa",
+    "type": "IndexerStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#indexers-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "All rss-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerRssCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-rsscapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All search-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerSearchCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-searchcapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "Indexers unavailable due to failures: Nyaa",
+    "type": "IndexerStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#indexers-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "warning",
+    "message": "All rss-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerRssCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-rsscapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All search-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerSearchCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-searchcapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "Indexers unavailable due to failures: Nyaa",
+    "type": "IndexerStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#indexers-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "album": {
+      "id": 12425,
+      "mbId": "0511c4a7-1081-4227-ab25-3e53a8f59fc8",
+      "title": "[unknown]",
+      "overview": "",
+      "albumType": "Single",
+      "secondaryAlbumTypes": [],
+      "genres": []
+    },
+    "deletedFiles": true,
+    "eventType": "AlbumDelete",
+    "instanceName": "Lidarr"
+  },
+  {
+    "album": {
+      "id": 12426,
+      "mbId": "f1062e38-1845-452b-a9e1-763b7f822e21",
+      "title": "Tropical Rainforest",
+      "overview": "",
+      "albumType": "Album",
+      "secondaryAlbumTypes": [
+        "Soundtrack"
+      ],
+      "genres": []
+    },
+    "deletedFiles": true,
+    "eventType": "AlbumDelete",
+    "instanceName": "Lidarr"
+  },
+  {
+    "album": {
+      "id": 12430,
+      "mbId": "fa236320-8ab3-3d4c-8c63-c4a35f76f4b2",
+      "title": "Rattle and Hum",
+      "overview": "",
+      "albumType": "Album",
+      "secondaryAlbumTypes": [
+        "Soundtrack"
+      ],
+      "genres": []
+    },
+    "deletedFiles": true,
+    "eventType": "AlbumDelete",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All rss-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerRssCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-rsscapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "All search-capable indexers are temporarily unavailable due to recent indexer errors",
+    "type": "IndexerSearchCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#all-searchcapable-indexers-are-temporarily-unavailable-due-to-recent-indexer-errors",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "warning",
+    "message": "Indexers unavailable due to failures: Nyaa",
+    "type": "IndexerStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/lidarr/system#indexers-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Lidarr"
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  },
+  {
+    "level": "error",
+    "message": "All applications are unavailable due to failures for more than 6 hours",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "HealthRestored",
+    "instanceName": "Prowlarr"
+  },
+  {
+    "level": "warning",
+    "message": "Applications unavailable due to failures for more than 6 hours: Lidarr",
+    "type": "ApplicationLongTermStatusCheck",
+    "wikiUrl": "https://wiki.servarr.com/prowlarr/system#applications-are-unavailable-due-to-failures",
+    "eventType": "Health",
+    "instanceName": "Prowlarr",
+    "applicationUrl": ""
+  }
+]

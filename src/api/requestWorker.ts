@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 
 interface RequestWorkerResponse {
 	result?: any;
@@ -17,7 +17,7 @@ export const requestWorker = ({ filename, ...args }: { [x: string]: any; filenam
 	});
 
 	return new Promise((resolve) => {
-		queue.on(job.id, (message: RequestWorkerResponse) => {
+		queue.once(job.id, (message: RequestWorkerResponse) => {
 			try {
 				return resolve(message);
 			} catch (error) {

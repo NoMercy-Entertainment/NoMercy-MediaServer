@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import {
 	serveImagesPath,
@@ -14,10 +14,10 @@ import compression from 'compression';
 import cors from 'cors';
 import routes from '../api/index';
 import webhooks from '../api/routes/webhooks';
-import { setupComplete } from '@/state';
+import { setupComplete } from '@server/state';
 import { staticPermissions } from '../api/middleware/permissions';
 
-import { initKeycloak, kcMiddleware, mustHaveToken } from '@/functions/keycloak';
+import { initKeycloak, kcMiddleware, mustHaveToken } from '@server/functions/keycloak';
 
 
 export default async (app: Application) => {
@@ -35,8 +35,8 @@ export default async (app: Application) => {
 
 	app.use(
 		cors({
-			origin: allowedOrigins,
-			// origin: '*',
+			// origin: allowedOrigins,
+			origin: '*',
 		})
 	);
 

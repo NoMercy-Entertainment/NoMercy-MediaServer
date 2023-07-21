@@ -1,12 +1,7 @@
 import { InferModel, and, desc, eq, isNotNull } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { userData } from '../schema/userData';
-import { Tv } from './tvs';
-import { Movie } from './movies';
-import { Special } from './specials';
-import { User } from './users';
-import { VideoFile } from './videoFiles';
 
 export type NewUserData = InferModel<typeof userData, 'insert'>;
 export const insertUserData = (data: NewUserData, constraint: Array<'tv_id' | 'movie_id' | 'special_id'>) => mediaDb.insert(userData)
@@ -26,13 +21,7 @@ export const insertUserData = (data: NewUserData, constraint: Array<'tv_id' | 'm
 	.get();
 
 export type UserData = InferModel<typeof userData, 'select'>;
-export type UserDataWithRelations = UserData & {
-	tv: Tv;
-	movie: Movie;
-	special: Special;
-	user: User;
-	videoFile: VideoFile;
-};
+export type UserDataWithRelations = ReturnType<typeof selectUserData>;
 export const selectUserData = () => {
 	return mediaDb.query.userData.findMany({
 		with: {
@@ -42,9 +31,10 @@ export const selectUserData = () => {
 			user: true,
 			videoFile: true,
 		},
-	}) as unknown as UserDataWithRelations[];
+	});
 };
 
+export type UserDataWithRelationsFromUser = ReturnType<typeof selectFromUserData>;
 export const selectFromUserData = ({ user_id }) => {
 	return mediaDb.query.userData.findMany({
 		with: {
@@ -59,5 +49,5 @@ export const selectFromUserData = ({ user_id }) => {
 			isNotNull(userData.time)
 		),
 		orderBy: desc(userData.updated_at),
-	}) as unknown as UserDataWithRelations[];
+	});
 };

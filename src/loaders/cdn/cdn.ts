@@ -1,16 +1,16 @@
 import {
-	setAcousticId,
-	setColors,
-	setDownloads,
-	setMakeMKVKey,
-	setOmdbApiKey,
-	setQuote,
-	setTmdbApiKey
-} from '@/state/redux/config/actions';
+    setAcousticId,
+    setColors,
+    setDownloads,
+    setMakeMKVKey,
+    setOmdbApiKey,
+    setQuote,
+    setTmdbApiKey
+} from '@server/state/redux/config/actions';
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import axios from 'axios';
-import { platform } from '../../functions/system';
+import { platform } from '@server/functions/system';
 
 const cdn = async () => {
 	const response = await axios.get('https://cdn.nomercy.tv/info').catch((error) => {

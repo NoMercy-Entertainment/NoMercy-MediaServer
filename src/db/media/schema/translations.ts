@@ -19,10 +19,10 @@ export const translations = sqliteTable('translations', {
 	biography: text('biography'),
 
 	created_at: text('created_at')
-		.default(sql`datetime('now')`)
+		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 	updated_at: text('updated_at')
-		.default(sql`datetime('now')`)
+		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 
 	tv_id: integer('tv_id')

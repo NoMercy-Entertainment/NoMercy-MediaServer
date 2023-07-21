@@ -7,13 +7,13 @@ import { resume, suspend } from 'ntsuspend';
 
 import type { ArrayElementType, Audio, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
 import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
-import { ffmpeg, subtitleEdit, transcodesPath, userDataPath } from '@/state';
+import { ffmpeg, subtitleEdit, transcodesPath, userDataPath } from '@server/state';
 import { convertToHuman, convertToSeconds } from '../dateTime';
 import { setInterval } from 'timers';
 import Logger from '../logger/logger';
 import M3U8FileParser from 'm3u8-file-parser';
 import { getQualityTag } from './quality/quality';
-import { EncodingLibrary } from '@/db/media/actions/libraries';
+import { EncodingLibrary } from '@server/db/media/actions/libraries';
 
 export class FFMpeg extends EventEmitter {
 	file = '';
@@ -837,7 +837,11 @@ export class FFMpeg extends EventEmitter {
 
 				if ((!s.match(/.ass$|.vtt$/u) && !existsSync(this.subtitleFolder + s.replace(/\.\w{3}$/u, '.vtt')))) {
 					try {
-						execSync(`${subtitleEdit} /convert "${`${this.subtitleFolder}/${s}`}" WebVtt`);
+
+						if (!existsSync(`${this.subtitleFolder}/${s}`)) {
+							execSync(`${subtitleEdit} /convert "${this.subtitleFolder}/${s}" WebVtt`);
+						}
+
 						if (JSON.parse(process.env.CONFIG as string).keepOriginal.subtitles
 							&& existsSync(this.subtitleFolder + s)
 							&& !s.match(/.ass$|.vtt$/u)
@@ -958,17 +962,17 @@ export class FFMpeg extends EventEmitter {
 	getExistingSubtitles() {
 		const arr: any[] = [];
 
-		// if (!existsSync(this.subtitleFolder)) {
-		// 	this.streams.subtitle.forEach((s) => {
-		// 		arr.push({
-		// 			language: s.language,
-		// 			type: this.getSubType(s) as string,
-		// 			ext: this.getExtension(s),
-		// 		});
-		// 	});
+		if (!existsSync(this.subtitleFolder)) {
+			this.streams.subtitle.forEach((s) => {
+				arr.push({
+					language: s.language,
+					type: this.getSubType(s) as string,
+					ext: this.getExtension(s),
+				});
+			});
 
-		// 	return arr;
-		// }
+			return arr;
+		}
 
 		const files = readdirSync(this.subtitleFolder);
 		files

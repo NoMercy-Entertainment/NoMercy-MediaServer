@@ -1,6 +1,6 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { playlist_track } from '../schema/playlist_track';
 
 export type NewPlaylistTrack = InferModel<typeof playlist_track, 'insert'>;

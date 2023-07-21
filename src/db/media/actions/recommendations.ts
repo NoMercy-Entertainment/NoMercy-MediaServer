@@ -1,6 +1,6 @@
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
 import { recommendations } from '../schema/recommendations';
 
 export type NewRecommendation = InferModel<typeof recommendations, 'insert'>;

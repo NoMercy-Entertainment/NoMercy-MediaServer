@@ -1,14 +1,14 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { User } from '../../../database/config/client';
-import { LibraryWithFolders } from '../../../database/data';
 import type { PreferredOrder } from '../../../encoder/ffprobe/ffprobe';
-import { ChromeCast } from '../../../functions/chromeCast/chromeCast';
-import { DatabaseQueue } from '../../../functions/queue/DatabaseQueueClass';
-import { deviceName } from '../../../functions/system';
+import { ChromeCast } from '@server/functions/chromeCast/chromeCast';
+import { DatabaseQueue } from '@server/functions/queue/DatabaseQueueClass';
+import { deviceName } from '@server/functions/system';
 import { CDNInfoResponse, Files } from '../../../types/cdn';
-import { SyncQueue } from '@/functions/queue/SyncQueueClass';
+import { SyncQueue } from '@server/functions/queue/SyncQueueClass';
+import { User } from '@server/db/media/actions/users';
+import { LibraryWithRelations } from '@server/db/media/actions/libraries';
 
 export const keepOriginal: { [arg: string]: boolean } = {
 	audio: true,
@@ -43,7 +43,7 @@ const initialState = {
 	encoderWorker: new DatabaseQueue({ name: 'encoder', workers: 1 }),
 	encoderWorkers: 1,
 
-	libraries: new Array<LibraryWithFolders>(),
+	libraries: new Array<LibraryWithRelations>(),
 	preferredOrder: <PreferredOrder>{},
 	keepOriginal: keepOriginal,
 	assToVtt: true,

@@ -1,36 +1,10 @@
 
 import { convertBooleans } from '../../helpers';
-import { InferModel, and, eq, inArray, or } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
+import { InferModel, eq, ReturnTypeOrValue, inArray, and } from 'drizzle-orm';
+import { mediaDb } from '..';
 import { tvs } from '../schema/tvs';
-import { RequireOnlyOne } from '@/types/helpers';
-import { AlternativeTitle } from './alternativeTitles';
-import { Crew } from './crews';
-import { Media } from './medias';
-import { UserData } from './userData';
-import { Recommendation } from './recommendations';
-import { Similar } from './similars';
-import { Translation } from './translations';
-import { Cast } from './casts';
 import i18next from 'i18next';
-import { translations } from '../schema/translations';
-import { Person } from './people';
-import { Role } from './roles';
-import { Certification } from './certifications';
-import { Job } from './jobs';
-import { Season } from './seasons';
-import { casts } from '../schema/casts';
-import { crews } from '../schema/crews';
-import { people } from '../schema/people';
-import { roles } from '../schema/roles';
-import { jobs } from '../schema/jobs';
-import { medias } from '../schema/medias';
-import { Genre } from './genres';
-import { Keyword } from './keywords';
-import { Library } from './libraries';
-import { Episode } from './episodes';
-import { VideoFile } from './videoFiles';
-import { Image } from './images';
+import { sortBy } from '@server/functions/stringArray';
 
 export type NewTv = InferModel<typeof tvs, 'insert'>;
 export const insertTv = (data: NewTv) => mediaDb.insert(tvs)
@@ -50,10 +24,9 @@ export const insertTv = (data: NewTv) => mediaDb.insert(tvs)
 	.get();
 
 export type Tv = InferModel<typeof tvs, 'select'>;
-export const selectTv = <B extends boolean>(data: SelectTv, relations?: B): B extends true ? TvWithRelations[] : Tv[] => {
+export const selectTv = (data: Tv) => {
 	return mediaDb.query.tvs.findFirst({
-		with: relations
-			? {
+		with: {
 				alternativeTitles: true,
 				casts: {
 					with: {
@@ -86,12 +59,11 @@ export const selectTv = <B extends boolean>(data: SelectTv, relations?: B): B ex
 				similar_from: true,
 				similar_to: true,
 				translations: {
-					where: (table: typeof translations, { eq }) => (eq(table.iso6391, i18next.language)),
+					where: (translations, { eq }) => (eq(translations.iso6391, i18next.language)),
 				},
-			}
-			: {},
+			},
 		where: (files, { eq }) => eq(files[`${Object.entries(data)[0][0]}`], Object.entries(data)[0][1]),
-	}) as unknown as B extends true ? TvWithRelations[] : Tv[];
+	});
 };
 
 export type TvUpdate = Partial<InferModel<typeof tvs, 'select'>> & { id: number };
@@ -117,336 +89,287 @@ export const selectTvDB = (id: number) => mediaDb.select()
 	.where(eq(tvs.id, id))
 	.get();
 
+export type TvWithRelations = ReturnTypeOrValue<typeof getTv>;
 
-export type TvWithRelations = Tv & {
-	alternativeTitles: AlternativeTitle[];
-	casts: (Cast & {
-		person: Person | undefined;
-		roles: Role[];
-	})[];
-	crews: (Crew & {
-		person: Person | undefined;
-		jobs: Job[];
-	})[];
-	creators: (Crew & {
-		person: Person | undefined;
-		jobs: Job[];
-	})[];
-	medias: Media[];
-	images: Image[];
-	certification_tv: {
-		certification: Certification;
-	}[];
-	genre_tv: {
-		genre: Genre;
-	}[];
-	keyword_tv: {
-		keyword: Keyword;
-	}[];
-	library: Library;
-	userData: UserData[];
-	recommendation_from: Recommendation[];
-	similar_from: Similar[];
-	translation: {
-		title: Translation['title'];
-		overview: Translation['overview'];
-		iso6391: Translation['iso6391'];
-	} | undefined;
-	seasons: (Season & {
-		translation: {
-			title: Translation['title'];
-			overview: Translation['overview'];
-			iso6391: Translation['iso6391'];
-		} | undefined;
-		episodes: (Episode & {
-			translation: {
-				title: Translation['title'];
-				overview: Translation['overview'];
-			} | undefined;
-			tv: Tv & {
-				translation: {
-					title: Translation['title'];
-					overview: Translation['overview'];
-					iso6391: Translation['iso6391'];
-				} | undefined,
-				certification_tv: {
-					certification: Certification;
-				}[];
-				medias: Media[];
-			};
-			userData: UserData[];
-			medias: Media[];
-			videoFiles: (VideoFile & {
-				userData: UserData[];
-			})[];
-		})[];
-	})[],
-};
+export const getTv = ({ id, user_id, language }: { id: number, user_id: string, language: string }) => {
 
-type SelectTv = RequireOnlyOne<{ id: number; }>
-export const getTv = <B extends boolean>(data: SelectTv, relations?: B): B extends true ? TvWithRelations | null : Tv | null => {
-	let castsData: Cast[] = new Array<Cast>();
-	let crewsData: Crew[] = new Array<Crew>();
-	let peoplesData: Person[] = new Array<Person>();
-	let rolesData: Role[] = new Array<Role>();
-	let jobsData: Job[] = new Array<Job>();
-	let mediasData: Media[] = new Array<Media>();
-
-	const tvData = mediaDb.select({
-		id: tvs.id,
-	})
-		.from(tvs)
-		.where(eq(tvs.id, data.id))
-		.get();
-
-	if (!tvData) {
-		return null;
-	}
-
-	mediaDb.transaction((tx) => {
-
-		castsData = tx.select()
-			.from(casts)
-			.where(eq(casts.tv_id, data.id))
-			.all();
-
-		crewsData = tx.select()
-			.from(crews)
-			.where(eq(crews.tv_id, data.id))
-			.all();
-
-		const peoples = [...castsData.map(cast => cast.person_id), ...crewsData.map(crew => crew.person_id)];
-		if (peoples.length === 0) {
-			return null;
-		}
-
-		peoplesData = peoples.length > 0
-			? tx.select()
-				.from(people)
-				.where(inArray(people.id, peoples))
-				.all()
-			: [];
-
-		rolesData = castsData.length > 0
-			? tx.select()
-				.from(roles)
-				.where(inArray(roles.cast_id, castsData.map(cast => cast.id)))
-				.all()
-			: [];
-
-		jobsData = crewsData.length > 0
-			? tx.select()
-				.from(jobs)
-				.where(inArray(jobs.crew_id, crewsData.map(crew => crew.id)))
-				.all()
-			: [];
-
-		mediasData = tx.select()
-			.from(medias)
-			.where(eq(medias.tv_id, data.id))
-			.all();
-
-	});
-
-	const result = mediaDb.query.tvs.findFirst({
-		with: relations
-			? {
-				alternativeTitles: {
-					columns: {
-						title: true,
-						iso31661: true,
-					},
+	const tvData = mediaDb.query.tvs.findFirst({
+		where: (tvs, { eq }) => eq(tvs.id, id),
+		with: {
+			alternativeTitles: {
+				columns: {
+					title: true,
+					iso31661: true,
 				},
-				certification_tv: {
-					columns: {},
-					with: {
-						certification: true,
-					},
-				},
-				genre_tv: {
-					columns: {},
-					with: {
-						genre: true,
-					},
-				},
-				keyword_tv: {
-					columns: {},
-					with: {
-						keyword: true,
-					},
-				},
-				images: {
-					// columns: {
-					// 	filePath: true,
-					// 	type: true,
-					// },
-					// where: (table: typeof images, { eq }) => (eq(table.type, 'logo')),
-				},
-				library: true,
-				recommendation_from: true,
-				similar_from: true,
-				seasons: {
-					with: {
-						episodes: {
-							with: {
-								videoFiles: {
-									with: {
-										userData: true,
-									},
-								},
-							},
+			},
+			certification_tv: {
+				columns: {},
+				with: {
+					certification: {
+						columns: {
+							rating: true,
+							iso31661: true,
 						},
 					},
 				},
-			}
-			: {},
-		where: (files, { eq }) => eq(files[`${Object.entries(data)[0][0]}`], Object.entries(data)[0][1]),
-	}) as unknown as B extends true ? TvWithRelations : Tv;
+			},
+			genre_tv: {
+				columns: {},
+				with: {
+					genre: true,
+				},
+			},
+			keyword_tv: {
+				columns: {},
+				with: {
+					keyword: {
+						columns: {
+							id: true,
+							name: true,
+						},
+					},
+				},
+			},
+			library: true,
+			userData: true,
+		},
+	});
 
-	const translationsData = mediaDb.select()
-		.from(translations)
-		.where(
+	if (!tvData?.id) {
+		return null;
+	}
+
+	const mediasData = mediaDb.query.medias.findMany({
+		where: (medias, { eq }) => and(
+			eq(medias.tv_id, id),
+			eq(medias.type, 'Trailer')),
+	});
+
+	const imagesData = mediaDb.query.images.findMany({
+		where: (images, { eq }) => eq(images.tv_id, id),
+	});
+
+	const similarData = mediaDb.query.similars.findMany({
+		where: (similars, { eq }) => eq(similars.tvFrom_id, id),
+	});
+
+	const recommendationData = mediaDb.query.recommendations.findMany({
+		where: (recommendations, { eq }) => eq(recommendations.tvFrom_id, id),
+	});
+
+	const castsData = mediaDb.query.casts.findMany({
+		where: (casts, { eq }) => eq(casts.tv_id, id),
+		columns: {
+			id: true,
+			person_id: true,
+		},
+	});
+
+	const crewsData = mediaDb.query.crews.findMany({
+		where: (crews, { eq }) => eq(crews.tv_id, id),
+		columns: {
+			id: true,
+			person_id: true,
+		},
+	});
+
+	const personData = mediaDb.query.people.findMany({
+		where: (people) => inArray(people.id, [
+			...castsData.map(cast => cast.person_id), 
+			...crewsData.map(crew => crew.person_id)
+		]),
+		columns: {
+			id: true,
+			name: true,
+			deathday: true,
+			profile: true,
+			colorPalette: true,
+			gender: true,
+			knownForDepartment: true,
+			popularity: true,
+		},
+	});
+
+	const rolesData = mediaDb.query.roles.findMany({
+		where: (roles) => inArray(roles.cast_id, castsData.map(cast => cast.id)),
+		columns: {
+			cast_id: true,
+			character: true,
+		},
+	});
+
+	const jobsData = mediaDb.query.jobs.findMany({
+		where: (jobs) => inArray(jobs.crew_id, crewsData.map(crew => crew.id)),
+		columns: {
+			crew_id: true,
+			job: true,
+		},
+	});
+
+	const seasonsData = mediaDb.query.seasons.findMany({
+		where: (seasons, { eq }) => eq(seasons.tv_id, id),
+		columns: {
+			id: true,
+			seasonNumber: true,
+			overview: true,
+			title: true,
+			poster: true,
+			colorPalette: true,
+		},
+	});
+
+	const episodesData = mediaDb.query.episodes.findMany({
+		where: (episodes, { eq }) => eq(episodes.tv_id, id),
+		columns: {
+			id: true,
+			seasonNumber: true,
+			episodeNumber: true,
+			overview: true,
+			title: true,
+			still: true,
+			colorPalette: true,
+			airDate: true,
+		},
+	});
+
+	const videoFileData = mediaDb.query.videoFiles.findMany({
+		where: (medias) => inArray(medias.episode_id, episodesData.map(episode => episode.id)),
+		columns: {
+			id: true,
+			duration: true,
+			episode_id: true,
+		},
+		with: {
+			userData: {
+				where: (userData, { eq }) => eq(userData.user_id, user_id),
+			},
+		},
+	});
+
+	const translationsData = mediaDb.query.translations.findMany({
+		where: (translations, { eq, or, and }) => 
 			or(
 				and(
-					eq(translations.iso6391, i18next.language),
-					eq(translations.tv_id, data.id)
+					eq(translations.iso6391, language),
+					eq(translations.tv_id, id)
 				),
 				and(
-					eq(translations.iso6391, i18next.language),
-					inArray(translations.season_id, (result as TvWithRelations)
-						.seasons.map(season => season.id).flat())
+					eq(translations.iso6391, language),
+					inArray(translations.season_id, seasonsData.map(season => season.id))
 				),
 				and(
-					eq(translations.iso6391, i18next.language),
-					inArray(translations.episode_id, (result as TvWithRelations)
-						.seasons.map(season => season.episodes.map(episode => episode.id).flat()).flat())
+					eq(translations.iso6391, language),
+					inArray(translations.episode_id, episodesData.map(episode => episode.id))
 				)
-			)
-		)
-		.all() as unknown as Translation[];
+			),
+	});
 
-	if (relations) {
-		(result as TvWithRelations).medias = mediasData;
-		(result as TvWithRelations).casts = castsData.map(cast => ({
+	const result = {
+		casts: castsData.map(cast => ({
 			...cast,
-			person: peoplesData.find(person => person.id === cast.person_id),
-			roles: rolesData.filter(role => role.cast_id === cast.id),
-		}));
-
-		(result as TvWithRelations).crews = crewsData.map(crew => ({
+			person: personData.find(person => person.id === cast.person_id)!,
+			roles: rolesData.filter(role => role.cast_id === cast.id)!,
+		})),
+		crews: crewsData.map(crew => ({
 			...crew,
-			person: peoplesData.find(person => person.id === crew.person_id),
-			jobs: jobsData.filter(job => job.crew_id === crew.id),
-		}));
-
-		(result as TvWithRelations).translation = translationsData.find(t => t.tv_id === result.id);
-		(result as TvWithRelations).seasons = (result as TvWithRelations).seasons.map(season => ({
+			person: personData.find(person => person.id === crew.person_id)!,
+			jobs: jobsData.filter(job => job.crew_id === crew.id)!,
+		})),
+		seasons: seasonsData.map(season => ({
 			...season,
 			translation: translationsData.find(t => t.season_id === season.id),
-			episodes: season.episodes.map(episode => ({
+			episodes: episodesData.filter(episode => episode.seasonNumber === season.seasonNumber).map(episode => ({
 				...episode,
-				userData: episode.userData,
 				translation: translationsData.find(t => t.episode_id === episode.id),
-				tv: {
-					...(result as TvWithRelations),
-					translation: translationsData.find(t => t.tv_id === result.id),
-					medias: mediasData,
-				},
+				videoFiles: videoFileData.filter(videoFile => videoFile.episode_id === episode.id),
 			})),
-		}));
-
-		(result as TvWithRelations).creators = (result as TvWithRelations).crews.filter(crew => crew.jobs.find(job => job.job === 'Creator'));
-	}
+		})),
+		translations: translationsData.filter(translation => translation.tv_id === id),
+		medias: mediasData,
+		images: imagesData,
+		similar_from: similarData,
+		recommendation_from: recommendationData,
+		...tvData,
+	};
 
 	return result;
 };
-export const getTvPlayback = <B extends boolean>(data: SelectTv, relations?: B): B extends true ? TvWithRelations | null : Tv | null => {
 
-	const tvData = mediaDb.select({
-		id: tvs.id,
-	})
-		.from(tvs)
-		.where(eq(tvs.id, data.id))
-		.get();
+export type TvPlaybackWithRelations = ReturnTypeOrValue<typeof getTvPlayback> | null;
+export const getTvPlayback = ({ id, language }: {id: number, language: string}) => {
+
+	const tvData = mediaDb.query.tvs.findFirst({
+		where: (tvs, { eq }) => eq(tvs.id, id),
+		with: {
+			library: true,
+			certification_tv: {
+				with: {
+					certification: true,
+				},
+			},
+		},
+	});
 
 	if (!tvData) {
 		return null;
 	}
 
-	const mediasData = mediaDb.select()
-		.from(medias)
-		.where(eq(medias.tv_id, data.id))
-		.all();
+	const seasonsData = mediaDb.query.seasons.findMany({
+		where: (seasons, { eq }) => eq(seasons.tv_id, id),
+	});
 
-	const result = mediaDb.query.tvs.findFirst({
-		with: relations
-			? {
-				library: true,
-				certification_tv: {
-					with: {
-						certification: true,
-					},
-				},
-				seasons: {
-					with: {
-						episodes: {
-							with: {
-								videoFiles: {
-									with: {
-										userData: true,
-									},
-								},
-							},
-							// orderBy: asc(episodes.episodeNumber),
-						},
-					},
-					// orderBy: asc(seasons.seasonNumber),
-				},
-			}
-			: {},
-		where: (files, { eq }) => eq(files[`${Object.entries(data)[0][0]}`], Object.entries(data)[0][1]),
-	}) as unknown as B extends true ? TvWithRelations : Tv;
+	const episodesData = mediaDb.query.episodes.findMany({
+		where: (episodes, { eq }) => eq(episodes.tv_id, id),
+	});
 
-	const translationsData = mediaDb.select()
-		.from(translations)
-		.where(
-			or(
-				and(
-					eq(translations.iso6391, i18next.language),
-					eq(translations.tv_id, data.id)
-				),
-				and(
-					eq(translations.iso6391, i18next.language),
-					inArray(translations.season_id, (result as TvWithRelations)
-						.seasons.map(season => season.id).flat())
-				),
-				and(
-					eq(translations.iso6391, i18next.language),
-					inArray(translations.episode_id, (result as TvWithRelations)
-						.seasons.map(season => season.episodes.map(episode => episode.id).flat()).flat())
-				)
+	const videoFileData = mediaDb.query.videoFiles.findMany({
+		where: (medias) => inArray(medias.episode_id, episodesData.map(episode => episode.id)),
+		with: {
+			userData: true,
+		},
+	});
+
+	const mediasData = mediaDb.query.medias.findMany({
+		where: (medias, { eq }) => and(
+			eq(medias.tv_id, id),
+			eq(medias.type, 'logo')),
+	});
+
+	const translationsData = mediaDb.query.translations.findMany({
+		where: (translations, { eq, or, and }) => or(
+			and(
+				eq(translations.iso6391, language),
+				eq(translations.tv_id, id)
+			),
+			and(
+				eq(translations.iso6391, language),
+				inArray(translations.season_id, seasonsData.map(season => season.id).flat())
+			),
+			and(
+				eq(translations.iso6391, language),
+				inArray(translations.episode_id, episodesData.map(episode => episode.id).flat())
 			)
-		)
-		.all() as unknown as Translation[];
+		),
+	});
 
-	if (relations) {
-		(result as TvWithRelations).medias = mediasData;
-		(result as TvWithRelations).translation = translationsData.find(t => t.tv_id === result.id);
-		(result as TvWithRelations).seasons = (result as TvWithRelations).seasons.map(season => ({
+	const result = {
+		...tvData,
+		seasons: sortBy(seasonsData, 'seasonNumber').map(season => ({
 			...season,
 			translation: translationsData.find(t => t.season_id === season.id),
-			episodes: season.episodes.map(episode => ({
+			episodes: sortBy(episodesData.filter(episode => episode.seasonNumber === season.seasonNumber), 'episodeNumber').map(episode => ({
 				...episode,
-				userData: episode.userData,
-				translation: translationsData.find(t => t.episode_id === episode.id),
+				translations: translationsData.filter(t => t.episode_id === episode.id),
+				videoFiles: videoFileData.filter(videoFile => videoFile.episode_id === episode.id),
 				tv: {
-					...(result as TvWithRelations),
-					translation: translationsData.find(t => t.tv_id === result.id),
+					...tvData,
 					medias: mediasData,
+					translations: translationsData.filter(t => t.tv_id === id),
 				},
 			})),
-		}));
-	}
+		})),
+		translations: translationsData.filter(translation => translation.tv_id === id),
+	};
 
 	return result;
 };

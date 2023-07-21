@@ -1,7 +1,7 @@
-import { getEncoderLibraries, selectLibrariesWithRelations } from '@/db/media/actions/libraries';
+import { getEncoderLibraries, selectLibrariesWithRelations } from '@server/db/media/actions/libraries';
 import { Stats, stat, watch } from 'fs';
-import { storeMusic } from '../data/storeMusic';
-import { AppState, useSelector } from '@/state/redux';
+import { storeMusic } from '../data/music';
+import { AppState, useSelector } from '@server/state/redux';
 import { resolve } from 'path';
 
 export const watcher = () => {
@@ -21,8 +21,25 @@ export const watcher = () => {
 	}
 };
 
+const excludes = [
+	'.tmp',
+	'.m3u8',
+	'.nfo',
+	'.txt',
+	'.jpg',
+	'.png',
+	'.jpeg',
+	'.gif',
+	'.bmp',
+	'.db',
+	'.ini',
+];
+
 const fileChangeEvent = (event: string, filename: string, lib: { folder: { path: any; }; }) => {
-	if (!filename || filename?.endsWith('.tmp') || filename?.endsWith('.m3u8')) return;
+
+	for (const exclude of excludes) {
+		if (filename.endsWith(exclude)) return;
+	}
 
 	const path = `${lib.folder.path}\\${filename}`;
 	if (event === 'change') {

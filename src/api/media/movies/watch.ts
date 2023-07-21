@@ -1,37 +1,62 @@
 import { Request, Response } from 'express';
 import { existsSync, readFileSync } from 'fs';
 
-import { convertToSeconds, parseYear } from '../../../functions/dateTime';
-import { deviceId } from '../../../functions/system';
+import { convertToSeconds, parseYear } from '@server/functions/dateTime';
+import { deviceId } from '@server/functions/system';
 import i18next from 'i18next';
-import { getClosestRating, sortBy } from '../../../functions/stringArray';
-import { AppState, useSelector } from '@/state/redux';
-import { MovieWithRelations, getMoviePlayback } from '@/db/media/actions/movies';
+import { getClosestRating, sortBy } from '@server/functions/stringArray';
+import { MoviePlaybackWithRelations, getMoviePlayback } from '@server/db/media/actions/movies';
+import { requestWorker } from '@server/api/requestWorker';
 
-export default function (req: Request, res: Response) {
+export default async function (req: Request, res: Response) {
 
-	const access_token = useSelector((state: AppState) => state.user.access_token);
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		language: req.language,
+		user_id: req.user.sub,
+	});
 
-	const movie = getMoviePlayback({ id: parseInt(req.params.id, 10) }, true);
-	if (!movie) {
-		return res.status(404).json({
-			success: false,
-			error: 'Movie not found',
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
 		});
 	}
-	return res.json(getContent(movie, access_token));
+	return res.json(result.result);
 }
 
-const getContent = (movie: MovieWithRelations, access_token: string) => {
+export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve, reject) => {
+
+		const movie = getMoviePlayback({ id: parseInt(id, 10), user_id, language });
+
+		if (!movie) {
+			return reject({
+				error: {
+					code: 404,
+					message: 'Movie not found',
+				},
+				success: false,
+			});
+		}
+
+		return resolve(getContent(movie, user_id, language));
+	});
+};
+
+const getContent = (movie: MoviePlaybackWithRelations, user_id: string, language: string) => {
 
 	if (!movie?.videoFiles) { return; }
+
+	const videoFile = movie.videoFiles[0];
 
 	const textTracks: any[] = [];
 	let search = false;
 
-	const baseFolder = `/${movie.videoFiles[0]?.share}${movie.videoFiles[0]?.folder}`;
+	const baseFolder = `/${videoFile?.share}${videoFile?.folder}`;
 
-	JSON.parse(movie.videoFiles[0]?.subtitles ?? '[]')
+	JSON.parse(videoFile?.subtitles ?? '[]')
 		.forEach((sub) => {
 			const { language, type, ext } = sub;
 
@@ -42,7 +67,7 @@ const getContent = (movie: MovieWithRelations, access_token: string) => {
 				textTracks.push({
 					label: type,
 					type: type,
-					src: `${baseFolder}/subtitles${movie.videoFiles[0]?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
+					src: `${baseFolder}/subtitles${videoFile?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
 					srclang: i18next.t(`languages:${language}`),
 					ext: ext,
 					language: language,
@@ -53,17 +78,17 @@ const getContent = (movie: MovieWithRelations, access_token: string) => {
 
 	let fonts: any[] = [];
 	let fontsfile = '';
-	if (search && existsSync(`${movie.videoFiles[0]?.hostFolder}fonts.json`)) {
-		fontsfile = `/${movie.videoFiles[0]?.share}/${movie.videoFiles[0]?.folder}fonts.json`;
-		fonts = JSON.parse(readFileSync(`${movie.videoFiles[0]?.hostFolder}fonts.json`, 'utf8'));
+	if (search && existsSync(`${videoFile?.hostFolder}fonts.json`)) {
+		fontsfile = `/${videoFile?.share}/${videoFile?.folder}fonts.json`;
+		fonts = JSON.parse(readFileSync(`${videoFile?.hostFolder}fonts.json`, 'utf8'));
 	}
 
-	const overview = movie.translation?.overview != '' && movie.translation?.overview != null
-		? movie.translation?.overview
+	const overview = movie.translations[0]?.overview != '' && movie.translations[0]?.overview != null
+		? movie.translations[0]?.overview
 		: movie.overview;
 
-	const title = movie.translation?.title != '' && movie.translation?.title != null
-		? movie.translation?.title
+	const title = movie.translations[0]?.title != '' && movie.translations[0]?.title != null
+		? movie.translations[0]?.title
 		: movie.title;
 
 	const showTitle = title;
@@ -79,18 +104,18 @@ const getContent = (movie: MovieWithRelations, access_token: string) => {
 			show: show,
 			origin: deviceId,
 			uuid: movie.id,
-			video_id: movie.videoFiles[0]?.id,
-			duration: movie.videoFiles[0]?.duration,
+			video_id: videoFile.id,
+			duration: videoFile.duration,
 			tmdbid: movie.id,
 			video_type: 'movie',
 			playlist_type: 'movie',
 			playlist_id: movie.id,
 			year: parseYear(movie.releaseDate),
 			logo: movie.medias[0]?.src ?? null,
-			rating: getClosestRating(movie.certification_movie),
+			rating: getClosestRating(movie.certification_movie, language),
 
-			progress: movie.userData?.[0]?.time
-				? (movie.userData?.[0].time / convertToSeconds(movie.videoFiles[0]?.duration) * 100)
+			progress: videoFile.userData?.[0]?.time
+				? (videoFile.userData?.[0].time / convertToSeconds(videoFile.duration) * 100)
 				: null,
 
 			poster: movie.poster
@@ -104,13 +129,11 @@ const getContent = (movie: MovieWithRelations, access_token: string) => {
 				: null,
 			sources: [
 				{
-					src: `${baseFolder}${movie.videoFiles[0]?.filename}${movie.videoFiles[0]?.filename.includes('.mp4')
-						? `?token=${access_token}`
-						: ''}`,
-					type: movie.videoFiles[0]?.filename.includes('.mp4')
+					src: `${baseFolder}${videoFile.filename}`,
+					type: videoFile.filename.includes('.mp4')
 						? 'video/mp4'
 						: 'application/x-mpegURL',
-					languages: JSON.parse(movie.videoFiles[0]?.languages ?? '[]'),
+					languages: JSON.parse(videoFile.languages ?? '[]'),
 				},
 			],
 

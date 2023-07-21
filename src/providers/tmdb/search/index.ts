@@ -1,8 +1,8 @@
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import tmdbApiClient from '../tmdbApiClient';
 import {
-	sortByMatchPercentage
-} from '../../../functions/stringArray';
+    sortByMatchPercentage
+} from '@server/functions/stringArray';
 import { Collection } from '../collection/collection';
 import { Company } from '../company/company';
 import { PaginatedResponse } from '../helpers';

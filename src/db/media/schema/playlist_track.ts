@@ -12,10 +12,10 @@ export const playlist_track = sqliteTable('playlist_track', {
 		.notNull(),
 
 	created_at: text('created_at')
-		.default(sql`datetime('now')`)
+		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 	updated_at: text('updated_at')
-		.default(sql`datetime('now')`)
+		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 }, db => ({
 	pk: primaryKey(db.playlist_id, db.track_id),

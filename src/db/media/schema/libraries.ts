@@ -52,7 +52,6 @@ export const librariesRelations = relations(libraries, ({ many }) => ({
 	library_track: many(library_track),
 
 	collection_library: many(collection_library),
-	libraries: many(libraries),
 	album_library: many(album_library),
 	artist_library: many(artist_library),
 }));

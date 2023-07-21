@@ -1,7 +1,7 @@
 import { text, sqliteTable, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
-import { boolean } from '@/db/helpers';
-import { users } from './users';
+import { boolean } from '@server/db/helpers';
+import { notification_user } from './notification_user';
 
 export const notifications = sqliteTable('notifications', {
 	id: text('id'),
@@ -15,5 +15,5 @@ export const notifications = sqliteTable('notifications', {
 }));
 
 export const notificationsRelations = relations(notifications, ({ many }) => ({
-	users: many(users),
+	notification_user: many(notification_user),
 }));

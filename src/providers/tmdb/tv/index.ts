@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios';
 import { DiscoverTvShowParams } from '../discover/discover_tv';
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import { PaginatedResponse } from '../helpers';
 import { TrendingTvShows } from './trending';
 import { TvChange } from './changes';

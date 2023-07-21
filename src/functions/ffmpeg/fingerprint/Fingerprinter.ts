@@ -2,9 +2,9 @@ import { exec } from 'child_process';
 
 import type { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import getVideoInfo from '../../../encoder/ffprobe/getVideoInfo';
-import { humanTime } from '../../../functions/dateTime';
-import { chunk } from '../../../functions/stringArray';
-import { ffmpeg } from '@/state';
+import { humanTime } from '@server/functions/dateTime';
+import { chunk } from '@server/functions/stringArray';
+import { ffmpeg } from '@server/state';
 import Logger from '../../logger';
 import { stringFormat } from '../../stringFormat';
 

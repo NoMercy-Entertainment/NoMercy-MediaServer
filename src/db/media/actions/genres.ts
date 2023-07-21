@@ -1,6 +1,6 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { genres } from '../schema/genres';
 
 export type NewGenre = InferModel<typeof genres, 'insert'>;

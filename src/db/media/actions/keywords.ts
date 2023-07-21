@@ -1,6 +1,6 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { keywords } from '../schema/keywords';
 
 export type NewKeyword = InferModel<typeof keywords, 'insert'>;

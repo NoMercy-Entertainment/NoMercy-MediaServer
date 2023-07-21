@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { DisplayList, Lyric, MutedState, PlayState, Song, State } from '@/types/music';
+import { DisplayList, Lyric, MutedState, PlayState, Song, State } from '@server/types//music';
 
 
 export const initialmusicPlayerState: musicPlayerState = {

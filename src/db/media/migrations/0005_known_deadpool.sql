@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `userData_special_unique` ON `userData` (`special_id`,`videoFile_id`,`user_id`);

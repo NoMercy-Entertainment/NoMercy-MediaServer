@@ -1,31 +1,30 @@
 import { Request, Response } from 'express';
 
 import { execSync } from 'child_process';
-import { ParsedShow, filenameParse } from '@/functions/videoFilenameParser';
+import { ParsedShow, filenameParse } from '@server/functions/videoFilenameParser';
 import fs from 'fs';
 import { join } from 'path';
 import { platform } from 'os-utils';
-import { matchPercentage, sortBy } from '../../functions/stringArray';
-import { confDb } from '@/database/config';
-import { createMediaFolder, createTitleSort } from '@/tasks/files/filenameParser';
-import { searchMovie, searchTv } from '@/providers/tmdb/search';
+import { matchPercentage, sortBy } from '@server/functions/stringArray';
+import { createMediaFolder, createTitleSort } from '@server/tasks/files/filenameParser';
+import { searchMovie, searchTv } from '@server/providers/tmdb/search';
 
-import { movie as fetchMovie } from '../../providers/tmdb/movie';
-import { tv as fetchTv } from '../../providers/tmdb/tv';
+import { movie as fetchMovie } from '@server/providers/tmdb/movie';
+import { tv as fetchTv } from '@server/providers/tmdb/tv';
 
-import storeMovie from '../../tasks/data/storeMovie';
-import Logger from '@/functions/logger/logger';
-import storeTvShow from '@/tasks/data/storeTvShow';
+import storeMovie from '@server/tasks/data/movie';
+import Logger from '@server/functions/logger/logger';
+import storeTvShow from '@server/tasks/data/tv';
 import i18next from 'i18next';
-import { AppState, useSelector } from '@/state/redux';
-import { mediaDb } from '@/db/media';
+import { AppState, useSelector } from '@server/state/redux';
+import { mediaDb } from '@server/db/media';
 import { and, eq } from 'drizzle-orm';
-import { Episode } from '@/db/media/actions/episodes';
-import { episodes } from '@/db/media/schema/episodes';
-import { tvs } from '@/db/media/schema/tvs';
-import { Movie } from '@/db/media/actions/movies';
-import { movies } from '@/db/media/schema/movies';
-import { getEncoderLibraryByType } from '@/db/media/actions/libraries';
+import { Episode } from '@server/db/media/actions/episodes';
+import { episodes } from '@server/db/media/schema/episodes';
+import { tvs } from '@server/db/media/schema/tvs';
+import { Movie } from '@server/db/media/actions/movies';
+import { movies } from '@server/db/media/schema/movies';
+import { getEncoderLibraryByType } from '@server/db/media/actions/libraries';
 
 export default function (req: Request, res: Response) {
 	let path: string | string[] = req.body.path as string;
@@ -252,7 +251,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 					),
 				},
 			},
-		})?.episodes?.[0] as unknown as Episode | undefined;
+		})?.episodes?.[0];
 
 		if (!episode) {
 
@@ -289,7 +288,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 							),
 						},
 					},
-				})?.episodes?.[0] as unknown as Episode | undefined;
+				})?.episodes?.[0];
 
 				if (!episode) {
 					socket.emit('notify', {
@@ -312,7 +311,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 								eq(episodes.episodeNumber, parsed.episodeNumbers[0]),
 								eq(tvs.titleSort, createTitleSort(parsed.title))
 							),
-						}) as unknown as Episode;
+						});
 					});
 
 				}
@@ -325,7 +324,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 
 		movie = mediaDb.query.movies.findFirst({
 			where: eq(movies.titleSort, createTitleSort(parsed.title, parsed.year ?? undefined)),
-		}) as unknown as Movie;
+		});
 
 		if (!movie) {
 			socket.emit('notify', {
@@ -355,7 +354,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 
 				movie = mediaDb.query.movies.findFirst({
 					where: eq(movies.titleSort, createTitleSort(parsed.title, parsed.year ?? undefined)),
-				}) as unknown as Movie;
+				});
 
 				if (!movie) {
 
@@ -365,14 +364,12 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 						id: movieData.id,
 						folder: createMediaFolder(library, movieData),
 						libraryId: library.id,
-					}).then(async (response) => {
+					}).then((response) => {
 						if (!response?.data) return;
 
-						movie = await confDb.movie.findFirst({
-							where: {
-								titleSort: createTitleSort(response.data.title, response.data.release_date),
-							},
-						}) as unknown as Movie;
+						movie = mediaDb.query.movies.findFirst({
+							where: eq(movies.titleSort, createTitleSort(response.data.title, response.data.release_date)),
+						});
 					});
 				}
 			}

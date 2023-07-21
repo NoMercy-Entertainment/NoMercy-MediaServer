@@ -1,15 +1,15 @@
 // cSpell: disable
-import Logger from '@/functions/logger';
+import Logger from '@server/functions/logger';
 import { configData, encoderProfiles, libraries, notificationData, special } from './seedData';
-import storeConfig from '@/functions/storeConfig/storeConfig';
-import genres from '@/providers/tmdb/genres';
-import certifications from '@/providers/tmdb/certification';
-import { countries, languages } from '@/providers/tmdb/config';
-import { musicGenres } from '@/providers/musicbrainz/genre';
-import { getUsers } from '@/functions/users';
-import colorPalette from '@/functions/colorPalette';
-import createBlurHash from '@/functions/createBlurHash';
-import { mappedEntries } from '@/functions/stringArray';
+import storeConfig from '@server/functions/storeConfig/storeConfig';
+import genres from '@server/providers/tmdb/genres';
+import certifications from '@server/providers/tmdb/certification';
+import { countries, languages } from '@server/providers/tmdb/config';
+import { musicGenres } from '@server/providers/musicbrainz/genre';
+import { getUsers } from '@server/functions/users';
+import colorPalette from '@server/functions/colorPalette';
+import createBlurHash from '@server/functions/createBlurHash';
+import { mappedEntries } from '@server/functions/stringArray';
 import { folders } from '../../folderRoots';
 import { insertCertification } from './media/actions/certifications';
 import { insertEncoderProfile } from './media/actions/encoderProfiles';
@@ -28,7 +28,7 @@ import { selectProvider, insertProvider } from './media/actions/providers';
 import { insertSpecialItem } from './media/actions/specialItems';
 import { insertSpecial } from './media/actions/specials';
 import { selectUser } from './media/actions/users';
-import { providers } from '@/providers/tmdb/watch_providers';
+import { providers } from '@server/providers/tmdb/watch_providers';
 import { insertCountry } from './media/actions/countries';
 import { insertEncoderProfileLibrary } from './media/actions/encoderProfile_library';
 
@@ -191,16 +191,24 @@ export const seed = async () => {
 	};
 
 	await Promise.all([
-		special.poster && createBlurHash(`https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
+		special.poster && createBlurHash(special.poster.includes('http')
+			? special.poster
+			: `https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
 			blurHash.poster = hash;
 		}),
-		special.backdrop && createBlurHash(`https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
+		special.backdrop && createBlurHash(special.backdrop.includes('http')
+			? special.backdrop
+			: `https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
 			blurHash.backdrop = hash;
 		}),
-		special.poster && colorPalette(`https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
+		special.poster && colorPalette(special.poster.includes('http')
+			? special.poster
+			: `https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
 			palette.poster = hash;
 		}),
-		special.backdrop && colorPalette(`https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
+		special.backdrop && colorPalette(special.backdrop.includes('http')
+			? special.backdrop
+			: `https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
 			palette.backdrop = hash;
 		}),
 	]);

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { exec, execSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
 
-import { transcodesPath } from '@/state';
+import { transcodesPath } from '@server/state';
 
 export default function (req: Request, res: Response) {
 	const { id } = req.params;

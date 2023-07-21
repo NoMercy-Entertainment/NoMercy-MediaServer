@@ -1,4 +1,4 @@
-import { applicationPaths, configFile, tokenFile } from '@/state/';
+import { applicationPaths, configFile, tokenFile } from '@server/state/';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 
 const createAppFolders = () => {

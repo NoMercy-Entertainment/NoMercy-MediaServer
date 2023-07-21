@@ -1,7 +1,7 @@
 
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
 import { casts } from '../schema/casts';
 
 export type NewCast = InferModel<typeof casts, 'insert'>;

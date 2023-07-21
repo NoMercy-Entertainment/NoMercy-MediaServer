@@ -1,6 +1,6 @@
 import { existsSync, rmSync, writeFileSync } from 'fs';
 import { get_external_ip, get_internal_ip, portMap } from '../networking';
-import { setupComplete, transcodesPath } from '@/state';
+import { setupComplete, transcodesPath } from '@server/state';
 
 import cdn from '../../loaders/cdn/cdn';
 import chromeCast from '../chromeCast';
@@ -9,8 +9,14 @@ import firstBoot from '../firstBoot';
 import { getKeycloakKeys } from '../keycloak';
 import logo from '../logo';
 import queue from '../queue';
-import seed from '@/db/seed';
-import { watcher } from '@/tasks/files/watcher';
+import seed from '@server/db/seed';
+import { watcher } from '@server/tasks/files/watcher';
+import certificate from '../certificate';
+import loadConfigs from '../loadConfigs';
+import moderators from '../moderators';
+import refreshToken from '../refreshToken';
+import getUsers from '../users';
+import server from '@server/loaders/server';
 
 export default async () => {
 	process
@@ -39,23 +45,21 @@ export default async () => {
 		await firstBoot();
 	}
 
-	await (await import('../refreshToken/refreshToken')).refreshToken();
+	await refreshToken();
 
-	await (await import('../certificate/certificate')).certificate();
+	await certificate();
 
-	await (await import('../moderators/moderators')).moderators();
+	await moderators();
 
-	await (await import('../users/users')).getUsers();
-
-	// await (await import('../seed/seed')).seed();
+	await getUsers();
 
 	await seed();
 
-	await (await import('../loadConfigs/loadConfigs')).loadConfigs();
+	await loadConfigs();
 
 	await portMap();
 
-	await (await import('../../loaders/server')).server();
+	await server();
 
 	queue();
 

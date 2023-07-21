@@ -1,7 +1,9 @@
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { musicGenres } from '../schema/musicGenres';
 import { createId } from '@paralleldrive/cuid2';
 import { InferModel } from 'drizzle-orm';
+
+export type MusicGenre = InferModel<typeof musicGenres, 'select'>;
 
 export type NewMusicGenre = InferModel<typeof musicGenres, 'insert'>;
 export const insertMusicGenre = (data: NewMusicGenre) => {

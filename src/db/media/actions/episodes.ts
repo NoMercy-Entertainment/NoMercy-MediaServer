@@ -1,7 +1,7 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel, and, eq } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { episodes } from '../schema/episodes';
 
 export type NewEpisode = InferModel<typeof episodes, 'insert'>;

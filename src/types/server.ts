@@ -1,8 +1,11 @@
-import { Genre, GenreMovie, GenreTv, UserData } from '../database/config/client';
 
-import { Movie } from '../providers/tmdb/movie';
+import { Movie } from '@server/providers/tmdb/movie';
 import { Socket } from 'socket.io';
-import { TvShow } from '../providers/tmdb/tv';
+import { TvShow } from '@server/providers/tmdb/tv';
+import { Genre } from '@server/db/media/actions/genres';
+import { GenreTv } from '@server/db/media/actions/genre_tv';
+import { GenreMovie } from '@server/db/media/actions/genre_movie';
+import { UserData } from '@server/db/media/actions/userData';
 
 export interface MediaServer {
 	connected: boolean;
@@ -31,10 +34,13 @@ export interface ServerLocation {
 	domain: string;
 	server_name: string;
 	platform: string;
+	server_version: number;
+	public_domain: string;
 }
 export interface Server {
 	auto_connect: boolean;
 	location: string;
+	external: string;
 	is_owner: boolean;
 	server_id: string;
 	online: boolean;
@@ -90,7 +96,7 @@ export interface Library {
 			val: string;
 		}[];
 	};
-	autoRefreshInterval: string;
+	autoRefreshInterval: number;
 	chapterImages: boolean;
 	extractChapters: boolean;
 	extractChaptersDuring: boolean;
@@ -129,7 +135,7 @@ export interface KeyVal {
 }
 
 export interface NameVal {
-	name: string;
+	title: string;
 	value: string;
 }
 
@@ -276,6 +282,8 @@ export interface InfoCredit {
 	profilePath: string | null;
 	popularity: number | null;
 	deathday: string | null | undefined;
+	// blurHash?: string | null;
+	colorPalette?: PaletteColors | null;
 }
 
 export interface ExtendedVideo {
@@ -430,7 +438,7 @@ export interface LogoResponse {
 	colorPalette: PaletteColors;
     meta: {
         title: string | undefined;
-        tags: string[] | undefined;
+        // tags: string[] | undefined;
         logo: {
             aspectRatio: number | null;
             src: string;

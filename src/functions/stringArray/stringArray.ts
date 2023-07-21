@@ -1,7 +1,6 @@
-import { MovieWithRelations } from '@/db/media/actions/movies';
+import { Certification } from '@server/db/media/actions/certifications';
 import crypto from 'crypto';
 import hexToUuid from 'hex-to-uuid';
-import i18next from 'i18next';
 
 /* eslint-disable no-extend-native */
 export const breakLogoTitle = (str: string, characters = [':', '!', '?']) => {
@@ -460,8 +459,8 @@ export const sort_updated = (
 	return 0;
 };
 
-export const uniqBy = <T>(a: any, key: string): T => {
-	return ([...new Map(a.map((item: { [x: string]: any; }) => [item[key], item])).values()] as unknown) as T;
+export const uniqBy = <T>(a: T, key: string): T => {
+	return ([...new Map((a as T[]).map(item => [item[key], item])).values()] as unknown) as T;
 };
 
 export const trackSort = function (a: any, b: any) {
@@ -904,7 +903,7 @@ export const removeDiacritics = (str: string) => {
 	return str;
 };
 
-export const getClosestRating = (ratings: MovieWithRelations['certification_movie']) => {
+export const getClosestRating = (ratings: Array<{ certification: Certification}>, language: string) => {
 	const newRatings = ratings.map((r) => {
 		return {
 			rating: r.certification.rating,
@@ -919,7 +918,7 @@ export const getClosestRating = (ratings: MovieWithRelations['certification_movi
 
 	if (!newRatings || newRatings.length == 0) return;
 
-	newRating = newRatings.find(r => r.iso31661 == i18next.language.toUpperCase());
+	newRating = newRatings.find(r => r.iso31661 == language.toUpperCase());
 	if (!newRating) {
 		newRating = newRatings.find(r => r.iso31661 == 'US');
 	}

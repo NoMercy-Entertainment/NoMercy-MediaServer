@@ -14,7 +14,7 @@ const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
 		'Accept': 'application/json',
 	};
 
-	config.timeout = 20000;
+	config.timeout = 2000;
 
 	return config;
 };

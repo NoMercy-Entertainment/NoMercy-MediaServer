@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { readFileSync } from 'fs';
 import colorThief from 'pure-color-thief-node';
-import { PaletteColors } from 'types/server';
+import { PaletteColors } from '@server/types/server';
 
 export default async (data: string| Buffer, type?: string): Promise<PaletteColors | null> => {
 

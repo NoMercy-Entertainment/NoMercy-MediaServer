@@ -1,18 +1,18 @@
 import { Request, Response, Application } from 'express';
-import { imagesPath, publicPath, subtitlesPath, transcodesPath } from '@/state';
+import { imagesPath, publicPath, subtitlesPath, transcodesPath } from '@server/state';
 
-import { existsSync } from 'fs';
 import { staticPermissions } from '../middleware/permissions';
-import { mustHaveToken } from '@/functions/keycloak';
-import { findFoldersDB } from '@/db/media/actions/folders';
+import { mustHaveToken } from '@server/functions/keycloak';
+import { findFoldersDB } from '@server/db/media/actions/folders';
+import { existsSync } from 'fs';
 
 export const serveImagesPath = (req: Request, res: Response) => {
-	if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
-		return res.status(401).json({
-			status: 'error',
-			message: 'Access denied',
-		});
-	}
+	// if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
+	// 	return res.status(401).json({
+	// 		status: 'error',
+	// 		message: 'Access denied',
+	// 	});
+	// }
 	try {
 		if (existsSync(`${imagesPath}/${req.params[0]}`)) {
 			return res.sendFile(`${imagesPath}/${req.params[0]}`);
@@ -25,12 +25,12 @@ export const serveImagesPath = (req: Request, res: Response) => {
 };
 
 export const serveTranscodePath = (req: Request, res: Response) => {
-	if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
-		return res.status(401).json({
-			status: 'error',
-			message: 'Access denied',
-		});
-	}
+	// if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
+	// 	return res.status(401).json({
+	// 		status: 'error',
+	// 		message: 'Access denied',
+	// 	});
+	// }
 	try {
 		if (existsSync(`${transcodesPath}/${req.params[0]}`)) {
 			return res.sendFile(`${transcodesPath}/${req.params[0]}`);
@@ -43,12 +43,12 @@ export const serveTranscodePath = (req: Request, res: Response) => {
 };
 
 export const serveSubtitlesPath = (req: Request, res: Response) => {
-	if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
-		return res.status(401).json({
-			status: 'error',
-			message: 'Access denied',
-		});
-	}
+	// if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
+	// 	return res.status(401).json({
+	// 		status: 'error',
+	// 		message: 'Access denied',
+	// 	});
+	// }
 	try {
 		if (existsSync(`${subtitlesPath}/${req.params[0]}`)) {
 			return res.sendFile(`${subtitlesPath}/${req.params[0]}`);

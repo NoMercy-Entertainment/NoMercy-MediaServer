@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 
-import { FavoritesResponse } from './favorite.d';
-import { selectFavoriteTracks } from '@/db/media/actions/track_user';
-import { deviceId } from '@/functions/system';
+import { selectFavoriteTracks } from '@server/db/media/actions/track_user';
+import { deviceId } from '@server/functions/system';
 
 export default function (req: Request, res: Response) {
 
@@ -20,7 +19,7 @@ export default function (req: Request, res: Response) {
 		description: null,
 		name: 'Songs you like',
 		type: 'playlist',
-		Track: music.map((t) => {
+		track: music.map((t) => {
 
 			const artists = t.track.artist?.map(a => ({
 				id: a.id,
@@ -64,4 +63,61 @@ export default function (req: Request, res: Response) {
 
 	return res.json(results);
 
+}
+
+export interface FavoritesResponse {
+    cover: string;
+    description: null;
+    name: string;
+    type: string;
+    track: track[];
+}
+
+export interface track {
+    type: string;
+    date: string | null;
+    lyrics: undefined;
+    favorite_track: boolean;
+    libraryId: string;
+    artistId: string;
+    origin: string;
+    cover: string | null;
+    colorPalette: any;
+    artist_track: Artist[];
+    album: Album;
+    created_at: string;
+    name: string | null;
+    updated_at: string;
+    id: string;
+    track: number | null;
+    disc: number | null;
+    folder: string | null;
+    filename: string | null;
+    duration: string | null;
+    quality: number | null;
+    path: string | null;
+    blurHash: string | null;
+    folder_id: string;
+}
+
+export interface Artist {
+    id: string;
+    name: string;
+    cover: string | null;
+    description: string | null;
+    folder: string | null;
+    libraryId: string;
+    origin: string;
+    colorPalette: any;
+}
+
+export interface Album {
+    id: string;
+    name: string;
+    folder: string | null;
+    cover: string | null;
+    description: string | null;
+    libraryId: string;
+    origin: string;
+    colorPalette: any;
 }

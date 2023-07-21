@@ -5,29 +5,51 @@ import { getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helper
 
 import { InfoResponse } from '../../../types/server';
 import { tv as TV } from '../../../providers/tmdb/tv';
-import { convertToSeconds } from '../../../functions/dateTime';
-import createBlurHash from '../../../functions/createBlurHash';
+// import createBlurHash from '@server/functions/createBlurHash';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { groupBy } from '../../../functions/stringArray';
-import i18next from 'i18next';
-import { TvWithRelations, getTv } from '@/db/media/actions/tvs';
+import i18n from '@server/loaders/i18n';
+import { TvWithRelations, getTv } from '@server/db/media/actions/tvs';
+import { groupBy } from '@server/functions/stringArray';
+import { convertToSeconds } from '@server/functions/dateTime';
+import { requestWorker } from '@server/api/requestWorker';
 
 export default async function (req: Request, res: Response) {
 
-	const tv = getTv({ id: parseInt(req.params.id, 10) }, true);
-	if (!tv) {
-		return res.json(await getTvData(req.params.id));
-	}
-	return res.json(getContent(tv));
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		language: req.language,
+		user_id: req.user.sub,
+	});
 
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
+		});
+	}
+	return res.json(result.result);
+}
+
+export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve, reject) => {
+
+		const tv = getTv({ id: parseInt(id, 10), user_id, language });
+
+		if (!tv) {
+			resolve(await getTvData(id));
+		}
+		resolve(getContent(tv));
+	});
 }
 
 const getContent = (data: TvWithRelations) => {
+	if (!data) return;
 
 	const groupedMedia = groupBy(data.images, 'type');
-
-	const title = data.translation?.title || data.title;
-	const overview = data.translation?.overview || data.overview;
+	
+	const title = data.translations[0]?.title || data.title;
+	const overview = data.translations[0]?.overview || data.overview;
 
 	const files = [
 		...data.seasons.filter(t => t.seasonNumber > 0)
@@ -71,8 +93,8 @@ const getContent = (data: TvWithRelations) => {
 		contentRatings: data.certification_tv.map((r) => {
 			return {
 				rating: r.certification.rating,
-				meaning: r.certification.meaning,
-				order: r.certification.order,
+				// meaning: r.certification.meaning,
+				// order: r.certification.order,
 				iso31661: r.certification.iso31661,
 			};
 		}),
@@ -89,7 +111,7 @@ const getContent = (data: TvWithRelations) => {
 			tvdbId: data.tvdbId,
 		},
 		creators:
-			data.creators?.filter(c => c?.person?.name)
+			data.crews.filter(c => c.jobs.find(j => j.job === 'Creator'))?.filter(c => c?.person?.name)
 				?.slice(0, 10)
 				?.map(c => ({
 					id: c.person!.id,
@@ -118,9 +140,8 @@ const getContent = (data: TvWithRelations) => {
 				poster: s.poster,
 				seasonNumber: s.seasonNumber,
 				title: s.title,
-				blurHash: s.blurHash,
+				// blurHash: s.blurHash,
 				colorPalette: JSON.parse(s.colorPalette ?? '{}'),
-				Episode: undefined,
 				episodes: s.episodes.sort((a, b) => a.episodeNumber - b.episodeNumber).map((e) => {
 					let progress: null | number = null;
 
@@ -136,7 +157,7 @@ const getContent = (data: TvWithRelations) => {
 						overview: e.overview,
 						airDate: e.airDate,
 						still: e.still,
-						blurHash: e.blurHash,
+						// blurHash: e.blurHash,
 						colorPalette: JSON.parse(e.colorPalette ?? '{}'),
 						progress: progress,
 						available: !!e.videoFiles[0],
@@ -151,7 +172,7 @@ const getContent = (data: TvWithRelations) => {
 
 const getTvData = async (id: string) => {
 
-	i18next.changeLanguage('en');
+	i18n.changeLanguage('en');
 
 	const data = await TV(parseInt(id, 10));
 
@@ -164,14 +185,14 @@ const getTvData = async (id: string) => {
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			blurHash: {
-				poster: index < 10 && s.poster_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-					: null,
-				backdrop: index < 10 && s.backdrop_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-					: null,
-			},
+			// blurHash: {
+			// 	poster: index < 10 && s.poster_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
+			// 		: null,
+			// 	backdrop: index < 10 && s.backdrop_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
+			// 		: null,
+			// },
 		});
 	}
 
@@ -181,14 +202,14 @@ const getTvData = async (id: string) => {
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			blurHash: {
-				poster: index < 10 && s.poster_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-					: null,
-				backdrop: index < 10 && s.backdrop_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-					: null,
-			},
+			// blurHash: {
+			// 	poster: index < 10 && s.poster_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
+			// 		: null,
+			// 	backdrop: index < 10 && s.backdrop_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
+			// 		: null,
+			// },
 		});
 	}
 
@@ -199,17 +220,17 @@ const getTvData = async (id: string) => {
 		poster: data.poster_path,
 		backdrop: data.backdrop_path,
 		logo: data.images.logos[0]?.file_path ?? null,
-		blurHash: {
-			logo: data.images.logos[0]?.file_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`)
-				: null,
-			poster: data?.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`)
-				: null,
-			backdrop: data?.backdrop_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`)
-				: null,
-		},
+		// blurHash: {
+		// 	logo: data.images.logos[0]?.file_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`)
+		// 		: null,
+		// 	poster: data?.poster_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`)
+		// 		: null,
+		// 	backdrop: data?.backdrop_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`)
+		// 		: null,
+		// },
 		videos: data.videos.results?.map((v) => {
 			return {
 				src: v.key,

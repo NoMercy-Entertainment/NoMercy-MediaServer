@@ -1,53 +1,14 @@
 import { Request, Response } from 'express';
 
-import { InfoResponse } from '@/types/server';
-import { createTitleSort } from '@/tasks/files/filenameParser';
-import { convertToSeconds, parseYear } from '@/functions/dateTime';
-import { getSpecial } from '@/db/media/actions/specials';
-import { unique } from '@/functions/stringArray';
+import { InfoResponse } from '@server/types//server';
+import { createTitleSort } from '@server/tasks/files/filenameParser';
+import { convertToSeconds, parseYear } from '@server/functions/dateTime';
+import { getSpecial } from '@server/db/media/actions/specials';
+import { unique } from '@server/functions/stringArray';
 
 export default function (req: Request, res: Response) {
 
-	const data = getSpecial({ id: req.params.id }, true);
-
-	// const data = await confDb.special.findFirst({
-	// 	where: {
-	// 		id: req.params.id,
-	// 	},
-	// 	include: {
-	// 		Item: {
-	// 			include: {
-	// 				Episode: {
-	// 					include: {
-	// 						Tv: true,
-	// 						VideoFile: {
-	// 							include: {
-	// 								UserData: {
-	// 									where: {
-	// 										sub_id: req.user.sub,
-	// 									},
-	// 								},
-	// 							},
-	// 						},
-	// 					},
-	// 				},
-	// 				Movie: {
-	// 					include: {
-	// 						VideoFile: {
-	// 							include: {
-	// 								UserData: {
-	// 									where: {
-	// 										sub_id: req.user.sub,
-	// 									},
-	// 								},
-	// 							},
-	// 						},
-	// 					},
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// });
+	const data = getSpecial({ id: req.params.id });
 
 	if (!data) {
 		return res.status(404).json({
@@ -134,8 +95,8 @@ export default function (req: Request, res: Response) {
 		genres: unique(data.genres, 'id'),
 		movies: data.movies,
 		episodes: data.episodes,
-		casts: data.credits.cast.length,
-		crews: data.credits.crew.length,
+		casts: data.credits?.cast?.length ?? 0,
+		crews: data.credits?.crew?.length ?? 0,
 		externalIds: {
 			imdbId: null,
 			tvdbId: null,

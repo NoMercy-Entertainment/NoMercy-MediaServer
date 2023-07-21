@@ -1,86 +1,69 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express';
-import { confDb, queDb } from '../../database/config';
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
+import { mediaDb } from '@server/db/media';
+import { eq } from 'drizzle-orm';
+import { runningTasks } from '@server/db/media/schema/runningTasks';
+import { queueJobs } from '@server/db/queue/schema/queueJobs';
+import { queueDb } from '@server/db/queue';
 
 export const tasks = (req: Request, res: Response) => {
-	confDb.runningTask
-		.findMany({})
-		.then((data) => {
-			return res.json(
-				data.map(d => ({
-					...d,
-				}))
-			);
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting server tasks: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong getting server tasks: ${error}`,
-			});
+
+	try {
+		const data = mediaDb.query.runningTasks.findMany();
+		return res.json(
+			data.map(d => ({
+				...d,
+			}))
+		);
+
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Error getting server tasks: ${error}`,
 		});
+		return res.json({
+			status: 'ok',
+			message: `Something went wrong getting server tasks: ${error}`,
+		});
+	}
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteTask = (req: Request, res: Response) => {
 
 	const { id } = req.body;
 
-	await queDb.queueJob.deleteMany({
-		where: {
-			id: id,
-		},
-	})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'app',
-				color: 'magentaBright',
-				message: `Error getting server tasks: ${error}`,
-			});
-			return res.json({
-				status: 'error',
-				message: `Something went wrong getting server tasks: ${error}`,
-			});
+	try {
+		mediaDb.delete(runningTasks)
+			.where(eq(runningTasks.id, id))
+			.run();
+
+		Logger.log({
+			level: 'info',
+			name: 'app',
+			color: 'magentaBright',
+			message: 'Deleted task successfully',
+		});
+		return res.json({
+			status: 'ok',
+			message: 'Deleted task successfully',
+		});
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'app',
+			color: 'magentaBright',
+			message: `Error deleting server tasks: ${error}`,
+		});
+		return res.json({
+			status: 'error',
+			message: `Something went wrong deleting server tasks: ${error}`,
 		});
 
-	await confDb.runningTask
-		.delete({
-			where: {
-				id: id,
-			},
-		})
-		.then(() => {
-			Logger.log({
-				level: 'info',
-				name: 'app',
-				color: 'magentaBright',
-				message: 'Deleted task successfully',
-			});
-			return res.json({
-				status: 'ok',
-				message: 'Deleted task successfully',
-			});
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'app',
-				color: 'magentaBright',
-				message: `Error getting server tasks: ${error}`,
-			});
-			return res.json({
-				status: 'error',
-				message: `Something went wrong getting server tasks: ${error}`,
-			});
-		});
-
+	}
 };
 
 export const pauseTasks = (req: Request, res: Response) => {
@@ -169,46 +152,46 @@ export const runningTaskWorkers = (req: Request, res: Response) => {
 
 export const encoderQueue = (req: Request, res: Response) => {
 
-	queDb.queueJob.findMany({
-		where: {
-			queue: 'encoder',
-		},
-	})
-		.then((data) => {
-			return res.json(
-				data.map((d) => {
-					const args = JSON.parse(d.payload ?? '{}')?.args;
-					const data = (args.onDemand
-						? args.onDemand
-						: args);
-
-					return {
-						id: d.id,
-						fullTitle: data.fullTitle,
-						videoStreams: data.streams.video.map(v => `${v.width}x${v.height}`).join(', '),
-						audioStreams: data.streams.audio.map(a => a.language).join(', '),
-						subtitleStreams: data.streams.subtitle.map(s => s.language).join(', '),
-						hasGpu: data.hasGpu,
-						isHDR: data.isHDR,
-						libraryId: data.library.id,
-						libraryName: data.library.name,
-						libraryType: data.library.type,
-						image: data.episode?.still ?? data.movie?.poster ?? null,
-					};
-				})
-			);
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting encoder queue: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong getting encoder queue: ${error}`,
-			});
+	try {
+		const data = queueDb.query.queueJobs.findMany({
+			where: eq(queueJobs.queue, 'encoder'),
 		});
+
+		return res.json(
+			data.map((d) => {
+				const args = JSON.parse(d.payload ?? '{}')?.args;
+				const data = (args.onDemand
+					? args.onDemand
+					: args);
+
+				return {
+					id: d.id,
+					fullTitle: data.fullTitle,
+					videoStreams: data.streams.video.map(v => `${v.width}x${v.height}`).join(', '),
+					audioStreams: data.streams.audio.map(a => a.language).join(', '),
+					subtitleStreams: data.streams.subtitle.map(s => s.language).join(', '),
+					hasGpu: data.hasGpu,
+					isHDR: data.isHDR,
+					libraryId: data.library.id,
+					libraryName: data.library.name,
+					libraryType: data.library.type,
+					image: data.episode?.still ?? data.movie?.poster ?? null,
+				};
+			})
+		);
+
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Error getting encoder queue: ${error}`,
+		});
+		return res.json({
+			status: 'ok',
+			message: `Something went wrong getting encoder queue: ${error}`,
+		});
+
+	}
 
 };

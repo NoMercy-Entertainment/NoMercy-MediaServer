@@ -2,11 +2,11 @@ import dirTree, { DirectoryTree, DirectoryTreeOptions } from 'directory-tree';
 import { existsSync, readFileSync, rmSync, writeFile } from 'fs';
 import path from 'path';
 
-import { fileChangedAgo } from '../../functions/dateTime';
-import Logger from '../../functions/logger';
-import { chunk, jsonToString, sortBy } from '../../functions/stringArray';
-import { cpuCores } from '../../functions/system';
-import { cachePath } from '@/state';
+import { fileChangedAgo } from '@server/functions/dateTime';
+import Logger from '@server/functions/logger';
+import { chunk, jsonToString, sortBy } from '@server/functions/stringArray';
+import { cpuCores } from '@server/functions/system';
+import { cachePath } from '@server/state';
 import { FolderList, ParsedFileList, parseFileName, parseFolderName } from './filenameParser';
 
 interface FileListProps {

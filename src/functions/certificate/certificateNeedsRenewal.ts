@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import fs from 'fs';
 import { URL } from 'url';
 

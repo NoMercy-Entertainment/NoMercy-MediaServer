@@ -1,6 +1,6 @@
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import mbApiClient from '../mbApiClient';
-import { sleep } from '../../../functions/dateTime';
+import { sleep } from '@server/functions/dateTime';
 
 export interface PaginatedGenreResponse {
     'genre-count': number;

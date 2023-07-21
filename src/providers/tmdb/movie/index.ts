@@ -3,7 +3,7 @@ import { MovieChange, MovieChanges } from './changes';
 import { Recommendations } from '../shared';
 
 import { AxiosResponse } from 'axios';
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import { Movie } from './movie';
 import { MovieGenre } from '../genres/movie_genre';
 import { MovieImages } from './images';

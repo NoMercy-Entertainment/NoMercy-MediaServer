@@ -1,6 +1,6 @@
 import { text, sqliteTable, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
-import { datetime } from '@/db/helpers';
+import { datetime } from '@server/db/helpers';
 import { encoderProfile_library } from './encoderProfile_library';
 
 export const encoderProfiles = sqliteTable('encoderProfiles', {

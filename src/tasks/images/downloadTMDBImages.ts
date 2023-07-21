@@ -1,21 +1,17 @@
-import { AppState, useSelector } from '@/state/redux';
-import { Cast, Crew, Image } from '../../providers/tmdb/shared/index';
-import { Image as DBimage, Prisma } from '../../database/config/client';
-import { EpisodeAppend, EpisodeImages } from '../../providers/tmdb/episode/index';
-import { MovieAppend, MovieCredits, MovieImages } from '../../providers/tmdb/movie/index';
-import { PersonAppend, PersonImages } from '../../providers/tmdb/people/index';
-import { SeasonAppend, SeasonImages } from '../../providers/tmdb/season/index';
-import { Stats, existsSync, mkdirSync } from 'fs';
-import { TvAppend, TvCredits, TvImages } from '../../providers/tmdb/tv/index';
+import { AppState, useSelector } from '@server/state/redux';
+import { Cast, Crew, Image } from '@server/providers/tmdb/shared/index';
+import { EpisodeAppend, EpisodeImages } from '@server/providers/tmdb/episode/index';
+import { MovieAppend, MovieCredits, MovieImages } from '@server/providers/tmdb/movie/index';
+import { PersonAppend, PersonImages } from '@server/providers/tmdb/people/index';
+import { SeasonAppend, SeasonImages } from '@server/providers/tmdb/season/index';
+import { mkdirSync } from 'fs';
+import { TvAppend, TvCredits, TvImages } from '@server/providers/tmdb/tv/index';
 
-import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
-import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import { PaletteColors } from '@/types/server';
-import { confDb } from '../../database/config';
-import downloadImage from '../../functions/downloadImage/downloadImage';
-import { imagesPath } from '@/state';
-import { insertImage } from '@/db/media/actions/images';
+import { CompleteMovieAggregate } from '../data/movie/fetchMovie';
+import { CompleteTvAggregate } from '../data/tv/fetchTvShow';
+import downloadImage from '@server/functions/downloadImage/downloadImage';
+import { imagesPath } from '@server/state';
+import { insertImage } from '@server/db/media/actions/images';
 
 interface DownloadTMDBImages {
 	type: 'tv' | 'movie' | 'season' | 'episode' | 'person';
@@ -91,14 +87,12 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 				crew: (data.credits as TvCredits | MovieCredits)?.crew ?? [],
 			};
 
-			const transaction: Array<Prisma.Prisma__ImageClient<DBimage, never>> = [];
-
 			for (let i = 0; i < Object.values<Array<Image|Cast|Crew>>(combinedList).length; i++) {
-				const images = Object.values<Array<Image|Cast|Crew>>(combinedList)[i];
+				const imgs = Object.values<Array<Image|Cast|Crew>>(combinedList)[i];
 				const allowedType = Object.keys(combinedList)[i];
 
-				for (let j = 0; j < images.length; j++) {
-					const image = images[j];
+				for (let j = 0; j < imgs.length; j++) {
+					const image = imgs[j];
 
 					const usableImageSizes = imageSizes.filter(i => i.type.includes(allowedType));
 
@@ -116,15 +110,13 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 
 						const newFile = file?.replace(/.jpg$|.png$/u, '.webp');
 
-						const query = await confDb.image.findFirst({
-							where: {
-								filePath: file,
-							},
-						});
+						// const query = mediaDb.query.images.findFirst({
+						// 	where: eq(images.filePath, file),
+						// });
 
-						if (!file || (query?.blurHash && query?.colorPalette && existsSync(`${imagesPath}/${size}${newFile}`))) {
-							continue;
-						}
+						// if (!file || (query?.blurHash && query?.colorPalette && existsSync(`${imagesPath}/${size}${newFile}`))) {
+						// 	continue;
+						// }
 
 						await	downloadImage({
 							url: `https://image.tmdb.org/t/p/${size}${file}`,
@@ -168,54 +160,14 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 	});
 };
 
-const imageQuery = (
-	dbType: string,
-	data: TvAppend | MovieAppend | SeasonAppend | EpisodeAppend | PersonAppend | CompleteMovieAggregate | CompleteTvAggregate,
-	image: Image|Cast|Crew,
-	dimensions: ISizeCalculationResult,
-	stats: Stats,
-	colorPalette: PaletteColors | null,
-	blurHash: string | null
-) => {
-
-	const path = (image as Image).file_path ?? (image as Cast|Crew).profile_path;
-
-	return Prisma.validator<Prisma.ImageUncheckedUpdateInput>()({
-		id: path.match(/\w+/u)![0],
-		aspectRatio: (image as Image).aspect_ratio ?? (dimensions.width && dimensions.height
-			? dimensions.width / dimensions.height
-			: undefined),
-		height: (image as Image).height ?? dimensions.height,
-		iso6391: (image as Image).iso_639_1 ?? undefined,
-		filePath: path,
-		width: (image as Image).width ?? dimensions.width,
-		site: 'themoviedb.org',
-		type: dimensions.type,
-		size: stats.size,
-		name: path,
-		voteAverage: (image as Image).vote_average ?? undefined,
-		voteCount: (image as Image).vote_count ?? undefined,
-		// tvId: dbType == 'tv'
-		// 	? data.id
-		// 	: undefined,
-		// movieId: dbType == 'movie'
-		// 	? data.id
-		// 	: undefined,
-		colorPalette: colorPalette
-			? JSON.stringify(colorPalette)
-			: null,
-		blurHash: blurHash,
-	});
-};
-
 export const downloadTMDBImages = async ({ type, data }: DownloadTMDBImages) => {
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	await queue.add({
-		file: __filename,
-		fn: 'execute',
-		args: { type, data },
-	});
+	// await queue.add({
+	// 	file: __filename,
+	// 	fn: 'execute',
+	// 	args: { type, data },
+	// });
 };
 
 export default downloadTMDBImages;

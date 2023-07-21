@@ -1,21 +1,18 @@
 
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '../../helpers';
-import { mediaDb } from '@/db/media';
-import { createId } from '@paralleldrive/cuid2';
+import { mediaDb } from '@server/db/media';
 import { devices } from '../schema/devices';
 
 export type NewDevice = InferModel<typeof devices, 'insert'>;
 export const insertDevice = (data: NewDevice) => mediaDb.insert(devices)
 	.values({
 		...convertBooleans(data),
-		id: data.id ?? createId(),
 	})
 	.onConflictDoUpdate({
-		target: [devices.device_id, devices.type, devices.name, devices.version],
+		target: [devices.id],
 		set: {
 			...convertBooleans(data),
-			id: data.id ?? undefined,
 			updated_at: new Date().toISOString()
 				.slice(0, 19)
 				.replace('T', ' '),
@@ -27,6 +24,7 @@ export const insertDevice = (data: NewDevice) => mediaDb.insert(devices)
 export type Device = InferModel<typeof devices, 'select'>;
 export const selectDevice = (relations = false) => {
 	if (relations) {
+		// @ts-ignore
 		return mediaDb.query.devices.findMany({
 			with: {
 				activityLogs: true,

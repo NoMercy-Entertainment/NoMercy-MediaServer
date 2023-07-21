@@ -1,8 +1,8 @@
 import { ChildProcess, fork } from 'child_process';
 
 import Logger from '../logger';
-import { mediaDb } from '@/db/media';
-import { configuration } from '@/db/media/schema/configuration';
+import { mediaDb } from '@server/db/media';
+import { configuration } from '@server/db/media/schema/configuration';
 import { eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 import events, { EventEmitter } from 'events';

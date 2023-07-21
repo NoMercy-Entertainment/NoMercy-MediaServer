@@ -3,7 +3,7 @@ import { EpisodeChanges } from './changes';
 import { EpisodeImages } from './images';
 import { EpisodeTranslations } from './translations';
 import { EpisodeWithAppends } from './episode-details';
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import i18next from 'i18next';
 import moment from 'moment';
 import tmdbApiClient from '../tmdbApiClient';

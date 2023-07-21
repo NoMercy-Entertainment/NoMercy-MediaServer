@@ -1,7 +1,7 @@
 import { FolderInfo } from '../files/scanLibraries';
-import Logger from '../../functions/logger';
-import { movieChanges } from '../../providers/tmdb/movie/index';
-import { tvChanges } from '../../providers/tmdb/tv/index';
+import Logger from '@server/functions/logger';
+import { movieChanges } from '@server/providers/tmdb/movie/index';
+import { tvChanges } from '@server/providers/tmdb/tv/index';
 import { writeFileSync } from 'fs';
 
 export const needsUpdate = async (data: FolderInfo) => {

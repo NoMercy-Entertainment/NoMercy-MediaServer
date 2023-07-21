@@ -1,17 +1,16 @@
-import { AppState, store, useSelector } from '@/state/redux';
+import { AppState, store, useSelector } from '@server/state/redux';
 import { Server, Socket } from 'socket.io';
 
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import Logger from '../functions/logger';
 import { DisplayList, MutedState, PlayState, Song, State } from '../types/music';
 import base from '../api/sockets/base';
-import { confDb } from '../database/config';
 import { emitData } from '../api/sockets/helpers';
 import {
 	setBackLog, setCurrentDevice, setCurrentSong, setDisplayList, setIsCurrentDevice,
 	setLyrics, setMutedState, setPlaylists, setPlayState, setDuration,
 	setQueue, setShowLyrics, setState, setVolume
-} from '@/state/redux/music/actions';
+} from '@server/state/redux/music/actions';
 import socketioJwt from 'socketio-jwt';
 import { storeServerActivity } from '../api/userData/activity/post';
 
@@ -173,41 +172,6 @@ export const socket = {
 				}.`,
 			});
 			socket.nsp.to((socket as any).decoded_token.sub).emit('setConnectedDevices', updatedList(socket));
-
-			await confDb.device.upsert({
-				where: {
-					id: socket.handshake.query.id as string,
-				},
-				update: {
-					id: socket.handshake.query.id as string,
-					deviceId: socket.handshake.query.id as string,
-					browser: socket.handshake.query.browser as string,
-					os: socket.handshake.query.os as string,
-					device: socket.handshake.query.device as string,
-					type: socket.handshake.query.type as string,
-					name: socket.handshake.query.name as string,
-					version: socket.handshake.query.version as string,
-					updated_at: new Date(),
-				},
-				create: {
-					id: socket.handshake.query.id as string,
-					deviceId: socket.handshake.query.id as string,
-					browser: socket.handshake.query.browser as string,
-					os: socket.handshake.query.os as string,
-					device: socket.handshake.query.device as string,
-					type: socket.handshake.query.type as string,
-					name: socket.handshake.query.name as string,
-					version: socket.handshake.query.version as string,
-					updated_at: new Date(),
-				},
-			})
-				.then(async () => {
-					const devices = await confDb.device.findMany();
-					socket.broadcast.emit('setDevices', devices);
-				})
-				.catch(() => {
-					//
-				});
 
 			socket.on('connect_error', (err) => {
 				console.log(`connect_error due to ${err.message}`);

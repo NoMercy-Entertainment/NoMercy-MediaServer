@@ -1,7 +1,7 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { activityLogs } from '../schema/activityLogs';
 
 export type NewActivityLog = InferModel<typeof activityLogs, 'insert'>;

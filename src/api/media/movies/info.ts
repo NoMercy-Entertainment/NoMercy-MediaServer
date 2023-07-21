@@ -4,27 +4,49 @@ import { getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helper
 import { Request, Response } from 'express';
 
 import { InfoResponse } from '../../../types/server';
-import createBlurHash from '../../../functions/createBlurHash';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { groupBy } from '../../../functions/stringArray';
-import i18next from 'i18next';
+import { groupBy } from '@server/functions/stringArray';
 import { movie } from '../../../providers/tmdb/movie';
-import { MovieWithRelations, getMovie } from '@/db/media/actions/movies';
+import { MovieWithRelations, getMovie } from '@server/db/media/actions/movies';
+import { requestWorker } from '@server/api/requestWorker';
+import i18n from '@server/loaders/i18n';
 
 export default async function (req: Request, res: Response) {
 
-	const movie = getMovie({ id: parseInt(req.params.id, 10) }, true);
-	if (!movie) {
-		return res.json(await getMovieData(req.params.id));
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		language: req.language,
+		user_id: req.user.sub,
+	});
+
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
+		});
 	}
-	return res.json(getContent(movie));
+	return res.json(result.result);
 }
 
+export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve, reject) => {
+
+		const movie = getMovie({ id: parseInt(id, 10), user_id, language });
+		if (!movie) {
+			resolve(await getMovieData(id));
+		}
+		resolve(getContent(movie));
+	});
+};
+
 const getContent = (data: MovieWithRelations) => {
+	if (!data) return;
+
 	const groupedMedia = groupBy(data.images, 'type');
 
-	const title = data.translation?.title || data.title;
-	const overview = data.translation?.overview || data.overview;
+	const title = data.translations[0]?.title || data.title;
+	const overview = data.translations[0]?.overview || data.overview;
 
 	const logos = imageMap(groupedMedia.logo);
 	const palette = JSON.parse(data.colorPalette ?? '{}');
@@ -59,8 +81,8 @@ const getContent = (data: MovieWithRelations) => {
 		contentRatings: data.certification_movie.map((r) => {
 			return {
 				rating: r.certification.rating,
-				meaning: r.certification.meaning,
-				order: r.certification.order,
+				// meaning: r.certification.meaning,
+				// order: r.certification.order,
 				iso31661: r.certification.iso31661,
 			};
 		}),
@@ -94,7 +116,7 @@ const getContent = (data: MovieWithRelations) => {
 
 const getMovieData = async (id: string) => {
 
-	i18next.changeLanguage('en');
+	i18n.changeLanguage('en');
 
 	const data = await movie(parseInt(id, 10));
 
@@ -108,14 +130,14 @@ const getMovieData = async (id: string) => {
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
 			mediaType: 'movie',
-			blurHash: {
-				poster: index < 10 && s.poster_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-					: null,
-				backdrop: index < 10 && s.backdrop_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-					: null,
-			},
+			// blurHash: {
+			// 	poster: index < 10 && s.poster_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
+			// 		: null,
+			// 	backdrop: index < 10 && s.backdrop_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
+			// 		: null,
+			// },
 		});
 	}
 
@@ -126,14 +148,14 @@ const getMovieData = async (id: string) => {
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
 			mediaType: 'movie',
-			blurHash: {
-				poster: index < 10 && s.poster_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-					: null,
-				backdrop: index < 10 && s.backdrop_path
-					? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-					: null,
-			},
+			// blurHash: {
+			// 	poster: index < 10 && s.poster_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
+			// 		: null,
+			// 	backdrop: index < 10 && s.backdrop_path
+			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
+			// 		: null,
+			// },
 		});
 	}
 
@@ -158,17 +180,17 @@ const getMovieData = async (id: string) => {
 		poster: data.poster_path,
 		backdrop: data.backdrop_path,
 		logo: data.images.logos[0]?.file_path ?? null,
-		blurHash: {
-			logo: data.images.logos[0]?.file_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`)
-				: null,
-			poster: data?.poster_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`)
-				: null,
-			backdrop: data?.backdrop_path
-				? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`)
-				: null,
-		},
+		// blurHash: {
+		// 	logo: data.images.logos[0]?.file_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`)
+		// 		: null,
+		// 	poster: data?.poster_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`)
+		// 		: null,
+		// 	backdrop: data?.backdrop_path
+		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`)
+		// 		: null,
+		// },
 		videos: data.videos.results?.map((v) => {
 			return {
 				src: v.key,

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { artistImages } from '../../../functions/artistImage';
+import { artistImages } from '@server/functions/artistImage';
 
 export default async function (req: Request, res: Response) {
 

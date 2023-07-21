@@ -1,14 +1,13 @@
-import { setAllowedUsers, setUsers } from '@/state/redux/config/actions';
+import { setAllowedUsers, setUsers } from '@server/state/redux/config/actions';
 
-import Logger from '../../functions/logger';
-import { UserResponse } from 'types/api';
+import Logger from '@server/functions/logger';
+import { UserResponse } from '@server/types/api';
 import axios from '../axios';
 import { deviceId } from '../system';
-import { AppState, useSelector } from '@/state/redux';
-import { insertUser, selectUser } from '@/db/media/actions/users';
+import { AppState, useSelector } from '@server/state/redux';
+import { insertUser, selectUser } from '@server/db/media/actions/users';
 
 export const getUsers = async () => {
-	// const transaction: Prisma.PromiseReturnType<any>[] = [];
 	const moderators = useSelector((state: AppState) => state.config.moderators);
 
 	await axios()

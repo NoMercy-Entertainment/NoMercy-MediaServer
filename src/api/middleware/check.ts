@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { isAllowed, isOwner, verifiedApi } from './permissions';
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 
 export const check = (req: Request, res: Response, next: NextFunction) => {
-	if (!req.access_token) {
+	if (!req.headers.authorization && !req.query.token) {
 		return res.status(401).json({
 			status: 'error',
 			message: 'You must provide a Bearer token.',

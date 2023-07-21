@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 
 // import data from './data';
-// import { isOwner } from '@/api/middleware/permissions';
-import { PlaylistItem } from '@/types/video';
-import { convertToSeconds } from '@/functions/dateTime';
+// import { isOwner } from '@server/api/middleware/permissions';
+import { PlaylistItem } from '@server/types//video';
+import { convertToSeconds } from '@server/functions/dateTime';
 import i18next from 'i18next';
-import { getClosestRating, sortBy } from '@/functions/stringArray';
-import { deviceId } from '@/functions/system';
-import { AppState, useSelector } from '@/state/redux';
-import { SpecialWithRelations, getSpecial } from '@/db/media/actions/specials';
+import { getClosestRating, sortBy } from '@server/functions/stringArray';
+import { deviceId } from '@server/functions/system';
+import { AppState, useSelector } from '@server/state/redux';
+import { SpecialWithRelations, getSpecial } from '@server/db/media/actions/specials';
 
 export default async function (req: Request, res: Response) {
 
@@ -24,7 +24,7 @@ export default async function (req: Request, res: Response) {
 	const files: any[] = [];
 
 	for (const [key, item] of items.specialItems.entries()) {
-		const d = await data({ index: key, data: item.episode ?? item.movie!, id: req.params.id });
+		const d = await data({ index: key, data: item.episode ?? item.movie!, id: req.params.id, language: req.language });
 		files.push(d);
 	};
 
@@ -34,7 +34,7 @@ export default async function (req: Request, res: Response) {
 type MovieData = SpecialWithRelations['specialItems'][0]['movie'];
 type TVData = SpecialWithRelations['specialItems'][0]['episode'];
 
-const data = ({ index, data, id }: { index: number; data: TVData | MovieData; id: string }): PlaylistItem => {
+const data = ({ index, data, id, language }: { index: number; data: TVData | MovieData; id: string; language: string }): PlaylistItem => {
 	data = data!;
 
 	const access_token = useSelector((state: AppState) => state.user.access_token);
@@ -105,7 +105,7 @@ const data = ({ index, data, id }: { index: number; data: TVData | MovieData; id
 		tmdbid: (data as TVData)?.tv?.id ?? (data as MovieData)!.id!,
 		show: show,
 		playlist_type: 'special',
-		rating: getClosestRating(data.certifications ?? []),
+		rating: getClosestRating(data.certifications ?? [], language),
 		progress: videoFile && videoFile?.userData?.[0]?.time
 			? (videoFile.userData[0].time / convertToSeconds(videoFile.duration)) * 100
 			: null,

@@ -1,7 +1,7 @@
-import Logger from '../../functions/logger';
-import { ModeratorsResponse } from 'types/api';
+import Logger from '@server/functions/logger';
+import { ModeratorsResponse } from '@server/types/api';
 import axios from '../axios';
-import { setModerators } from '@/state/redux/config/actions';
+import { setModerators } from '@server/state/redux/config/actions';
 
 export const moderators = async () => {
 	setInterval(async () => {

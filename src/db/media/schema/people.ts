@@ -27,6 +27,7 @@ export const people = sqliteTable('people', {
 	popularity: real('popularity'),
 	profile: text('profile'),
 	blurHash: text('blurHash'),
+	titleSort: text('titleSort'),
 	colorPalette: text('colorPalette'),
 
 	created_at: datetime('created_at')

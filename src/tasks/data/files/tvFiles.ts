@@ -1,22 +1,21 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-import { Prisma } from '../../../database/config/client';
-import { fileChangedAgo, humanTime } from '../../../functions/dateTime';
-import Logger from '../../../functions/logger';
-import { jsonToString } from '../../../functions/stringArray';
-import { cachePath } from '@/state';
+import { fileChangedAgo, humanTime } from '@server/functions/dateTime';
+import Logger from '@server/functions/logger';
+import { jsonToString } from '@server/functions/stringArray';
+import { cachePath } from '@server/state';
 import { ParsedFileList } from '../../../tasks/files/filenameParser';
 import FileList from '../../../tasks/files/getFolders';
 
 import type { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
-import { insertFileDB } from '@/db/media/actions/files';
-import { insertVideoFileDB } from '@/db/media/actions/videoFiles';
-import { getQualityTag } from '@/functions/ffmpeg/quality/quality';
-import { getExistingSubtitles } from '@/functions/ffmpeg/subtitles/subtitle';
-import { updateTv } from '@/db/media/actions/tvs';
-import { getEpisodeDB } from '@/db/media/actions/episodes';
-import { findFoldersDB } from '@/db/media/actions/folders';
+import { File, insertFileDB } from '@server/db/media/actions/files';
+import { insertVideoFileDB } from '@server/db/media/actions/videoFiles';
+import { getQualityTag } from '@server/functions/ffmpeg/quality/quality';
+import { getExistingSubtitles } from '@server/functions/ffmpeg/subtitles/subtitle';
+import { updateTv } from '@server/db/media/actions/tvs';
+import { getEpisodeDB } from '@server/db/media/actions/episodes';
+import { findFoldersDB } from '@server/db/media/actions/folders';
 
 export default async ({ data, folder, libraryId }) => {
 
@@ -51,12 +50,12 @@ export default async ({ data, folder, libraryId }) => {
 			});
 
 			if (episode?.id) {
-				const newFile: Prisma.FileCreateWithoutMovieInput = Object.keys(file)
+				const newFile: File = Object.keys(file)
 					.filter(key => !['seasons', 'episodeNumbers', 'ep_folder', 'artistFolder', 'musicFolder'].includes(key))
 					.reduce((obj, key) => {
 						obj[key] = file[key];
 						return obj;
-					}, <Prisma.FileCreateWithoutMovieInput>{});
+					}, <File>{});
 
 				const seasonNumber = file.seasons?.[0] == null
 					? 1
@@ -129,18 +128,20 @@ export default async ({ data, folder, libraryId }) => {
 				}
 
 				try {
-					insertVideoFileDB({
-						filename: file.ffprobe!.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
-						folder: file.folder + file.episodeFolder!,
-						hostFolder: file.ffprobe!.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
-						duration: humanTime(file.ffprobe!.format.duration),
-						quality: JSON.stringify(getQualityTag(file.ffprobe)),
-						share: folders.find(f => folder.includes(f.path?.replace(/\\/gu, '/')))!.id!,
-						subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe as VideoFFprobe)),
-						languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
-						chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
-						episode_id: episode?.id,
-					});
+					if (file.ffprobe && file.folder) {
+						insertVideoFileDB({
+							filename: file.ffprobe!.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
+							folder: file.folder + file.episodeFolder!,
+							hostFolder: file.ffprobe!.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
+							duration: humanTime(file.ffprobe!.format.duration),
+							quality: JSON.stringify(getQualityTag(file.ffprobe)),
+							share: folders.find(f => folder.includes(f.path?.replace(/\\/gu, '/')))?.id as string,
+							subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe as VideoFFprobe)),
+							languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
+							chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
+							episode_id: episode?.id,
+						});
+					}
 				} catch (error) {
 					Logger.log({
 						level: 'error',
@@ -179,5 +180,12 @@ export default async ({ data, folder, libraryId }) => {
         	data: ['library'],
         });
 
+	}).catch((error) => {
+		Logger.log({
+			level: 'error',
+			name: 'App',
+			color: 'red',
+			message: JSON.stringify(['tv file', error]),
+		});
 	});
 };

@@ -1,7 +1,6 @@
-import { ConfigData } from 'types/server';
-// import { confDb } from '../../database/config';
+import { ConfigData } from '@server/types/server';
 import loadConfigs from '../loadConfigs';
-import { insertConfiguration } from '@/db/media/actions/configuration';
+import { insertConfiguration } from '@server/db/media/actions/configuration';
 
 export default async (data: ConfigData, user: string | null) => {
 

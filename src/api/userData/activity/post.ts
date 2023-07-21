@@ -1,16 +1,14 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express';
 
-import { insertActivityLog } from '@/db/media/actions/activityLogs';
-import { insertDevice, selectDevice } from '@/db/media/actions/devices';
+import { insertActivityLog } from '@server/db/media/actions/activityLogs';
+import { insertDevice, selectDevice } from '@server/db/media/actions/devices';
 
 export default (req: Request, res: Response) => {
 
-	const sub_id = (req as unknown).token;
-
 	const { from, id, browser, os, device, type, name, version, activity_type } = req.body as {[key: string]: string};
 
-	storeServerActivity({ sub_id, from, id, browser, os, device, type, name, version, activity_type })
+	storeServerActivity({ sub_id: req.user.sub, from, id, browser, os, device, type, name, version, activity_type })
 		.then((data: any) => {
 
 			return res.json({

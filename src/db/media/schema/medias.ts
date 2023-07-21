@@ -1,4 +1,4 @@
-import { text, sqliteTable, integer, index, uniqueIndex, real, primaryKey } from 'drizzle-orm/sqlite-core';
+import { text, sqliteTable, integer, index, uniqueIndex, real } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 import { tvs } from './tvs';
 import { seasons } from './seasons';
@@ -8,7 +8,7 @@ import { people } from './people';
 import { videoFiles } from './videoFiles';
 
 export const medias = sqliteTable('medias', {
-	id: text('id'),
+	id: integer('id').primaryKey({ autoIncrement: true }),
 	aspectRatio: real('aspectRatio'),
 	height: integer('height'),
 	iso6391: text('iso6391'),
@@ -44,9 +44,14 @@ export const medias = sqliteTable('medias', {
 		.references(() => videoFiles.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 
 }, db => ({
-	pk: primaryKey(db.id),
-	index: index('medias_index').on(db.id),
 	unique: uniqueIndex('medias_unique').on(db.src),
+	index: index('medias_index').on(db.episode_id, db.movie_id, db.person_id, db.season_id, db.tv_id, db.videoFile_id),
+	unique_tv: uniqueIndex('medias_tv_unique').on(db.tv_id, db.src),
+	unique_season: uniqueIndex('medias_season_unique').on(db.season_id, db.src),
+	unique_episode: uniqueIndex('medias_episode_unique').on(db.episode_id, db.src),
+	unique_movie: uniqueIndex('medias_movie_unique').on(db.movie_id, db.src),
+	unique_person: uniqueIndex('medias_person_unique').on(db.person_id, db.src),
+	unique_videoFile: uniqueIndex('medias_videoFile_unique').on(db.videoFile_id, db.src),
 }));
 
 export const mediasRelations = relations(medias, ({ one }) => ({

@@ -1,6 +1,6 @@
 import { encoderProfile_library } from '../schema/encoderProfile_library';
 import { mediaDb } from '..';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
 import { InferModel } from 'drizzle-orm';
 
 export type NewEncoderProfileLibrary = InferModel<typeof encoderProfile_library, 'insert'>;

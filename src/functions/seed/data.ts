@@ -1,4 +1,4 @@
-import { ConfigData } from 'types/server';
+import { ConfigData } from '@server/types/server';
 import { deviceName } from '../system';
 
 export const configData: ConfigData = {

@@ -3,11 +3,6 @@
     "src"
   ],
   "ext": ".ts",
-  "ignore": [
-    "node_modules",
-    "data",
-    "src/database/config/client",
-    "src/database/queue/client"
-  ],
-  "exec": "node --loader tsx --require=suppress-experimental-warnings --experimental-loader=node-esm-loader --max-old-space-size=102400 --max-http-header-size=1024000 ./src/index.ts"
+  "ignore": [],
+  "exec": "node --max-old-space-size=20480 -- node_modules/ts-node/dist/bin --swc --pretty --require=suppress-experimental-warnings ./src/index.ts"
 }

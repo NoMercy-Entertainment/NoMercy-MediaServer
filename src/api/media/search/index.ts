@@ -1,22 +1,22 @@
 import { Request, Response } from 'express';
-import { groupBy, matchPercentage, sortBy } from '../../../functions/stringArray';
+import { groupBy, matchPercentage, sortBy } from '@server/functions/stringArray';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { parseTitleAndYear } from '../../../functions/videoFilenameParser';
-import { parseYear } from '../../../functions/dateTime';
+import { parseTitleAndYear } from '@server/functions/videoFilenameParser';
+import { parseYear } from '@server/functions/dateTime';
 import searchVideo from './searchVideo';
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { inArray, like } from 'drizzle-orm';
-import { tvs } from '@/db/media/schema/tvs';
-import { Tv } from '@/db/media/actions/tvs';
-import { Movie } from '@/db/media/actions/movies';
-import { Artist } from '@/db/media/actions/artists';
-import { Album } from '@/db/media/actions/albums';
-import { Track } from '@/db/media/actions/tracks';
-import { movies } from '@/db/media/schema/movies';
-import { albums } from '@/db/media/schema/albums';
-import { artists } from '@/db/media/schema/artists';
-import { tracks } from '@/db/media/schema/tracks';
+import { tvs } from '@server/db/media/schema/tvs';
+import { Tv } from '@server/db/media/actions/tvs';
+import { Movie } from '@server/db/media/actions/movies';
+import { Artist } from '@server/db/media/actions/artists';
+import { Album } from '@server/db/media/actions/albums';
+import { track } from '@server/db/media/actions/tracks';
+import { movies } from '@server/db/media/schema/movies';
+import { albums } from '@server/db/media/schema/albums';
+import { artists } from '@server/db/media/schema/artists';
+import { tracks } from '@server/db/media/schema/tracks';
 
 export default async function (req: Request, res: Response) {
 
@@ -64,7 +64,7 @@ export default async function (req: Request, res: Response) {
 	const MOVIE: Movie[] = [];
 	const ARTIST: Artist[] = [];
 	const ALBUM: Album[] = [];
-	const TRACK: Track[] = [];
+	const TRACK: track[] = [];
 
 	if ((!type || type == 'tv') && tv?.length > 0) {
 		const tvRes = mediaDb.select().from(tvs)

@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "f0c03253-0b58-41ad-a052-dbb3679fd88d",
+  "id": "7460dccb-6771-4c0c-b658-7c8c474b922e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "failedJobs": {
@@ -11,37 +11,43 @@
           "name": "id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "payload": {
           "name": "payload",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "queue": {
           "name": "queue",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "exception": {
           "name": "exception",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "connection": {
           "name": "connection",
           "type": "datetime",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "failedAt": {
           "name": "failedAt",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -71,37 +77,43 @@
           "name": "queue",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "task_id": {
           "name": "task_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "runAt": {
           "name": "runAt",
           "type": "datetime",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "payload": {
           "name": "payload",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "result": {
           "name": "result",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "error": {
           "name": "error",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "progress": {
           "name": "progress",
@@ -110,18 +122,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
-        },
-        "key": {
-          "name": "key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cron": {
-          "name": "cron",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "priority": {
           "name": "priority",
@@ -139,43 +139,26 @@
           "autoincrement": false,
           "default": 0
         },
-        "maxAttempts": {
-          "name": "maxAttempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "notBefore": {
-          "name": "notBefore",
-          "type": "datetime",
-          "primaryKey": false,
-          "notNull": false
-        },
         "finishedAt": {
           "name": "finishedAt",
           "type": "datetime",
           "primaryKey": false,
-          "notNull": false
-        },
-        "processedAt": {
-          "name": "processedAt",
-          "type": "datetime",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "failedAt": {
           "name": "failedAt",
           "type": "datetime",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -183,6 +166,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -196,14 +180,6 @@
             "finishedAt"
           ],
           "isUnique": false
-        },
-        "queue_jobs_id_unique": {
-          "name": "queue_jobs_id_unique",
-          "columns": [
-            "key",
-            "runAt"
-          ],
-          "isUnique": true
         }
       },
       "foreignKeys": {},

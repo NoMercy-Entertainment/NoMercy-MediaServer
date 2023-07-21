@@ -1,7 +1,7 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 
-import Logger from '../../functions/logger';
-import { binariesPath } from '@/state';
+import Logger from '@server/functions/logger';
+import { binariesPath } from '@server/state';
 import { fileLastModified } from '../dateTime';
 import fs from 'fs';
 import path from 'path';

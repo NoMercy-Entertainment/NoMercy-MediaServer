@@ -3,25 +3,28 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, w
 import { join } from 'path';
 
 import { ArrayElementType, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
-import { dataPath, ffmpeg, transcodesPath } from '@/state';
+import { dataPath, ffmpeg, transcodesPath } from '@server/state';
 import {
-	createBaseFolder, createEpisodeFolder, createFileName, createTitleSort, EP, MV
-} from '../../tasks/files/filenameParser';
+	EP,
+	MV,
+	createBaseFolder, createEpisodeFolder, createFileName, createTitleSort
+} from '@server/tasks/files/filenameParser';
 import { convertToHis, createTimeInterval, humanTime, parseYear } from '../dateTime';
 import { matchPercentage, pad, unique } from '../stringArray';
 import { filenameParse, ParsedFilename, ParsedTvInfo } from '../videoFilenameParser';
 import { FFMpeg } from './ffmpeg';
 import { isoToName } from './language';
-import { searchMovie, searchTv } from '@/providers/tmdb/search';
-import findMediaFiles from '@/tasks/data/files';
-import { mediaDb } from '@/db/media';
+import { searchMovie, searchTv } from '@server/providers/tmdb/search';
+import findMediaFiles from '@server/tasks/data/files';
+import { mediaDb } from '@server/db/media';
 import { and, eq } from 'drizzle-orm';
-import { movies } from '@/db/media/schema/movies';
-import { episodes } from '@/db/media/schema/episodes';
-import { EncodingLibrary } from '@/db/media/actions/libraries';
-import { insertVideoFileDB } from '@/db/media/actions/videoFiles';
+import { movies } from '@server/db/media/schema/movies';
+import { episodes } from '@server/db/media/schema/episodes';
+import { EncodingLibrary } from '@server/db/media/actions/libraries';
+import { insertVideoFileDB } from '@server/db/media/actions/videoFiles';
 import i18next from 'i18next';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
+import { Movie } from '@server/providers/tmdb/movie';
 
 export class FFMpegArchive extends FFMpeg {
 	file = '';
@@ -54,8 +57,8 @@ export class FFMpegArchive extends FFMpeg {
 	filteredAudioStreams: any;
 	wantsPlaylist = false;
 
-	episode: EP | null = <EP>{};
-	movie: MV | null = <MV>{};
+	episode: ReturnType<typeof this.findEpisode>;
+	movie: ReturnType<typeof this.findMovie>;
 
 	constructor(context: FFMpegArchive | null = null) {
 		super();
@@ -74,6 +77,58 @@ export class FFMpegArchive extends FFMpeg {
 		this.path = path;
 
 		return this;
+	}
+
+	findEpisode(id: number, seasonNumber: number, episodeNumber: number) {
+		return mediaDb.query.episodes.findFirst({
+			where: and(
+				eq(episodes.episodeNumber, episodeNumber),
+				eq(episodes.seasonNumber, seasonNumber),
+				eq(episodes.tv_id, id)
+			),
+			with: {
+				tv: {
+					with: {
+						library: {
+							with: {
+								folder_library: {
+									with: {
+										folder: true,
+									},
+								},
+								encoderProfile_library: {
+									with: {
+										encoderProfile: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+	}
+
+	findMovie(searchResult: Movie) {
+		return mediaDb.query.movies.findFirst({
+			where: eq(movies.titleSort, createTitleSort(searchResult.title, searchResult.release_date)),
+			with: {
+				library: {
+					with: {
+						folder_library: {
+							with: {
+								folder: true,
+							},
+						},
+						encoderProfile_library: {
+							with: {
+								encoderProfile: true,
+							},
+						},
+					},
+				},
+			},
+		})
 	}
 
 	async fromFile(file: string) {
@@ -106,33 +161,7 @@ export class FFMpegArchive extends FFMpeg {
 				.catch(() => null);
 
 			if (searchResult) {
-				this.episode = mediaDb.query.episodes.findFirst({
-					with: {
-						tv: {
-							with: {
-								library: {
-									with: {
-										folder_library: {
-											with: {
-												folder: true,
-											},
-										},
-										encoderProfile_library: {
-											with: {
-												encoderProfile: true,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					where: and(
-						eq(episodes.episodeNumber, this.episodeNumber),
-						eq(episodes.seasonNumber, this.seasonNumber),
-						eq(episodes.tv_id, searchResult.id)
-					),
-				}) as unknown as EP;
+				this.episode = this.findEpisode(searchResult.id, this.seasonNumber, this.episodeNumber);
 			}
 
 			if (!this.episode) {
@@ -142,8 +171,8 @@ export class FFMpegArchive extends FFMpeg {
 			this.year = parseYear(this.episode.tv.firstAirDate as string)!;
 			this.baseFolder = createBaseFolder(this.episode);
 
-			if ((this.episode as EP).airDate) {
-				this.episodeFolder = createEpisodeFolder(this.episode as EP);
+			if (this.episode.airDate) {
+				this.episodeFolder = createEpisodeFolder(this.episode);
 				this.index = this.episode.id;
 			}
 
@@ -175,28 +204,8 @@ export class FFMpegArchive extends FFMpeg {
 					return show;
 				});
 
-			console.log(searchResult, createTitleSort(searchResult.title, searchResult.release_date));
-
 			if (searchResult) {
-				this.movie = mediaDb.query.movies.findFirst({
-					with: {
-						library: {
-							with: {
-								folder_library: {
-									with: {
-										folder: true,
-									},
-								},
-								encoderProfile_library: {
-									with: {
-										encoderProfile: true,
-									},
-								},
-							},
-						},
-					},
-					where: eq(movies.titleSort, createTitleSort(searchResult.title, searchResult.release_date)),
-				}) as unknown as MV;
+				this.movie = this.findMovie(searchResult);
 			}
 
 			if (!this.movie) {
@@ -285,7 +294,6 @@ export class FFMpegArchive extends FFMpeg {
 		this.fontsFile = join(this.path, '/fonts.json');
 		this.setAllowedLanguages();
 
-		console.log('make stack');
 		mkdirSync(this.subtitleFolder, { recursive: true });
 
 		this.fullTitle = this.seasonNumber != null && this.episodeNumber && this.episode
@@ -655,7 +663,7 @@ export class FFMpegArchive extends FFMpeg {
 	}
 
 	buildSprite() {
-		if (existsSync(this.spriteFile)) {
+		if (existsSync(this.spriteFile) || !existsSync(this.thumbnailsFolder)) {
 			return this;
 		}
 
@@ -867,6 +875,8 @@ export class FFMpegArchive extends FFMpeg {
 			const subs = this.streams.subtitle.filter(s => s.codec_name == 'hdmv_pgs_subtitle' || s.codec_name == 'dvd_subtitle');
 
 			if (subs.length > 0) {
+				if (existsSync(this.getFile(['subtitles', `${this.fileName}.${subs[0].language}.sup`]))) return;
+
 				const subCommand = [
 					`"${ffmpeg}"`,
 					`-i "${this.format.filename}"`,

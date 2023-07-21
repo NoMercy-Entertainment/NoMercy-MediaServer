@@ -1,60 +1,55 @@
-import { confDb } from '../../database/config';
-import Logger from '../../functions/logger';
+import { mediaDb } from '@server/db/media';
+import Logger from '@server/functions/logger';
 import { Request, Response } from 'express';
-import { ResponseStatus } from 'types/server';
+import { asc } from 'drizzle-orm';
+import { languages } from '@server/db/media/schema/languages';
 
-export const languages = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	await confDb.language
-		.findMany({
-			orderBy: {
-				english_name: 'asc',
-			},
-		})
-		.then((data) => {
-			return res.json(
-				data.map(d => ({
-					...d,
-				}))
-			);
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting languages: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong getting languages: ${error}`,
-			});
+export const language = (req: Request, res: Response) => {
+
+	try {
+		const data = mediaDb.query.languages.findMany({
+			orderBy: asc(languages.english_name),
 		});
+		return res.json(
+			data.map(d => ({
+				...d,
+			}))
+		);
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Error getting languages: ${error}`,
+		});
+		return res.json({
+			status: 'ok',
+			message: `Something went wrong getting languages: ${error}`,
+		});
+	}
 };
 
-export const countries = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	await confDb.country
-		.findMany({
-			orderBy: {
-				english_name: 'asc',
-			},
-		})
-		.then((data) => {
-			return res.json(
-				data.map(d => ({
-					...d,
-				}))
-			);
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting countries: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong getting countries: ${error}`,
-			});
+export const countries = (req: Request, res: Response) => {
+
+	try {
+		const data = mediaDb.query.countries.findMany({
+			orderBy: asc(languages.english_name),
 		});
+		return res.json(
+			data.map(d => ({
+				...d,
+			}))
+		);
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Error getting countries: ${error}`,
+		});
+		return res.json({
+			status: 'ok',
+			message: `Something went wrong getting countries: ${error}`,
+		});
+	}
 };

@@ -1,7 +1,7 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { artist_track } from '../schema/artist_track';
 
 export type NewArtistTrack = InferModel<typeof artist_track, 'insert'>;

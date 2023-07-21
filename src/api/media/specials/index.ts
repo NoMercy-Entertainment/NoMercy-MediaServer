@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { mediaDb } from '@/db/media';
-import { sortBy } from '@/functions/stringArray';
+import { mediaDb } from '@server/db/media';
+import { sortBy } from '@server/functions/stringArray';
 
 export default function (req: Request, res: Response) {
 

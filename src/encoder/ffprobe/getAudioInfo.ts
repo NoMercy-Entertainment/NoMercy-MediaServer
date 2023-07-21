@@ -1,7 +1,7 @@
-import { errorLog, ffprobe } from '@/state';
+import { errorLog, ffprobe } from '@server/state';
 
 import type { AudioFFprobe } from './ffprobe';
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
 

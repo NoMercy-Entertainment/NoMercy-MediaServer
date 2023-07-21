@@ -1,6 +1,6 @@
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
 import { language_library } from '../schema/language_library';
 
 export type LanguageLibrary = InferModel<typeof language_library, 'insert'>;

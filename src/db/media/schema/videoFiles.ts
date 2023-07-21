@@ -36,7 +36,7 @@ export const videoFiles = sqliteTable('videoFiles', {
 	unique: uniqueIndex('videoFiles_unique').on(db.filename),
 }));
 
-export const videoFilesRelations = relations(videoFiles, ({ one }) => ({
+export const videoFilesRelations = relations(videoFiles, ({ one, many }) => ({
 	episode: one(episodes, {
 		fields: [videoFiles.episode_id],
 		references: [episodes.id],
@@ -45,8 +45,5 @@ export const videoFilesRelations = relations(videoFiles, ({ one }) => ({
 		fields: [videoFiles.movie_id],
 		references: [movies.id],
 	}),
-	userData: one(userData, {
-		fields: [videoFiles.id],
-		references: [userData.videoFile_id],
-	}),
+	userData: many(userData),
 }));

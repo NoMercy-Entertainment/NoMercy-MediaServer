@@ -1,4 +1,4 @@
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import audio from './audio';
 import cast from './cast';
 // import progress from '../../controllers/encoder/ffmpeg/progress';

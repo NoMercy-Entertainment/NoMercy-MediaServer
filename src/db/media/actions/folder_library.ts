@@ -1,5 +1,5 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { folder_library } from '../schema/folder_library';
 
 export type NewFolderLibrary = InferModel<typeof folder_library, 'insert'>;

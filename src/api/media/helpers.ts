@@ -5,13 +5,9 @@ import {
 	MediaItem
 } from '../../types/server';
 
-import { Image as TMDBImage } from '../../providers/tmdb/shared';
-import { MovieWithRelations } from '@/db/media/actions/movies';
-import { Cast } from '@/db/media/actions/casts';
-import { Person } from '@/db/media/actions/people';
-import { Role } from '@/db/media/actions/roles';
-import { Crew } from '@/db/media/actions/crews';
-import { Job } from '@/db/media/actions/jobs';
+import { MovieWithRelations } from '@server/db/media/actions/movies';
+import { Media } from '@server/db/media/actions/medias';
+import { Image } from '@server/providers/tmdb/shared/image';
 
 export const relatedMap = (data: MovieWithRelations['similar_from'] | MovieWithRelations['recommendation_from'], type: string) => data.map((s) => {
 	return {
@@ -29,70 +25,90 @@ export const relatedMap = (data: MovieWithRelations['similar_from'] | MovieWithR
 	};
 }) ?? [];
 
-export const imageMap = (data: MovieWithRelations['images'] | TMDBImage[]) => {
+export const imageMap = <T = Media | Image>(data: T[]) => {
 	const res: MediaItem[] = [];
 
 	for (const i of data ?? []) {
 
-		// if (((i as MovieWithRelations['images'][0]).filePath ?? (i as TMDBImage).file_path) != null && (i as MovieWithRelations['images'][0]).colorPalette === null) {
-		// 	(i as MovieWithRelations['images'][0]).colorPalette = JSON.stringify(await colorPalette(`https://image.tmdb.org/t/p/w92${(i as MovieWithRelations['images'][0]).filePath}` ?? (i as TMDBImage).file_path) ?? {});
-		// }
-
 		res.push({
-			aspectRatio: (i as MovieWithRelations['images'][0]).aspectRatio ?? (i as TMDBImage).aspect_ratio,
-			height: i.height,
-			id: (i as MovieWithRelations['images'][0]).id!,
-			iso6391: (i as MovieWithRelations['images'][0]).iso6391 ?? (i as TMDBImage).iso_639_1,
-			src: (i as MovieWithRelations['images'][0]).filePath ?? (i as TMDBImage).file_path,
-			width: i.width ?? null,
-			blurHash: (i as MovieWithRelations['images'][0]).blurHash,
-			colorPalette: JSON.parse((i as MovieWithRelations['images'][0]).colorPalette ?? '{}'),
-			voteAverage: (i as MovieWithRelations['images'][0]).voteAverage ?? (i as TMDBImage).vote_average,
-			voteCount: (i as MovieWithRelations['images'][0]).voteCount ?? (i as TMDBImage).vote_count,
+			aspectRatio: (i as Media).aspectRatio ?? (i as Image).aspect_ratio,
+			height: (i as Media).height,
+			id: (i as Media).id!,
+			iso6391: (i as Media).iso6391 ?? (i as Image).iso_639_1,
+			// @ts-ignore
+			src: (i as Media).src ?? (i as Media).filePath ?? (i as Image).file_path,
+			width: (i as Media).width ?? null,
+			blurHash: (i as Media).blurHash,
+			colorPalette: JSON.parse((i as Media).colorPalette ?? '{}'),
+			voteAverage: (i as Media).voteAverage ?? (i as Image).vote_average,
+			voteCount: (i as Media).voteCount ?? (i as Image).vote_count,
 		});
 	}
 	return res;
 };
 
-export type Credit = Cast & {
-	person: Person | undefined;
-	roles: Role[];
-} | Crew & {
-	person: Person | undefined;
-	jobs: Job[];
-}
-
 export const peopleMap = (data: Credit[], filter: string): InfoCredit[] => {
 	return data.map((c) => {
 		return {
-			gender: c.person!.gender,
-			id: c.person!.id,
+			gender: c.person.gender,
+			id: c.person.id,
 			creditId: c[filter]?.[0].creditId,
 			character: c[filter]?.map(c => c.character || c.job || 'unknown')?.join(', '),
-			knownForDepartment: c.person!.knownForDepartment,
-			name: c.person!.name,
-			profilePath: (c as any).Image?.filePath ?? c.person?.profile,
-			popularity: c.person!.popularity,
-			deathday: c.person!.deathday,
-			blurHash: c.person!.blurHash,
-			colorPalette: JSON.parse(c.person!.colorPalette ?? '{}'),
+			knownForDepartment: c.person.knownForDepartment,
+			name: c.person.name,
+			profilePath: (c as any).Image?.filePath ?? c.person.profile,
+			popularity: c.person.popularity,
+			deathday: c.person.deathday ?? undefined,
+			// blurHash: c.person.blurHash,
+			colorPalette: JSON.parse(c.person.colorPalette ?? '{}'),
 		};
 	}) ?? [];
 };
 
-export type Department = (Crew & {
-	person: Person | null;
-	jobs: Job[];
-})
+export type Credit = {
+    person: {
+		gender: number | null;
+		id: number;
+		knownForDepartment: string | null;
+		name: string | null;
+		popularity: number | null;
+		deathday: string | null;
+		colorPalette: string | null;
+		profile: string | null;
+    };
+    jobs: {
+        crew_id: string | null;
+        job: string;
+    }[];
+    id: string;
+    person_id: number;
+} | {
+    person: {
+		gender: number | null;
+		id: number;
+		knownForDepartment: string | null;
+		name: string | null;
+		popularity: number | null;
+		deathday: string | null;
+		colorPalette: string | null;
+		profile: string | null;
+    };
+    roles: {
+        cast_id: string | null;
+        character: string;
+    }[];
+    id: string;
+    person_id: number;
+};
 
 export const getFromDepartmentMap = (data: Credit[], type: string, filter: string) => {
 	return data?.filter(c => !!c[`${type}s`].find((d: { [x: string]: string; }) => d[type] == filter))
 		.filter(Boolean)
 		.slice(0, 3)
 		.map(c => ({
-			id: c.person!.id,
-			name: c.person!.name!,
-			blurHash: c.person!.blurHash,
-			colorPalette: c.person!.colorPalette,
+			id: c.person?.id,
+			name: c.person?.name!,
+			// blurHash: c.person?.blurHash,
+			colorPalette: c.person?.colorPalette,
 		})) ?? [];
 };

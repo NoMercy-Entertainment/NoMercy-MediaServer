@@ -1,7 +1,7 @@
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import { TVLatest } from './latest';
 import fanartApiClient from '../fanartApiClient';
-import { TvImages } from '@/providers/tmdb/tv';
+import { TvImages } from '@server/providers/tmdb/tv';
 
 export * from './tv';
 export * from './latest';

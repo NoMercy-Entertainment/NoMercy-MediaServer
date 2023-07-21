@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { inArray } from 'drizzle-orm';
-import { libraries } from '@/db/media/schema/libraries';
-import { getAllowedLibraries } from '@/db/media/actions/libraries';
+import { libraries } from '@server/db/media/schema/libraries';
+import { getAllowedLibraries } from '@server/db/media/actions/libraries';
 
 export default function (req: Request, res: Response) {
 

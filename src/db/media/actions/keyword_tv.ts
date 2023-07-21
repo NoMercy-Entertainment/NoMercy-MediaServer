@@ -1,6 +1,6 @@
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
 import { keyword_tv } from '../schema/keyword_tv';
 
 export type NewKeywordTv = InferModel<typeof keyword_tv, 'insert'>;

@@ -1,10 +1,11 @@
 /* eslint-disable prefer-promise-reject-errors */
 import { Request, Response } from 'express';
-import { trackSort, uniqBy } from '../../../functions/stringArray';
+import { trackSort, uniqBy } from '@server/functions/stringArray';
 
-import { deviceId } from '../../../functions/system';
-import { selectArtist } from '@/db/media/actions/artists';
-import { requestWorker } from '@/api/requestWorker';
+import { deviceId } from '@server/functions/system';
+import { selectArtist } from '@server/db/media/actions/artists';
+import { requestWorker } from '@server/api/requestWorker';
+import { PaletteColors } from '@server/types/server';
 
 export default async function (req: Request, res: Response) {
 
@@ -30,8 +31,10 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 
 		if (!music) {
 			return reject({
-				message: 'You are not authorized to access this artist',
-				code: 401,
+				error: {
+					message: 'You are not authorized to access this artist',
+					code: 401,
+				}
 			});
 		}
 
@@ -44,7 +47,7 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 				colorPalette: JSON.parse(music.colorPalette ?? '{}'),
 				blurHash: music.blurHash ?? null,
 
-				Track: uniqBy<typeof music.artist_track>(music.artist_track?.map((t) => {
+				track: uniqBy(music.artist_track?.map((t) => {
 					const albums = t.track.album_track.map(a => ({
 						id: a.album.id,
 						name: a.album.name,
@@ -56,7 +59,8 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 						colorPalette: JSON.parse(a.album.colorPalette ?? '{}'),
 					}));
 					const artists = t.track.artist_track
-						.filter(a => a.artist.id != '89ad4ac3-39f7-470e-963a-56509c546377').map(a => ({
+						// .filter(a => a.artist.id != '89ad4ac3-39f7-470e-963a-56509c546377')
+						.map(a => ({
 							id: a.artist.id,
 							name: a.artist.name,
 							cover: a.artist.cover?.replace('http://', 'https://'),
@@ -93,3 +97,52 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 		}
 	});
 };
+
+
+export interface ArtistResponse {
+    id: string;
+    name: string;
+    description: null | string;
+    cover: null | string | undefined;
+    folder: null | string;
+    colorPalette: PaletteColors | null;
+    blurHash: string | null;
+    libraryId: string;
+    trackId: null | string;
+    type: string;
+    track: track[] | null;
+}
+
+export interface track {
+    id: string;
+    name: string;
+    track: number | null;
+    disc: number | null;
+    cover: null | string | undefined;
+    date: null | string;
+    folder: null | string;
+    filename: string;
+    duration: string | null;
+    quality: number | null;
+    path: string | null;
+    colorPalette: PaletteColors | null | undefined;
+    blurHash: null | string;
+    Artist: Album[];
+    Album: Album[];
+    type: string;
+    favorite_track: boolean;
+    origin: string;
+    libraryId: string;
+}
+
+export interface Album {
+    id: string;
+    name: string;
+    folder: null | string;
+    cover: null | string | undefined;
+    description: null | string;
+    libraryId: string;
+    origin: string;
+    colorPalette: null | string | undefined;
+}
+

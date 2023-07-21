@@ -1,7 +1,7 @@
 import { mediaDb } from '..';
 import { InferModel } from 'drizzle-orm';
 import { genre_tv } from '../schema/genre_tv';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
 
 export type NewGenreTv = InferModel<typeof genre_tv, 'insert'>;
 export const insertGenreTv = (data: NewGenreTv) => mediaDb.insert(genre_tv)

@@ -1,6 +1,6 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { priority_provider } from '../schema/priority_provider';
 
 export type Newpriority_provider = InferModel<typeof priority_provider, 'insert'>;

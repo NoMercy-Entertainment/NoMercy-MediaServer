@@ -1,12 +1,9 @@
 
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { images } from '../schema/images';
-import { convertBooleans } from '@/db/helpers';
-import { RequireOnlyOne } from '@/types/helpers';
-import { Person } from './people';
-import { Crew } from './crews';
-import { Cast } from './casts';
+import { convertBooleans } from '@server/db/helpers';
+import { RequireOnlyOne } from '@server/types/helpers';
 
 export type NewImage = InferModel<typeof images, 'insert'>;
 export const insertImage = (data: NewImage) => mediaDb.insert(images)
@@ -25,31 +22,21 @@ export const insertImage = (data: NewImage) => mediaDb.insert(images)
 	.returning()
 	.get();
 
-export type Image = InferModel<typeof images, 'select'>;
-export type ImageWithRelations = Image & { image_cast: Cast; image_crew: Crew; image_person: Person; };
+export type Images = ReturnType<typeof selectImages>;
 
 type SelectImage = RequireOnlyOne<{ id: number; filePath: string }>
-export const selectImages = <B extends boolean>(data: SelectImage, relations?: B): B extends true ? ImageWithRelations[] : Image[] => {
+export const selectImages = (data: SelectImage) => {
 	return mediaDb.query.images.findMany({
-		with: relations
-			? {
-				image_cast: true,
-				image_crew: true,
-				image_person: true,
-			}
-			: {},
+		with: {
+		},
 		where: (images, { eq }) => eq(images[`${Object.entries(data)[0][0]}`], Object.entries(data)[0][1]),
-	}) as unknown as B extends true ? ImageWithRelations[] : Image[];
+	});
 };
-export const selectImage = <B extends boolean>(data: SelectImage, relations?: B): B extends true ? ImageWithRelations : Image => {
+export type Image = ReturnType<typeof selectImages>;
+export const selectImage = (data: SelectImage) => {
 	return mediaDb.query.images.findFirst({
-		with: relations
-			? {
-				image_cast: true,
-				image_crew: true,
-				image_person: true,
-			}
-			: {},
+		with: {
+		},
 		where: (images, { eq }) => eq(images[`${Object.entries(data)[0][0]}`], Object.entries(data)[0][1]),
-	}) as unknown as B extends true ? ImageWithRelations : Image;
+	});
 };

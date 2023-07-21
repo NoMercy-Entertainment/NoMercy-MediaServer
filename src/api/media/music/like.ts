@@ -1,16 +1,12 @@
 import { Request, Response } from 'express';
 
-import { mediaDb } from '@/db/media';
-import { track_user } from '@/db/media/schema/track_user';
+import { mediaDb } from '@server/db/media';
+import { track_user } from '@server/db/media/schema/track_user';
 import { and, eq, inArray } from 'drizzle-orm';
-import { tracks } from '@/db/media/schema/tracks';
-import { AppState, useSelector } from '@/state/redux';
-import { Track } from '@/db/media/actions/tracks';
-import { TrackUser } from '@/db/media/actions/track_user';
-import { album_track } from '@/db/media/schema/album_track';
-import { AlbumTrack } from '@/db/media/actions/album_track';
-import { artist_track } from '@/db/media/schema/artist_track';
-import { ArtistTrack } from '@/db/media/actions/artist_track';
+import { tracks } from '@server/db/media/schema/tracks';
+import { AppState, useSelector } from '@server/state/redux';
+import { album_track } from '@server/db/media/schema/album_track';
+import { artist_track } from '@server/db/media/schema/artist_track';
 
 export default async function (req: Request, res: Response) {
 
@@ -21,17 +17,19 @@ export default async function (req: Request, res: Response) {
 		with: {
 			track_user: true,
 		},
-	}) as unknown as (Track & {
-		track_user: TrackUser[];
 	});
+
+	if (!result) { 
+		return null; 
+	}
 
 	const albumTrackResult = mediaDb.query.album_track.findMany({
 		where: eq(album_track.track_id, result.id),
-	}) as unknown as AlbumTrack[];
+	});
 
 	const artistTracksResult = mediaDb.query.artist_track.findMany({
 		where: inArray(artist_track.track_id, albumTrackResult.map(t => t.track_id)),
-	}) as unknown as ArtistTrack[];
+	});
 
 	try {
 

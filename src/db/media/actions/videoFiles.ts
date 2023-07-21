@@ -1,9 +1,9 @@
 import { InferModel, eq } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { createId } from '@paralleldrive/cuid2';
 import { videoFiles } from '../schema/videoFiles';
-import { RequireOnlyOne } from '@/types/helpers';
+import { RequireOnlyOne } from '@server/types/helpers';
 import { NewMediaAttachment } from './mediaAttachments';
 import { NewMediaStream } from './mediaStreams';
 
@@ -38,7 +38,7 @@ export const getVideoFilesDB = (data: SelectVideoFile, relations = false) => {
 				movie: true,
 			},
 			where: (videoFiles, { eq }) => eq(videoFiles[`${Object(data).entries()[0]}`], Object(data).entries()[1]),
-		}) as unknown as VideoFileWithRelations[];
+		});
 	}
 	return mediaDb.select()
 		.from(videoFiles)
@@ -53,7 +53,7 @@ export const getVideoFileDB = (data: SelectVideoFile, relations = false) => {
 				movie: true,
 			},
 			where: (videoFiles, { eq }) => eq(videoFiles[`${Object(data).entries()[0]}`], Object(data).entries()[1]),
-		}) as unknown as VideoFileWithRelations;
+		});
 	}
 	return mediaDb.select()
 		.from(videoFiles)

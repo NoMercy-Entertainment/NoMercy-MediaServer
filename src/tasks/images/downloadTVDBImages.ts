@@ -1,14 +1,14 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import getTVDBImages from './getTVDBImages';
 
-import { CompleteMovieAggregate } from '../../tasks/data/fetchMovie';
-import { CompleteTvAggregate } from '../../tasks/data/fetchTvShow';
-import Logger from '../../functions/logger';
-import downloadImage from '../../functions/downloadImage/downloadImage';
-import { imagesPath } from '@/state';
+import { CompleteMovieAggregate } from '../data/movie/fetchMovie';
+import { CompleteTvAggregate } from '../data/tv/fetchTvShow';
+import Logger from '@server/functions/logger';
+import downloadImage from '@server/functions/downloadImage/downloadImage';
+import { imagesPath } from '@server/state';
 import path from 'path';
-import { insertImage } from '@/db/media/actions/images';
-import { insertCast } from '@/db/media/actions/casts';
+import { insertImage } from '@server/db/media/actions/images';
+import { insertCast } from '@server/db/media/actions/casts';
 
 interface DownloadTVDBImages {
 	type: 'tv' | 'movie';
@@ -118,11 +118,11 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 export const downloadTVDBImages = ({ type, data }: DownloadTVDBImages) => {
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	queue.add({
-		file: __filename,
-		fn: 'execute',
-		args: { type, data },
-	});
+	// queue.add({
+	// 	file: __filename,
+	// 	fn: 'execute',
+	// 	args: { type, data },
+	// });
 };
 
 export default downloadTVDBImages;

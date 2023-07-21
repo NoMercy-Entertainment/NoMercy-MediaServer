@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { encodeFile } from '@/functions/ffmpeg/encodeFolder';
+import { encodeFile } from '@server/functions/ffmpeg/encodeFolder';
 import i18next from 'i18next';
 
 export default async function (req: Request, res: Response) {

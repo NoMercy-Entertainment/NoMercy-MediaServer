@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 
-import { cachePath } from '@/state';
-import downloadImage from '../../../functions/downloadImage';
+import { cachePath } from '@server/state';
+import downloadImage from '@server/functions/downloadImage';
 import { join } from 'path';
-import { storageArtistImageInDatabase } from '../../../functions/artistImage';
+import { storageArtistImageInDatabase } from '@server/functions/artistImage';
+import { AppState, useSelector } from '@server/state/redux';
 
 export default function (req: Request, res: Response) {
 
@@ -13,9 +14,12 @@ export default function (req: Request, res: Response) {
 		url: image,
 		path: join(cachePath, 'images', 'music', storagePath),
 	})
-		.then(async ({ colorPalette }) => {
+		.then(({ colorPalette }) => {
 
-			await storageArtistImageInDatabase(id, colorPalette);
+			storageArtistImageInDatabase(id, colorPalette);
+
+			const socket = useSelector((state: AppState) => state.system.socket);
+			socket.emit('update_content', ['music', 'artist', id, '_']);
 
 			return res.json({
 				success: true,

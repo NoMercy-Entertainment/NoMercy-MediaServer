@@ -1,7 +1,7 @@
 import { Covers } from '../cover';
 import { Genre } from '../genre';
 import axios from 'axios';
-import logger from '../../../functions/logger';
+import logger from '@server/functions/logger';
 import mbApiClient from '../mbApiClient';
 
 export interface Release {
@@ -277,7 +277,7 @@ export interface ReleaseAppend extends Release {
     annotation: string;
     'artist-credit': ArtistCredit[];
     collections: Collection[];
-    genres: any[];
+    genres: Genre[];
     'label-info': LabelInfo[];
     media: Media[];
     relations: WorkRelation[];

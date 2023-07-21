@@ -1,6 +1,6 @@
 
 import { store } from '..';
-import { DisplayList, Lyric, MutedState, PlayState, Song, State } from '@/types/music';
+import { DisplayList, Lyric, MutedState, PlayState, Song, State } from '@server/types//music';
 import content from './music';
 
 export const setCurrentDevice = (payload: string) => store.dispatch(content.actions.setCurrentDevice(payload));

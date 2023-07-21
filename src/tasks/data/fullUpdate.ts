@@ -1,10 +1,10 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 
 import { FolderInfo } from '../files/scanLibraries';
 import { resolve } from 'path';
-import storeMovie from './storeMovie';
-import { storeMusic } from './storeMusic';
-import storeTvShow from './storeTvShow';
+import storeMovie from './movie';
+import { storeMusic } from './music';
+import storeTvShow from './tv';
 import { writeFileSync } from 'fs';
 
 export const exec = async (data: FolderInfo) => {

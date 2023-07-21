@@ -1,13 +1,13 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { deviceId, platform } from '../system';
 import express, { Request, Response } from 'express';
 import { readFileSync, writeFileSync } from 'fs';
-import { setAccessToken, setRefreshToken } from '@/state/redux/user/actions';
+import { setAccessToken, setRefreshToken } from '@server/state/redux/user/actions';
 
 import DetectBrowsers from '../detectBrowsers';
-import { KeycloakToken } from 'types/keycloak';
-import Logger from '../../functions/logger';
-import { ServerRegisterResponse } from 'types/api';
+import { KeycloakToken } from '@server/types/keycloak';
+import Logger from '@server/functions/logger';
+import { ServerRegisterResponse } from '@server/types/api';
 import axios from 'axios';
 import { getLanguage } from '../../api/middleware';
 import http from 'http';
@@ -15,11 +15,12 @@ import inquirer from 'inquirer';
 import { keycloak_key } from '../keycloak/config';
 import open from 'open';
 import qs from 'qs';
-import { setOwner } from '@/state/redux/system/actions';
+import { setOwner } from '@server/state/redux/system/actions';
 import storeConfig from '../storeConfig';
-import { tokenFile } from '@/state';
+import { tokenFile } from '@server/state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
+// import open from '@server/functions/open';
 
 let registerComplete = false;
 

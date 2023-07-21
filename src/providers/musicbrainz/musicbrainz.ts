@@ -1,5 +1,5 @@
 // import {MusicBrainzApi} from 'musicbrainz-api';
-// import { appVersion } from '../../functions/system';
+// import { appVersion } from '@server/functions/system';
 // import axios from 'axios';
 
 // const musicBrainzApiClient = new MusicBrainzApi({
@@ -17,7 +17,7 @@
 //         'genres'
 //     ]).catch(e => console.log(e));
 
-//     return recording as unknown as Recording;
+//     return recording;
 
 // }
 

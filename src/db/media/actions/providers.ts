@@ -1,6 +1,6 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { providers } from '../schema/providers';
 
 export type NewProvider = InferModel<typeof providers, 'insert'>;

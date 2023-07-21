@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "14bdee11-f800-460e-872d-1a1939718487",
-  "prevId": "fd770d85-1ea9-40ed-9192-de972174be68",
+  "id": "eed69c99-7cfc-4c50-bb2e-4858b1041275",
+  "prevId": "a92d3b6b-e06e-43ef-9bfc-82440ea8c445",
   "tables": {
     "activityLogs": {
       "name": "activityLogs",
@@ -18,19 +18,22 @@
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "time": {
           "name": "time",
           "type": "datetime",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -38,19 +41,22 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "device_id": {
           "name": "device_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -91,13 +97,15 @@
           "name": "album_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "artist_id": {
           "name": "artist_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -145,13 +153,15 @@
           "name": "album_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -192,6 +202,62 @@
         }
       }
     },
+    "album_musicGenre": {
+      "name": "album_musicGenre",
+      "columns": {
+        "album_id": {
+          "name": "album_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "musicGenre_id": {
+          "name": "musicGenre_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "album_musicGenre_album_id_albums_id_fk": {
+          "name": "album_musicGenre_album_id_albums_id_fk",
+          "tableFrom": "album_musicGenre",
+          "tableTo": "albums",
+          "columnsFrom": [
+            "album_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "album_musicGenre_musicGenre_id_musicGenres_id_fk": {
+          "name": "album_musicGenre_musicGenre_id_musicGenres_id_fk",
+          "tableFrom": "album_musicGenre",
+          "tableTo": "musicGenres",
+          "columnsFrom": [
+            "musicGenre_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "album_musicGenre_musicGenre_id_album_id_pk": {
+          "columns": [
+            "album_id",
+            "musicGenre_id"
+          ]
+        }
+      }
+    },
     "album_track": {
       "name": "album_track",
       "columns": {
@@ -199,13 +265,15 @@
           "name": "album_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "track_id": {
           "name": "track_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -253,37 +321,43 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "folder": {
           "name": "folder",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "cover": {
           "name": "cover",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "country": {
           "name": "country",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "year": {
           "name": "year",
@@ -303,19 +377,22 @@
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -323,13 +400,15 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -364,20 +443,23 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "iso31661": {
           "name": "iso31661",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "movie_id": {
           "name": "movie_id",
@@ -454,13 +536,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "alternativeTitles_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "artist_library": {
       "name": "artist_library",
@@ -469,13 +545,15 @@
           "name": "artist_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -516,6 +594,62 @@
         }
       }
     },
+    "artist_musicGenre": {
+      "name": "artist_musicGenre",
+      "columns": {
+        "artist_id": {
+          "name": "artist_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "musicGenre_id": {
+          "name": "musicGenre_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "artist_musicGenre_artist_id_artists_id_fk": {
+          "name": "artist_musicGenre_artist_id_artists_id_fk",
+          "tableFrom": "artist_musicGenre",
+          "tableTo": "artists",
+          "columnsFrom": [
+            "artist_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "artist_musicGenre_musicGenre_id_musicGenres_id_fk": {
+          "name": "artist_musicGenre_musicGenre_id_musicGenres_id_fk",
+          "tableFrom": "artist_musicGenre",
+          "tableTo": "musicGenres",
+          "columnsFrom": [
+            "musicGenre_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "artist_musicGenre_musicGenre_id_artist_id_pk": {
+          "columns": [
+            "artist_id",
+            "musicGenre_id"
+          ]
+        }
+      }
+    },
     "artist_track": {
       "name": "artist_track",
       "columns": {
@@ -523,13 +657,15 @@
           "name": "artist_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "track_id": {
           "name": "track_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -577,49 +713,57 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "folder": {
           "name": "folder",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "cover": {
           "name": "cover",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -627,13 +771,15 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -669,7 +815,8 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "person_id": {
           "name": "person_id",
@@ -796,7 +943,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "casts_season_id_seasons_id_fk": {
           "name": "casts_season_id_seasons_id_fk",
@@ -834,7 +983,8 @@
           "name": "iso31661",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "certification_id": {
           "name": "certification_id",
@@ -883,8 +1033,8 @@
       "compositePrimaryKeys": {
         "certification_movie_iso31661_certification_id_movie_id_pk": {
           "columns": [
-            "iso31661",
             "certification_id",
+            "iso31661",
             "movie_id"
           ]
         }
@@ -897,7 +1047,8 @@
           "name": "iso31661",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "certification_id": {
           "name": "certification_id",
@@ -946,8 +1097,8 @@
       "compositePrimaryKeys": {
         "certification_tv_iso31661_certification_id_tv_id_pk": {
           "columns": [
-            "iso31661",
             "certification_id",
+            "iso31661",
             "tv_id"
           ]
         }
@@ -967,13 +1118,15 @@
           "name": "iso31661",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "meaning": {
           "name": "meaning",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "order": {
           "name": "order",
@@ -986,7 +1139,8 @@
           "name": "rating",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -1135,13 +1289,15 @@
           "name": "backdrop",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "overview": {
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "parts": {
           "name": "parts",
@@ -1154,37 +1310,43 @@
           "name": "poster",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "titleSort": {
           "name": "titleSort",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -1235,25 +1397,29 @@
           "name": "key",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "value": {
           "name": "value",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "modified_by": {
           "name": "modified_by",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -1261,6 +1427,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -1297,19 +1464,22 @@
           "name": "iso31661",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "english_name": {
           "name": "english_name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "native_name": {
           "name": "native_name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -1396,7 +1566,8 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "person_id": {
           "name": "person_id",
@@ -1508,7 +1679,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "crews_season_id_seasons_id_fk": {
           "name": "crews_season_id_seasons_id_fk",
@@ -1545,68 +1718,79 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "device_id": {
           "name": "device_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "browser": {
           "name": "browser",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "os": {
           "name": "os",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "device": {
           "name": "device",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "custom_name": {
           "name": "custom_name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "version": {
           "name": "version",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "ip": {
           "name": "ip",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -1614,6 +1798,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -1637,13 +1822,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "devices_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "encoderProfile_library": {
       "name": "encoderProfile_library",
@@ -1652,13 +1831,15 @@
           "name": "encoderProfile_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -1705,32 +1886,37 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "container": {
           "name": "container",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "param": {
           "name": "param",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -1738,6 +1924,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -1758,13 +1945,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "encoderProfiles_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "episodes": {
       "name": "episodes",
@@ -1780,13 +1961,15 @@
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "airDate": {
           "name": "airDate",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "episodeNumber": {
           "name": "episodeNumber",
@@ -1799,19 +1982,22 @@
           "name": "imdbId",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "overview": {
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "productionCode": {
           "name": "productionCode",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "seasonNumber": {
           "name": "seasonNumber",
@@ -1824,7 +2010,8 @@
           "name": "still",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "tvdbId": {
           "name": "tvdbId",
@@ -1851,19 +2038,22 @@
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "created_at": {
@@ -1871,6 +2061,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "tv_id": {
@@ -1941,13 +2132,15 @@
           "name": "file_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -1961,7 +2154,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "file_library_library_id_libraries_id_fk": {
           "name": "file_library_library_id_libraries_id_fk",
@@ -1972,7 +2167,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -1991,13 +2188,15 @@
           "name": "file_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "movie_id": {
           "name": "movie_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -2011,7 +2210,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "file_movie_movie_id_movies_id_fk": {
           "name": "file_movie_movie_id_movies_id_fk",
@@ -2022,7 +2223,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -2040,14 +2243,16 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "folder": {
           "name": "folder",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "episodeNumber": {
           "name": "episodeNumber",
@@ -2067,19 +2272,22 @@
           "name": "episodeFolder",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "extension": {
           "name": "extension",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "year": {
           "name": "year",
@@ -2092,73 +2300,85 @@
           "name": "size",
           "type": "real",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "atimeMs": {
           "name": "atimeMs",
           "type": "real",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "birthtimeMs": {
           "name": "birthtimeMs",
           "type": "real",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "ctimeMs": {
           "name": "ctimeMs",
           "type": "real",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "edition": {
           "name": "edition",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "resolution": {
           "name": "resolution",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "videoCodec": {
           "name": "videoCodec",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "audioCodec": {
           "name": "audioCodec",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "audioChannels": {
           "name": "audioChannels",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "ffprobe": {
           "name": "ffprobe",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "chapters": {
           "name": "chapters",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "fullSeason": {
           "name": "fullSeason",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "gid": {
           "name": "gid",
@@ -2171,127 +2391,148 @@
           "name": "group",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "airDate": {
           "name": "airDate",
           "type": "datetime",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "multi": {
           "name": "multi",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "complete": {
           "name": "complete",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "isMultiSeason": {
           "name": "isMultiSeason",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "isPartialSeason": {
           "name": "isPartialSeason",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "isSeasonExtra": {
           "name": "isSeasonExtra",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "isSpecial": {
           "name": "isSpecial",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "isTv": {
           "name": "isTv",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "languages": {
           "name": "languages",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "mode": {
           "name": "mode",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "mtimeMs": {
           "name": "mtimeMs",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "nlink": {
           "name": "nlink",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "path": {
           "name": "path",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "revision": {
           "name": "revision",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "seasonPart": {
           "name": "seasonPart",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "sources": {
           "name": "sources",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "uid": {
           "name": "uid",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -2299,13 +2540,15 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "movie_id": {
           "name": "movie_id",
@@ -2400,13 +2643,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "files_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "folder_library": {
       "name": "folder_library",
@@ -2415,13 +2652,15 @@
           "name": "folder_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -2435,7 +2674,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "folder_library_library_id_libraries_id_fk": {
           "name": "folder_library_library_id_libraries_id_fk",
@@ -2446,7 +2687,9 @@
           ],
           "columnsTo": [
             "id"
-          ]
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -2464,28 +2707,32 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "path": {
           "name": "path",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -2505,13 +2752,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "folders_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "genre_movie": {
       "name": "genre_movie",
@@ -2639,7 +2880,8 @@
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -2668,7 +2910,8 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "person_id": {
           "name": "person_id",
@@ -2738,7 +2981,8 @@
           "name": "aspectRatio",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "height": {
           "name": "height",
@@ -2751,19 +2995,22 @@
           "name": "iso6391",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "site": {
           "name": "site",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "size": {
           "name": "size",
@@ -2776,13 +3023,15 @@
           "name": "filePath",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "width": {
           "name": "width",
@@ -2795,7 +3044,8 @@
           "name": "voteAverage",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "voteCount": {
           "name": "voteCount",
@@ -2808,19 +3058,22 @@
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -2828,19 +3081,22 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "cast_id": {
           "name": "cast_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "crew_id": {
           "name": "crew_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "person_id": {
           "name": "person_id",
@@ -2853,19 +3109,22 @@
           "name": "artist_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "album_id": {
           "name": "album_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "track_id": {
           "name": "track_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "tv_id": {
           "name": "tv_id",
@@ -3178,13 +3437,15 @@
           "name": "credit_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "job": {
           "name": "job",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "episodeCount": {
           "name": "episodeCount",
@@ -3198,6 +3459,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -3205,13 +3467,15 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "crew_id": {
           "name": "crew_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -3297,8 +3561,8 @@
       "compositePrimaryKeys": {
         "keyword_movie_movie_id_keyword_id_pk": {
           "columns": [
-            "movie_id",
-            "keyword_id"
+            "keyword_id",
+            "movie_id"
           ]
         }
       }
@@ -3353,8 +3617,8 @@
       "compositePrimaryKeys": {
         "keyword_tv_tv_id_keyword_id_pk": {
           "columns": [
-            "tv_id",
-            "keyword_id"
+            "keyword_id",
+            "tv_id"
           ]
         }
       }
@@ -3373,7 +3637,8 @@
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -3409,13 +3674,15 @@
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -3471,19 +3738,22 @@
           "name": "iso_639_1",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "english_name": {
           "name": "english_name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -3511,8 +3781,9 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "autoRefreshInterval": {
           "name": "autoRefreshInterval",
@@ -3525,85 +3796,99 @@
           "name": "chapterImages",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "extractChapters": {
           "name": "extractChapters",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "extractChaptersDuring": {
           "name": "extractChaptersDuring",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "image": {
           "name": "image",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "perfectSubtitleMatch": {
           "name": "perfectSubtitleMatch",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "realtime": {
           "name": "realtime",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "specialSeasonName": {
           "name": "specialSeasonName",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "country": {
           "name": "country",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "language": {
           "name": "language",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -3611,6 +3896,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -3625,13 +3911,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "libraries_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "library_movie": {
       "name": "library_movie",
@@ -3640,7 +3920,8 @@
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "movie_id": {
           "name": "movie_id",
@@ -3695,13 +3976,15 @@
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "track_id": {
           "name": "track_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -3749,7 +4032,8 @@
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "tv_id": {
           "name": "tv_id",
@@ -3804,13 +4088,15 @@
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -3857,8 +4143,9 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
@@ -3871,33 +4158,38 @@
           "name": "value",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "cleanValue": {
           "name": "cleanValue",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "file_id": {
           "name": "file_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -3942,13 +4234,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "mediaAttachments_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "medias": {
       "name": "medias",
@@ -3956,14 +4242,16 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "aspectRatio": {
           "name": "aspectRatio",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "height": {
           "name": "height",
@@ -3976,19 +4264,22 @@
           "name": "iso6391",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "site": {
           "name": "site",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "size": {
           "name": "size",
@@ -4001,19 +4292,22 @@
           "name": "src",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "voteAverage": {
           "name": "voteAverage",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "voteCount": {
           "name": "voteCount",
@@ -4033,27 +4327,31 @@
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "tv_id": {
           "name": "tv_id",
@@ -4194,13 +4492,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "medias_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "mediaStreams": {
       "name": "mediaStreams",
@@ -4208,8 +4500,9 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "streamIndex": {
           "name": "streamIndex",
@@ -4222,43 +4515,50 @@
           "name": "streamType",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "codec": {
           "name": "codec",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "language": {
           "name": "language",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "channelLayout": {
           "name": "channelLayout",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "profile": {
           "name": "profile",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "aspectRatio": {
           "name": "aspectRatio",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "path": {
           "name": "path",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "isIntrlaced": {
           "name": "isIntrlaced",
@@ -4348,7 +4648,8 @@
           "name": "pixelFormat",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "bitDepth": {
           "name": "bitDepth",
@@ -4375,19 +4676,22 @@
           "name": "codecTag",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "comment": {
           "name": "comment",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "nalLengthSize": {
           "name": "nalLengthSize",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "isAvc": {
           "name": "isAvc",
@@ -4400,37 +4704,43 @@
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "timeBase": {
           "name": "timeBase",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "codecTimeBase": {
           "name": "codecTimeBase",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPrimaries": {
           "name": "colorPrimaries",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorSpace": {
           "name": "colorSpace",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorTransfer": {
           "name": "colorTransfer",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "dvVersionMajor": {
           "name": "dvVersionMajor",
@@ -4492,27 +4802,31 @@
           "name": "keyFrames",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "file_id": {
           "name": "file_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -4548,13 +4862,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "mediaStreams_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "messages": {
       "name": "messages",
@@ -4562,32 +4870,37 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "body": {
           "name": "body",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "from": {
           "name": "from",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "image": {
           "name": "image",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "notify": {
           "name": "notify",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "read": {
@@ -4595,50 +4908,50 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "to": {
           "name": "to",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {},
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "messages_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "metadata": {
       "name": "metadata",
@@ -4646,34 +4959,39 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -4707,13 +5025,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "metadata_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "movies": {
       "name": "movies",
@@ -4729,45 +5041,52 @@
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "titleSort": {
           "name": "titleSort",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "duration": {
           "name": "duration",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "show": {
           "name": "show",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "folder": {
           "name": "folder",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "adult": {
           "name": "adult",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "backdrop": {
           "name": "backdrop",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "budget": {
           "name": "budget",
@@ -4780,49 +5099,57 @@
           "name": "homepage",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "imdbId": {
           "name": "imdbId",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "originalTitle": {
           "name": "originalTitle",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "originalLanguage": {
           "name": "originalLanguage",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "overview": {
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "popularity": {
           "name": "popularity",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "poster": {
           "name": "poster",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "releaseDate": {
           "name": "releaseDate",
           "type": "datetime",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "revenue": {
           "name": "revenue",
@@ -4842,19 +5169,22 @@
           "name": "status",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "tagline": {
           "name": "tagline",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "trailer": {
           "name": "trailer",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "tvdbId": {
           "name": "tvdbId",
@@ -4867,13 +5197,15 @@
           "name": "video",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "voteAverage": {
           "name": "voteAverage",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "voteCount": {
           "name": "voteCount",
@@ -4886,19 +5218,22 @@
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -4906,13 +5241,15 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -4955,13 +5292,15 @@
           "name": "musicGenre_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "track_id": {
           "name": "track_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -5008,14 +5347,16 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -5035,13 +5376,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "musicGenres_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "notification_user": {
       "name": "notification_user",
@@ -5050,13 +5385,15 @@
           "name": "notification_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -5103,20 +5440,23 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "manage": {
           "name": "manage",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -5136,13 +5476,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "notifications_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "people": {
       "name": "people",
@@ -5159,31 +5493,36 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "alsoKnownAs": {
           "name": "alsoKnownAs",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "biography": {
           "name": "biography",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "birthday": {
           "name": "birthday",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "deathday": {
           "name": "deathday",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "gender": {
           "name": "gender",
@@ -5197,61 +5536,71 @@
           "name": "homepage",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "imdbId": {
           "name": "imdbId",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "knownForDepartment": {
           "name": "knownForDepartment",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "placeOfBirth": {
           "name": "placeOfBirth",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "popularity": {
           "name": "popularity",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "profile": {
           "name": "profile",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -5259,6 +5608,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -5281,27 +5631,31 @@
           "name": "playlist_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "track_id": {
           "name": "track_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {},
@@ -5348,58 +5702,67 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "cover": {
           "name": "cover",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -5420,13 +5783,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "playlists_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "priority_provider": {
       "name": "priority_provider",
@@ -5442,7 +5799,8 @@
           "name": "country",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "provider_id": {
           "name": "provider_id",
@@ -5471,8 +5829,8 @@
       "compositePrimaryKeys": {
         "priority_provider_provider_id_country_pk": {
           "columns": [
-            "provider_id",
-            "country"
+            "country",
+            "provider_id"
           ]
         }
       }
@@ -5491,13 +5849,15 @@
           "name": "provider_name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "logo_path": {
           "name": "logo_path",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "display_priority": {
           "name": "display_priority",
@@ -5511,14 +5871,16 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -5539,50 +5901,58 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "backdrop": {
           "name": "backdrop",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "overview": {
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "poster": {
           "name": "poster",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "titleSort": {
           "name": "titleSort",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "media_id": {
           "name": "media_id",
@@ -5704,13 +6074,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "recommendations_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "roles": {
       "name": "roles",
@@ -5726,13 +6090,15 @@
           "name": "credit_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "character": {
           "name": "character",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "episodeCount": {
           "name": "episodeCount",
@@ -5746,6 +6112,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -5753,19 +6120,22 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "cast_id": {
           "name": "cast_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "guest_id": {
           "name": "guest_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -5829,14 +6199,16 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "value": {
           "name": "value",
@@ -5849,21 +6221,24 @@
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -5877,13 +6252,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "runningTasks_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "seasons": {
       "name": "seasons",
@@ -5899,13 +6268,15 @@
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "airDate": {
           "name": "airDate",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "episodeCount": {
           "name": "episodeCount",
@@ -5918,13 +6289,15 @@
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "poster": {
           "name": "poster",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "seasonNumber": {
           "name": "seasonNumber",
@@ -5937,19 +6310,22 @@
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "created_at": {
@@ -5957,6 +6333,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "tv_id": {
@@ -6006,50 +6383,58 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "backdrop": {
           "name": "backdrop",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "overview": {
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "poster": {
           "name": "poster",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "titleSort": {
           "name": "titleSort",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "media_id": {
           "name": "media_id",
@@ -6171,13 +6556,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "similars_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "specialItems": {
       "name": "specialItems",
@@ -6193,7 +6572,8 @@
           "name": "special_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "episode_id": {
           "name": "episode_id",
@@ -6277,64 +6657,81 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "backdrop": {
           "name": "backdrop",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "poster": {
           "name": "poster",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "logo": {
           "name": "logo",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
+        },
+        "creator": {
+          "name": "creator",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -6354,13 +6751,7 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "specials_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "track_user": {
       "name": "track_user",
@@ -6370,26 +6761,30 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "track_id": {
           "name": "track_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -6437,13 +6832,15 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "track": {
           "name": "track",
@@ -6463,31 +6860,36 @@
           "name": "cover",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "date": {
           "name": "date",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "folder": {
           "name": "folder",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "filename": {
           "name": "filename",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "duration": {
           "name": "duration",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "quality": {
           "name": "quality",
@@ -6500,45 +6902,52 @@
           "name": "path",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "lyrics": {
           "name": "lyrics",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "blurHash": {
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "folder_id": {
           "name": "folder_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -6581,70 +6990,81 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "iso31661": {
           "name": "iso31661",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "iso6391": {
           "name": "iso6391",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "englishName": {
           "name": "englishName",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "title": {
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "overview": {
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "homepage": {
           "name": "homepage",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "biography": {
           "name": "biography",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(datetime('now'))"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "tv_id": {
           "name": "tv_id",
@@ -6836,13 +7256,7 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "translations_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     },
     "tvs": {
       "name": "tvs",
@@ -6858,13 +7272,15 @@
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "titleSort": {
           "name": "titleSort",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "haveEpisodes": {
           "name": "haveEpisodes",
@@ -6877,19 +7293,22 @@
           "name": "folder",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "backdrop": {
           "name": "backdrop",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "duration": {
@@ -6903,25 +7322,29 @@
           "name": "firstAirDate",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "homepage": {
           "name": "homepage",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "imdbId": {
           "name": "imdbId",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "inProduction": {
           "name": "inProduction",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "lastEpisodeToAir": {
@@ -6935,13 +7358,15 @@
           "name": "lastAirDate",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "mediaType": {
           "name": "mediaType",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "nextEpisodeToAir": {
           "name": "nextEpisodeToAir",
@@ -6970,55 +7395,64 @@
           "name": "originCountry",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "originalLanguage": {
           "name": "originalLanguage",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "overview": {
           "name": "overview",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "popularity": {
           "name": "popularity",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "poster": {
           "name": "poster",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "spokenLanguages": {
           "name": "spokenLanguages",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "status": {
           "name": "status",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "tagline": {
           "name": "tagline",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "trailer": {
           "name": "trailer",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "tvdbId": {
           "name": "tvdbId",
@@ -7031,20 +7465,23 @@
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "voteAverage": {
           "name": "voteAverage",
           "type": "real",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "voteCount": {
           "name": "voteCount",
@@ -7057,19 +7494,22 @@
           "name": "blurHash",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "colorPalette": {
           "name": "colorPalette",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "library_id": {
           "name": "library_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -7154,25 +7594,29 @@
           "name": "lastPlayedDate",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "audio": {
           "name": "audio",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "subtitle": {
           "name": "subtitle",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "subtitleType": {
           "name": "subtitleType",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "time": {
           "name": "time",
@@ -7185,27 +7629,31 @@
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "user_id": {
           "name": "user_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "movie_id": {
           "name": "movie_id",
@@ -7260,6 +7708,16 @@
           "name": "userData_movie_unique",
           "columns": [
             "movie_id",
+            "videoFile_id",
+            "user_id"
+          ],
+          "isUnique": true
+        },
+        "userData_special_unique": {
+          "name": "userData_special_unique",
+          "columns": [
+            "special_id",
+            "tv_id",
             "videoFile_id",
             "user_id"
           ],
@@ -7342,19 +7800,22 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "email": {
           "name": "email",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "manage": {
           "name": "manage",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "owner": {
@@ -7362,19 +7823,22 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": false
         },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "allowed": {
           "name": "allowed",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": true
         },
         "audioTranscoding": {
@@ -7382,6 +7846,7 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": true
         },
         "videoTranscoding": {
@@ -7389,6 +7854,7 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": true
         },
         "noTranscoding": {
@@ -7396,6 +7862,7 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false,
           "default": true
         },
         "created_at": {
@@ -7403,6 +7870,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
@@ -7410,6 +7878,7 @@
           "type": "datetime",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -7423,77 +7892,89 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": false,
+          "autoincrement": false
         },
         "duration": {
           "name": "duration",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "filename": {
           "name": "filename",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "folder": {
           "name": "folder",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "hostFolder": {
           "name": "hostFolder",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "autoincrement": false
         },
         "languages": {
           "name": "languages",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "quality": {
           "name": "quality",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "share": {
           "name": "share",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "('Media')"
+          "autoincrement": false,
+          "default": "'Media'"
         },
         "subtitles": {
           "name": "subtitles",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "chapters": {
           "name": "chapters",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "autoincrement": false
         },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
         },
         "episode_id": {
           "name": "episode_id",
@@ -7554,19 +8035,19 @@
           "onUpdate": "cascade"
         }
       },
-      "compositePrimaryKeys": {
-        "videoFiles_id_pk": {
-          "columns": [
-            "id"
-          ]
-        }
-      }
+      "compositePrimaryKeys": {}
     }
   },
   "enums": {},
   "_meta": {
     "schemas": {},
-    "tables": {},
-    "columns": {}
+    "tables": {
+      "\"musicGenre_artist\"": "\"album_musicGenre\"",
+      "\"musicGenre_album\"": "\"artist_musicGenre\""
+    },
+    "columns": {
+      "\"album_musicGenre\".\"artist_id\"": "\"album_musicGenre\".\"album_id\"",
+      "\"artist_musicGenre\".\"album_id\"": "\"artist_musicGenre\".\"artist_id\""
+    }
   }
 }

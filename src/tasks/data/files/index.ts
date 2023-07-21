@@ -1,6 +1,6 @@
 
-import Logger from '../../../functions/logger';
-import { AppState, useSelector } from '@/state/redux';
+import Logger from '@server/functions/logger';
+import { AppState, useSelector } from '@server/state/redux';
 
 import movieFiles from './movieFiles';
 import tvFiles from './tvFiles';

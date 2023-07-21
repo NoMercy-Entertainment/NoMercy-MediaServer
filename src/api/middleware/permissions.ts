@@ -1,12 +1,14 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { NextFunction, Request, Response } from 'express';
 
-import Logger from '../../functions/logger';
-import { confDb } from '../../database/config';
-import crypto from 'crypto';
+import Logger from '@server/functions/logger';
+import nodeCrypto from 'crypto';
 import { readFileSync } from 'fs';
-import { sleep } from '../../functions/dateTime';
-import { sslCert } from '@/state';
+import { sleep } from '@server/functions/dateTime';
+import { sslCert } from '@server/state';
+import { eq } from 'drizzle-orm';
+import { users } from '@server/db/media/schema/users';
+import { mediaDb } from '@server/db/media';
 
 let delay = 0;
 let timeout: NodeJS.Timeout;
@@ -25,7 +27,7 @@ export const verifiedApi = (req: Request): boolean => {
 
 		if (!secret) return false;
 		try {
-			const dec = crypto.publicDecrypt(readFileSync(sslCert, 'utf-8'), Buffer.from(secret, 'base64')).toString('utf8');
+			const dec = nodeCrypto.publicDecrypt(readFileSync(sslCert, 'utf-8'), Buffer.from(secret, 'base64')).toString('utf8');
 
 			return dec == 'NoMercy MediaServer';
 		} catch (error) {
@@ -157,25 +159,27 @@ export const permissions = (req: Request, res: Response) => {
 		});
 	}
 
-	confDb.user.findFirst({
-		where: {
-			sub_id: req.user.sub,
-		},
-	}).then((data) => {
+	try {
+
+		const data = mediaDb.query.users.findFirst({
+			where: eq(users.id, req.user.sub),
+		});
+
 		return res.json({
 			edit: data?.manage ?? false,
 		});
-	})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'access',
-				color: 'magentaBright',
-				message: `Error getting user permissions: ${error}`,
-			});
-			return res.json({
-				status: 'error',
-				message: `Something went wrong getting user permissions: ${error}`,
-			});
+	} catch (error) {
+
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `Error getting user permissions: ${error}`,
 		});
+		return res.json({
+			status: 'error',
+			message: `Something went wrong getting user permissions: ${error}`,
+		});
+	}
+
 };

@@ -1,6 +1,6 @@
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 
-import { selectConfiguration } from '@/db/media/actions/configuration';
+import { selectConfiguration } from '@server/db/media/actions/configuration';
 
 export default () => {
 

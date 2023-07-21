@@ -1,5 +1,5 @@
-import { mediaDb } from '@/db/media';
-import { convertBooleans } from '@/db/helpers';
+import { mediaDb } from '@server/db/media';
+import { convertBooleans } from '@server/db/helpers';
 import { InferModel } from 'drizzle-orm';
 import { countries } from '../schema/countries';
 

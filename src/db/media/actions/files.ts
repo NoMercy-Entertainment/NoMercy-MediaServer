@@ -1,13 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { convertBooleans } from '@/db/helpers';
-import { mediaDb } from '@/db/media';
+import { convertBooleans } from '@server/db/helpers';
+import { mediaDb } from '@server/db/media';
 import { files } from '../schema/files';
 import { createId } from '@paralleldrive/cuid2';
-import { RequireOnlyOne } from '@/types/helpers';
-import { Library } from './libraries';
-import { Movie } from './movies';
-import { Album } from './albums';
-import { Episode } from './episodes';
+import { RequireOnlyOne } from '@server/types/helpers';
 
 export type NewFile = InferModel<typeof files, 'insert'>;
 export const insertFileDB = (data: NewFile) => mediaDb.insert(files)
@@ -29,33 +25,18 @@ export const insertFileDB = (data: NewFile) => mediaDb.insert(files)
 	.get();
 
 export type File = InferModel<typeof files, 'select'>;
-export type FileWithRelations = File & { file_library: Library; file_movie: Movie; file_album: Album; file_episode: Episode; };
+export type FilesWithRelations = ReturnType<typeof getFilesDB>;
 
 type SelectFile = RequireOnlyOne<{ id: string; movie_id: number, episode_id: number; seasonNumber: number; episodeNumber: number }>
-export const getFilesDB = <B extends boolean>(data: SelectFile, relations?: B): B extends true ? FileWithRelations[] : File[] => {
+export const getFilesDB = (data: SelectFile) => {
 	return mediaDb.query.files.findMany({
-		with: relations
-			? {
-				file_library: true,
-				file_movie: true,
-				file_album: true,
-				file_episode: true,
-			}
-			: {},
 		where: (files, { eq }) => eq(files[`${Object.entries(data)[0][0]}`], Object.entries(data)[0][1]),
-	}) as unknown as B extends true ? FileWithRelations[] : File[];
+	});
 };
 
-export const getFileDB = (data: SelectFile, relations = false) => {
+export type FileWithRelations = ReturnType<typeof getFileDB>;
+export const getFileDB = (data: SelectFile) => {
 	return mediaDb.query.files.findFirst({
-		with: relations
-			? {
-				file_library: true,
-				file_movie: true,
-				file_album: true,
-				file_episode: true,
-			}
-			: {},
 		where: (files, { eq }) => eq(files[`${Object.entries(data)[0][0]}`], Object.entries(data)[0][1]),
 	});
 };

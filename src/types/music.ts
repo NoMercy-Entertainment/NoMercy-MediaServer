@@ -155,6 +155,8 @@ export interface Song {
     path: string;
     libraryId: string;
     colorPalette: PaletteColors;
+    artist_track: Artist[];
+    album_track: Album[];
 }
 
 export interface Album {

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { groupBy, mappedEntries, unique } from '../../../functions/stringArray';
+import { groupBy, mappedEntries, unique } from '@server/functions/stringArray';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { selectFromUserData } from '@/db/media/actions/userData';
+import { selectFromUserData } from '@server/db/media/actions/userData';
 
 export default function (req: Request, res: Response) {
 

@@ -1,4 +1,4 @@
-import Logger from '../../../functions/logger';
+import Logger from '@server/functions/logger';
 import { ArtistLatest } from './latest';
 import fanartApiClient from '../fanartApiClient';
 import { ArtistImage } from './artist';
@@ -9,7 +9,7 @@ export * from './artist';
 export * from './label';
 export * from './latest';
 
-export const artist = async (id: string) => {
+export const fanart_artist = async (id: string) => {
 	Logger.log({
 		level: 'info',
 		name: 'fanart',
@@ -25,7 +25,7 @@ export const artist = async (id: string) => {
 	return data;
 };
 
-export const album = async (id: string) => {
+export const fanart_album = async (id: string) => {
 	Logger.log({
 		level: 'info',
 		name: 'fanart',
@@ -41,7 +41,7 @@ export const album = async (id: string) => {
 	return data;
 };
 
-export const label = async (id: string) => {
+export const fanart_label = async (id: string) => {
 	Logger.log({
 		level: 'info',
 		name: 'fanart',
@@ -57,7 +57,7 @@ export const label = async (id: string) => {
 	return data;
 };
 
-export const tvLatest = async (date = Date.now()) => {
+export const fanart_tvLatest = async (date = Date.now()) => {
 	Logger.log({
 		level: 'info',
 		name: 'fanart',

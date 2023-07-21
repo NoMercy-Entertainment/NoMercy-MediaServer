@@ -1,13 +1,13 @@
 import { ChildProcess, fork } from 'child_process';
 
-import { AppState, useSelector } from '@/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import Logger from '../logger';
 import { and, asc, eq, isNull, lt } from 'drizzle-orm';
-import { queueDb } from '@/db/queue';
-import { mediaDb } from '@/db/media';
-import { QueueJob, queueJobs } from '@/db/queue/schema/queueJobs';
-import { runningTasks } from '@/db/media/schema/runningTasks';
-import { configuration } from '@/db/media/schema/configuration';
+import { queueDb } from '@server/db/queue';
+import { mediaDb } from '@server/db/media';
+import { QueueJob, queueJobs } from '@server/db/queue/schema/queueJobs';
+import { runningTasks } from '@server/db/media/schema/runningTasks';
+import { configuration } from '@server/db/media/schema/configuration';
 
 interface DatabaseQueueProps {
 	name?: string;
@@ -51,16 +51,18 @@ export class DatabaseQueue {
 			this.maxAttempts = attempts
 				? parseInt(attempts, 10)
 				: 2;
+
+			queueDb.update(queueJobs)
+				.set({
+					runAt: null,
+				})
+				.where(lt(queueJobs.attempts, this.maxAttempts))
+				.run();
+
 		} catch (error) {
 			//
 		}
 
-		queueDb.update(queueJobs)
-			.set({
-				runAt: null,
-			})
-			.where(lt(queueJobs.attempts, this.maxAttempts))
-			.run();
 	}
 
 	hasFreeWorker() {

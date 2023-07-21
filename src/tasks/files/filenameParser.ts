@@ -1,25 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DirectoryTree } from 'directory-tree';
 
-// import {
-// 	EncoderProfile, EncoderProfileLibrary, File, Folder, Library, LibraryFolder
-// } from '../../database/config/client';
 import { AudioFFprobe, VideoFFprobe } from '../../encoder/ffprobe/ffprobe';
 import getAudioInfo from '../../encoder/ffprobe/getAudioInfo';
 import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
 /* eslint-disable max-len */
-import { parseYear } from '../../functions/dateTime';
-import { pad } from '../../functions/stringArray';
-import { filenameParse, ParsedMovie, ParsedShow } from '../../functions/videoFilenameParser';
-import { Channels } from '../../functions/videoFilenameParser/audioChannels';
-import { MovieAppend } from '../../providers/tmdb/movie';
-import { TvAppend } from '../../providers/tmdb/tv';
-import { AppState, useSelector } from '@/state/redux';
-import { Episode } from '@/db/media/actions/episodes';
-import { Movie } from '@/db/media/actions/movies';
-import { EncodingLibrary } from '@/db/media/actions/libraries';
-import { Tv } from '@/db/media/actions/tvs';
-import { Season } from '@/db/media/actions/seasons';
+import { parseYear } from '@server/functions/dateTime';
+import { pad } from '@server/functions/stringArray';
+import { filenameParse, ParsedMovie, ParsedShow } from '@server/functions/videoFilenameParser';
+import { Channels } from '@server/functions/videoFilenameParser/audioChannels';
+import { MovieAppend } from '@server/providers/tmdb/movie';
+import { TvAppend } from '@server/providers/tmdb/tv';
+import { AppState, useSelector } from '@server/state/redux';
+import { Episode } from '@server/db/media/actions/episodes';
+import { Movie } from '@server/db/media/actions/movies';
+import { EncodingLibrary } from '@server/db/media/actions/libraries';
+import { Tv } from '@server/db/media/actions/tvs';
+import { Season } from '@server/db/media/actions/seasons';
 
 interface IObj {
 	[key: string]: any;
@@ -162,45 +159,13 @@ export const parseFolderName = function (file: DirectoryTree<IObj>) {
 
 export const createRootFolderName = function (folder: string) {
 	const libraries = useSelector((state: AppState) => state.config.libraries);
+
 	const rootFolder = libraries
-		.find(l => l.folders.find(m => folder.includes(m.path)))
-		?.folders?.find(m => folder.includes(m.path))?.path;
+		.find(l => l?.folder_library.find(m => folder.includes(m.folder?.path as string)))
+		?.folder_library?.find(m => folder.includes(m.folder?.path as string))?.folder?.path;
 
 	return rootFolder;
 };
-
-// export const getEpisodeIndex = function (showData: ShowData, filenameInfo: FileNameInfo) {
-// 	const data = episodeData(showData, filenameInfo);
-
-// 	return data
-// 		? data.id
-// 		: null;
-// };
-
-// export const createFileName = function (type: string, showData: ShowData, episode: Episode) {
-// 	let showName: string;
-// 	let fileName: string;
-
-// 	const title = episode?.title.substring(0, 100) || showData.name?.substring(0, 100) || showData.title?.substring(0, 100);
-
-// 	if (type == 'movie') {
-// 		fileName = `${showData.title || showData.name}.(${parseYear(showData.release_date)})`;
-// 	} else {
-// 		showName = `${showData.title || showData.name}.S${pad(episode.season_number, 2)}E${pad(episode.episode_number, 2)}`;
-// 		fileName = showName + (episode
-// 			? `.${title}`
-// 			: '').replace(/\//gu, '.');
-// 	}
-
-// 	return cleanFileName(fileName);
-// };
-
-// export const episodeData = function (showData: ShowData, filenameInfo: FileNameInfo) {
-// 	const season = showData.seasons.find(s => s.season_number == filenameInfo.season_num);
-// 	const episodeData = season?.episodes.find(ep => ep.episode_number == filenameInfo.ep_num);
-
-// 	return episodeData;
-// };
 
 export const cleanFileName = function (name: string) {
 	return name
@@ -275,25 +240,25 @@ export type MV = (Movie & {
 	})[];
 });
 
-export const createBaseFolder = (data: EP | MV): string => {
-	const name = `${((data as EP).tv ?? data).title}.(${parseYear((data as EP)?.tv?.firstAirDate ?? (data as MV)?.releaseDate)})`;
+export const createBaseFolder = (data: Episode & { tv: Tv } | Movie): string => {
+	const name = `${((data as Episode & { tv: Tv }).tv ?? data).title}.(${parseYear((data as { tv: Tv }).tv?.firstAirDate ?? (data as Movie)?.releaseDate)})`;
 
 	return cleanFileName(name);
 };
 
-export const createEpisodeFolder = function (data: EP) {
+export const createEpisodeFolder = function (data: Episode & { tv: Tv }) {
 	const name = `${data.tv.title}.S${pad(data.seasonNumber, 2)}E${pad(data.episodeNumber, 2)}`;
 
 	return cleanFileName(name);
 };
 
-export const createFileName = function (data: EP | MV) {
+export const createFileName = function (data: Episode & { tv: Tv } | Movie) {
 	let name = '';
 
-	if ((data as MV).releaseDate) {
-		name = `${(data as MV).title}.(${parseYear((data as MV).releaseDate)}).NoMercy`;
+	if ((data as Movie).releaseDate) {
+		name = `${(data as Movie).title}.(${parseYear((data as Movie).releaseDate)}).NoMercy`;
 	} else {
-		name = `${(data as EP).tv.title}.S${pad((data as EP).seasonNumber, 2)}E${pad((data as EP).episodeNumber, 2)}.${(data as EP).title}.NoMercy`;
+		name = `${(data as Episode & { tv: Tv }).tv.title}.S${pad((data as Episode & { tv: Tv }).seasonNumber, 2)}E${pad((data as Episode & { tv: Tv }).episodeNumber, 2)}.${(data as Episode & { tv: Tv }).title}.NoMercy`;
 	}
 
 	return cleanFileName(name);

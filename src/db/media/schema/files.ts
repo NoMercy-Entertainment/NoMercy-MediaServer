@@ -2,7 +2,7 @@ import { text, sqliteTable, integer, index, uniqueIndex, real, primaryKey } from
 import { relations, sql } from 'drizzle-orm';
 import { movies } from './movies';
 import { libraries } from './libraries';
-import { boolean, datetime } from '@/db/helpers';
+import { boolean, datetime } from '@server/db/helpers';
 import { albums } from './albums';
 import { episodes } from './episodes';
 

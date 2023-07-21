@@ -1,8 +1,7 @@
-import { NewUserData, insertUserData } from '@/db/media/actions/userData';
-import { confDb } from '../../database/config';
+import { NewUserData, insertUserData } from '@server/db/media/actions/userData';
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
-import { userData } from '@/db/media/schema/userData';
-import { mediaDb } from '@/db/media';
+import { userData } from '@server/db/media/schema/userData';
+import { mediaDb } from '@server/db/media';
 
 export default function (socket: any) {
 	socket.on('setTime', (data: any) => {
@@ -30,7 +29,7 @@ export default function (socket: any) {
 			}
 		}
 	});
-	socket.on('addToList', async (data: any) => {
+	socket.on('addToList', (data: any) => {
 		// console.log(data);
 		const id = Math.floor(Math.random() * 1000000);
 
@@ -42,36 +41,36 @@ export default function (socket: any) {
 		};
 
 		try {
-			await confDb.userData.upsert({
-				where: {
-					movieId_videoFileId_sub_id: data.type == 'movie'
-						? {
-							sub_id: socket.decoded_token.sub,
-							movieId: parseInt(data.tmdb_id, 10),
-							videoFileId: data.video_id,
-						}
-						: undefined,
-					tvId_videoFileId_sub_id: data.type == 'tv'
-						? {
-							sub_id: socket.decoded_token.sub,
-							tvId: parseInt(data.tmdb_id, 10),
-							videoFileId: data.video_id,
-						}
-						: undefined,
-				},
-				update: {
-					sub_id: socket.decoded_token.sub,
-					movieId: data.type == 'movie'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-					tvId: data.type == 'tv'
-						? parseInt(data.tmdb_id, 10)
-						: undefined,
-					videoFileId: parseInt(data.video_id, 10),
-					played: false,
-				},
-				create: progressInsert,
-			});
+			// await confDb.userData.upsert({
+			// 	where: {
+			// 		movieId_videoFileId_sub_id: data.type == 'movie'
+			// 			? {
+			// 				sub_id: socket.decoded_token.sub,
+			// 				movieId: parseInt(data.tmdb_id, 10),
+			// 				videoFileId: data.video_id,
+			// 			}
+			// 			: undefined,
+			// 		tvId_videoFileId_sub_id: data.type == 'tv'
+			// 			? {
+			// 				sub_id: socket.decoded_token.sub,
+			// 				tvId: parseInt(data.tmdb_id, 10),
+			// 				videoFileId: data.video_id,
+			// 			}
+			// 			: undefined,
+			// 	},
+			// 	update: {
+			// 		sub_id: socket.decoded_token.sub,
+			// 		movieId: data.type == 'movie'
+			// 			? parseInt(data.tmdb_id, 10)
+			// 			: undefined,
+			// 		tvId: data.type == 'tv'
+			// 			? parseInt(data.tmdb_id, 10)
+			// 			: undefined,
+			// 		videoFileId: parseInt(data.video_id, 10),
+			// 		played: false,
+			// 	},
+			// 	create: progressInsert,
+			// });
 		} catch (error) {
 			//
 		}

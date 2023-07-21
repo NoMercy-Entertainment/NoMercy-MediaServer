@@ -11,6 +11,7 @@ export async function getAccessToken(): Promise<string> {
 	const x = await fetch('https://accounts.spotify.com/api/token', {
 		method: 'POST',
 		headers: {
+			// @ts-ignore
 			'Authorization': `Basic ${btoa(`${client_id}:${client_secret}`).toString('base64')}`,
 		},
 		body: data,

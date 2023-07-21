@@ -1,12 +1,18 @@
 import { Request, Response } from 'express';
-import { appendFileSync, writeFileSync } from 'fs';
+import { readFile, writeFileSync } from 'fs';
 
-writeFileSync('music.json', '[');
 export default (req: Request, res: Response) => {
 
 	console.log(req.body);
-	appendFileSync('music.json', JSON.stringify(req.body));
 
-	return res.json({});
+	const fileName = 'music.json';
+	readFile(fileName, (err, data) => {
+		const arr = JSON.parse(data.toString());
+		arr.push(req.body);
+		writeFileSync(fileName, JSON.stringify(arr, null, 2));
+	});
+	return res.status(418).json({
+		//
+	});
 
 };

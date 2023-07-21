@@ -5,10 +5,10 @@ import { relations, sql } from 'drizzle-orm';
 
 export const track_user = sqliteTable('track_user', {
 	created_at: text('created_at')
-		.default(sql`datetime('now')`)
+		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 	updated_at: text('updated_at')
-		.default(sql`datetime('now')`)
+		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 
 	track_id: text('track_id')

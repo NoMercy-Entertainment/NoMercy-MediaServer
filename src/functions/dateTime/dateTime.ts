@@ -1,7 +1,7 @@
-import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '@/state';
+import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '@server/state';
 import fs, { existsSync } from 'fs';
 
-import { pad } from '../../functions/stringArray';
+import { pad } from '@server/functions/stringArray';
 
 export const convertToHuman = function (time: any) {
 	time = parseInt(time, 10);
@@ -158,21 +158,21 @@ export const fileChangedAt = function (file: string) {
 export const fileChangedAgo = function (file: any, notation = 'hours', method = 'floor') {
 	let time;
 	switch (notation) {
-		case 'days':
-			time = 24 * 60 * 60 * 1000;
-			break;
-		case 'hours':
-			time = 60 * 60 * 1000;
-			break;
-		case 'minutes':
-			time = 60 * 1000;
-			break;
-		case 'seconds':
-			time = 1000;
-			break;
-		default:
-			time = 1;
-			break;
+	case 'days':
+		time = 24 * 60 * 60 * 1000;
+		break;
+	case 'hours':
+		time = 60 * 60 * 1000;
+		break;
+	case 'minutes':
+		time = 60 * 1000;
+		break;
+	case 'seconds':
+		time = 1000;
+		break;
+	default:
+		time = 1;
+		break;
 	}
 
 	const fileTime: any = fs.statSync(file).mtime;
@@ -202,21 +202,21 @@ export const fileChangedAgo = function (file: any, notation = 'hours', method = 
 export const dateAgo = function (date: any, notation = 'hours', method = 'floor') {
 	let time;
 	switch (notation) {
-		case 'days':
-			time = 24 * 60 * 60 * 1000;
-			break;
-		case 'hours':
-			time = 60 * 60 * 1000;
-			break;
-		case 'minutes':
-			time = 60 * 1000;
-			break;
-		case 'seconds':
-			time = 1000;
-			break;
-		default:
-			time = 1;
-			break;
+	case 'days':
+		time = 24 * 60 * 60 * 1000;
+		break;
+	case 'hours':
+		time = 60 * 60 * 1000;
+		break;
+	case 'minutes':
+		time = 60 * 1000;
+		break;
+	case 'seconds':
+		time = 1000;
+		break;
+	default:
+		time = 1;
+		break;
 	}
 
 	const now: any = new Date();
@@ -269,18 +269,18 @@ export const time_ago = (time: any) => {
 	time = Date.now() - (Date.now() - time);
 
 	switch (typeof time) {
-		case 'number':
-			break;
-		case 'string':
-			time = +new Date(time);
-			break;
-		case 'object':
-			if (time.constructor === Date) {
-				time = time.getTime();
-			}
-			break;
-		default:
-			time = +new Date();
+	case 'number':
+		break;
+	case 'string':
+		time = +new Date(time);
+		break;
+	case 'object':
+		if (time.constructor === Date) {
+			time = time.getTime();
+		}
+		break;
+	default:
+		time = +new Date();
 	}
 	const time_formats = [
 		[60, 'seconds', 1], // 60
@@ -533,29 +533,29 @@ export const dateFormat = (date: Date | number, format: string) => {
 export const fileLastModified = (name: string) => {
 	let file;
 	switch (name) {
-		case 'ffmpeg':
-			file = ffmpeg;
-			break;
-		case 'ffprobe':
-			file = ffprobe;
-			break;
-		case 'makemkv':
-			file = makeMkv;
-			break;
-		case 'subtitleedit':
-			file = subtitleEdit;
-			break;
-		case 'sslCA':
-			file = sslCA;
-			break;
-		case 'sslCert':
-			file = sslCert;
-			break;
-		case 'sslKey':
-			file = sslKey;
-			break;
-		default:
-			return Number.MAX_SAFE_INTEGER;
+	case 'ffmpeg':
+		file = ffmpeg;
+		break;
+	case 'ffprobe':
+		file = ffprobe;
+		break;
+	case 'makemkv':
+		file = makeMkv;
+		break;
+	case 'subtitleedit':
+		file = subtitleEdit;
+		break;
+	case 'sslCA':
+		file = sslCA;
+		break;
+	case 'sslCert':
+		file = sslCert;
+		break;
+	case 'sslKey':
+		file = sslKey;
+		break;
+	default:
+		return Number.MAX_SAFE_INTEGER;
 	}
 
 	if (!existsSync(file)) {

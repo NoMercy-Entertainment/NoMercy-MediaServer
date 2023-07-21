@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { logLevels, logNames, winstonLog } from '@/state';
+import { logLevels, logNames, winstonLog } from '@server/state';
 
-import Logger from '../../functions/logger';
+import Logger from '@server/functions/logger';
 import winston from 'winston';
 import { writeFileSync } from 'fs';
 

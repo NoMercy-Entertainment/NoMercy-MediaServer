@@ -1,9 +1,9 @@
 import child_process from 'child_process';
-import { convertToHuman } from '../../functions/dateTime';
+import { convertToHuman } from '@server/functions/dateTime';
 import nosu from 'node-os-utils';
 import os from 'os';
 import osu from 'os-utils';
-import { platform } from '@/functions/system';
+import { platform } from '@server/functions/system';
 import util from 'util';
 const memTotal = os.totalmem();
 const threads = osu.cpuCount();

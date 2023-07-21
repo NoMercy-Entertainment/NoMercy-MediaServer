@@ -10,7 +10,7 @@ import {
 	createLibrary,
 	deleteLibrary,
 	encodeLibrary,
-	libraries,
+	librarie,
 	rescanLibrary,
 	updateLibrary
 } from '../dashboard/library';
@@ -19,13 +19,13 @@ import {
 	createConfiguration,
 	updateConfiguration
 } from '../dashboard/configuration';
-import { countries, languages } from '../dashboard/general';
+import { countries, language } from '../dashboard/general';
 import {
 	createEncoderProfiles,
 	encoderProfiles,
 	updateEncoderProfiles
 } from '../dashboard/encoder';
-import { createSpecials, searchSpecials, special, specials, updateSpecials } from '../dashboard/specials';
+import { createSpecials, searchSpecials, special, specialz, updateSpecials } from '../dashboard/specials';
 import {
 	deleteLogs,
 	logOptions,
@@ -45,7 +45,7 @@ import {
 	permissions
 } from '../middleware/permissions';
 import {
-	metadata,
+	metadatas,
 	serverInfo,
 	serverPaths
 } from '../dashboard/serverInfo';
@@ -55,7 +55,7 @@ import {
 } from '../dashboard/server';
 
 import addFiles from '../dashboard/contentManagement/addFiles';
-import deleteDevices from '../userData/devices/delete';
+import { deleteDevices } from '../userData/devices/delete';
 import deleteServerActivity from '../userData/activity/delete';
 import devices from '../userData/devices/get';
 import express from 'express';
@@ -70,7 +70,7 @@ import {
 
 const router = express.Router();
 
-router.post('/general/languages', languages);
+router.post('/general/languages', language);
 router.post('/general/countries', countries);
 
 router.post('/manage/users/notificationsettings', notificationSettings);
@@ -97,13 +97,13 @@ router.use(
 		route.post('/encoderprofiles/create', createEncoderProfiles);
 		route.post('/encoderprofiles/update', updateEncoderProfiles);
 
-		route.post('/specials', specials);
+		route.post('/specials', specialz);
 		route.post('/special/:id', special);
 		route.post('/specials/create', createSpecials);
 		route.post('/specials/update', updateSpecials);
 		route.post('/specials/search', searchSpecials);
 
-		route.post('/libraries', libraries);
+		route.post('/libraries', librarie);
 		route.patch('/libraries', updateLibrary);
 		route.post('/libraries/create', createLibrary);
 		route.post('/libraries/update', updateLibrary);
@@ -145,7 +145,7 @@ router.use(
 		route.post('/addFiles', addFiles);
 		route.post('/directorytree', directoryTree);
 		route.post('/fileList', fileList);
-		route.post('/metadata', metadata);
+		route.post('/metadata', metadatas);
 	})
 );
 

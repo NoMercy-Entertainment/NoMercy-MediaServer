@@ -1,4 +1,4 @@
-import { text, sqliteTable, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { text, sqliteTable, integer, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 import { users } from './users';
 import { movies } from './movies';
@@ -7,7 +7,7 @@ import { specials } from './specials';
 import { videoFiles } from './videoFiles';
 
 export const userData = sqliteTable('userData', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
+	id: text('id'),
 	rating: integer('rating'),
 	played: integer('played'),
 	playCount: integer('playCount'),
@@ -37,10 +37,11 @@ export const userData = sqliteTable('userData', {
 		.references(() => tvs.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 	special_id: integer('special_id')
 		.references(() => specials.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
-	videoFile_id: integer('videoFile_id')
+	videoFile_id: text('videoFile_id')
 		.references(() => videoFiles.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 
 }, db => ({
+	pk: primaryKey(db.id),
 	index: index('userData_index').on(db.tv_id, db.movie_id, db.videoFile_id, db.user_id),
 	unique_tv: uniqueIndex('userData_tv_unique').on(db.tv_id, db.videoFile_id, db.user_id),
 	unique_movie: uniqueIndex('userData_movie_unique').on(db.movie_id, db.videoFile_id, db.user_id),

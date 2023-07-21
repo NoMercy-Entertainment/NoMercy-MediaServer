@@ -1,10 +1,11 @@
 /* eslint-disable prefer-promise-reject-errors */
 import { Request, Response } from 'express';
-import { trackSort, uniqBy } from '../../../functions/stringArray';
+import { trackSort, uniqBy } from '@server/functions/stringArray';
 
-import { deviceId } from '../../../functions/system';
-import { selectAlbum } from '@/db/media/actions/albums';
-import { requestWorker } from '@/api/requestWorker';
+import { deviceId } from '@server/functions/system';
+import { selectAlbum } from '@server/db/media/actions/albums';
+import { requestWorker } from '@server/api/requestWorker';
+import { PaletteColors } from '@server/types/server';
 
 export default async function (req: Request, res: Response) {
 
@@ -42,9 +43,9 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 			colorPalette: JSON.parse(music.colorPalette ?? '{}'),
 			blurHash: music.blurHash ?? null,
 
-			Track: uniqBy<typeof music.album_track>(music.album_track?.map((t) => {
+			track: uniqBy(music.album_track?.map((t) => {
 				const artists = t.track.artist_track
-					.filter(a => a.artist.id != '89ad4ac3-39f7-470e-963a-56509c546377')
+					// .filter(a => a.artist.id != '89ad4ac3-39f7-470e-963a-56509c546377')
 					.map(a => ({
 						id: a.artist.id,
 						name: a.artist.name,
@@ -93,3 +94,70 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 		return resolve(results);
 	});
 };
+
+export interface AlbumResponse {
+    id: string;
+    name: string;
+    description: string | null;
+    folder: string | null;
+    cover: string | undefined | null;
+    country: string | null;
+    year: number | null;
+    tracks: number | null;
+    colorPalette: PaletteColors | null;
+    blurHash: string | null;
+    libraryId: string;
+    Artist: Artist[] | null;
+    type: string;
+    track: track[];
+}
+
+interface Artist {
+    id: string;
+    name: string;
+    description: string | null;
+    cover: string | null | undefined;
+    folder: string | null;
+    colorPalette: string | null;
+    blurHash?: string | null;
+    libraryId: string;
+    trackId?: string | null;
+    origin: string;
+}
+
+interface track {
+    id: string;
+    name: string;
+    track: number | null;
+    disc: number | null;
+    cover: string | null | undefined;
+    date: string | null;
+    folder: string | null;
+    filename: string;
+    duration: string | null;
+    quality: number | null;
+    path: string;
+    colorPalette: PaletteColors | null;
+    blurHash: string | null;
+    Artist: Artist[];
+    Album: Album[];
+    type: string;
+    favorite_track: boolean;
+    artistId: string;
+    origin: string;
+    libraryId: string;
+}
+
+interface Album {
+    id: string;
+    name: string;
+    description: string | null;
+    folder: string | null;
+    cover: string | null;
+    country: string | null;
+    year: number | null;
+    tracks: number | null;
+    colorPalette: string | null;
+    blurHash: string | null;
+    libraryId: string;
+}

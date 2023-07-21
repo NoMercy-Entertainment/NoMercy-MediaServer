@@ -1,6 +1,6 @@
 import { InferModel } from 'drizzle-orm';
-import { convertBooleans } from '@/db/helpers';
-import { mediaDb } from '@/db/media';
+import { convertBooleans } from '@server/db/helpers';
+import { mediaDb } from '@server/db/media';
 import { encoderProfiles } from '../schema/encoderProfiles';
 import { createId } from '@paralleldrive/cuid2';
 

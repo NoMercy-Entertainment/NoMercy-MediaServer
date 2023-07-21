@@ -3,11 +3,11 @@
 import { Request, Response } from 'express';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { mediaDb } from '@/db/media';
-import { collections } from '@/db/media/schema/collections';
-import { translations } from '@/db/media/schema/translations';
+import { mediaDb } from '@server/db/media';
+import { collections } from '@server/db/media/schema/collections';
+import { translations } from '@server/db/media/schema/translations';
 import { and, eq, gt, or, isNull, asc } from 'drizzle-orm';
-import { movies } from '@/db/media/schema/movies';
+import { movies } from '@server/db/media/schema/movies';
 
 export default function (req: Request, res: Response) {
 	const collection = mediaDb.query.collections.findFirst({

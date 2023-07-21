@@ -1,6 +1,6 @@
-import { mediaDb } from '@/db/media';
+import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
-import { convertBooleans } from '@/db/helpers';
+import { convertBooleans } from '@server/db/helpers';
 import { collection_movie } from '../schema/collection_movie';
 
 export type NewCollectionMovie = InferModel<typeof collection_movie, 'insert'>;

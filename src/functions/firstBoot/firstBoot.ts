@@ -1,5 +1,4 @@
-import migrate from '../../db/migrate';
-import { migrateConfigDatabase, migrateQueueDatabase } from '../../database';
+import migrate from '@server/db/migrate';
 
 import createAppFolders from '../createAppFolders';
 import downloadBinaries from '../downloadBinaries';
@@ -9,10 +8,6 @@ export default async () => {
 	createAppFolders();
 
 	migrate();
-
-	await migrateConfigDatabase();
-
-	await migrateQueueDatabase();
 
 	await registerServer();
 

@@ -6,6 +6,7 @@ import { libraries } from './libraries';
 import { images } from './images';
 import { album_track } from './album_track';
 import { album_artist } from './album_artist';
+import { album_musicGenre } from './album_musicGenre';
 
 export const albums = sqliteTable('albums', {
 	id: text('id').primaryKey(),
@@ -33,8 +34,9 @@ export const albums = sqliteTable('albums', {
 }));
 
 export const albumsRelations = relations(albums, ({ many, one }) => ({
-	album_track: many(album_track),
 	album_artist: many(album_artist),
+	album_musicGenre: many(album_musicGenre),
+	album_track: many(album_track),
 	images: many(images),
 	library: one(libraries, {
 		fields: [albums.library_id],

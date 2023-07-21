@@ -1,32 +1,38 @@
 import { Request, Response } from 'express';
 
-import { TvWithRelations, getTvPlayback } from '@/db/media/actions/tvs';
+import { Tv, TvPlaybackWithRelations, getTvPlayback } from '@server/db/media/actions/tvs';
 import i18next from 'i18next';
-import { convertToSeconds, parseYear } from '@/functions/dateTime';
-import { getClosestRating, sortBy } from '@/functions/stringArray';
+import { convertToSeconds, parseYear } from '@server/functions/dateTime';
+import { getClosestRating, sortBy } from '@server/functions/stringArray';
 import { existsSync, readFileSync } from 'fs';
-import { AppState, useSelector } from '@/state/redux';
-import { deviceId } from '@/functions/system';
+import { deviceId } from '@server/functions/system';
+import { Episode } from '@server/db/media/actions/episodes';
+import { Translation } from '@server/db/media/actions/translations';
+import { VideoFile } from '@server/db/media/actions/videoFiles';
+import { UserData } from '@server/db/media/actions/userData';
+import { CertificationTv } from '@server/db/media/actions/certification_tv';
+import { Media } from '@server/db/media/actions/medias';
+import { Certification } from '@server/db/media/actions/certifications';
 
 export default function (req: Request, res: Response) {
 
-	const access_token = useSelector((state: AppState) => state.user.access_token);
-
-	const tv = getTvPlayback({ id: parseInt(req.params.id, 10) }, true);
+	const tv = getTvPlayback({ id: parseInt(req.params.id, 10), language: req.language });
 	if (!tv) {
 		return res.status(404).json({
 			success: false,
 			error: 'Tv show not found',
 		});
 	}
-	return res.json(getContent(tv, access_token));
+	return res.json(getContent(tv, req.language));
 };
 
-const getContent = (data: TvWithRelations, access_token: string) => {
+const getContent = (data: TvPlaybackWithRelations, language: string) => {
+	if (!data) return;
+
 	const files: any[] = [];
-	for (const season of data.seasons.sort((a, b) => a.seasonNumber - b.seasonNumber)) {
-		for (const episode of season.episodes.sort((a, b) => a.episodeNumber - b.episodeNumber)) {
-			const item = playlist(episode, access_token);
+	for (const season of data.seasons) {
+		for (const episode of season.episodes) {
+			const item = playlist(episode, language);
 			files.push(item);
 		}
 	};
@@ -39,21 +45,35 @@ const getContent = (data: TvWithRelations, access_token: string) => {
 	return response;
 };
 
-const playlist = (episode: TvWithRelations['seasons'][0]['episodes'][0], access_token: string) => {
+type PlaylistItem = (Episode & {
+	tv: (Tv & {
+		medias: Media[]; 
+		translations: Translation[]; 
+		certification_tv: (CertificationTv & {
+			certification: Certification;
+	})[]; 
+	}); 
+	translations: Translation[]; 
+	videoFiles: (VideoFile & {
+		userData: UserData[];
+	})[];
+});
+const playlist = (episode: PlaylistItem, language: string) => {
 
-	if (!episode?.videoFiles) { return; }
+	if (!episode?.videoFiles?.[0]) return;
 
 	let search = false;
-	const videoFile = episode.videoFiles?.[0];
 
-	const showTitle = episode.tv.translation?.title;
+	const videoFile = episode.videoFiles[0];
 
-	const overview = episode.translation?.overview != '' && episode.translation?.overview != null
-		? episode.translation?.overview
+	const showTitle = episode.tv.translations[0]?.title;
+
+	const overview = episode.translations[0]?.overview != '' && episode.translations[0]?.overview != null
+		? episode.translations[0]?.overview
 		: episode.overview;
 
-	const title = episode.translation?.title != '' && episode.translation?.title != null
-		? episode.translation?.title
+	const title = episode.translations[0]?.title != '' && episode.translations[0]?.title != null
+		? episode.translations[0]?.title
 		: episode.title;
 
 	const show = showTitle != '' && showTitle != null
@@ -62,9 +82,9 @@ const playlist = (episode: TvWithRelations['seasons'][0]['episodes'][0], access_
 
 	const textTracks: any[] = [];
 
-	const baseFolder = `/${episode.videoFiles[0]?.share}${episode.videoFiles[0]?.folder}`;
+	const baseFolder = `/${videoFile?.share}${videoFile?.folder}`;
 
-	JSON.parse(episode.videoFiles[0]?.subtitles ?? '[]')
+	JSON.parse(videoFile?.subtitles ?? '[]')
 		.forEach((sub) => {
 			const { language, type, ext } = sub;
 
@@ -75,7 +95,7 @@ const playlist = (episode: TvWithRelations['seasons'][0]['episodes'][0], access_
 				textTracks.push({
 					label: type,
 					type: type,
-					src: `${baseFolder}/subtitles${episode.videoFiles[0]?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
+					src: `${baseFolder}/subtitles${videoFile?.filename.replace(/\.mp4|\.m3u8/u, '')}.${language}.${type}.${ext}`,
 					srclang: i18next.t(`languages:${language}`),
 					ext: ext,
 					language: language,
@@ -86,9 +106,9 @@ const playlist = (episode: TvWithRelations['seasons'][0]['episodes'][0], access_
 
 	let fonts: any[] = [];
 	let fontsfile = '';
-	if (search && existsSync(`${episode.videoFiles[0]?.hostFolder}fonts.json`)) {
-		fontsfile = `/${episode.videoFiles[0]?.share}/${episode.videoFiles[0]?.folder}fonts.json`;
-		fonts = JSON.parse(readFileSync(`${episode.videoFiles[0]?.hostFolder}fonts.json`, 'utf8'));
+	if (search && existsSync(`${videoFile?.hostFolder}fonts.json`)) {
+		fontsfile = `/${videoFile?.share}/${videoFile?.folder}fonts.json`;
+		fonts = JSON.parse(readFileSync(`${videoFile?.hostFolder}fonts.json`, 'utf8'));
 	}
 
 	return {
@@ -122,21 +142,19 @@ const playlist = (episode: TvWithRelations['seasons'][0]['episodes'][0], access_
 			? parseYear(episode.tv.firstAirDate)
 			: null,
 		logo: episode.tv.medias.find(m => m.type == 'logo')?.src ?? null,
-		rating: getClosestRating(episode.tv.certification_tv),
+		rating: getClosestRating(episode.tv.certification_tv, language),
 
-		progress: episode.userData?.[0]?.time
-			? (episode.userData?.[0].time / convertToSeconds(episode.videoFiles[0]?.duration) * 100)
+		progress: videoFile.userData?.[0]?.time
+			? (videoFile.userData?.[0].time / convertToSeconds(videoFile?.duration) * 100)
 			: null,
 
 		sources: [
 			{
-				src: `${baseFolder}${episode.videoFiles[0]?.filename}${episode.videoFiles[0]?.filename.includes('.mp4')
-					? `?token=${access_token}`
-					: ''}`,
-				type: episode.videoFiles[0]?.filename.includes('.mp4')
+				src: `${baseFolder}${videoFile?.filename}`,
+				type: videoFile?.filename.includes('.mp4')
 					? 'video/mp4'
 					: 'application/x-mpegURL',
-				languages: JSON.parse(episode.videoFiles[0]?.languages ?? '[]'),
+				languages: JSON.parse(videoFile?.languages ?? '[]'),
 			},
 		],
 

@@ -2,10 +2,10 @@
 import { Request, Response } from 'express';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
-import { deviceId } from '../../../functions/system';
-import { removeDiacritics, sortBy } from '../../../functions/stringArray';
-import { selectArtists } from '@/db/media/actions/artists';
-import { requestWorker } from '@/api/requestWorker';
+import { deviceId } from '@server/functions/system';
+import { removeDiacritics, sortBy, unique } from '@server/functions/stringArray';
+import { selectArtists } from '@server/db/media/actions/artists';
+import { requestWorker } from '@server/api/requestWorker';
 
 export default async function (req: Request, res: Response) {
 
@@ -39,7 +39,7 @@ export const exec = ({ letter, user }: { letter: string; user: string; }) => {
 
 		const results = {
 			type: 'artists',
-			data: sortBy(music
+			data: sortBy(unique(music
 				.map((m) => {
 					return {
 						...m,
@@ -49,9 +49,35 @@ export const exec = ({ letter, user }: { letter: string; user: string; }) => {
 						origin: deviceId,
 						colorPalette: JSON.parse(m.colorPalette ?? '{}'),
 					};
-				}), 'titleSort'),
+				}), 'titleSort'), 'titleSort'),
 		};
 
 		return resolve(results);
 	});
 };
+
+export interface ArtistsResponse {
+    type: string;
+    data: ArtistsData[];
+}
+
+export interface ArtistsData {
+    id: string;
+    name: string;
+    description: null | string;
+    cover: null | string;
+    folder: null | string;
+    colorPalette: null | string;
+    blurHash: null | string;
+    libraryId: string;
+    trackId: null | string;
+    _count: Count;
+    type: string;
+    titleSort: string;
+    origin: string;
+}
+
+export interface Count {
+    Album: number;
+    track: number;
+}

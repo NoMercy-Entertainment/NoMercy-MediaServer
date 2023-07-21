@@ -1,43 +1,44 @@
-import { AppState, useSelector } from '@/state/redux';
-import { ConfigData, ConfigParams, ResponseStatus } from 'types/server';
+import { AppState, useSelector } from '@server/state/redux';
+import { ConfigData, ConfigParams, ResponseStatus } from '@server/types/server';
 import { Request, Response } from 'express';
-import { setSecureExternalPort, setSecureInternalPort } from '@/state/redux/system/actions';
+import { setSecureExternalPort, setSecureInternalPort } from '@server/state/redux/system/actions';
 
-import Logger from '../../functions/logger';
-import { confDb } from '../../database/config';
-import reboot from '../../functions/reboot/reboot';
-import { setDeviceName } from '@/state/redux/config/actions';
-import storeConfig from '../../functions/storeConfig';
-import ping from '@/loaders/ping';
+import Logger from '@server/functions/logger';
+import reboot from '@server/functions/reboot';
+import { setDeviceName } from '@server/state/redux/config/actions';
+import storeConfig from '@server/functions/storeConfig';
+import ping from '@server/loaders/ping';
+import { mediaDb } from '@server/db/media';
 
-export const configuration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-	await confDb.configuration
-		.findMany()
-		.then((data) => {
-			const configuration: any = {};
+export const configuration = (req: Request, res: Response) => {
 
-			data.map((c: any) => {
-				try {
-					return (configuration[c.key] = JSON.parse(c.value));
-				} catch (error) {
-					return (configuration[c.key] = c.value);
-				}
-			});
+	try {
+		const data = mediaDb.query.configuration.findMany();
 
-			return res.json(configuration);
-		})
-		.catch((error) => {
-			Logger.log({
-				level: 'info',
-				name: 'configuration',
-				color: 'magentaBright',
-				message: `Error getting configuration: ${error}`,
-			});
-			return res.json({
-				status: 'ok',
-				message: `Something went wrong getting configuration: ${error}`,
-			});
+		const configuration: any = {};
+
+		data.map((c: any) => {
+			try {
+				return (configuration[c.key] = JSON.parse(c.value));
+			} catch (error) {
+				return (configuration[c.key] = c.value);
+			}
 		});
+
+		return res.json(configuration);
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'configuration',
+			color: 'magentaBright',
+			message: `Error getting configuration: ${error}`,
+		});
+		return res.json({
+			status: 'ok',
+			message: `Something went wrong getting configuration: ${error}`,
+		});
+	}
+
 };
 
 export const createConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {

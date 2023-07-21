@@ -1,5 +1,5 @@
-import { deviceName } from '@/functions/system';
-import { ConfigData } from '@/types/server';
+import { deviceName } from '@server/functions/system';
+import { ConfigData } from '@server/types/server';
 
 export const configData: ConfigData = {
 	secureInternalPort: process.env.DEFAULT_PORT ?? 7635,
@@ -7,8 +7,8 @@ export const configData: ConfigData = {
 	deviceName: deviceName,
 	queueWorkers: 2,
 	cronWorkers: 0,
-	dataWorkers: 2,
-	requestWorkers: 5,
+	dataWorkers: 5,
+	requestWorkers: 10,
 	encoderWorkers: 1,
 	maxAttempts: 2,
 };
