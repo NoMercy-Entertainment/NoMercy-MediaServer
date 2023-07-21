@@ -1,10 +1,9 @@
 import { convertBooleans } from '../../helpers';
 import { InferModel, eq } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { seasons } from '../schema/seasons';
 
 export type NewSeason = InferModel<typeof seasons, 'insert'>;
-export const insertSeason = (data: NewSeason) => mediaDb.insert(seasons)
+export const insertSeason = (data: NewSeason) => globalThis.mediaDb.insert(seasons)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,7 +22,7 @@ export const insertSeason = (data: NewSeason) => mediaDb.insert(seasons)
 export type Season = InferModel<typeof seasons, 'select'>;
 export const selectSeasons = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.posts.findMany({
+		return globalThis.mediaDb.query.posts.findMany({
 			with: {
 				casts: true,
 				crews: true,
@@ -34,14 +33,14 @@ export const selectSeasons = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(seasons)
 		.all();
 };
 
 export const selectSeason = (data: {seasonNumber: number; tv_id: number}) => {
 
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(seasons)
 		.where(eq(seasons.seasonNumber, data.seasonNumber))
 		.where(eq(seasons.tv_id, data.tv_id))

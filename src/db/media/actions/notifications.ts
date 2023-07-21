@@ -1,12 +1,11 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { createId } from '@paralleldrive/cuid2';
 import { notifications } from '../schema/notifications';
 
 export type NewNotification = InferModel<typeof notifications, 'insert'>;
 export const insertNotification = (data: NewNotification) => {
-	return mediaDb.insert(notifications)
+	return globalThis.mediaDb.insert(notifications)
 		.values({
 			...convertBooleans(data),
 			id: data.id ?? createId(),
@@ -23,7 +22,7 @@ export const insertNotification = (data: NewNotification) => {
 };
 
 export const selectNotification = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(notifications)
 		.all();
 };

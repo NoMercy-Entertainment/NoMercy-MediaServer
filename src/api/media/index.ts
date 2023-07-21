@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 
 import { parseYear } from '@server/functions/dateTime';
-import { mediaDb } from '@server/db/media';
 import { asc, inArray } from 'drizzle-orm';
 import { genres } from '@server/db/media/schema/genres';
 import { tvs } from '@server/db/media/schema/tvs';
@@ -47,7 +46,7 @@ export const exec = ({ user_id, language, limit, offset, take, page }:
 		}
 
 		try {
-			const genresResponse = mediaDb.query.genres.findMany({
+			const genresResponse = globalThis.mediaDb.query.genres.findMany({
 				limit,
 				offset,
 				orderBy: asc(genres.name),
@@ -60,7 +59,7 @@ export const exec = ({ user_id, language, limit, offset, take, page }:
 			const movieGids = genresResponse.map(g => g.genre_movie.map(m => m.movie_id)).flat();
 			const moviesResponse = movieGids.length == 0
 				? []
-				: mediaDb.query.movies.findMany({
+				: globalThis.mediaDb.query.movies.findMany({
 					where: (movies, { sql, and }) => and(
 						sql`json_array_length(${movies.videoFiles}) > 0`,
 						inArray(movies.id, movieGids)
@@ -73,11 +72,11 @@ export const exec = ({ user_id, language, limit, offset, take, page }:
 			const tvGids = genresResponse.map(g => g.genre_tv.map(t => t.tv_id)).flat();
 			const tvsResponse = tvGids.length == 0
 				? []
-				: mediaDb.query.tvs.findMany({
+				: globalThis.mediaDb.query.tvs.findMany({
 					where: inArray(tvs.id, tvGids),
 				});
 
-			const translationsResponse = mediaDb.query.translations.findMany({
+			const translationsResponse = globalThis.mediaDb.query.translations.findMany({
 				where: (translations, { eq, and, or }) => or(
 					and(
 						eq(translations.iso6391, language),
@@ -90,7 +89,7 @@ export const exec = ({ user_id, language, limit, offset, take, page }:
 				),
 			});
 
-			const imagesResponse = mediaDb.query.images.findMany({
+			const imagesResponse = globalThis.mediaDb.query.images.findMany({
 				where: (images, { eq, and, or }) => or(
 					and(
 						eq(images.type, 'logo'),
@@ -103,7 +102,7 @@ export const exec = ({ user_id, language, limit, offset, take, page }:
 				),
 			});
 
-			const episodesResponse = mediaDb.query.episodes.findMany({
+			const episodesResponse = globalThis.mediaDb.query.episodes.findMany({
 				where: (episodes) => inArray(episodes.tv_id, tvsResponse.map(t => t.id)),
 				columns: {
 					id: true,

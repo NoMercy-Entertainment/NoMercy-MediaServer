@@ -8,7 +8,6 @@ import osu from 'os-utils';
 import path from 'path';
 import { readFileSync } from 'fs';
 import { AppState, useSelector } from '@server/state/redux';
-import { mediaDb } from '@server/db/media';
 import { desc } from 'drizzle-orm';
 import { activityLogs } from '@server/db/media/schema/activityLogs';
 import { devices } from '@server/db/media/schema/devices';
@@ -56,7 +55,7 @@ export const serverPaths = (req: Request, res: Response) => {
 
 export const serverActivity = (req: Request, res: Response) => {
 	try {
-		const data = mediaDb.query.activityLogs
+		const data = globalThis.mediaDb.query.activityLogs
 			.findMany({
 				with: {
 					device: true,
@@ -89,7 +88,7 @@ export const serverActivity = (req: Request, res: Response) => {
 
 export const device = (req: Request, res: Response) => {
 	try {
-		const data = mediaDb.select().from(devices)
+		const data = globalThis.mediaDb.select().from(devices)
 			.all();
 
 		return res.json(
@@ -114,7 +113,7 @@ export const device = (req: Request, res: Response) => {
 
 export const metadatas = (req: Request, res: Response) => {
 	try {
-		const data = mediaDb.select()
+		const data = globalThis.mediaDb.select()
 			.from(metadata)
 			.all();
 		return res.json(

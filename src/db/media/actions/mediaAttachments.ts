@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { mediaAttachments } from '../schema/mediaAttachments';
 import { createId } from '@paralleldrive/cuid2';
 
 export type NewMediaAttachment = InferModel<typeof mediaAttachments, 'insert'>;
-export const insertMediaAttachment = (data: NewMediaAttachment) => mediaDb.insert(mediaAttachments)
+export const insertMediaAttachment = (data: NewMediaAttachment) => globalThis.mediaDb.insert(mediaAttachments)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -25,7 +24,7 @@ export const insertMediaAttachment = (data: NewMediaAttachment) => mediaDb.inser
 
 export type MediaAttachment = InferModel<typeof mediaAttachments, 'select'>;
 export const selectMediaAttachment = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(mediaAttachments)
 		.all();
 };

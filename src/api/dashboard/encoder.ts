@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 
 import Logger from '@server/functions/logger';
-import { mediaDb } from '@server/db/media';
 
 export const encoderProfiles = (req: Request, res: Response) => {
 
 	try {
-		const data = mediaDb.query.encoderProfiles.findMany();
+		const data = globalThis.mediaDb.query.encoderProfiles.findMany();
 		return res.json(
 			data.map(d => ({
 				...d,

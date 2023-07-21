@@ -4,7 +4,6 @@ import { shuffle, unique } from '@server/functions/stringArray';
 import Logger from '@server/functions/logger';
 import { LogoResponse } from '@server/types/server';
 import { Media } from '@server/db/media/actions/medias';
-import { mediaDb } from '@server/db/media';
 import { and, desc, gte, inArray, isNull } from 'drizzle-orm';
 import { medias } from '@server/db/media/schema/medias';
 
@@ -16,7 +15,7 @@ export default function (req: Request, res: Response) {
 		const tvLogos: Media[] = [];
 		const movieLogos: Media[] = [];
 
-		const data = mediaDb.query.medias.findMany({
+		const data = globalThis.mediaDb.query.medias.findMany({
 			where: and(
 				inArray(medias.type, ['backdrop', 'poster', 'logo']),
 				gte(medias.voteAverage, 5),

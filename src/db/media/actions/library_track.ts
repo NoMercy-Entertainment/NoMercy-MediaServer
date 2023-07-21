@@ -1,11 +1,10 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { library_track } from '../schema/library_track';
 
 export type NewLibraryTrack = InferModel<typeof library_track, 'insert'>;
-export const insertLibraryTrack = (data: NewLibraryTrack) => mediaDb.insert(library_track)
+export const insertLibraryTrack = (data: NewLibraryTrack) => globalThis.mediaDb.insert(library_track)
 	.values({
 		...convertBooleans(data),
 	})
@@ -20,7 +19,7 @@ export const insertLibraryTrack = (data: NewLibraryTrack) => mediaDb.insert(libr
 
 export type LibraryTrack = InferModel<typeof library_track, 'select'>;
 export const selectLibraryTrack = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(library_track)
 		.all();
 };

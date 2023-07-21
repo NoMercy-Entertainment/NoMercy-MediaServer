@@ -1,10 +1,9 @@
-import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
 import { recommendations } from '../schema/recommendations';
 
 export type NewRecommendation = InferModel<typeof recommendations, 'insert'>;
-export const insertRecommendation = (data: NewRecommendation, constraint: 'movie' | 'tv') => mediaDb.insert(recommendations)
+export const insertRecommendation = (data: NewRecommendation, constraint: 'movie' | 'tv') => globalThis.mediaDb.insert(recommendations)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,7 +22,7 @@ export const insertRecommendation = (data: NewRecommendation, constraint: 'movie
 export type Recommendation = InferModel<typeof recommendations, 'select'>;
 export const selectRecommendation = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.recommendations.findMany({
+		return globalThis.mediaDb.query.recommendations.findMany({
 			with: {
 				movie_from: true,
 				movie_to: true,
@@ -32,7 +31,7 @@ export const selectRecommendation = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(recommendations)
 		.all();
 };

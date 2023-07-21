@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { keywords } from '../schema/keywords';
 
 export type NewKeyword = InferModel<typeof keywords, 'insert'>;
-export const insertKeyword = (data: NewKeyword) => mediaDb.insert(keywords)
+export const insertKeyword = (data: NewKeyword) => globalThis.mediaDb.insert(keywords)
 	.values({
 		...convertBooleans(data),
 	})
@@ -19,7 +18,7 @@ export const insertKeyword = (data: NewKeyword) => mediaDb.insert(keywords)
 
 export type Keyword = InferModel<typeof keywords, 'select'>;
 export const selectKeyword = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(keywords)
 		.all();
 };

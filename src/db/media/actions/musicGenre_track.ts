@@ -1,11 +1,10 @@
 
-import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
 import { musicGenre_track } from '../schema/musicGenre_track';
 
 export type NewMusicGenreTrack = InferModel<typeof musicGenre_track, 'insert'>;
-export const insertMusicGenreTrack = (data: NewMusicGenreTrack) => mediaDb.insert(musicGenre_track)
+export const insertMusicGenreTrack = (data: NewMusicGenreTrack) => globalThis.mediaDb.insert(musicGenre_track)
 	.values({
 		...convertBooleans(data),
 	})
@@ -20,7 +19,7 @@ export const insertMusicGenreTrack = (data: NewMusicGenreTrack) => mediaDb.inser
 
 export type MusicGenreTrack = InferModel<typeof musicGenre_track, 'select'>;
 export const selectMusicGenreTrack = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(musicGenre_track)
 		.get();
 };

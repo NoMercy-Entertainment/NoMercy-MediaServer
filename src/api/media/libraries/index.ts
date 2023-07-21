@@ -4,7 +4,6 @@ import { LibraryResponseContent } from '@server/types//server';
 import { createTitleSort } from '@server/tasks/files/filenameParser';
 import { parseYear } from '@server/functions/dateTime';
 import { asc, gt, isNotNull, isNull } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { movies } from '@server/db/media/schema/movies';
 import { tvs } from '@server/db/media/schema/tvs';
 import { getAllowedLibrary } from '@server/db/media/actions/libraries';
@@ -42,7 +41,7 @@ export const exec = ({ id, take, page, user_id, language }: { id: string, take: 
 			});
 
 			const data = {
-				tvs: mediaDb.query.tvs.findMany({
+				tvs: globalThis.mediaDb.query.tvs.findMany({
 					limit: take,
 					offset: page,
 					where: (tvs, { eq, and }) => and(
@@ -66,7 +65,7 @@ export const exec = ({ id, take, page, user_id, language }: { id: string, take: 
 					},
 					orderBy: asc(tvs.titleSort),
 				}),
-				movies: mediaDb.query.movies.findMany({
+				movies: globalThis.mediaDb.query.movies.findMany({
 					limit: take,
 					offset: page,
 					where: (tvs, { eq, and }) => and(

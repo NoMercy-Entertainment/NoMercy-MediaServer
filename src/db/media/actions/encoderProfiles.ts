@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
-import { mediaDb } from '@server/db/media';
 import { encoderProfiles } from '../schema/encoderProfiles';
 import { createId } from '@paralleldrive/cuid2';
 
 export type NewEncoderProfile = InferModel<typeof encoderProfiles, 'insert'>;
-export const insertEncoderProfile = (data: NewEncoderProfile) => mediaDb.insert(encoderProfiles)
+export const insertEncoderProfile = (data: NewEncoderProfile) => globalThis.mediaDb.insert(encoderProfiles)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -26,13 +25,13 @@ export const insertEncoderProfile = (data: NewEncoderProfile) => mediaDb.insert(
 export type EncoderProfile = InferModel<typeof encoderProfiles, 'select'>;
 export const selectEncoderProfile = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.encoderProfiles.findMany({
+		return globalThis.mediaDb.query.encoderProfiles.findMany({
 			with: {
 				encoderProfile_library: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(encoderProfiles)
 		.all();
 };

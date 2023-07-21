@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { playlists } from '../schema/playlists';
 import { createId } from '@paralleldrive/cuid2';
 
 export type NewPlaylist = InferModel<typeof playlists, 'insert'>;
-export const insertPlaylist = (data: NewPlaylist) => mediaDb.insert(playlists)
+export const insertPlaylist = (data: NewPlaylist) => globalThis.mediaDb.insert(playlists)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -26,13 +25,13 @@ export const insertPlaylist = (data: NewPlaylist) => mediaDb.insert(playlists)
 export type Playlist = InferModel<typeof playlists, 'select'>;
 export const selectPlaylist = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.playlists.findMany({
+		return globalThis.mediaDb.query.playlists.findMany({
 			with: {
 				playlist_track: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(playlists)
 		.all();
 };

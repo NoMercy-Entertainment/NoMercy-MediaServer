@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { certifications } from '../schema/certifications';
 
 export type NewCertification = InferModel<typeof certifications, 'insert'>;
-export const insertCertification = (data: NewCertification) => mediaDb.insert(certifications)
+export const insertCertification = (data: NewCertification) => globalThis.mediaDb.insert(certifications)
 	.values({
 		...convertBooleans(data),
 	})
@@ -19,7 +18,7 @@ export const insertCertification = (data: NewCertification) => mediaDb.insert(ce
 
 export type Certification = InferModel<typeof certifications, 'select'>;
 export const selectCertification = ({ where }) => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(certifications)
 		.where(where)
 		.all();

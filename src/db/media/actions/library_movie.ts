@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { library_movie } from '../schema/library_movie';
 
 export type NewLibraryMovie = InferModel<typeof library_movie, 'insert'>;
-export const insertLibraryMovie = (data: NewLibraryMovie) => mediaDb.insert(library_movie)
+export const insertLibraryMovie = (data: NewLibraryMovie) => globalThis.mediaDb.insert(library_movie)
 	.values({
 		...convertBooleans(data),
 	})
@@ -19,7 +18,7 @@ export const insertLibraryMovie = (data: NewLibraryMovie) => mediaDb.insert(libr
 
 export type LibraryMovie = InferModel<typeof library_movie, 'select'>;
 export const selectLibraryMovie = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(library_movie)
 		.all();
 };

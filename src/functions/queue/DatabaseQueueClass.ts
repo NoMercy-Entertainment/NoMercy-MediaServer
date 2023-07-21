@@ -3,8 +3,6 @@ import { ChildProcess, fork } from 'child_process';
 import { AppState, useSelector } from '@server/state/redux';
 import Logger from '../logger';
 import { and, asc, eq, isNull, lt } from 'drizzle-orm';
-import { queueDb } from '@server/db/queue';
-import { mediaDb } from '@server/db/media';
 import { QueueJob, queueJobs } from '@server/db/queue/schema/queueJobs';
 import { runningTasks } from '@server/db/media/schema/runningTasks';
 import { configuration } from '@server/db/media/schema/configuration';
@@ -44,7 +42,7 @@ export class DatabaseQueue {
 
 		try {
 
-			const attempts = mediaDb.select().from(configuration)
+			const attempts = globalThis.mediaDb.select().from(configuration)
 				.where(eq(configuration.key, 'maxAttempts'))
 				.get()?.value;
 
@@ -52,7 +50,7 @@ export class DatabaseQueue {
 				? parseInt(attempts, 10)
 				: 2;
 
-			queueDb.update(queueJobs)
+			globalThis.queueDb.update(queueJobs)
 				.set({
 					runAt: null,
 				})
@@ -125,7 +123,7 @@ export class DatabaseQueue {
 	}
 
 	jobs() {
-		return queueDb.select().from(queueJobs)
+		return globalThis.queueDb.select().from(queueJobs)
 			.where(eq(queueJobs.queue, this.name))
 			.all();
 	}
@@ -135,7 +133,7 @@ export class DatabaseQueue {
 			file = _getCallerFile();
 		}
 
-		const job = queueDb.insert(queueJobs)
+		const job = globalThis.queueDb.insert(queueJobs)
 			.values({
 				queue: this.name,
 				runAt: null,
@@ -151,13 +149,13 @@ export class DatabaseQueue {
 	}
 
 	remove(job: QueueJob) {
-		return queueDb.delete(queueJobs)
+		return globalThis.queueDb.delete(queueJobs)
 			.where(eq(queueJobs.id, job.id))
 			.run();
 	}
 
 	cancel(job: QueueJob) {
-		const qj = queueDb.delete(queueJobs)
+		const qj = globalThis.queueDb.delete(queueJobs)
 			.where(eq(queueJobs.id, job.id))
 			.run();
 
@@ -174,12 +172,12 @@ export class DatabaseQueue {
 	}
 
 	clear() {
-		return queueDb.delete(queueJobs)
+		return globalThis.queueDb.delete(queueJobs)
 			.run();
 	}
 
 	next() {
-		return queueDb.select().from(queueJobs)
+		return globalThis.queueDb.select().from(queueJobs)
 			.where(
 				and(
 					eq(queueJobs.queue, this.name),
@@ -192,7 +190,7 @@ export class DatabaseQueue {
 	}
 
 	running(job: QueueJob) {
-		return queueDb.update(queueJobs)
+		return globalThis.queueDb.update(queueJobs)
 			.set({
 				runAt: Date.now(),
 				attempts: job.attempts + 1,
@@ -204,7 +202,7 @@ export class DatabaseQueue {
 
 	failed(job: QueueJob, error: any) {
 		if (!error?.code) {
-			return queueDb.update(queueJobs)
+			return globalThis.queueDb.update(queueJobs)
 				.set({
 					runAt: null,
 					failedAt: Date.now(),
@@ -215,7 +213,7 @@ export class DatabaseQueue {
 				.where(eq(queueJobs.id, job.id))
 				.run();
 		}
-		return queueDb.update(queueJobs)
+		return globalThis.queueDb.update(queueJobs)
 			.set({
 				failedAt: Date.now(),
 				error: error
@@ -228,7 +226,7 @@ export class DatabaseQueue {
 	}
 
 	retry(job: QueueJob) {
-		return queueDb.update(queueJobs)
+		return globalThis.queueDb.update(queueJobs)
 			.set({
 				runAt: null,
 			})
@@ -238,7 +236,7 @@ export class DatabaseQueue {
 	}
 
 	finished(job: QueueJob, data: any) {
-		return queueDb.update(queueJobs)
+		return globalThis.queueDb.update(queueJobs)
 			.set({
 				result: JSON.stringify(data ?? 'unknown', null, 2),
 				finishedAt: Date.now(),
@@ -321,7 +319,7 @@ export class DatabaseQueue {
 
 		if (job.task_id) {
 			try {
-				const runningTask = mediaDb.select().from(runningTasks)
+				const runningTask = globalThis.mediaDb.select().from(runningTasks)
 					.where(eq(runningTasks.id, job.task_id))
 					.get();
 				if (runningTask?.id) {
@@ -372,12 +370,12 @@ export class DatabaseQueue {
 			} else {
 				// console.log(message);
 
-				const task = mediaDb.select().from(runningTasks)
+				const task = globalThis.mediaDb.select().from(runningTasks)
 					.where(eq(runningTasks.id, message.job?.queue?.task?.id))
 					.get();
 
 				if (task?.value == 100) {
-					mediaDb.delete(runningTasks)
+					globalThis.mediaDb.delete(runningTasks)
 						.where(eq(runningTasks.id, task.id as string))
 						.run();
 				}

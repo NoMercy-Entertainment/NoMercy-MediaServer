@@ -81,7 +81,7 @@ export default function (socket: any) {
 		// console.log('load', data);
 		if (data.tmdb_id) {
 
-			const start = mediaDb.select()
+			const start = globalThis.mediaDb.select()
 				.from(userData)
 				.where(
 					and(
@@ -101,7 +101,7 @@ export default function (socket: any) {
 	socket.on('getTime', (data: any) => {
 		// console.log('getTime', data);
 		if (data.tmdb_id) {
-			const start = mediaDb.select()
+			const start = globalThis.mediaDb.select()
 				.from(userData)
 				.where(
 					and(
@@ -130,14 +130,14 @@ export default function (socket: any) {
 		if (data.tmdb_id && data.video_type) {
 
 			const videos = data.video_type == 'special'
-				? mediaDb.query.userData.findMany({
+				? globalThis.mediaDb.query.userData.findMany({
 					where: and(
 						eq(userData.user_id, socket.decoded_token.sub),
 						eq(userData[`${data.video_type}_id`], data.tmdb_id),
 						eq(userData.special_id, data.special_id)
 					),
 				})
-				: mediaDb.query.userData.findMany({
+				: globalThis.mediaDb.query.userData.findMany({
 					where: and(
 						eq(userData.user_id, socket.decoded_token.sub),
 						eq(userData[`${data.video_type}_id`], data.tmdb_id)

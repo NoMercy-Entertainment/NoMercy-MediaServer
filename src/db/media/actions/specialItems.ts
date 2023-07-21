@@ -1,10 +1,9 @@
-import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
 import { specialItems } from '../schema/specialItems';
 
 export type NewSpecialItem = InferModel<typeof specialItems, 'insert'>;
-export const insertSpecialItem = (data: NewSpecialItem, constraint: 'episode' | 'movie') => mediaDb.insert(specialItems)
+export const insertSpecialItem = (data: NewSpecialItem, constraint: 'episode' | 'movie') => globalThis.mediaDb.insert(specialItems)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,7 +22,7 @@ export const insertSpecialItem = (data: NewSpecialItem, constraint: 'episode' | 
 export type SpecialItem = InferModel<typeof specialItems, 'select'>;
 export const selectSpecialItem = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.specialItems.findMany({
+		return globalThis.mediaDb.query.specialItems.findMany({
 			with: {
 				special: true,
 				episode: true,
@@ -31,7 +30,7 @@ export const selectSpecialItem = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(specialItems)
 		.all();
 };

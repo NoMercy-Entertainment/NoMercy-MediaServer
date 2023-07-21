@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { translations } from '../schema/translations';
 import { createId } from '@paralleldrive/cuid2';
 
 export type NewTranslation = InferModel<typeof translations, 'insert'>;
-export const insertTranslation = (data: NewTranslation, constraint: 'movie' | 'tv' | 'season' | 'episode' | 'collection' | 'person') => mediaDb.insert(translations)
+export const insertTranslation = (data: NewTranslation, constraint: 'movie' | 'tv' | 'season' | 'episode' | 'collection' | 'person') => globalThis.mediaDb.insert(translations)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -30,7 +29,7 @@ export const insertTranslation = (data: NewTranslation, constraint: 'movie' | 't
 export type Translation = InferModel<typeof translations, 'select'>;
 export const selectTranslation = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.translations.findMany({
+		return globalThis.mediaDb.query.translations.findMany({
 			with: {
 				tv: true,
 				season: true,
@@ -41,7 +40,7 @@ export const selectTranslation = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(translations)
 		.all();
 };

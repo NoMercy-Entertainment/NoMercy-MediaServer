@@ -1,10 +1,9 @@
-import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
 import { similars } from '../schema/similars';
 
 export type NewSimilar = InferModel<typeof similars, 'insert'>;
-export const insertSimilar = (data: NewSimilar, constraint: 'movie' | 'tv') => mediaDb.insert(similars)
+export const insertSimilar = (data: NewSimilar, constraint: 'movie' | 'tv') => globalThis.mediaDb.insert(similars)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,7 +22,7 @@ export const insertSimilar = (data: NewSimilar, constraint: 'movie' | 'tv') => m
 export type Similar = InferModel<typeof similars, 'select'>;
 export const selectSimilar = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.similars.findMany({
+		return globalThis.mediaDb.query.similars.findMany({
 			with: {
 				movie_from: true,
 				movie_to: true,
@@ -32,7 +31,7 @@ export const selectSimilar = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(similars)
 		.all();
 };

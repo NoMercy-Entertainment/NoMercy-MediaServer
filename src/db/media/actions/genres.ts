@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { genres } from '../schema/genres';
 
 export type NewGenre = InferModel<typeof genres, 'insert'>;
-export const insertGenre = (data: NewGenre) => mediaDb.insert(genres)
+export const insertGenre = (data: NewGenre) => globalThis.mediaDb.insert(genres)
 	.values({
 		...convertBooleans(data),
 	})
@@ -20,7 +19,7 @@ export const insertGenre = (data: NewGenre) => mediaDb.insert(genres)
 export type Genre = InferModel<typeof genres, 'select'>;
 export const selectGenre = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.genres.findMany({
+		return globalThis.mediaDb.query.genres.findMany({
 			with: {
 				genre_movie: true,
 				genre_tv: true,
@@ -28,7 +27,7 @@ export const selectGenre = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(genres)
 		.all();
 };

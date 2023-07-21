@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { findLyrics } from '../../../providers';
 import lyricsFinder from 'lyrics-finder';
 import { tracks } from '@server/db/media/schema/tracks';
-import { mediaDb } from '@server/db/media';
 import { eq } from 'drizzle-orm';
 import { track } from '@server/db/media/actions/tracks';
 
@@ -12,7 +11,7 @@ export default async function (req: Request, res: Response) {
 	let song: track = <track>{};
 
 	try {
-		song = mediaDb.select()
+		song = globalThis.mediaDb.select()
 			.from(tracks)
 			.where(eq(tracks.id, req.body.id))
 			.get();
@@ -25,7 +24,7 @@ export default async function (req: Request, res: Response) {
 		}
 
 		if (lyrics) {
-			song = mediaDb.update(tracks)
+			song = globalThis.mediaDb.update(tracks)
 				.set({
 					lyrics,
 				})

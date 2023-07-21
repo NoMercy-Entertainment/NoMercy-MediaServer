@@ -1,14 +1,14 @@
 import {
-	AddUserParams,
-	NotificationsParams, removeUserParams,
-	userPermissionsParams
+    AddUserParams,
+    NotificationsParams, removeUserParams,
+    userPermissionsParams
 } from '@server/types/server';
 import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express';
 
 import Logger from '@server/functions/logger';
 import {
-	setAllowedUsers
+    setAllowedUsers
 } from '@server/state/redux/config/actions';
 import { mediaDb } from '@server/db/media';
 import { eq, inArray } from 'drizzle-orm';
@@ -123,7 +123,7 @@ export const userPermissions = (req: Request, res: Response) => {
 	const { sub_id }: userPermissionsParams = req.body;
 
 	try {
-		const data = mediaDb.query.users.findMany({
+		const data = globalThis.mediaDb.query.users.findMany({
 			where: sub_id
 				? eq(users.id, sub_id)
 				: undefined,
@@ -220,7 +220,7 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
 	try {
-		const Libs = mediaDb.query.libraries.findMany({
+		const Libs = globalThis.mediaDb.query.libraries.findMany({
 			where: inArray(libraries.id, libs),
 		});
 

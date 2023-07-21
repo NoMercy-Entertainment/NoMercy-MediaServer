@@ -1,4 +1,3 @@
-import { mediaDb } from '@server/db/media';
 import Logger from '@server/functions/logger';
 import { Request, Response } from 'express';
 import { asc } from 'drizzle-orm';
@@ -7,7 +6,7 @@ import { languages } from '@server/db/media/schema/languages';
 export const language = (req: Request, res: Response) => {
 
 	try {
-		const data = mediaDb.query.languages.findMany({
+		const data = globalThis.mediaDb.query.languages.findMany({
 			orderBy: asc(languages.english_name),
 		});
 		return res.json(
@@ -32,7 +31,7 @@ export const language = (req: Request, res: Response) => {
 export const countries = (req: Request, res: Response) => {
 
 	try {
-		const data = mediaDb.query.countries.findMany({
+		const data = globalThis.mediaDb.query.countries.findMany({
 			orderBy: asc(languages.english_name),
 		});
 		return res.json(

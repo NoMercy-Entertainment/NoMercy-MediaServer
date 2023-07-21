@@ -1,12 +1,11 @@
 
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { createId } from '@paralleldrive/cuid2';
 import { alternativeTitles } from '../schema/alternativeTitles';
 
 export type NewAlternativeTitle = InferModel<typeof alternativeTitles, 'insert'>;
-export const insertAlternativeTitle = (data: NewAlternativeTitle, constraint: 'movie' | 'tv') => mediaDb.insert(alternativeTitles)
+export const insertAlternativeTitle = (data: NewAlternativeTitle, constraint: 'movie' | 'tv') => globalThis.mediaDb.insert(alternativeTitles)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -27,14 +26,14 @@ export const insertAlternativeTitle = (data: NewAlternativeTitle, constraint: 'm
 export type AlternativeTitle = InferModel<typeof alternativeTitles, 'select'>;
 export const selectAlternativeTitle = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.posts.findMany({
+		return globalThis.mediaDb.query.posts.findMany({
 			with: {
 				movie: true,
 				tv: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(alternativeTitles)
 		.all();
 };

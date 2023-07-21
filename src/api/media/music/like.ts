@@ -12,7 +12,7 @@ export default async function (req: Request, res: Response) {
 
 	const { id, value }: { id: string, value: boolean; } = req.body;
 
-	const result = mediaDb.query.tracks.findFirst({
+	const result = globalThis.mediaDb.query.tracks.findFirst({
 		where: eq(tracks.id, id),
 		with: {
 			track_user: true,
@@ -23,11 +23,11 @@ export default async function (req: Request, res: Response) {
 		return null; 
 	}
 
-	const albumTrackResult = mediaDb.query.album_track.findMany({
+	const albumTrackResult = globalThis.mediaDb.query.album_track.findMany({
 		where: eq(album_track.track_id, result.id),
 	});
 
-	const artistTracksResult = mediaDb.query.artist_track.findMany({
+	const artistTracksResult = globalThis.mediaDb.query.artist_track.findMany({
 		where: inArray(artist_track.track_id, albumTrackResult.map(t => t.track_id)),
 	});
 
@@ -76,7 +76,7 @@ export default async function (req: Request, res: Response) {
 
 	} catch (error) {
 
-		const music = await mediaDb.query.tracks.findFirst({
+		const music = await globalThis.mediaDb.query.tracks.findFirst({
 			where: eq(tracks.id, id),
 			with: {
 				track_user: true,

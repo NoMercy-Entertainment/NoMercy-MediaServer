@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { sortBy } from '@server/functions/stringArray';
 
-import { mediaDb } from '@server/db/media';
 import { eq, isNull, or } from 'drizzle-orm';
 import { translations } from '@server/db/media/schema/translations';
 import { requestWorker } from '@server/api/requestWorker';
@@ -29,7 +28,7 @@ export const exec = ({ take, page, user_id, language }: { take: number; page: nu
 	return new Promise(async (resolve, reject) => {
 		try {
 
-			const items = mediaDb.query.collections.findMany({
+			const items = globalThis.mediaDb.query.collections.findMany({
 				limit: take,
 				offset: page,
 				with: {

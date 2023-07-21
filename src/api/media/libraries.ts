@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 
-import { mediaDb } from '@server/db/media';
 import { inArray } from 'drizzle-orm';
 import { libraries } from '@server/db/media/schema/libraries';
 import { getAllowedLibraries } from '@server/db/media/actions/libraries';
@@ -16,7 +15,7 @@ export default function (req: Request, res: Response) {
 		});
 	}
 
-	const data = mediaDb.query.libraries.findMany({
+	const data = globalThis.mediaDb.query.libraries.findMany({
 		where: inArray(libraries.id, allowedLibraries),
 		with: {
 			folder_library: {

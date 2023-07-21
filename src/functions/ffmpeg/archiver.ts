@@ -16,7 +16,6 @@ import { FFMpeg } from './ffmpeg';
 import { isoToName } from './language';
 import { searchMovie, searchTv } from '@server/providers/tmdb/search';
 import findMediaFiles from '@server/tasks/data/files';
-import { mediaDb } from '@server/db/media';
 import { and, eq } from 'drizzle-orm';
 import { movies } from '@server/db/media/schema/movies';
 import { episodes } from '@server/db/media/schema/episodes';
@@ -80,7 +79,7 @@ export class FFMpegArchive extends FFMpeg {
 	}
 
 	findEpisode(id: number, seasonNumber: number, episodeNumber: number) {
-		return mediaDb.query.episodes.findFirst({
+		return globalThis.mediaDb.query.episodes.findFirst({
 			where: and(
 				eq(episodes.episodeNumber, episodeNumber),
 				eq(episodes.seasonNumber, seasonNumber),
@@ -110,7 +109,7 @@ export class FFMpegArchive extends FFMpeg {
 	}
 
 	findMovie(searchResult: Movie) {
-		return mediaDb.query.movies.findFirst({
+		return globalThis.mediaDb.query.movies.findFirst({
 			where: eq(movies.titleSort, createTitleSort(searchResult.title, searchResult.release_date)),
 			with: {
 				library: {

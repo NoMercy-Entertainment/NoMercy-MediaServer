@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { createId } from '@paralleldrive/cuid2';
 import { folders } from '../schema/folders';
 
 export type NewFolder = InferModel<typeof folders, 'insert'>;
-export const insertFolder = (data: NewFolder) => mediaDb.insert(folders)
+export const insertFolder = (data: NewFolder) => globalThis.mediaDb.insert(folders)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -24,12 +23,12 @@ export const insertFolder = (data: NewFolder) => mediaDb.insert(folders)
 
 export type Folder = InferModel<typeof folders, 'select'>;
 export const findFoldersDB = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(folders)
 		.all();
 };
 export const findFoldersDBWithLibraries = () => {
-	return mediaDb.query.folders.findMany({
+	return globalThis.mediaDb.query.folders.findMany({
 		with: {
 			folder_libraries: true,
 		},

@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { folder_library } from '../schema/folder_library';
 
 export type NewFolderLibrary = InferModel<typeof folder_library, 'insert'>;
 export const insertLibraryFolder = (data: NewFolderLibrary) => {
-	return mediaDb.insert(folder_library)
+	return globalThis.mediaDb.insert(folder_library)
 		.values({
 			...data,
 		})
@@ -20,7 +19,7 @@ export const insertLibraryFolder = (data: NewFolderLibrary) => {
 
 export type FolderLibrary = InferModel<typeof folder_library, 'select'>;
 export const selectLibraryFolder = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(folder_library)
 		.all();
 };

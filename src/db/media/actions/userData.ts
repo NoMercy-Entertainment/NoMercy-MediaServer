@@ -1,10 +1,9 @@
 import { InferModel, and, desc, eq, isNotNull } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { userData } from '../schema/userData';
 
 export type NewUserData = InferModel<typeof userData, 'insert'>;
-export const insertUserData = (data: NewUserData, constraint: Array<'tv_id' | 'movie_id' | 'special_id'>) => mediaDb.insert(userData)
+export const insertUserData = (data: NewUserData, constraint: Array<'tv_id' | 'movie_id' | 'special_id'>) => globalThis.mediaDb.insert(userData)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,7 +22,7 @@ export const insertUserData = (data: NewUserData, constraint: Array<'tv_id' | 'm
 export type UserData = InferModel<typeof userData, 'select'>;
 export type UserDataWithRelations = ReturnType<typeof selectUserData>;
 export const selectUserData = () => {
-	return mediaDb.query.userData.findMany({
+	return globalThis.mediaDb.query.userData.findMany({
 		with: {
 			tv: true,
 			movie: true,
@@ -36,7 +35,7 @@ export const selectUserData = () => {
 
 export type UserDataWithRelationsFromUser = ReturnType<typeof selectFromUserData>;
 export const selectFromUserData = ({ user_id }) => {
-	return mediaDb.query.userData.findMany({
+	return globalThis.mediaDb.query.userData.findMany({
 		with: {
 			tv: true,
 			movie: true,

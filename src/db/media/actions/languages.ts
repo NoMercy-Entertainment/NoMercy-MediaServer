@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { languages } from '../schema/languages';
 
 export type NewLanguage = InferModel<typeof languages, 'insert'>;
-export const insertLanguage = (data: NewLanguage) => mediaDb.insert(languages)
+export const insertLanguage = (data: NewLanguage) => globalThis.mediaDb.insert(languages)
 	.values({
 		...convertBooleans(data),
 	})
@@ -20,13 +19,13 @@ export const insertLanguage = (data: NewLanguage) => mediaDb.insert(languages)
 export type Language = InferModel<typeof languages, 'select'>;
 export const selectLanguage = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.languages.findMany({
+		return globalThis.mediaDb.query.languages.findMany({
 			with: {
 				language_library: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(languages)
 		.all();
 };

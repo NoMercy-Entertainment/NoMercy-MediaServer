@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { guestStars } from '../schema/guestStars';
 
 export type NewGuestStar = InferModel<typeof guestStars, 'insert'>;
-export const insertGuestStar = (data: NewGuestStar) => mediaDb.insert(guestStars)
+export const insertGuestStar = (data: NewGuestStar) => globalThis.mediaDb.insert(guestStars)
 	.values({
 		...convertBooleans(data),
 	})
@@ -24,14 +23,14 @@ export const insertGuestStar = (data: NewGuestStar) => mediaDb.insert(guestStars
 export type GuestStar = InferModel<typeof guestStars, 'select'>;
 export const selectGuestStar = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.guestStars.findMany({
+		return globalThis.mediaDb.query.guestStars.findMany({
 			with: {
 				person: true,
 				episode: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(guestStars)
 		.all();
 };

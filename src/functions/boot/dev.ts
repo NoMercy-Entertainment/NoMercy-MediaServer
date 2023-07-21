@@ -14,7 +14,7 @@
 
 export default () => {
 
-	// const peoples = mediaDb.query.people.findMany({
+	// const peoples = globalThis.mediaDb.query.people.findMany({
 	// 	where: (table) => isNull(table.titleSort),
 	// 	// with: {
 	// 	// 	person_track: true,

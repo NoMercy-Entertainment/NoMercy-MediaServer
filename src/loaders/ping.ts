@@ -5,7 +5,6 @@ import { ServerPingResponse } from '@server/types/api';
 import axios from '../functions/axios';
 import { deviceId } from '../functions/system';
 import { setOwner } from '@server/state/redux/system/actions';
-import { mediaDb } from '@server/db/media';
 import { eq } from 'drizzle-orm';
 import { configuration } from '@server/db/media/schema/configuration';
 
@@ -17,7 +16,7 @@ export default async () => {
 };
 
 const ping = async () => {
-	const server_name = await mediaDb.query.configuration.findFirst({ where: eq(configuration.key, 'server_name') });
+	const server_name = await globalThis.mediaDb.query.configuration.findFirst({ where: eq(configuration.key, 'server_name') });
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
 	const data = {

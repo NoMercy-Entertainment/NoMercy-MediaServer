@@ -1,4 +1,4 @@
-import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 
 import * as failedJobs from './schema/failedJobs';
@@ -10,12 +10,11 @@ const queueSchema = {
 	...failedJobs,
 };
 
-const queue = new Database(queueDbFile, {
-	timeout: 100000,
-	// verbose: console.log,
-});
+// export let queueDb: BetterSQLite3Database<typeof queueSchema>;
 
-export const queueDb: BetterSQLite3Database<typeof queueSchema> = drizzle(queue, {
-	schema: queueSchema,
-	// logger: new MyLogger(),
-});
+export default () => {
+	globalThis.queueDb = drizzle(new Database(queueDbFile), {
+		schema: queueSchema,
+		// logger: new MyLogger(),
+	});
+}

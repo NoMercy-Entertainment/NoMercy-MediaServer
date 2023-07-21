@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 
-import { mediaDb } from '@server/db/media';
 import { tvs } from '@server/db/media/schema/tvs';
 import { eq } from 'drizzle-orm';
 import { requestWorker } from '@server/api/requestWorker';
@@ -26,7 +25,7 @@ export default async function (req: Request, res: Response) {
 export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
 	return new Promise(async (resolve, reject) => {
 
-		const tv = mediaDb.query.tvs.findFirst({
+		const tv = globalThis.mediaDb.query.tvs.findFirst({
 			where: eq(tvs.id, parseInt(id, 10)),
 			with: {
 				seasons: {

@@ -1,11 +1,10 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { roles } from '../schema/roles';
 
 export type NewRole = InferModel<typeof roles, 'insert'>;
-export const insertRole = (data: NewRole) => mediaDb.insert(roles)
+export const insertRole = (data: NewRole) => globalThis.mediaDb.insert(roles)
 	.values({
 		...convertBooleans(data),
 	})
@@ -20,7 +19,7 @@ export const insertRole = (data: NewRole) => mediaDb.insert(roles)
 	})
 	.returning()
 	.get();
-export const insertGuestRole = (data: NewRole) => mediaDb.insert(roles)
+export const insertGuestRole = (data: NewRole) => globalThis.mediaDb.insert(roles)
 	.values({
 		...convertBooleans(data),
 	})
@@ -36,14 +35,14 @@ export const insertGuestRole = (data: NewRole) => mediaDb.insert(roles)
 export type Role = InferModel<typeof roles, 'select'>;
 export const selectRole = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.roles.findMany({
+		return globalThis.mediaDb.query.roles.findMany({
 			with: {
 				cast: true,
 				guest: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(roles)
 		.all();
 };

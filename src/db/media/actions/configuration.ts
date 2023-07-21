@@ -1,11 +1,10 @@
 
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
 import { configuration } from '../schema/configuration';
 
 export type NewConfiguration = InferModel<typeof configuration, 'insert'>;
-export const insertConfiguration = (data: NewConfiguration) => mediaDb.insert(configuration)
+export const insertConfiguration = (data: NewConfiguration) => globalThis.mediaDb.insert(configuration)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,7 +22,7 @@ export const insertConfiguration = (data: NewConfiguration) => mediaDb.insert(co
 
 export type Configuration = InferModel<typeof configuration, 'select'>;
 export const selectConfiguration = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(configuration)
 		.all();
 };

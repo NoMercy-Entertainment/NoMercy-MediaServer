@@ -1,12 +1,11 @@
 import { InferModel, eq, inArray } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { track_user } from '../schema/track_user';
 import { album_track } from '../schema/album_track';
 import { artist_track } from '../schema/artist_track';
 
 export type NewTrackUser = InferModel<typeof track_user, 'insert'>;
-export const insertTrackUser = (data: NewTrackUser) => mediaDb.insert(track_user)
+export const insertTrackUser = (data: NewTrackUser) => globalThis.mediaDb.insert(track_user)
 	.values({
 		...convertBooleans(data),
 	})
@@ -21,7 +20,7 @@ export const insertTrackUser = (data: NewTrackUser) => mediaDb.insert(track_user
 
 export type TrackUser = InferModel<typeof track_user, 'select'>;
 export const selectTrackUser = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(track_user)
 		.all();
 };
@@ -29,7 +28,7 @@ export const selectTrackUser = () => {
 
 export const selectFavoriteTracks = (user_id: string) => {
 
-	const result = mediaDb.query.track_user.findMany({
+	const result = globalThis.mediaDb.query.track_user.findMany({
 		with: {
 			track: {
 				with: {
@@ -46,14 +45,14 @@ export const selectFavoriteTracks = (user_id: string) => {
 		return null;
 	}
 
-	const artistTrackResults = mediaDb.query.artist_track.findMany({
+	const artistTrackResults = globalThis.mediaDb.query.artist_track.findMany({
 		where: inArray(artist_track.track_id, result.map(m => m.track_id)),
 		with: {
 			artist: true,
 		},
 	});
 
-	const albumTrackResults = mediaDb.query.album_track.findMany({
+	const albumTrackResults = globalThis.mediaDb.query.album_track.findMany({
 		where: inArray(album_track.track_id, result.map(m => m.track_id)),
 		with: {
 			album: true,

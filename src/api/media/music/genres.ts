@@ -4,13 +4,12 @@ import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '@server/functions/system';
 // import { generateBlurHash } from '@server/functions/createBlurHash/createBlurHash';
 import { sortBy } from '@server/functions/stringArray';
-import { mediaDb } from '@server/db/media';
 import { asc } from 'drizzle-orm';
 import { musicGenres } from '@server/db/media/schema/musicGenres';
 
 export default function (req: Request, res: Response) {
 
-	const music = mediaDb.query.musicGenres.findMany({
+	const music = globalThis.mediaDb.query.musicGenres.findMany({
 		// where: {
 		// 	track: {
 		// 		some: {

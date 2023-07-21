@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { metadata } from '../schema/metadata';
 import { createId } from '@paralleldrive/cuid2';
 
 export type NewMetadata = InferModel<typeof metadata, 'insert'>;
-export const insertMetadata = (data: NewMetadata) => mediaDb.insert(metadata)
+export const insertMetadata = (data: NewMetadata) => globalThis.mediaDb.insert(metadata)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -25,7 +24,7 @@ export const insertMetadata = (data: NewMetadata) => mediaDb.insert(metadata)
 
 export type Metadata = InferModel<typeof metadata, 'select'>;
 export const selectMetadata = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(metadata)
 		.all();
 };

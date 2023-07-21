@@ -1,13 +1,12 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel, eq, ReturnTypeOrValue, inArray, and } from 'drizzle-orm';
-import { mediaDb } from '..';
 import { tvs } from '../schema/tvs';
 import i18next from 'i18next';
 import { sortBy } from '@server/functions/stringArray';
 
 export type NewTv = InferModel<typeof tvs, 'insert'>;
-export const insertTv = (data: NewTv) => mediaDb.insert(tvs)
+export const insertTv = (data: NewTv) => globalThis.mediaDb.insert(tvs)
 	.values({
 		...convertBooleans(data),
 	})
@@ -25,7 +24,7 @@ export const insertTv = (data: NewTv) => mediaDb.insert(tvs)
 
 export type Tv = InferModel<typeof tvs, 'select'>;
 export const selectTv = (data: Tv) => {
-	return mediaDb.query.tvs.findFirst({
+	return globalThis.mediaDb.query.tvs.findFirst({
 		with: {
 				alternativeTitles: true,
 				casts: {
@@ -67,7 +66,7 @@ export const selectTv = (data: Tv) => {
 };
 
 export type TvUpdate = Partial<InferModel<typeof tvs, 'select'>> & { id: number };
-export const updateTv = (data: TvUpdate) => mediaDb.update(tvs)
+export const updateTv = (data: TvUpdate) => globalThis.mediaDb.update(tvs)
 	.set({
 		...convertBooleans(data),
 	})
@@ -75,16 +74,16 @@ export const updateTv = (data: TvUpdate) => mediaDb.update(tvs)
 	.returning()
 	.get();
 
-export const deleteTv = (id: number) => mediaDb.delete(tvs)
+export const deleteTv = (id: number) => globalThis.mediaDb.delete(tvs)
 	.where(eq(tvs.id, id))
 	.returning()
 	.get();
 
-export const selectTvsDB = () => mediaDb.select()
+export const selectTvsDB = () => globalThis.mediaDb.select()
 	.from(tvs)
 	.all();
 
-export const selectTvDB = (id: number) => mediaDb.select()
+export const selectTvDB = (id: number) => globalThis.mediaDb.select()
 	.from(tvs)
 	.where(eq(tvs.id, id))
 	.get();
@@ -93,7 +92,7 @@ export type TvWithRelations = ReturnTypeOrValue<typeof getTv>;
 
 export const getTv = ({ id, user_id, language }: { id: number, user_id: string, language: string }) => {
 
-	const tvData = mediaDb.query.tvs.findFirst({
+	const tvData = globalThis.mediaDb.query.tvs.findFirst({
 		where: (tvs, { eq }) => eq(tvs.id, id),
 		with: {
 			alternativeTitles: {
@@ -139,25 +138,25 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		return null;
 	}
 
-	const mediasData = mediaDb.query.medias.findMany({
+	const mediasData = globalThis.mediaDb.query.medias.findMany({
 		where: (medias, { eq }) => and(
 			eq(medias.tv_id, id),
 			eq(medias.type, 'Trailer')),
 	});
 
-	const imagesData = mediaDb.query.images.findMany({
+	const imagesData = globalThis.mediaDb.query.images.findMany({
 		where: (images, { eq }) => eq(images.tv_id, id),
 	});
 
-	const similarData = mediaDb.query.similars.findMany({
+	const similarData = globalThis.mediaDb.query.similars.findMany({
 		where: (similars, { eq }) => eq(similars.tvFrom_id, id),
 	});
 
-	const recommendationData = mediaDb.query.recommendations.findMany({
+	const recommendationData = globalThis.mediaDb.query.recommendations.findMany({
 		where: (recommendations, { eq }) => eq(recommendations.tvFrom_id, id),
 	});
 
-	const castsData = mediaDb.query.casts.findMany({
+	const castsData = globalThis.mediaDb.query.casts.findMany({
 		where: (casts, { eq }) => eq(casts.tv_id, id),
 		columns: {
 			id: true,
@@ -165,7 +164,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const crewsData = mediaDb.query.crews.findMany({
+	const crewsData = globalThis.mediaDb.query.crews.findMany({
 		where: (crews, { eq }) => eq(crews.tv_id, id),
 		columns: {
 			id: true,
@@ -173,7 +172,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const personData = mediaDb.query.people.findMany({
+	const personData = globalThis.mediaDb.query.people.findMany({
 		where: (people) => inArray(people.id, [
 			...castsData.map(cast => cast.person_id), 
 			...crewsData.map(crew => crew.person_id)
@@ -190,7 +189,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const rolesData = mediaDb.query.roles.findMany({
+	const rolesData = globalThis.mediaDb.query.roles.findMany({
 		where: (roles) => inArray(roles.cast_id, castsData.map(cast => cast.id)),
 		columns: {
 			cast_id: true,
@@ -198,7 +197,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const jobsData = mediaDb.query.jobs.findMany({
+	const jobsData = globalThis.mediaDb.query.jobs.findMany({
 		where: (jobs) => inArray(jobs.crew_id, crewsData.map(crew => crew.id)),
 		columns: {
 			crew_id: true,
@@ -206,7 +205,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const seasonsData = mediaDb.query.seasons.findMany({
+	const seasonsData = globalThis.mediaDb.query.seasons.findMany({
 		where: (seasons, { eq }) => eq(seasons.tv_id, id),
 		columns: {
 			id: true,
@@ -218,7 +217,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const episodesData = mediaDb.query.episodes.findMany({
+	const episodesData = globalThis.mediaDb.query.episodes.findMany({
 		where: (episodes, { eq }) => eq(episodes.tv_id, id),
 		columns: {
 			id: true,
@@ -232,7 +231,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const videoFileData = mediaDb.query.videoFiles.findMany({
+	const videoFileData = globalThis.mediaDb.query.videoFiles.findMany({
 		where: (medias) => inArray(medias.episode_id, episodesData.map(episode => episode.id)),
 		columns: {
 			id: true,
@@ -246,7 +245,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		},
 	});
 
-	const translationsData = mediaDb.query.translations.findMany({
+	const translationsData = globalThis.mediaDb.query.translations.findMany({
 		where: (translations, { eq, or, and }) => 
 			or(
 				and(
@@ -298,7 +297,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 export type TvPlaybackWithRelations = ReturnTypeOrValue<typeof getTvPlayback> | null;
 export const getTvPlayback = ({ id, language }: {id: number, language: string}) => {
 
-	const tvData = mediaDb.query.tvs.findFirst({
+	const tvData = globalThis.mediaDb.query.tvs.findFirst({
 		where: (tvs, { eq }) => eq(tvs.id, id),
 		with: {
 			library: true,
@@ -314,28 +313,28 @@ export const getTvPlayback = ({ id, language }: {id: number, language: string}) 
 		return null;
 	}
 
-	const seasonsData = mediaDb.query.seasons.findMany({
+	const seasonsData = globalThis.mediaDb.query.seasons.findMany({
 		where: (seasons, { eq }) => eq(seasons.tv_id, id),
 	});
 
-	const episodesData = mediaDb.query.episodes.findMany({
+	const episodesData = globalThis.mediaDb.query.episodes.findMany({
 		where: (episodes, { eq }) => eq(episodes.tv_id, id),
 	});
 
-	const videoFileData = mediaDb.query.videoFiles.findMany({
+	const videoFileData = globalThis.mediaDb.query.videoFiles.findMany({
 		where: (medias) => inArray(medias.episode_id, episodesData.map(episode => episode.id)),
 		with: {
 			userData: true,
 		},
 	});
 
-	const mediasData = mediaDb.query.medias.findMany({
+	const mediasData = globalThis.mediaDb.query.medias.findMany({
 		where: (medias, { eq }) => and(
 			eq(medias.tv_id, id),
 			eq(medias.type, 'logo')),
 	});
 
-	const translationsData = mediaDb.query.translations.findMany({
+	const translationsData = globalThis.mediaDb.query.translations.findMany({
 		where: (translations, { eq, or, and }) => or(
 			and(
 				eq(translations.iso6391, language),

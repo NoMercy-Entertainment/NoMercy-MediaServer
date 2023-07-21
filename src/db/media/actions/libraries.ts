@@ -1,12 +1,11 @@
 import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
-import { mediaDb } from '@server/db/media';
 import { libraries } from '../schema/libraries';
 import { Request } from 'express';
 
 export type NewLibrary = InferModel<typeof libraries, 'insert'>;
-export const insertLibrary = (data: NewLibrary, constraint: 'id' | 'title') => mediaDb.insert(libraries)
+export const insertLibrary = (data: NewLibrary, constraint: 'id' | 'title') => globalThis.mediaDb.insert(libraries)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -26,14 +25,14 @@ export const insertLibrary = (data: NewLibrary, constraint: 'id' | 'title') => m
 
 export type Library = InferModel<typeof libraries, 'select'>;
 export const selectLibrary = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(libraries)
 		.all();
 };
 
 export type LibrariesWithRelations = ReturnType<typeof selectLibrariesWithRelations>;
 export const selectLibrariesWithRelations = () => {
-	return mediaDb.query.libraries.findMany({
+	return globalThis.mediaDb.query.libraries.findMany({
 		with: {
 			folder_library: {
 				with: {
@@ -81,7 +80,7 @@ export const selectLibrariesWithRelations = () => {
 
 export type LibraryWithRelations = ReturnType<typeof selectLibraryWithRelations>;
 export const selectLibraryWithRelations = (id: string) => {
-	return mediaDb.query.libraries.findFirst({
+	return globalThis.mediaDb.query.libraries.findFirst({
 		with: {
 			folder_library: {
 				with: {
@@ -132,16 +131,16 @@ export type AllowedLibraries = ReturnType<typeof getAllowedLibraries>;
 export const getAllowedLibraries = (req: Request | string) => {
 
 	if (typeof req == 'string') {
-		return mediaDb.query.library_user.findMany({
+		return globalThis.mediaDb.query.library_user.findMany({
 			where: (library_user, { eq, and }) => eq(library_user.user_id, req),
 		}).map(l => l.library_id!);
 	}
 
 	if (req.isOwner) {
-		return mediaDb.query.libraries.findMany().map(l => l.id!);
+		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
 	}
 
-	return mediaDb.query.library_user.findMany({
+	return globalThis.mediaDb.query.library_user.findMany({
 		where: (library_user, { eq, and }) => eq(library_user.user_id, req.user.sub),
 	}).map(l => l.library_id!);
 };
@@ -149,7 +148,7 @@ export type AllowedLibrary = ReturnType<typeof getAllowedLibrary>;
 export const getAllowedLibrary = (req: Request | string, id: string) => {
 
 	if (typeof req == 'string') {
-		return mediaDb.query.library_user.findMany({
+		return globalThis.mediaDb.query.library_user.findMany({
 			where: (library_user, { eq, and }) => and(
 				eq(library_user.user_id, req),
 				eq(library_user.library_id, id)
@@ -158,10 +157,10 @@ export const getAllowedLibrary = (req: Request | string, id: string) => {
 	}
 
 	if (req.isOwner) {
-		return mediaDb.query.libraries.findMany().map(l => l.id!);
+		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
 	}
 
-	return mediaDb.query.library_user.findMany({
+	return globalThis.mediaDb.query.library_user.findMany({
 		where: (library_user, { eq }) => eq(library_user.user_id, req.user.sub),
 	}).map(l => l.library_id!);
 };
@@ -169,12 +168,12 @@ export const getAllowedLibrary = (req: Request | string, id: string) => {
 export const getLibrary = (req: Request, id: string) => {
 
 	if (req.isOwner) {
-		return mediaDb.query.libraries.findFirst({
+		return globalThis.mediaDb.query.libraries.findFirst({
 			where: (libraries, { eq }) => eq(libraries.id, id),
 		});
 	}
 
-	return mediaDb.query.library_user.findFirst({
+	return globalThis.mediaDb.query.library_user.findFirst({
 		where: (library_user, { eq, and }) => and(
 			eq(library_user.library_id, id),
 			eq(library_user.user_id, req.user.sub)
@@ -188,7 +187,7 @@ export const getLibrary = (req: Request, id: string) => {
 export type EncodingLibrary = ReturnType<typeof getEncoderLibraryById>;
 
 export const getEncoderLibraryById = (id: string) => {
-	return mediaDb.query.libraries.findFirst({
+	return globalThis.mediaDb.query.libraries.findFirst({
 		with: {
 			folder_library: {
 				with: {
@@ -206,7 +205,7 @@ export const getEncoderLibraryById = (id: string) => {
 };
 
 export const getEncoderLibraryByType = (type: string) => {
-	return mediaDb.query.libraries.findFirst({
+	return globalThis.mediaDb.query.libraries.findFirst({
 		with: {
 			folder_library: {
 				with: {
@@ -224,7 +223,7 @@ export const getEncoderLibraryByType = (type: string) => {
 };
 
 export const getEncoderLibraries = () => {
-	return mediaDb.query.libraries.findMany({
+	return globalThis.mediaDb.query.libraries.findMany({
 		with: {
 			folder_library: {
 				with: {

@@ -1,10 +1,9 @@
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { InferModel } from 'drizzle-orm';
 import { countries } from '../schema/countries';
 
 export type NewCountry = InferModel<typeof countries, 'insert'>;
-export const insertCountry = (data: NewCountry) => mediaDb.insert(countries)
+export const insertCountry = (data: NewCountry) => globalThis.mediaDb.insert(countries)
 	.values({
 		...convertBooleans(data),
 	})
@@ -19,7 +18,7 @@ export const insertCountry = (data: NewCountry) => mediaDb.insert(countries)
 
 export type Country = InferModel<typeof countries, 'select'>;
 export const selectCountry = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(countries)
 		.all();
 };

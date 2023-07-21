@@ -1,11 +1,10 @@
 
-import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
 import { crews } from '../schema/crews';
 
 export type NewCrew = InferModel<typeof crews, 'insert'>;
-export const insertCrew = (data: NewCrew) => mediaDb.insert(crews)
+export const insertCrew = (data: NewCrew) => globalThis.mediaDb.insert(crews)
 	.values({
 		...convertBooleans(data),
 	})
@@ -21,7 +20,7 @@ export const insertCrew = (data: NewCrew) => mediaDb.insert(crews)
 export type Crew = InferModel<typeof crews, 'select'>;
 export const selectCrew = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.crews.findMany({
+		return globalThis.mediaDb.query.crews.findMany({
 			with: {
 				person: true,
 				movie: true,
@@ -33,7 +32,7 @@ export const selectCrew = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(crews)
 		.all();
 };

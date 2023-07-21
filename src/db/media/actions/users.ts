@@ -1,10 +1,9 @@
 import { convertBooleans } from '../../helpers';
 import { InferModel, eq } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { users } from '../schema/users';
 
 export type NewUser = InferModel<typeof users, 'insert'>;
-export const insertUser = (data: NewUser) => mediaDb.insert(users)
+export const insertUser = (data: NewUser) => globalThis.mediaDb.insert(users)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,7 +22,7 @@ export const insertUser = (data: NewUser) => mediaDb.insert(users)
 export type User = InferModel<typeof users, 'select'>;
 export const selectUser = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.users.findMany({
+		return globalThis.mediaDb.query.users.findMany({
 			with: {
 				library_user: true,
 				notification_user: true,
@@ -32,12 +31,12 @@ export const selectUser = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(users)
 		.all();
 };
 
-export const updateUser = (data: Partial<User> & { id: string }) => mediaDb.update(users)
+export const updateUser = (data: Partial<User> & { id: string }) => globalThis.mediaDb.update(users)
 	.set({
 		...convertBooleans(data),
 	})

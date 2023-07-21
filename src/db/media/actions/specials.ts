@@ -1,5 +1,4 @@
 import { InferModel, and, eq, inArray, or } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { specials } from '../schema/specials';
 import { createId } from '@paralleldrive/cuid2';
@@ -16,7 +15,7 @@ import { certifications } from '../schema/certifications';
 import { medias } from '../schema/medias';
 
 export type NewSpecial = InferModel<typeof specials, 'insert'>;
-export const insertSpecial = (data: NewSpecial) => mediaDb.insert(specials)
+export const insertSpecial = (data: NewSpecial) => globalThis.mediaDb.insert(specials)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -37,13 +36,13 @@ export const insertSpecial = (data: NewSpecial) => mediaDb.insert(specials)
 export type Special = InferModel<typeof specials, 'select'>;
 export const selectSpecial = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.specials.findMany({
+		return globalThis.mediaDb.query.specials.findMany({
 			with: {
 				specialItems: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(specials)
 		.all();
 };
@@ -51,7 +50,7 @@ export const selectSpecial = (relations = false) => {
 export type SelectSpecial = ReturnType<typeof getSpecial>;
 export const getSpecial = ({id}: {id: string}) => {
 
-	const result = mediaDb.query.specials.findFirst({
+	const result = globalThis.mediaDb.query.specials.findFirst({
 		where: (specials, { eq }) => eq(specials.id, id),
 		with: {
 			specialItems: {
@@ -109,7 +108,7 @@ export const getSpecial = ({id}: {id: string}) => {
 		.filter(i => i !== undefined) as number[];
 
 	const translationsData = tvIds.length > 0 || movieIds.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(translations)
 			.where(
 				or(
@@ -128,7 +127,7 @@ export const getSpecial = ({id}: {id: string}) => {
 
 
 	const castsData = tvIds.length > 0 || movieIds.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(casts)
 			.where(
 				or(
@@ -141,7 +140,7 @@ export const getSpecial = ({id}: {id: string}) => {
 		: [];
 
 	const crewsData = tvIds.length > 0 || movieIds.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(crews)
 			.where(
 				or(
@@ -159,42 +158,42 @@ export const getSpecial = ({id}: {id: string}) => {
 	}
 
 	const peoplesData = peoples.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(people)
 			.where(inArray(people.id, peoples))
 			.all()
 		: [];
 
 	const rolesData = castsData.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(roles)
 			.where(inArray(roles.cast_id, castsData.map(cast => cast.id)))
 			.all()
 		: [];
 
 	const jobsData = crewsData.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(jobs)
 			.where(inArray(jobs.crew_id, crewsData.map(crew => crew.id)))
 			.all()
 		: [];
 
 	const tvCertifications = tvIds.length > 0 || movieIds.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(certification_tv)
 			.where(inArray(certification_tv.tv_id, tvIds))
 			.all()
 		: [];
 
 	const movieCertifications = tvIds.length > 0 || movieIds.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(certification_movie)
 			.where(inArray(certification_movie.movie_id, movieIds))
 			.all()
 		: [];
 
 	const certificationData = tvCertifications.length > 0 && movieCertifications.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(certifications)
 			.where(inArray(certifications.id, tvCertifications.map(c => c.certification_id)
 				.concat(movieCertifications.map(c => c.certification_id))))
@@ -202,7 +201,7 @@ export const getSpecial = ({id}: {id: string}) => {
 		: [];
 
 	const mediasData = tvIds.length > 0 || movieIds.length > 0
-		? mediaDb.select()
+		? globalThis.mediaDb.select()
 			.from(medias)
 			.where(
 				or(

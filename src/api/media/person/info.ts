@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import i18n from '@server/loaders/i18n';
 import { requestWorker } from '@server/api/requestWorker';
-import { mediaDb } from '@server/db/media';
 import { PersonCast, PersonWithAppends, person, personAppend } from '@server/providers/tmdb/people';
 import { inArray } from 'drizzle-orm';
 import { sortBy, unique } from '@server/functions/stringArray';
@@ -30,7 +29,7 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 
 		i18n.changeLanguage('en');
 
-		const data = mediaDb.query.people.findFirst({
+		const data = globalThis.mediaDb.query.people.findFirst({
 			where: (people, { eq }) => eq(people.id, parseInt(id, 10)),
 			with: {
 				casts: {
@@ -53,27 +52,27 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 		const tvIds = data?.casts.filter(t => !!t.tv_id).map(c => c.tv_id!).concat(0) ?? [0];
 		const movieIds = data?.casts.filter(m => !!m.movie_id).map(c => c.movie_id!).concat(0) ?? [0];
 
-		const imagesData = mediaDb.query.images.findMany({
+		const imagesData = globalThis.mediaDb.query.images.findMany({
 			where: (images, { eq, and }) => and(
 				eq(images.person_id, parseInt(id, 10)),
 				eq(images.type, 'profile')),
 		});
 
-		const movieData = mediaDb.query.movies.findMany({
+		const movieData = globalThis.mediaDb.query.movies.findMany({
 			where: (movies, { eq, and }) => eq(movies.id, parseInt(id, 10)),
 		});
 
-		const tvData = mediaDb.query.tvs.findMany({
+		const tvData = globalThis.mediaDb.query.tvs.findMany({
 			where: (tv, { eq, and }) => eq(tv.id, parseInt(id, 10)),
 		});
 		
-		const mediasData = mediaDb.query.medias.findMany({
+		const mediasData = globalThis.mediaDb.query.medias.findMany({
 			where: (medias, { eq, and }) => and(
 				eq(medias.person_id, parseInt(id, 10)),
 				eq(medias.type, 'profile')),
 		});
 
-		const translationsData = mediaDb.query.translations.findFirst({
+		const translationsData = globalThis.mediaDb.query.translations.findFirst({
 			where: (translations, { eq, and, or }) => or(
 				and(
 					eq(translations.iso6391, language),

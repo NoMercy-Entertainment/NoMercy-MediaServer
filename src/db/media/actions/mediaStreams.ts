@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { createId } from '@paralleldrive/cuid2';
 import { mediaStreams } from '../schema/mediaStreams';
 
 export type NewMediaStream = InferModel<typeof mediaStreams, 'insert'>;
-export const insertMediaStream = (data: NewMediaStream) => mediaDb.insert(mediaStreams)
+export const insertMediaStream = (data: NewMediaStream) => globalThis.mediaDb.insert(mediaStreams)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -25,7 +24,7 @@ export const insertMediaStream = (data: NewMediaStream) => mediaDb.insert(mediaS
 
 export type MediaStream = InferModel<typeof mediaStreams, 'select'>;
 export const selectMediaStream = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(mediaStreams)
 		.all();
 };

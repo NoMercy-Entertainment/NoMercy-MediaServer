@@ -6,12 +6,11 @@ import { mediaDb } from '@server/db/media';
 import { eq } from 'drizzle-orm';
 import { runningTasks } from '@server/db/media/schema/runningTasks';
 import { queueJobs } from '@server/db/queue/schema/queueJobs';
-import { queueDb } from '@server/db/queue';
 
 export const tasks = (req: Request, res: Response) => {
 
 	try {
-		const data = mediaDb.query.runningTasks.findMany();
+		const data = globalThis.mediaDb.query.runningTasks.findMany();
 		return res.json(
 			data.map(d => ({
 				...d,
@@ -153,7 +152,7 @@ export const runningTaskWorkers = (req: Request, res: Response) => {
 export const encoderQueue = (req: Request, res: Response) => {
 
 	try {
-		const data = queueDb.query.queueJobs.findMany({
+		const data = globalThis.queueDb.query.queueJobs.findMany({
 			where: eq(queueJobs.queue, 'encoder'),
 		});
 

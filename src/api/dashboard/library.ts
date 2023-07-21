@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import Logger from '@server/functions/logger';
 import {
-	createMediaFolder
+    createMediaFolder
 } from '@server/tasks/files/filenameParser';
 import { encodeInput } from '@server/functions/ffmpeg/encodeInput';
 import i18n from '../../loaders/i18n';
@@ -10,14 +10,13 @@ import { movie } from '@server/providers/tmdb/movie';
 import path from 'path';
 import { platform } from '@server/functions/system';
 import {
-	scanLibrary
+    scanLibrary
 } from '@server/tasks/files/scanLibraries';
 import storeMovie from '@server/tasks/data/movie';
 import storeTvShow from '@server/tasks/data/tv';
 import { tv } from '@server/providers/tmdb/tv';
 import { updateEncoderProfilesParams } from '@server/types/server';
 import { insertLibrary, selectLibrariesWithRelations } from '@server/db/media/actions/libraries';
-import { mediaDb } from '@server/db/media';
 import { eq, inArray } from 'drizzle-orm';
 import { libraries } from '@server/db/media/schema/libraries';
 import { insertFolder } from '@server/db/media/actions/folders';
@@ -61,9 +60,9 @@ export const createLibrary = (req: Request, res: Response) => {
 		encoderProfiles: profiles,
 	} = req.body;
 
-	const users = mediaDb.query.users.findMany();
+	const users = globalThis.mediaDb.query.users.findMany();
 
-	const lib = mediaDb.query.libraries.findFirst({
+	const lib = globalThis.mediaDb.query.libraries.findFirst({
 		where: eq(libraries.title, title),
 	});
 
@@ -89,10 +88,10 @@ export const createLibrary = (req: Request, res: Response) => {
 		});
 	});
 
-	const Folders = mediaDb.query.folders.findMany();
-	const Languages = mediaDb.query.languages.findMany();
+	const Folders = globalThis.mediaDb.query.folders.findMany();
+	const Languages = globalThis.mediaDb.query.languages.findMany();
 
-	// mediaDb.query.libraries.update({
+	// globalThis.mediaDb.query.libraries.update({
 	// 	where: {
 	// 		id: library.id,
 	// 	},
@@ -183,22 +182,22 @@ export const updateLibrary = (req: Request, res: Response) => {
 		type,
 	}: updateEncoderProfilesParams = req.body;
 
-	const Folders = mediaDb.query.folders.findMany({
+	const Folders = globalThis.mediaDb.query.folders.findMany({
 		where: inArray(folders.path,
 			F.map(f => (platform == 'windows'
 				? path.resolve(f)?.replace(/\/$/u, '')
 				: f?.replace(/\/$/u, '')))),
 	});
 
-	const EncoderProfiles = mediaDb.query.encoderProfiles.findMany({
+	const EncoderProfiles = globalThis.mediaDb.query.encoderProfiles.findMany({
 		where: inArray(encoderProfiles.id, E),
 	});
 
-	const Languages = mediaDb.query.languages.findMany({
+	const Languages = globalThis.mediaDb.query.languages.findMany({
 		where: inArray(languages.iso_639_1, subtitles),
 	});
 
-	// mediaDb.query.libraries
+	// globalThis.mediaDb.query.libraries
 	// 	.update({
 	// 		where: {
 	// 			id: id,
@@ -330,7 +329,7 @@ export const deleteLibrary = (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	try {
-		const data = mediaDb.delete(libraries)
+		const data = globalThis.mediaDb.delete(libraries)
 			.where(eq(libraries.id, id))
 			.returning()
 			.get();
@@ -365,7 +364,7 @@ export const addNewItem = async (req: Request, res: Response) => {
 
 	const { id } = req.params;
 
-	const library = mediaDb.query.libraries.findFirst({
+	const library = globalThis.mediaDb.query.libraries.findFirst({
 		where: eq(libraries.id, id),
 		with: {
 			folder_library: {

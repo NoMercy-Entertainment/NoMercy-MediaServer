@@ -1,10 +1,9 @@
-import { mediaDb } from '@server/db/media';
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
 import { keyword_movie } from '../schema/keyword_movie';
 
 export type NewKeywordMovie = InferModel<typeof keyword_movie, 'insert'>;
-export const insertKeywordMovie = (data: NewKeywordMovie) => mediaDb.insert(keyword_movie)
+export const insertKeywordMovie = (data: NewKeywordMovie) => globalThis.mediaDb.insert(keyword_movie)
 	.values({
 		...convertBooleans(data),
 	})
@@ -23,14 +22,14 @@ export const insertKeywordMovie = (data: NewKeywordMovie) => mediaDb.insert(keyw
 export type KeywordMovie = InferModel<typeof keyword_movie, 'select'>;
 export const selectKeywordMovie = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.keyword_movie.findMany({
+		return globalThis.mediaDb.query.keyword_movie.findMany({
 			with: {
 				keyword: true,
 				movie: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(keyword_movie)
 		.all();
 };

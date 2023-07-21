@@ -110,7 +110,7 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 
 						const newFile = file?.replace(/.jpg$|.png$/u, '.webp');
 
-						// const query = mediaDb.query.images.findFirst({
+						// const query = globalThis.mediaDb.query.images.findFirst({
 						// 	where: eq(images.filePath, file),
 						// });
 

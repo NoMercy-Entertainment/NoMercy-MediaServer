@@ -1,5 +1,11 @@
+import mediaDb from '@server/db/media';
+import queueDb from '@server/db/queue';
 
 process?.on('message', async (message) => {
+	
+	mediaDb();
+	queueDb();
+	
 	if (message.type == 'job') {
 
 		const { file, fn: func, args } = message.job.payload;

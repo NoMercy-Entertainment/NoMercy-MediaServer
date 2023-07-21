@@ -1,11 +1,10 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel, and, eq } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { episodes } from '../schema/episodes';
 
 export type NewEpisode = InferModel<typeof episodes, 'insert'>;
-export const insertEpisodeDB = (data: NewEpisode) => mediaDb.insert(episodes)
+export const insertEpisodeDB = (data: NewEpisode) => globalThis.mediaDb.insert(episodes)
 	.values({
 		...convertBooleans(data),
 	})
@@ -24,7 +23,7 @@ export const insertEpisodeDB = (data: NewEpisode) => mediaDb.insert(episodes)
 export type Episode = InferModel<typeof episodes, 'select'>;
 export const getEpisodesDB = (relations = false) => {
 	if (relations) {
-		return mediaDb.query.episodes.findMany({
+		return globalThis.mediaDb.query.episodes.findMany({
 			with: {
 				tv: true,
 				season: true,
@@ -39,14 +38,14 @@ export const getEpisodesDB = (relations = false) => {
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(episodes)
 		.all();
 };
 
 export const getEpisodeDB = (data: {seasonNumber: number; episodeNumber: number; tv_id: number}) => {
 
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(episodes)
 		.where(
 			and(

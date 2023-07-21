@@ -8,12 +8,11 @@ import reboot from '@server/functions/reboot';
 import { setDeviceName } from '@server/state/redux/config/actions';
 import storeConfig from '@server/functions/storeConfig';
 import ping from '@server/loaders/ping';
-import { mediaDb } from '@server/db/media';
 
 export const configuration = (req: Request, res: Response) => {
 
 	try {
-		const data = mediaDb.query.configuration.findMany();
+		const data = globalThis.mediaDb.query.configuration.findMany();
 
 		const configuration: any = {};
 

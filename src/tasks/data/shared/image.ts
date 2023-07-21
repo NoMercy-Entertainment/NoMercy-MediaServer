@@ -168,7 +168,7 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 
 	const newFile = src?.replace(/.jpg$|.png$/u, '.webp');
 
-	const query = mediaDb.select()
+	const query = globalThis.mediaDb.select()
 		.from(models[table])
 		.where(eq(models[table][column], src))
 		.get();

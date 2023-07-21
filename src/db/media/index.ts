@@ -1,4 +1,4 @@
-import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 
 import * as activityLogs from './schema/activityLogs';
@@ -77,7 +77,6 @@ import * as userData from './schema/userData';
 import * as users from './schema/users';
 import * as videoFiles from './schema/videoFiles';
 
-import { MyLogger } from '../helpers';
 import { mediaDbFile } from '@server/state';
 
 export const mediaDbSchema = {
@@ -158,12 +157,11 @@ export const mediaDbSchema = {
 	...videoFiles,
 };
 
-const media = new Database(mediaDbFile, {
-	timeout: 100000,
-	// verbose: console.log,
-});
+// globalThis.mediaDb: BetterSQLite3Database<typeof mediaDbSchema> = undefined;
 
-export const mediaDb: BetterSQLite3Database<typeof mediaDbSchema> = drizzle(media, {
-	schema: mediaDbSchema,
-	logger: new MyLogger(),
-});
+export default () => {
+	globalThis.mediaDb = drizzle(new Database(mediaDbFile), {
+		schema: mediaDbSchema,
+		// logger: new MyLogger(),
+	});
+}

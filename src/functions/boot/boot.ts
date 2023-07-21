@@ -17,6 +17,8 @@ import moderators from '../moderators';
 import refreshToken from '../refreshToken';
 import getUsers from '../users';
 import server from '@server/loaders/server';
+import mediaDB from '@server/db/media';
+import queueDB from '@server/db/queue';
 
 export default async () => {
 	process
@@ -43,6 +45,9 @@ export default async () => {
 
 	if (!setupComplete) {
 		await firstBoot();
+	} else {
+		mediaDB();
+		queueDB();
 	}
 
 	await refreshToken();

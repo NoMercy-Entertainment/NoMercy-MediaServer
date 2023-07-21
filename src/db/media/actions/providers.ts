@@ -1,10 +1,9 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { providers } from '../schema/providers';
 
 export type NewProvider = InferModel<typeof providers, 'insert'>;
-export const insertProvider = (data: NewProvider) => mediaDb.insert(providers)
+export const insertProvider = (data: NewProvider) => globalThis.mediaDb.insert(providers)
 	.values({
 		...convertBooleans(data),
 	})
@@ -22,7 +21,7 @@ export const insertProvider = (data: NewProvider) => mediaDb.insert(providers)
 
 export type Provider = InferModel<typeof providers, 'select'>;
 export const selectProvider = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(providers)
 		.all();
 };

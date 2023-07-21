@@ -17,7 +17,6 @@ import Logger from '@server/functions/logger/logger';
 import storeTvShow from '@server/tasks/data/tv';
 import i18next from 'i18next';
 import { AppState, useSelector } from '@server/state/redux';
-import { mediaDb } from '@server/db/media';
 import { and, eq } from 'drizzle-orm';
 import { Episode } from '@server/db/media/actions/episodes';
 import { episodes } from '@server/db/media/schema/episodes';
@@ -241,7 +240,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 
 	let episode: Episode | undefined = <Episode>{};
 	if (type == 'tv' && parsed.title != null && parsed.episodeNumbers?.[0] != null) {
-		episode = mediaDb.query.tvs.findFirst({
+		episode = globalThis.mediaDb.query.tvs.findFirst({
 			where: eq(tvs.titleSort, createTitleSort(parsed.title)),
 			with: {
 				episodes: {
@@ -278,7 +277,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 
 			if (searchResult) {
 
-				episode = mediaDb.query.tvs.findFirst({
+				episode = globalThis.mediaDb.query.tvs.findFirst({
 					where: eq(tvs.titleSort, createTitleSort(parsed.title)),
 					with: {
 						episodes: {
@@ -305,7 +304,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 					}).then((response) => {
 						if (!response?.data) return;
 
-						episode = mediaDb.query.episodes.findFirst({
+						episode = globalThis.mediaDb.query.episodes.findFirst({
 							where: and(
 								eq(episodes.seasonNumber, parsed.seasons[0] ?? 1),
 								eq(episodes.episodeNumber, parsed.episodeNumbers[0]),
@@ -322,7 +321,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 	let movie: Movie | undefined = <Movie>{};
 	if (type == 'movie' && parsed.title != null) {
 
-		movie = mediaDb.query.movies.findFirst({
+		movie = globalThis.mediaDb.query.movies.findFirst({
 			where: eq(movies.titleSort, createTitleSort(parsed.title, parsed.year ?? undefined)),
 		});
 
@@ -352,7 +351,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 				});
 			if (searchResult) {
 
-				movie = mediaDb.query.movies.findFirst({
+				movie = globalThis.mediaDb.query.movies.findFirst({
 					where: eq(movies.titleSort, createTitleSort(parsed.title, parsed.year ?? undefined)),
 				});
 
@@ -367,7 +366,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 					}).then((response) => {
 						if (!response?.data) return;
 
-						movie = mediaDb.query.movies.findFirst({
+						movie = globalThis.mediaDb.query.movies.findFirst({
 							where: eq(movies.titleSort, createTitleSort(response.data.title, response.data.release_date)),
 						});
 					});

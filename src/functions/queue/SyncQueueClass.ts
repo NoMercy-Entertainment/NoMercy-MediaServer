@@ -1,7 +1,6 @@
 import { ChildProcess, fork } from 'child_process';
 
 import Logger from '../logger';
-import { mediaDb } from '@server/db/media';
 import { configuration } from '@server/db/media/schema/configuration';
 import { eq } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
@@ -71,7 +70,7 @@ export class SyncQueue extends EventEmitter {
 
 		try {
 
-			const attempts = mediaDb.select().from(configuration)
+			const attempts = globalThis.mediaDb.select().from(configuration)
 				.where(eq(configuration.key, 'maxAttempts'))
 				.get()?.value;
 

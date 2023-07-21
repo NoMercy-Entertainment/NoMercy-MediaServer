@@ -1,11 +1,10 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { artist_library } from '../schema/artist_library';
 
 export type NewArtistLibrary = InferModel<typeof artist_library, 'insert'>;
-export const insertArtistLibrary = (data: NewArtistLibrary) => mediaDb.insert(artist_library)
+export const insertArtistLibrary = (data: NewArtistLibrary) => globalThis.mediaDb.insert(artist_library)
 	.values({
 		...convertBooleans(data),
 	})
@@ -20,7 +19,7 @@ export const insertArtistLibrary = (data: NewArtistLibrary) => mediaDb.insert(ar
 
 export type ArtistLibrary = InferModel<typeof artist_library, 'select'>;
 export const selectArtistLibrary = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(artist_library)
 		.all();
 };

@@ -8,7 +8,6 @@ import { sleep } from '@server/functions/dateTime';
 import { sslCert } from '@server/state';
 import { eq } from 'drizzle-orm';
 import { users } from '@server/db/media/schema/users';
-import { mediaDb } from '@server/db/media';
 
 let delay = 0;
 let timeout: NodeJS.Timeout;
@@ -161,7 +160,7 @@ export const permissions = (req: Request, res: Response) => {
 
 	try {
 
-		const data = mediaDb.query.users.findFirst({
+		const data = globalThis.mediaDb.query.users.findFirst({
 			where: eq(users.id, req.user.sub),
 		});
 

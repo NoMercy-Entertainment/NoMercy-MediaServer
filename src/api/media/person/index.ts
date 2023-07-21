@@ -1,5 +1,4 @@
 import { requestWorker } from '@server/api/requestWorker';
-import { mediaDb } from '@server/db/media';
 import { people } from '@server/db/media/schema/people';
 import { and, desc, isNotNull, like } from 'drizzle-orm';
 import { Request, Response } from 'express';
@@ -26,7 +25,7 @@ export default async function (req: Request, res: Response) {
 export const exec = ({ take, page, name, language }: { id: string, take: number; page: number; name: string, language: string }) => {
 	return new Promise((resolve, reject) => {
 		try {
-			const data = mediaDb.query.people.findMany({
+			const data = globalThis.mediaDb.query.people.findMany({
 				limit: take,
 				offset: page,
 				where: and(

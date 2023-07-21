@@ -1,11 +1,10 @@
 
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '../../helpers';
-import { mediaDb } from '@server/db/media';
 import { devices } from '../schema/devices';
 
 export type NewDevice = InferModel<typeof devices, 'insert'>;
-export const insertDevice = (data: NewDevice) => mediaDb.insert(devices)
+export const insertDevice = (data: NewDevice) => globalThis.mediaDb.insert(devices)
 	.values({
 		...convertBooleans(data),
 	})
@@ -25,13 +24,13 @@ export type Device = InferModel<typeof devices, 'select'>;
 export const selectDevice = (relations = false) => {
 	if (relations) {
 		// @ts-ignore
-		return mediaDb.query.devices.findMany({
+		return globalThis.mediaDb.query.devices.findMany({
 			with: {
 				activityLogs: true,
 			},
 		});
 	}
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(devices)
 		.all();
 };

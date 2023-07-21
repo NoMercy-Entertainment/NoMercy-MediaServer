@@ -4,7 +4,6 @@ import Logger from '@server/functions/logger';
 import { ActivityLog } from '@server/db/media/actions/activityLogs';
 import { Device } from '@server/db/media/actions/devices';
 import { User } from '@server/db/media/actions/users';
-import { mediaDb } from '@server/db/media';
 import { desc } from 'drizzle-orm';
 import { activityLogs } from '@server/db/media/schema/activityLogs';
 
@@ -45,7 +44,7 @@ export const getServerActivity = (): Promise<data> => {
 
 		try {
 			// @ts-ignore
-			const data = mediaDb.query.activityLogs.findMany({
+			const data = globalThis.mediaDb.query.activityLogs.findMany({
 				with: {
 					device: true,
 					user: true,

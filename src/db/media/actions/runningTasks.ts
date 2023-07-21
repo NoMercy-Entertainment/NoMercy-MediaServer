@@ -1,11 +1,10 @@
 import { InferModel } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { convertBooleans } from '@server/db/helpers';
 import { createId } from '@paralleldrive/cuid2';
 import { runningTasks } from '../schema/runningTasks';
 
 export type NewRunningTask = InferModel<typeof runningTasks, 'insert'>;
-export const insertRunningTask = (data: NewRunningTask) => mediaDb.insert(runningTasks)
+export const insertRunningTask = (data: NewRunningTask) => globalThis.mediaDb.insert(runningTasks)
 	.values({
 		...convertBooleans(data),
 		id: data.id ?? createId(),
@@ -25,7 +24,7 @@ export const insertRunningTask = (data: NewRunningTask) => mediaDb.insert(runnin
 
 export type RunningTask = InferModel<typeof runningTasks, 'select'>;
 export const selectRunningTask = () => {
-	return mediaDb.select()
+	return globalThis.mediaDb.select()
 		.from(runningTasks)
 		.all();
 };

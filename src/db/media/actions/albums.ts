@@ -1,7 +1,6 @@
 
 import { convertBooleans } from '../../helpers';
 import { InferModel, and, eq, inArray, like, or } from 'drizzle-orm';
-import { mediaDb } from '@server/db/media';
 import { albums } from '../schema/albums';
 import { getAllowedLibraries } from './libraries';
 import { track_user } from '../schema/track_user';
@@ -11,7 +10,7 @@ import { artist_track } from '../schema/artist_track';
 import { album_track } from '../schema/album_track';
 
 export type NewAlbum = InferModel<typeof albums, 'insert'>;
-export const insertAlbum = (data: NewAlbum) => mediaDb.insert(albums)
+export const insertAlbum = (data: NewAlbum) => globalThis.mediaDb.insert(albums)
 	.values({
 		...convertBooleans(data),
 	})
@@ -38,7 +37,7 @@ export const selectAlbums = (letter: string, user_id: string) => {
 		return [];
 	}
 
-	const result = mediaDb.query.albums.findMany({
+	const result = globalThis.mediaDb.query.albums.findMany({
 		with: {
 			library: {
 				with: {
@@ -89,7 +88,7 @@ export const selectAlbum = (id: string, user_id: string) => {
 		return null;
 	}
 
-	const result = mediaDb.query.albums.findFirst({
+	const result = globalThis.mediaDb.query.albums.findFirst({
 		with: {
 			library: {
 				with: {
@@ -107,28 +106,28 @@ export const selectAlbum = (id: string, user_id: string) => {
 		return null;
 	}
 
-	const albumArtistsResult = mediaDb.query.album_artist.findMany({
+	const albumArtistsResult = globalThis.mediaDb.query.album_artist.findMany({
 		with: {
 			artist: true,
 		},
 		where: eq(album_artist.album_id, result.id),
 	});
 
-	const albumTrackResult = mediaDb.query.album_track.findMany({
+	const albumTrackResult = globalThis.mediaDb.query.album_track.findMany({
 		with: {
 			track: true,
 		},
 		where: eq(album_track.album_id, result.id),
 	});
 
-	const artistTracksResult = mediaDb.query.artist_track.findMany({
+	const artistTracksResult = globalThis.mediaDb.query.artist_track.findMany({
 		with: {
 			artist: true,
 		},
 		where: inArray(artist_track.track_id, albumTrackResult.map(t => t.track_id)),
 	});
 
-	const trackUserResult = mediaDb.query.track_user.findMany({
+	const trackUserResult = globalThis.mediaDb.query.track_user.findMany({
 		where: and(
 			inArray(track_user.track_id, albumTrackResult.map(t => t.track_id)),
 			eq(track_user.user_id, user_id)
@@ -154,7 +153,7 @@ export const selectAlbum = (id: string, user_id: string) => {
 	};
 };
 
-export const findAlbum = (id: string) => mediaDb.select()
+export const findAlbum = (id: string) => globalThis.mediaDb.select()
 	.from(albums)
 	.where(eq(albums.id, id))
 	.get();

@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import Logger from '@server/functions/logger';
 import colorPalette from '@server/functions/colorPalette/colorPalette';
 // import createBlurHash from '@server/functions/createBlurHash/createBlurHash';
-import { mediaDb } from '@server/db/media';
 import { asc, eq } from 'drizzle-orm';
 import { specials } from '@server/db/media/schema/specials';
 import { specialItems } from '@server/db/media/schema/specialItems';
@@ -14,7 +13,7 @@ import { Episode } from '@server/db/media/actions/episodes';
 export const specialz = (req: Request, res: Response) => {
 
 	try {
-		const data = mediaDb.query.specials.findMany({
+		const data = globalThis.mediaDb.query.specials.findMany({
 			with: {
 				specialItems: {
 					with: {
@@ -45,7 +44,7 @@ export const specialz = (req: Request, res: Response) => {
 export const special = (req: Request, res: Response) => {
 
 	try {
-		const data = mediaDb.query.specials.findFirst({
+		const data = globalThis.mediaDb.query.specials.findFirst({
 			where: eq(specials.id, req.params.id),
 			with: {
 				specialItems: {

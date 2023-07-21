@@ -5,7 +5,6 @@ import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { parseTitleAndYear } from '@server/functions/videoFilenameParser';
 import { parseYear } from '@server/functions/dateTime';
 import searchVideo from './searchVideo';
-import { mediaDb } from '@server/db/media';
 import { inArray, like } from 'drizzle-orm';
 import { tvs } from '@server/db/media/schema/tvs';
 import { Tv } from '@server/db/media/actions/tvs';
@@ -67,7 +66,7 @@ export default async function (req: Request, res: Response) {
 	const TRACK: track[] = [];
 
 	if ((!type || type == 'tv') && tv?.length > 0) {
-		const tvRes = mediaDb.select().from(tvs)
+		const tvRes = globalThis.mediaDb.select().from(tvs)
   			.where(inArray(tvs.id, tv?.map((t: { id: any; }) => t.id) ?? []))
 			.all();
 		TV.push(...tvRes);
@@ -75,7 +74,7 @@ export default async function (req: Request, res: Response) {
 	}
 
 	if ((!type || type == 'movie') && movie?.length > 0) {
-		const movieRes = mediaDb.select().from(movies)
+		const movieRes = globalThis.mediaDb.select().from(movies)
   			.where(inArray(movies.id, movie?.map((t: { id: any; }) => t.id) ?? []))
 			.all();
 		MOVIE.push(...movieRes);
@@ -83,7 +82,7 @@ export default async function (req: Request, res: Response) {
 	}
 
 	if (!type || type == 'album') {
-		const albumRes = mediaDb.select().from(albums)
+		const albumRes = globalThis.mediaDb.select().from(albums)
   			.where(like(albums.name, `%${query}%`))
 			.all();
 		ALBUM.push(...albumRes);
@@ -91,7 +90,7 @@ export default async function (req: Request, res: Response) {
 	}
 
 	if (!type || type == 'artist') {
-		const artistRes = mediaDb.select().from(artists)
+		const artistRes = globalThis.mediaDb.select().from(artists)
   			.where(like(artists.name, `%${query}%`))
 			.all();
 		ARTIST.push(...artistRes);
@@ -99,7 +98,7 @@ export default async function (req: Request, res: Response) {
 	}
 
 	if (!type || type == 'track') {
-		const trackRes = mediaDb.select().from(tracks)
+		const trackRes = globalThis.mediaDb.select().from(tracks)
   			.where(like(tracks.name, `%${query}%`))
 			.all();
 		TRACK.push(...trackRes);

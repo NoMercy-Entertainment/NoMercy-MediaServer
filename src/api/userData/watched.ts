@@ -7,7 +7,7 @@ export default function (req: Request, res: Response) {
 	// let data: any = <VideoFile>{};
 
 	// if (type == 'tv') {
-	// 	data = mediaDb.query.tvs.findFirst({
+	// 	data = globalThis.mediaDb.query.tvs.findFirst({
 	// 		with: {
 	// 			episodes: {
 	// 				with: {
@@ -20,7 +20,7 @@ export default function (req: Request, res: Response) {
 	// 		},
 	// 	})?.episodes?.find(e => e.seasonNumber == 1 && e.episodeNumber == 1)?.videoFiles[0];
 	// } else if (type == 'movies') {
-	// 	data = mediaDb.query.movies.findFirst({
+	// 	data = globalThis.mediaDb.query.movies.findFirst({
 	// 		with: {
 	// 			videoFiles: true,
 	// 		},
@@ -29,7 +29,7 @@ export default function (req: Request, res: Response) {
 	// 		},
 	// 	})?.videoFiles[0];
 	// } else if (type == 'specials') {
-	// 	data = mediaDb.query.specials.findFirst({
+	// 	data = globalThis.mediaDb.query.specials.findFirst({
 	// 		with: {
 	// 			videoFiles: true,
 	// 		},

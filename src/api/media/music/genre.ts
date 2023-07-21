@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 
-import { mediaDb } from '@server/db/media';
 import { asc, eq, inArray } from 'drizzle-orm';
 import { musicGenre_track } from '@server/db/media/schema/musicGenre_track';
 import { track_user } from '@server/db/media/schema/track_user';
@@ -14,7 +13,7 @@ import { artist_track } from '@server/db/media/schema/artist_track';
 
 export default function (req: Request, res: Response) {
 
-	const music = mediaDb.query.musicGenres.findFirst({
+	const music = globalThis.mediaDb.query.musicGenres.findFirst({
 		where: eq(musicGenres.id, req.params.id),
 		// track: {
 		// 	some: {
@@ -39,14 +38,14 @@ export default function (req: Request, res: Response) {
 		},
 	});
 
-	const albumResult = mediaDb.query.album_track.findMany({
+	const albumResult = globalThis.mediaDb.query.album_track.findMany({
 		where: inArray(album_track.track_id, music?.musicGenre_track.map(t => t.track.id) ?? []),
 		with: {
 			album: true,
 		},
 	});
 
-	const artistResult = mediaDb.query.artist_track.findMany({
+	const artistResult = globalThis.mediaDb.query.artist_track.findMany({
 		where: inArray(artist_track.track_id, music?.musicGenre_track.map(t => t.track.id) ?? []),
 		with: {
 			artist: true,

@@ -1,4 +1,3 @@
-import { mediaDb } from '@server/db/media';
 import { AlbumMusicGenre } from '@server/db/media/actions/album_musicGenre';
 import { Album } from '@server/db/media/actions/albums';
 import { ArtistMusicGenre } from '@server/db/media/actions/artist_musicGenre';
@@ -37,21 +36,21 @@ export default function (req: Request, res: Response) {
 	})[] = [];
 
 	// @ts-ignore
-	const musicGenreData = mediaDb.query.musicGenres.findMany({
+	const musicGenreData = globalThis.mediaDb.query.musicGenres.findMany({
 	}) as MusicGenre[];
 	genres.push(...musicGenreData);
 
 	const genreItems: any[] = [];
 
 	// @ts-ignore
-	const playlistData = mediaDb.query.playlists.findMany({
+	const playlistData = globalThis.mediaDb.query.playlists.findMany({
 		where: eq(users.id, req.user.sub),
 		take: 12,
 	}) as Playlist[];
 	playlistsItems.push(...playlistData);
 
 	// @ts-ignore
-	const userDataData = mediaDb.query.userData.findMany({
+	const userDataData = globalThis.mediaDb.query.userData.findMany({
 		where: and(
 			eq(userData.user_id, req.user.sub),
 			isNotNull(userData.isFavorite)
@@ -62,7 +61,7 @@ export default function (req: Request, res: Response) {
 	userDataItems.push(...userDataData);
 
 	// @ts-ignore
-	const tracksData = mediaDb.query.tracks.findMany({
+	const tracksData = globalThis.mediaDb.query.tracks.findMany({
 		where: isNotNull(tracks.cover),
 		with: {
 			musicGenre_track: {
@@ -79,7 +78,7 @@ export default function (req: Request, res: Response) {
 	trackItems.push(...tracksData);
 
 	// @ts-ignore
-	const albumData = mediaDb.query.album_musicGenre.findMany({
+	const albumData = globalThis.mediaDb.query.album_musicGenre.findMany({
 		with: {
 			album: true,
 		},
@@ -90,7 +89,7 @@ export default function (req: Request, res: Response) {
 	albumItems.push(...albumData);
 
 	// @ts-ignore
-	const artistData = mediaDb.query.artist_musicGenre.findMany({
+	const artistData = globalThis.mediaDb.query.artist_musicGenre.findMany({
 		with: {
 			artist: true,
 		},
