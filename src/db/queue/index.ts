@@ -5,16 +5,14 @@ import * as failedJobs from './schema/failedJobs';
 import * as queueJobs from './schema/queueJobs';
 import { queueDbFile } from '@server/state';
 
-const queueSchema = {
+export const queueDbSchema = {
 	...queueJobs,
 	...failedJobs,
 };
 
-// export let queueDb: BetterSQLite3Database<typeof queueSchema>;
-
 export default () => {
 	globalThis.queueDb = drizzle(new Database(queueDbFile), {
-		schema: queueSchema,
+		schema: queueDbSchema,
 		// logger: new MyLogger(),
 	});
 }

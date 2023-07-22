@@ -38,6 +38,14 @@
 		"transpileOnly": true
 	},
 	"exclude": ["./node_modules"],
-	"include": ["./src/**/*.ts", "./src/**/*.d.ts", "./package.json", "./src/db/media/**/*", "./src/db/queue/**/*", "drizzle.config.ts"],
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.d.ts",
+		"./package.json",
+		"./src/db/media/**/*",
+		"./src/db/queue/**/*",
+		"drizzle.config.ts",
+		"global.d.ts"
+	],
 	"references": []
 }

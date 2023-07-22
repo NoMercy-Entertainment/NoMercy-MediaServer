@@ -96,3 +96,5 @@ out/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+movies.json
+music.json

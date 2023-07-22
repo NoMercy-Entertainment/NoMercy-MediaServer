@@ -5,7 +5,7 @@ export default (req: Request, res: Response) => {
 
 	console.log(req.body);
 
-	const fileName = 'movie.json';
+	const fileName = 'movies.json';
 	readFile(fileName, (err, data) => {
 		const arr = JSON.parse(data?.toString() ?? '[]');
 		arr.push(req.body);

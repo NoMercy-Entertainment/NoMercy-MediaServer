@@ -2,21 +2,22 @@ import { AppState, useSelector } from '@server/state/redux';
 import { configFile, tokenFile } from '@server/state';
 import { readFileSync, writeFileSync } from 'fs';
 import {
-    setAccessToken,
-    setExpiresIn,
-    setIdToken,
-    setNotBeforePolicy,
-    setRefreshExpiresIn,
-    setRefreshToken,
-    setScope,
-    setSessionState,
-    setTokenType
+	setAccessToken,
+	setExpiresIn,
+	setIdToken,
+	setNotBeforePolicy,
+	setRefreshExpiresIn,
+	setRefreshToken,
+	setScope,
+	setSessionState,
+	setTokenType
 } from '@server/state/redux/user/actions';
 
 import Logger from '@server/functions/logger';
 import { keycloak_key } from '../keycloak/config';
 import qs from 'qs';
 import { setOwner } from '@server/state/redux/system/actions';
+import open from 'open';
 
 export const refreshToken = async () => {
 
@@ -56,12 +57,47 @@ const refresh = async () => {
 		message: 'Refreshing offline token',
 	});
 
+	const refresh_token = useSelector((state: AppState) => state.user.refresh_token);
+
+	if (!refresh_token) {
+		Logger.log({
+			level: 'info',
+			name: 'keycloak',
+			color: 'red',
+			message: 'No refresh token found',
+		});
+
+		Logger.log({
+			level: 'info',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Opening browser, please login',
+		});
+		
+		const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
+		const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
+			? parseInt(process.env.DEFAULT_PORT as string, 10)
+			: 7635;
+		const redirect_uri = `https://${internal_ip}:${internal_port}/sso-callback`;
+
+		await open(
+			`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
+				redirect_uri
+			)}&client_id=nomercy-server&response_type=code`,
+			{
+				wait: true,
+			}
+		);
+
+		return;
+	}
+
 	const keycloakData = qs.stringify({
 		client_id: 'nomercy-server',
 		grant_type: 'refresh_token',
 		client_secret: keycloak_key,
 		scope: 'openid offline_access',
-		refresh_token: useSelector((state: AppState) => state.user.refresh_token),
+		refresh_token: refresh_token,
 	});
 
 	await fetch(useSelector((state: AppState) => state.user.keycloakUrl), {

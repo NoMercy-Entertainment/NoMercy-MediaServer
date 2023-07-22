@@ -849,7 +849,7 @@ export class FFMpegArchive extends FFMpeg {
 				});
 
 				if (this.movie?.id) {
-					mediaDb.update(movies)
+					globalThis.mediaDb.update(movies)
 						.set({
 							...convertBooleans({
 								duration: humanTime(this.format.duration),

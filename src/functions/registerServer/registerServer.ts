@@ -78,7 +78,7 @@ const registerServer = async () => {
 		const detected = DetectBrowsers();
 
 		if (detected) {
-			await tempServer(redirect_uri, internal_port);
+			tempServer(redirect_uri, internal_port);
 
 			Logger.log({
 				level: 'info',
@@ -222,7 +222,7 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 		});
 };
 
-const login = ({ email, password, totp }) => {
+export const login = ({ email, password, totp }) => {
 	return new Promise(async (resolve, reject) => {
 		const keycloakData = qs.stringify({
 			client_id: 'nomercy-server',

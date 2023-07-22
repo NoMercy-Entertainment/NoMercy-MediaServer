@@ -157,8 +157,6 @@ export const mediaDbSchema = {
 	...videoFiles,
 };
 
-// globalThis.mediaDb: BetterSQLite3Database<typeof mediaDbSchema> = undefined;
-
 export default () => {
 	globalThis.mediaDb = drizzle(new Database(mediaDbFile), {
 		schema: mediaDbSchema,
