@@ -298,7 +298,7 @@ export const login = ({ email, password, totp }) => {
 	});
 };
 
-const loginPrompt = () => {
+export const loginPrompt = () => {
 	return new Promise((resolve) => {
 		inquirer
 			.prompt([

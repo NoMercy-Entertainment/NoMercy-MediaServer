@@ -1,5 +1,6 @@
 import { AppState, useSelector } from '@server/state/redux';
 import { configFile, tokenFile } from '@server/state';
+import DetectBrowsers from '../detectBrowsers';
 import { readFileSync, writeFileSync } from 'fs';
 import {
 	setAccessToken,
@@ -82,14 +83,22 @@ const refresh = async () => {
 			: 7635;
 		const redirect_uri = `https://${internal_ip}:${internal_port}/sso-callback`;
 
-		await open(
-			`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
-				redirect_uri
-			)}&client_id=nomercy-server&response_type=code`,
-			{
-				wait: true,
-			}
-		);
+		const detected = DetectBrowsers();
+		if (detected) {
+			await open(
+				`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
+					redirect_uri
+				)}&client_id=nomercy-server&response_type=code`,
+				{
+					wait: true,
+				}
+			);
+
+		} else {
+			// await loginPrompt().then(() => {
+			// 	registerComplete = true;
+			// });
+		}
 
 		return;
 	}
