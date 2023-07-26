@@ -39,7 +39,6 @@ import {
 	runningTaskWorkers,
 	tasks
 } from '../dashboard/tasks';
-import directoryTree, { fileList } from '../dashboard/directoryTree';
 import {
 	editMiddleware,
 	permissions
@@ -64,6 +63,7 @@ import serverActivity from '../userData/activity/get';
 import {
 	storeServerActivity
 } from '../userData/activity/post';
+import directoryTree, { fileList } from '../dashboard/directorytree';
 
 // import addDevices from '../userData/devices/post';
 
