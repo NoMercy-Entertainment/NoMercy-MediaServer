@@ -59,9 +59,12 @@ const registerServer = async () => {
 	let success = true;
 
 	await axios
-		.post<ServerRegisterResponse>('https://api.nomercy.tv/server/register',
+		.post<ServerRegisterResponse>(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/register`,
 			serverData,
-			{ headers: { Accept: 'application/json' } })
+			{ headers: { 
+				Accept: 'application/json',
+			} 
+		})
 		.catch((error) => {
 			success = false;
 			if (error.response) {
@@ -111,16 +114,11 @@ const registerServer = async () => {
 			resolve(true);
 		});
 
-		const external_ip = useSelector((state: AppState) => state.system.external_ip);
-		const access_token = useSelector((state: AppState) => state.user.access_token);
-		const serverData = {
-			server_id: deviceId,
-			external_ip: external_ip,
-		};
-
+		const access_token = JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token;
+	
 		await axios
 			.post(
-				'https://api.nomercy.tv/server/assign',
+				`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/assign`,
 				serverData,
 				{
 					headers: {
@@ -146,6 +144,7 @@ const registerServer = async () => {
 				});
 			});
 	}
+	
 };
 
 export default registerServer;
@@ -267,7 +266,7 @@ export const login = ({ email, password, totp }) => {
 
 				await axios
 					.post(
-						'https://api.nomercy.tv/server/assign',
+						`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/assign`,
 						serverData,
 						{
 							headers: {

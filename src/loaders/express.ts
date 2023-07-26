@@ -68,7 +68,7 @@ export default async (app: Application) => {
 	});
 
 	app.get('/', (req: Request, res: Response) => {
-		res.redirect('https://app.nomercy.tv');
+		res.redirect(`https://app${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv`);
 	});
 
 	app.use('/webhooks', webhooks);

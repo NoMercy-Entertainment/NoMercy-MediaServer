@@ -1,24 +1,24 @@
 import {
-    setAcousticId,
-    setColors,
-    setDownloads,
-    setMakeMKVKey,
-    setOmdbApiKey,
-    setQuote,
-    setTmdbApiKey
+	setAcousticId,
+	setColors,
+	setDownloads,
+	setMakeMKVKey,
+	setOmdbApiKey,
+	setQuote,
+	setTmdbApiKey
 } from '@server/state/redux/config/actions';
 
 import Logger from '@server/functions/logger';
 import axios from 'axios';
 import { platform } from '@server/functions/system';
 
-const cdn = async () => {
-	const response = await axios.get('https://cdn.nomercy.tv/info').catch((error) => {
+const baseConfiguration = async () => {
+	const response = await axios.get(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/info`).catch((error) => {
 		Logger.log({
 			level: 'error',
 			name: 'setup',
 			color: 'red',
-			message: `Something went wrong while fetching the CDN info: ${JSON.stringify(error, null, 2)}`,
+			message: `Something went wrong while fetching the API info: ${JSON.stringify(error, null, 2)}`,
 		});
 
 		process.exit(1);
@@ -43,4 +43,4 @@ const cdn = async () => {
 	return response.data.data;
 };
 
-export default cdn;
+export default baseConfiguration;

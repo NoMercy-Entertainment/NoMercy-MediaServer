@@ -11,7 +11,7 @@ export const getUsers = async () => {
 	const moderators = useSelector((state: AppState) => state.config.moderators);
 
 	await axios()
-		.get<UserResponse[]>('https://api.nomercy.tv/server/users', {
+		.get<UserResponse[]>(`https://api${process.env.ROUTE_SUFFIX}.nomercy.tv/server/users`, {
 			params: {
 				server_id: deviceId,
 			},
@@ -21,11 +21,11 @@ export const getUsers = async () => {
 				const user = data[i];
 
 				insertUser({
-					id: user.sub_id,
+					id: user.user_id,
 					email: user.email,
 					name: user.name,
 					allowed: user.enabled,
-					manage: moderators.some(m => m.id == user.sub_id),
+					manage: moderators.some(m => m.id == user.user_id),
 				});
 
 			}
@@ -35,8 +35,8 @@ export const getUsers = async () => {
 			setUsers(users.map((d) => {
 				return {
 					...d,
-					created_at: new Date(d.created_at),
-					updated_at: new Date(d.created_at),
+					created_at: new Date(d.created_at).getTime(),
+					updated_at: new Date(d.created_at).getTime(),
 				};
 			}));
 

@@ -108,7 +108,7 @@ export const socket = {
 				from: 'NoMercy Mediaserver',
 				method: 'add',
 				to: '*',
-				image: 'https://cdn.nomercy.tv/img/favicon.ico',
+				image: `https://cdn${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/img/favicon.ico`,
 				created_at: Date.now(),
 			});
 		});

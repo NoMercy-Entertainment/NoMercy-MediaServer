@@ -62,7 +62,7 @@ export interface Moderator {
 }
 
 export interface UserResponse {
-    sub_id: string;
+    user_id: string;
     name: string;
     email: string;
     cache_id: string;

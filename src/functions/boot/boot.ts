@@ -2,7 +2,7 @@ import { existsSync, rmSync, writeFileSync } from 'fs';
 import { get_external_ip, get_internal_ip, portMap } from '../networking';
 import { setupComplete, transcodesPath } from '@server/state';
 
-import cdn from '../../loaders/cdn/cdn';
+import baseConfiguration from '../../loaders/cdn/cdn';
 import chromeCast from '../chromeCast';
 import dev from './dev';
 import firstBoot from '../firstBoot';
@@ -35,7 +35,7 @@ export default async () => {
 	await get_external_ip();
 	get_internal_ip();
 
-	await cdn();
+	await baseConfiguration();
 	logo();
 
 	writeFileSync('query.log', '');

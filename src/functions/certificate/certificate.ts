@@ -38,7 +38,7 @@ const refresh = async () => {
 
 		await axios
 			.get<ServerCertificate>(
-				`https://api.nomercy.tv/server/renewcertificate?server_id=${deviceId}`,
+				`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/renewcertificate?server_id=${deviceId}`,
 				{
 					headers: {
 						Accept: 'application/json',
@@ -94,7 +94,7 @@ const refresh = async () => {
 
 					await axios
 						.get<ServerCertificate>(
-							`https://api.nomercy.tv/server/renewcertificate?server_id=${deviceId}`,
+							`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/renewcertificate?server_id=${deviceId}`,
 							{
 								headers: {
 									Accept: 'application/json',

@@ -20,7 +20,7 @@ export const initKeycloak = async () => {
 	const internalPort = useSelector((state: AppState) => state.system.secureInternalPort);
 
 	const keycloakIssuer = await Issuer.discover('https://auth.nomercy.tv/realms/NoMercyTV');
-
+	
 	_keycloak = new keycloakIssuer.Client({
 		client_id: 'nomercy-server',
 		client_secret: keycloak_key,

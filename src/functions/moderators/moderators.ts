@@ -14,7 +14,7 @@ export default moderators;
 
 export const getMods = async () => {
 	await axios()
-		.get<ModeratorsResponse>('https://api.nomercy.tv/server/moderators', {
+		.get<ModeratorsResponse>(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/moderators`, {
 			timeout: 1 * 60 * 1000,
 		})
 		.then(({ data }) => {

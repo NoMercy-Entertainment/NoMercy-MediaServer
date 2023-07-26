@@ -247,7 +247,7 @@ export class ChromeCast {
 				url: path,
 				cover: {
 					title: title,
-					url: 'https://cdn.nomercy.tv/Logos/NoMercy_Entertainment/logo-black.svg',
+					url: `https://cdn${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/Logos/NoMercy_Entertainment/logo-black.svg`,
 				},
 			};
 		} else {
@@ -262,7 +262,7 @@ export class ChromeCast {
 				],
 				cover: {
 					title: title,
-					url: 'https://cdn.nomercy.tv/Logos/NoMercy_Entertainment/logo-black.svg',
+					url: `https://cdn${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/Logos/NoMercy_Entertainment/logo-black.svg`,
 				},
 			};
 		}

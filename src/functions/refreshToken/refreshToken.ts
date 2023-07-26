@@ -26,15 +26,17 @@ export const refreshToken = async () => {
 
 	setOwner(config?.user_id ?? ('' as string));
 
-	setAccessToken(tokens.access_token);
-	setRefreshToken(tokens.refresh_token);
-	setExpiresIn(tokens.expires_in);
-	setRefreshExpiresIn(tokens.refresh_expires_in);
-	setTokenType(tokens.token_type);
-	setIdToken(tokens.id_token);
-	setNotBeforePolicy(tokens['not-before-policy']);
-	setSessionState(tokens.session_state);
-	setScope(tokens.scope);
+	if (tokens.access_token) {
+		setAccessToken(tokens.access_token);
+		setRefreshToken(tokens.refresh_token);
+		setExpiresIn(tokens.expires_in);
+		setRefreshExpiresIn(tokens.refresh_expires_in);
+		setTokenType(tokens.token_type);
+		setIdToken(tokens.id_token);
+		setNotBeforePolicy(tokens['not-before-policy']);
+		setSessionState(tokens.session_state);
+		setScope(tokens.scope);
+	}
 
 	await refresh();
 	refreshLoop();

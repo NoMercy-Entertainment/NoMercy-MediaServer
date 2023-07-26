@@ -7,7 +7,7 @@ export default (req: Request, res: Response) => {
 
 	const fileName = 'music.json';
 	readFile(fileName, (err, data) => {
-		const arr = JSON.parse(data.toString());
+		const arr = JSON.parse(data?.toString() ?? '[]');
 		arr.push(req.body);
 		writeFileSync(fileName, JSON.stringify(arr, null, 2));
 	});

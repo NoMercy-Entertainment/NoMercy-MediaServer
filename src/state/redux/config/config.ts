@@ -147,7 +147,7 @@ export const defaultUserOptions: DefaultUserOptions = {
 // }
 
 export interface AllowedUser {
-	sub_id: string;
+	id: string;
 	email: string;
 	manage: boolean | null;
 	owner: boolean | null;

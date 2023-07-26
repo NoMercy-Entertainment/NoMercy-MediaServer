@@ -30,7 +30,7 @@ const ping = async () => {
 	};
 
 	await axios()
-		.post<ServerPingResponse>('https://api.nomercy.tv/server/ping', data)
+		.post<ServerPingResponse>(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/ping`, data)
 		.then(({ data }) => {
 			Logger.log({
 				level: 'verbose',
