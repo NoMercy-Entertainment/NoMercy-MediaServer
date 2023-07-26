@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, s
 import osu from 'os-utils';
 import { join } from 'path';
 import events, { EventEmitter } from 'events';
-import { resume, suspend } from 'ntsuspend';
+// import { resume, suspend } from 'ntsuspend';
 
 import type { ArrayElementType, Audio, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
 import getVideoInfo from '../../encoder/ffprobe/getVideoInfo';
@@ -314,20 +314,20 @@ export class FFMpeg extends EventEmitter {
 		if (process.platform === 'win32') {
 			const ids = this.getChildProcesses(makeProcess.pid);
 			let pids = ids.length + 1;
-			if (suspend(makeProcess.pid)) {
-				console.log(`Suspended process: ${makeProcess.pid}`);
-				pids -= 1;
-			} else {
-				console.log(`Could not suspend process: ${makeProcess.pid}`);
-			}
-			for (const id of ids ?? []) {
-				if (suspend(id)) {
-					console.log(`Suspended process: ${id}`);
-					pids -= 1;
-				} else {
-					console.log(`Could not suspend process: ${id}`);
-				}
-			}
+			// if (suspend(makeProcess.pid)) {
+			// 	console.log(`Suspended process: ${makeProcess.pid}`);
+			// 	pids -= 1;
+			// } else {
+			// 	console.log(`Could not suspend process: ${makeProcess.pid}`);
+			// }
+			// for (const id of ids ?? []) {
+			// 	if (suspend(id)) {
+			// 		console.log(`Suspended process: ${id}`);
+			// 		pids -= 1;
+			// 	} else {
+			// 		console.log(`Could not suspend process: ${id}`);
+			// 	}
+			// }
 			if (pids == 0) {
 				console.log(`Suspended: ${this.fullTitle}`);
 				const lastThumb = this.getLastThumb();
@@ -354,20 +354,20 @@ export class FFMpeg extends EventEmitter {
 		if (process.platform === 'win32') {
 			const ids = this.getChildProcesses(makeProcess.pid);
 			let pids = ids.length + 1;
-			if (resume(makeProcess.pid)) {
-				console.log(`Resumed process: ${makeProcess.pid}`);
-				pids -= 1;
-			} else {
-				console.log(`Could not suspend process: ${makeProcess.pid}`);
-			}
-			for (const id of ids ?? []) {
-				if (resume(id)) {
-					console.log(`Resumed process: ${id}`);
-					pids -= 1;
-				} else {
-					console.log(`Could not resume process: ${id}`);
-				}
-			}
+			// if (resume(makeProcess.pid)) {
+			// 	console.log(`Resumed process: ${makeProcess.pid}`);
+			// 	pids -= 1;
+			// } else {
+			// 	console.log(`Could not suspend process: ${makeProcess.pid}`);
+			// }
+			// for (const id of ids ?? []) {
+			// 	if (resume(id)) {
+			// 		console.log(`Resumed process: ${id}`);
+			// 		pids -= 1;
+			// 	} else {
+			// 		console.log(`Could not resume process: ${id}`);
+			// 	}
+			// }
 			if (pids == 0) {
 				console.log(`Resumed: ${this.fullTitle}`);
 				const lastThumb = this.getLastThumb();
