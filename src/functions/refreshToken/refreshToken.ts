@@ -78,7 +78,7 @@ const refresh = async () => {
 		});
 		
 		const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
-		const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
+		const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 			? parseInt(process.env.DEFAULT_PORT as string, 10)
 			: 7635;
 		const redirect_uri = `https://${internal_ip}:${internal_port}/sso-callback`;
@@ -88,7 +88,7 @@ const refresh = async () => {
 			await open(
 				`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
 					redirect_uri
-				)}&client_id=nomercy-server&response_type=code`,
+				)}&client_id=nomercy-server&response_type=code&module=refresh`,
 				{
 					wait: true,
 				}

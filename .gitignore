@@ -98,3 +98,5 @@ out/
 !.yarn/versions
 movies.json
 music.json
+
+.env

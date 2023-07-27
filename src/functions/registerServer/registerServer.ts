@@ -29,10 +29,10 @@ const registerServer = async () => {
 	const external_ip = useSelector((state: AppState) => state.system.external_ip);
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 	const server_version = useSelector((state: AppState) => state.system.server_version);
-	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
+	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
 		: 7635;
-	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != ''
+	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
 		: 7635;
 
@@ -93,7 +93,7 @@ const registerServer = async () => {
 			await open(
 				`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
 					redirect_uri
-				)}&client_id=nomercy-server&response_type=code`,
+				)}&client_id=nomercy-server&response_type=code&module=register`,
 				{
 					wait: true,
 				}
@@ -114,7 +114,7 @@ const registerServer = async () => {
 			resolve(true);
 		});
 
-		const access_token = JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token;
+		const access_token: string = JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token;
 	
 		await axios
 			.post(
@@ -123,7 +123,7 @@ const registerServer = async () => {
 				{
 					headers: {
 						Accept: 'application/json',
-						Authorization: `Bearer ${access_token}`,
+						Authorization: `Bearer ${access_token.trim()}`,
 					},
 				}
 			)

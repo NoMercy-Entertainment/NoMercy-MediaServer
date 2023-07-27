@@ -34,7 +34,7 @@ const refresh = async () => {
 			message: 'Obtaining SSL certificate',
 		});
 
-		const accessToken = useSelector((state: AppState) => state.user.access_token);
+		const accessToken: string = useSelector((state: AppState) => state.user.access_token);
 
 		await axios
 			.get<ServerCertificate>(
@@ -42,7 +42,7 @@ const refresh = async () => {
 				{
 					headers: {
 						Accept: 'application/json',
-						Authorization: `Bearer ${accessToken}`,
+						Authorization: `Bearer ${accessToken.replace(/\\r\\n/gu, '')}`,
 					},
 				}
 			)
@@ -82,7 +82,7 @@ const refresh = async () => {
 					await open(
 						`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
 							redirect_uri
-						)}&client_id=nomercy-server&response_type=code`,
+						)}&client_id=nomercy-server&response_type=code&module=certificate`,
 						{
 							wait: true,
 						}
@@ -98,7 +98,7 @@ const refresh = async () => {
 							{
 								headers: {
 									Accept: 'application/json',
-									Authorization: `Bearer ${access_token}`,
+									Authorization: `Bearer ${access_token.replace(/\\r\\n/gu, '')}`,
 								},
 							}
 						)

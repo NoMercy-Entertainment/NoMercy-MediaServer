@@ -52,6 +52,8 @@ export default async () => {
 
 	await refreshToken();
 
+	await loadConfigs();
+
 	await certificate();
 
 	await moderators();
