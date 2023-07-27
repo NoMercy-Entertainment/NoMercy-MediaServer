@@ -6,7 +6,7 @@
   "type": "commonjs",
   "main": "src/index.js",
   "scripts": {
-    "prestart": "yarn && npx copy-files",
+    "prestart": "yarn",
     "pm2": "tsc && pm2 start ./dist/index.js --watch",
     "dev": "nodemon",
     "lint": "eslint 'src/**/*.{js,ts}'",

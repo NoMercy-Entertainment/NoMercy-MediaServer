@@ -1,4 +1,4 @@
-import { AppState, store, useSelector } from '@server/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { KeycloakToken } from '@server/types/keycloak';
 import express, { Request, Response } from 'express';
 import { setAccessToken, setRefreshToken } from '@server/state/redux/user/actions';
@@ -13,55 +13,55 @@ import { tokenParser } from '../functions/tokenParser';
 import { writeFileSync } from 'fs';
 import writeToConfigFile from '../functions/writeToConfigFile';
 // import expressMon from 'express-status-monitor';
-import { deviceId } from '@server/functions/system';
 
 import dashboard from './routes/dashboard';
 import media from './routes/media';
 import music from './routes/music';
 import userData from './routes/userData';
+// import { deviceId } from '@server/functions/system';
 
 const router = express.Router();
 
-const monitorConfig = {
-	title: 'NoMercy MediaServer Status Monitor',
-	theme: 'default.css',
-	path: '/monitor',
-	socketPath: '/socket.io',
-	spans: [
-		{
-			interval: 1,
-			retention: 60,
-		},
-		{
-			interval: 1,
-			retention: 60 * 5,
-		},
-		{
-			interval: 1,
-			retention: 60 * 10,
-		},
-		{
-			interval: 1,
-			retention: 60 * 60,
-		},
-	],
-	chartVisibility: {
-		cpu: true,
-		mem: true,
-		load: true,
-		eventLoop: true,
-		responseTime: true,
-		statusCodes: true,
-	},
-	healthChecks: [
-		{
-			protocol: 'https',
-			host: `${store.getState().system.internal_ip.replace(/\./gu, '-')}.${deviceId}.nomercy.tv`,
-			path: '/status',
-			port: store.getState().system.secureInternalPort,
-		},
-	],
-};
+// const monitorConfig = {
+// 	title: 'NoMercy MediaServer Status Monitor',
+// 	theme: 'default.css',
+// 	path: '/monitor',
+// 	socketPath: '/socket.io',
+// 	spans: [
+// 		{
+// 			interval: 1,
+// 			retention: 60,
+// 		},
+// 		{
+// 			interval: 1,
+// 			retention: 60 * 5,
+// 		},
+// 		{
+// 			interval: 1,
+// 			retention: 60 * 10,
+// 		},
+// 		{
+// 			interval: 1,
+// 			retention: 60 * 60,
+// 		},
+// 	],
+// 	chartVisibility: {
+// 		cpu: true,
+// 		mem: true,
+// 		load: true,
+// 		eventLoop: true,
+// 		responseTime: true,
+// 		statusCodes: true,
+// 	},
+// 	healthChecks: [
+// 		{
+// 			protocol: 'https',
+// 			host: `${store.getState().system.internal_ip.replace(/\./gu, '-')}.${deviceId}.nomercy.tv`,
+// 			path: '/status',
+// 			port: store.getState().system.secureInternalPort,
+// 		},
+// 	],
+// };
 
 router.get('/me', (req: Request, res: Response) => {
 	return res.json(req.user);
