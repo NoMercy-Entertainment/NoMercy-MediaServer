@@ -631,7 +631,7 @@ interface SpecialSeed {
 };
 export const special: SpecialSeed = {
 	title: 'Marvel Cinematic Universe',
-	backdrop: 'https://cdn.nomercy.tv/storage/images/clje9xd4v0000d4ef0usufhy9.jpg',
+	backdrop: 'https://storage.nomercy.tv/clje9xd4v0000d4ef0usufhy9.jpg',
 	logo: '/hUzeosd33nzE5MCNsZxCGEKTXaQ.png',
 	poster: '/4Af70wDv1sN8JztUNnvXgae193O.jpg',
 	description: 'Chronological order of the movies and episodes from the Marvel Cinematic Universe in the timeline of the story.',

@@ -101,7 +101,7 @@ export const moderatorMiddleware = (req: Request, res: Response, next: NextFunct
 export const hasEditPermissions = (req: Request): boolean => {
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-	return isOwner(req) || isModerator(req) || (allowedUsers.find(m => m.sub_id == req.user.sub)?.manage ?? false);
+	return isOwner(req) || isModerator(req) || (allowedUsers.find(m => m.id == req.user.sub)?.manage ?? false);
 };
 
 export const editMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -118,7 +118,7 @@ export const isAllowed = (req: Request): boolean => {
 	const openServer = useSelector((state: AppState) => state.config.openServer);
 	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-	if (!allowedUsers.some(u => u.email == req.user.email) && req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
+	if (!allowedUsers.some(u => u.id == req.user.sub) && req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		Logger.log({
 			level: 'http',
 			name: 'http',
@@ -127,7 +127,7 @@ export const isAllowed = (req: Request): boolean => {
 		});
 	}
 
-	return isOwner(req) || isModerator(req) || allowedUsers.some(u => u.email == req.user.email) || openServer;
+	return isOwner(req) || isModerator(req) || allowedUsers.some(u => u.id == req.user.sub) || openServer;
 };
 
 export const allowedMiddleware = (req: Request, res: Response, next: NextFunction) => {
