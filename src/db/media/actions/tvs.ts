@@ -321,6 +321,9 @@ export const getTvPlayback = ({ id, language }: {id: number, language: string}) 
 		where: (episodes, { eq }) => eq(episodes.tv_id, id),
 	});
 
+	if (episodesData.length === 0) {
+		return null;
+	}
 	const videoFileData = globalThis.mediaDb.query.videoFiles.findMany({
 		where: (medias) => inArray(medias.episode_id, episodesData.map(episode => episode.id)),
 		with: {

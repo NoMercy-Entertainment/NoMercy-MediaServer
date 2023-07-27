@@ -113,9 +113,7 @@ const data = ({ index, data, id, language }: { index: number; data: TVData | Mov
 		textTracks: sortBy(textTracks, 'language'),
 		sources: [
 			{
-				src: `${baseFolder}${videoFile?.filename}${videoFile?.filename.includes('.mp4')
-					? `?token=${access_token}`
-					: ''}`,
+				src: `${baseFolder}${videoFile?.filename}`,
 				type: videoFile?.filename.includes('.mp4')
 					? 'video/mp4'
 					: 'application/x-mpegURL',

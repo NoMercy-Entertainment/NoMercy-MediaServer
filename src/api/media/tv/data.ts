@@ -123,9 +123,7 @@ export default ({ data }: { data: PlaylistItemData; }): PlaylistItem => {
 		textTracks: sortBy(textTracks, 'language'),
 		sources: [
 			{
-				src: `${baseFolder}${videoFile?.filename}${videoFile?.filename.includes('.mp4')
-					? `?token=${access_token}`
-					: ''}`,
+				src: `${baseFolder}${videoFile?.filename}`,
 				type: videoFile?.filename.includes('.mp4')
 					? 'video/mp4'
 					: 'application/x-mpegURL',
