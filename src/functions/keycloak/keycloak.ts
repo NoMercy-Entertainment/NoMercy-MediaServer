@@ -51,7 +51,7 @@ export const kcMiddleware = async (req: Request, res: Response, next: NextFuncti
 		return next();
 	}
 
-	const token = req.query.token ?? (req.headers.authorization as string)?.split(' ')[1];
+	const token = req.query.token ?? (req.headers.authorization as string)?.split(',')[0]?.split(' ')[1];
 
 	try {
 

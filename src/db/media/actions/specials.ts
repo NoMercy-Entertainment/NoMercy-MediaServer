@@ -283,13 +283,13 @@ export const getSpecial = ({id}: {id: string}) => {
 
 		movies: movieIds.length,
 		episodes: episodeIds.length,
-		genres: result.specialItems
-			.map(specialItem => specialItem.episode?.tv?.genre_tv ?? []).flat()
-			.concat(result.specialItems.map(specialItem => specialItem?.movie?.genre_movie ?? []).flat())
-			.map(g => ({
-				id: g.genre_id,
-				name: g.genre.name,
-			})),
+		// genres: result.specialItems
+		// 	.map(specialItem => specialItem.episode?.tv?.genre_tv ?? []).flat()
+		// 	.concat(result.specialItems.map(specialItem => specialItem?.movie?.genre_movie ?? []).flat())
+		// 	.map(g => ({
+		// 		id: g.genre_id,
+		// 		name: g.genre.name,
+		// 	})),
 	};
 
 	return data;

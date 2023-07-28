@@ -8,7 +8,7 @@ export const configData: ConfigData = {
 	queueWorkers: 2,
 	cronWorkers: 0,
 	dataWorkers: 5,
-	requestWorkers: 10,
+	requestWorkers: 15,
 	encoderWorkers: 1,
 	maxAttempts: 2,
 };

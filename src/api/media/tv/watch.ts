@@ -51,7 +51,7 @@ type PlaylistItem = (Episode & {
 		translations: Translation[]; 
 		certification_tv: (CertificationTv & {
 			certification: Certification;
-	})[]; 
+		})[]; 
 	}); 
 	translations: Translation[]; 
 	videoFiles: (VideoFile & {

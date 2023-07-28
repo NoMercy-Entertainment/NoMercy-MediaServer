@@ -7,12 +7,19 @@ import { convertToSeconds } from '@server/functions/dateTime';
 import i18next from 'i18next';
 import { getClosestRating, sortBy } from '@server/functions/stringArray';
 import { deviceId } from '@server/functions/system';
-import { AppState, useSelector } from '@server/state/redux';
-import { SpecialWithRelations, getSpecial } from '@server/db/media/actions/specials';
+import { getSpecial } from '@server/db/media/actions/specials';
+import { Movie } from '@server/db/media/actions/movies';
+import { Episode } from '@server/db/media/actions/episodes';
+import { Tv } from '@server/db/media/actions/tvs';
+import { VideoFile } from '@server/db/media/actions/videoFiles';
+import { Translation } from '@server/db/media/actions/translations';
+import { Media } from '@server/db/media/actions/medias';
+import { UserData } from '@server/db/media/actions/userData';
+import { Certification } from '@server/db/media/actions/certifications';
 
 export default async function (req: Request, res: Response) {
 
-	const items = getSpecial({ id: req.params.id }, true);
+	const items = getSpecial({ id: req.params.id });
 
 	if (!items) {
 		return res.status(404).json({
@@ -31,13 +38,32 @@ export default async function (req: Request, res: Response) {
 	return res.json(files);
 }
 
-type MovieData = SpecialWithRelations['specialItems'][0]['movie'];
-type TVData = SpecialWithRelations['specialItems'][0]['episode'];
+type MovieData = Movie & {
+	videoFiles: (VideoFile & {
+		userData: UserData[];
+	})[];
+	translation: Translation;
+	medias: Media[];
+	certifications: {
+		certification: Certification;
+	}[];
+};
+type TVData = Episode & {
+	tv: Tv & {
+		translation: Translation;
+	};
+	videoFiles: (VideoFile & {
+		userData: UserData[];
+	})[];
+	translation: Translation;
+	certifications: {
+		certification: Certification;
+	}[];
+	medias: Media[];
+};
 
 const data = ({ index, data, id, language }: { index: number; data: TVData | MovieData; id: string; language: string }): PlaylistItem => {
 	data = data!;
-
-	const access_token = useSelector((state: AppState) => state.user.access_token);
 
 	const videoFile = data.videoFiles?.[0];
 
@@ -96,8 +122,8 @@ const data = ({ index, data, id, language }: { index: number; data: TVData | Mov
 			? 'tv'
 			: 'movie',
 		production: (data as TVData)?.tv?.status != 'Ended',
-		season: 1,
-		episode: index,
+		season: (data as TVData).seasonNumber,
+		episode: (data as TVData).episodeNumber,
 		episode_id: data.id,
 		origin: deviceId,
 		uuid: parseInt(`${(data as TVData)?.tv?.id ?? ''}${data.id}`, 10),
@@ -105,7 +131,7 @@ const data = ({ index, data, id, language }: { index: number; data: TVData | Mov
 		tmdbid: (data as TVData)?.tv?.id ?? (data as MovieData)!.id!,
 		show: show,
 		playlist_type: 'special',
-		rating: getClosestRating(data.certifications ?? [], language),
+		rating: getClosestRating(data?.certifications ?? [], language),
 		progress: videoFile && videoFile?.userData?.[0]?.time
 			? (videoFile.userData[0].time / convertToSeconds(videoFile.duration)) * 100
 			: null,
