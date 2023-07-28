@@ -1,13 +1,11 @@
 import { InferModel } from 'drizzle-orm';
 import { convertBooleans } from '@server/db/helpers';
-import { createId } from '@paralleldrive/cuid2';
 import { medias } from '../schema/medias';
 
 export type NewMedia = InferModel<typeof medias, 'insert'>;
 export const insertMedia = (data: NewMedia) => globalThis.mediaDb.insert(medias)
 	.values({
 		...convertBooleans(data),
-		id: data.id ?? createId(),
 	})
 	.onConflictDoUpdate({
 		target: medias.src,

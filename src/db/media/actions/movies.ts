@@ -175,7 +175,10 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 			),
 	});
 
-	const result = {
+	return {
+		...movieData,
+		similar_from: similarData,
+		recommendation_from: recommendationData,
 		casts: castsData.map(cast => ({
 			...cast,
 			person: personData.find(person => person.id === cast.person_id)!,
@@ -190,12 +193,8 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 		translations: translationsData.filter(translation => translation.movie_id === id),
 		medias: mediasData,
 		images: imagesData,
-		similar_from: similarData,
-		recommendation_from: recommendationData,
-		...movieData,
 	};
 
-	return result;
 };
 
 export type MoviePlaybackWithRelations = ReturnTypeOrValue<typeof getMoviePlayback> | null;

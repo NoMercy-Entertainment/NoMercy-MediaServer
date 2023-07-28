@@ -16,6 +16,7 @@ export default function (req: Request, res: Response) {
 			error_description: 'Special not found',
 		});
 	}
+	
 
 	const lowestYear = data.specialItems.reduce((a, b) => {
 		return Math.min(a, parseYear(b?.episode?.tv?.firstAirDate as string) ?? parseYear(b?.movie?.releaseDate) ?? 0);

@@ -1,9 +1,9 @@
 import { insertGenre } from '@server/db/media/actions/genres';
-import { CompleteMovieAggregate } from './movie/fetchMovie';
-import { CompleteTvAggregate } from './fetchTvShow';
 import Logger from '@server/functions/logger/logger';
 import { GenreMovie, insertGenreMovie } from '@server/db/media/actions/genre_movie';
 import { GenreTv, insertGenreTv } from '@server/db/media/actions/genre_tv';
+import { CompleteTvAggregate } from '../tv/fetchTvShow';
+import { CompleteMovieAggregate } from '../movie/fetchMovie';
 
 export default function (
 	req: CompleteTvAggregate | CompleteMovieAggregate,

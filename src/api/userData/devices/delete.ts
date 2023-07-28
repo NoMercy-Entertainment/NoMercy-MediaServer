@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import Logger from '@server/functions/logger';
-import { mediaDb } from '@server/db/media';
+
 import { devices } from '@server/db/media/schema/devices';
 
 export const deleteDevices = (req: Request, res: Response) => {

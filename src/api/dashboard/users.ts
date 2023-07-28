@@ -1,16 +1,16 @@
 import {
-    AddUserParams,
-    NotificationsParams, removeUserParams,
-    userPermissionsParams
+	AddUserParams,
+	NotificationsParams, removeUserParams,
+	userPermissionsParams
 } from '@server/types/server';
 import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express';
 
 import Logger from '@server/functions/logger';
 import {
-    setAllowedUsers
+	setAllowedUsers
 } from '@server/state/redux/config/actions';
-import { mediaDb } from '@server/db/media';
+
 import { eq, inArray } from 'drizzle-orm';
 import { libraries } from '@server/db/media/schema/libraries';
 import { library_user } from '@server/db/media/schema/library_user';
@@ -35,7 +35,7 @@ export const AddUser = (req: Request, res: Response) => {
 		const newAllowedUsers = [
 			...allowedUsers,
 			{
-				sub_id: sub_id,
+				id: sub_id,
 				email: email,
 				name: name,
 				...defaultUserOptions,
@@ -89,7 +89,7 @@ export const removeUser = (req: Request, res: Response) => {
 			.where(eq(users.id, sub_id))
 			.run();
 
-		const newAllowedUsers = [...allowedUsers.filter(u => u.sub_id != sub_id)];
+		const newAllowedUsers = [...allowedUsers.filter(u => u.id != sub_id)];
 
 		setAllowedUsers(newAllowedUsers);
 
@@ -245,9 +245,9 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 		}
 
 		const newAllowedUsers = [
-			...allowedUsers.filter(u => u.sub_id != sub_id),
+			...allowedUsers.filter(u => u.id != sub_id),
 			{
-				...allowedUsers.find(u => u.sub_id == sub_id)!,
+				...allowedUsers.find(u => u.id == sub_id)!,
 				sub_id,
 				allowed,
 				manage,

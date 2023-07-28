@@ -26,7 +26,7 @@ export const insertAlternativeTitle = (data: NewAlternativeTitle, constraint: 'm
 export type AlternativeTitle = InferModel<typeof alternativeTitles, 'select'>;
 export const selectAlternativeTitle = (relations = false) => {
 	if (relations) {
-		return globalThis.mediaDb.query.posts.findMany({
+		return globalThis.mediaDb.query.alternativeTitles.findMany({
 			with: {
 				movie: true,
 				tv: true,

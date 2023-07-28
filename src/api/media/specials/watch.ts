@@ -31,6 +31,7 @@ export default async function (req: Request, res: Response) {
 	const files: any[] = [];
 
 	for (const [key, item] of items.specialItems.entries()) {
+		// @ts-ignore
 		const d = await data({ index: key, data: item.episode ?? item.movie!, id: req.params.id, language: req.language });
 		files.push(d);
 	};

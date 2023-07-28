@@ -1,10 +1,10 @@
 import {
-	AppState,
-	useSelector
+    AppState,
+    useSelector
 } from '@server/state/redux';
 import { Request, Response } from 'express';
 
-import { mediaDb } from '@server/db/media';
+
 import { activityLogs } from '@server/db/media/schema/activityLogs';
 
 export default (req: Request, res: Response) => {

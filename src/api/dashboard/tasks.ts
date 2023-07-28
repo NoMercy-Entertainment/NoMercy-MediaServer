@@ -2,7 +2,6 @@ import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express';
 
 import Logger from '@server/functions/logger';
-import { mediaDb } from '@server/db/media';
 import { eq } from 'drizzle-orm';
 import { runningTasks } from '@server/db/media/schema/runningTasks';
 import { queueJobs } from '@server/db/queue/schema/queueJobs';

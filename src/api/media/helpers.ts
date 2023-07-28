@@ -5,11 +5,10 @@ import {
 	MediaItem
 } from '../../types/server';
 
-import { MovieWithRelations } from '@server/db/media/actions/movies';
 import { Media } from '@server/db/media/actions/medias';
 import { Image } from '@server/providers/tmdb/shared/image';
 
-export const relatedMap = (data: MovieWithRelations['similar_from'] | MovieWithRelations['recommendation_from'], type: string) => data.map((s) => {
+export const relatedMap = (data: any, type: string) => data.map((s) => {
 	return {
 		backdrop: s.backdrop,
 		id: s.media_id as number,

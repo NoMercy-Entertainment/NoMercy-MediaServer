@@ -11,7 +11,7 @@ export const encoderProfiles = (req: Request, res: Response) => {
 				...d,
 				param: undefined,
 				container: [{ key: d.container, val: d.container }],
-				params: JSON.parse(d.param),
+				params: JSON.parse(d.param ?? '{}'),
 			}))
 		);
 

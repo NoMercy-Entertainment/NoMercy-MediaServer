@@ -22,7 +22,7 @@ export const insertSeason = (data: NewSeason) => globalThis.mediaDb.insert(seaso
 export type Season = InferModel<typeof seasons, 'select'>;
 export const selectSeasons = (relations = false) => {
 	if (relations) {
-		return globalThis.mediaDb.query.posts.findMany({
+		return globalThis.mediaDb.query.seasons.findMany({
 			with: {
 				casts: true,
 				crews: true,

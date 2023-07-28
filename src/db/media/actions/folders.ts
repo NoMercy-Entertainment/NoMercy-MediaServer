@@ -30,7 +30,7 @@ export const findFoldersDB = () => {
 export const findFoldersDBWithLibraries = () => {
 	return globalThis.mediaDb.query.folders.findMany({
 		with: {
-			folder_libraries: true,
+			folder_library: true,
 		},
 	});
 };

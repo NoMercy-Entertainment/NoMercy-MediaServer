@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { mediaDb } from '@server/db/media';
+
 import { track_user } from '@server/db/media/schema/track_user';
 import { and, eq, inArray } from 'drizzle-orm';
 import { tracks } from '@server/db/media/schema/tracks';

@@ -1,5 +1,6 @@
-import { CompleteMovieAggregate } from './movie/fetchMovie';
-import { CompleteTvAggregate } from './fetchTvShow';
+
+import { CompleteTvAggregate } from '../tv/fetchTvShow';
+import { CompleteMovieAggregate } from '../movie/fetchMovie';
 import { MovieKeywords } from '@server/providers/tmdb/movie/index';
 import { TvKeywords } from '@server/providers/tmdb/tv/index';
 import { insertKeyword } from '@server/db/media/actions/keywords';

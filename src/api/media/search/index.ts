@@ -11,11 +11,11 @@ import { Tv } from '@server/db/media/actions/tvs';
 import { Movie } from '@server/db/media/actions/movies';
 import { Artist } from '@server/db/media/actions/artists';
 import { Album } from '@server/db/media/actions/albums';
-import { track } from '@server/db/media/actions/tracks';
-import { movies } from '@server/db/media/schema/movies';
 import { albums } from '@server/db/media/schema/albums';
 import { artists } from '@server/db/media/schema/artists';
 import { tracks } from '@server/db/media/schema/tracks';
+import { Track } from '@server/db/media/actions/tracks';
+import { movies } from '@server/db/media/schema/movies';
 
 export default async function (req: Request, res: Response) {
 
@@ -63,7 +63,7 @@ export default async function (req: Request, res: Response) {
 	const MOVIE: Movie[] = [];
 	const ARTIST: Artist[] = [];
 	const ALBUM: Album[] = [];
-	const TRACK: track[] = [];
+	const TRACK: Track[] = [];
 
 	if ((!type || type == 'tv') && tv?.length > 0) {
 		const tvRes = globalThis.mediaDb.select().from(tvs)

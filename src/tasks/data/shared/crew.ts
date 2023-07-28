@@ -1,11 +1,11 @@
 import { insertCrew } from '@server/db/media/actions/crews';
 import logger from '@server/functions/logger';
 import { EpisodeAppend } from '@server/providers/tmdb/episode/index';
-import { CompleteMovieAggregate } from './movie/fetchMovie';
 import { insertJob } from '@server/db/media/actions/jobs';
 import Logger from '@server/functions/logger/logger';
 import { Episode } from '@server/db/media/actions/episodes';
 import { Movie } from '@server/db/media/actions/movies';
+import { CompleteMovieAggregate } from '../movie/fetchMovie';
 
 export default (
 	req: EpisodeAppend | CompleteMovieAggregate,

@@ -5,8 +5,7 @@ import { Request, Response } from 'express';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { collections } from '@server/db/media/schema/collections';
 import { translations } from '@server/db/media/schema/translations';
-import { and, eq, gt, or, isNull, asc } from 'drizzle-orm';
-import { movies } from '@server/db/media/schema/movies';
+import { and, eq, gt, or, isNull } from 'drizzle-orm';
 
 export default function (req: Request, res: Response) {
 	const collection = globalThis.mediaDb.query.collections.findFirst({
@@ -26,7 +25,6 @@ export default function (req: Request, res: Response) {
 								},
 							},
 						},
-						orderBy: asc(movies.releaseDate),
 					},
 				},
 			},

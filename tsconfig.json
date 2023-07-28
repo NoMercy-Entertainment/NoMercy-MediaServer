@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "ESNext",
+		"target": "ES6",
 		"declaration": false,
 		"outDir": "./dist",
 		"strict": true,
@@ -21,9 +21,10 @@
 		"resolveJsonModule": true,
 		"noErrorTruncation": true,
 		"lib": ["DOM", "ES6", "DOM.Iterable", "ScriptHost", "ES2016.Array.Include", "ESNext", "ES2015", "ES5"],
-		"baseUrl": "./src",
+		"baseUrl": ".",
+		"types": [],
 		"paths": {
-			"@server/*": ["./*"]
+			"@server/*": ["./src/*"]
 		},
 		"plugins": [
 			{
@@ -37,7 +38,7 @@
 		"require": ["tsconfig-paths/register"],
 		"transpileOnly": true
 	},
-	"exclude": ["./node_modules"],
+	"exclude": ["node_modules"],
 	"include": [
 		"./src/**/*.ts",
 		"./src/**/*.d.ts",

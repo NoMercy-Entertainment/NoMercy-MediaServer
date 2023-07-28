@@ -154,7 +154,7 @@ export const getSpecial = ({id}: {id: string}) => {
 
 	const peoples = [...castsData.map(cast => cast.person_id), ...crewsData.map(crew => crew.person_id)];
 	if (peoples.length === 0) {
-		return result;
+		return null;
 	}
 
 	const peoplesData = peoples.length > 0
@@ -212,8 +212,33 @@ export const getSpecial = ({id}: {id: string}) => {
 			.all()
 		: [];
 
+	const movieGenres = result.specialItems
+			.map(specialItem => specialItem?.movie?.genre_movie ?? []).flat();
+	const tvGenres = result.specialItems
+		.map(specialItem => specialItem.episode?.tv?.genre_tv ?? []).flat()
+
 	const data = {
 		...result,
+		credits: {
+			cast: castsData.map(cast => ({
+				...cast,
+				person: peoplesData.find(person => person.id === cast.person_id),
+				roles: rolesData.filter(r => r.cast_id === cast.id),
+			})),
+			crew: crewsData.map(crew => ({
+				...crew,
+				person: peoplesData.find(person => person.id === crew.person_id),
+				jobs: jobsData.filter(j => j.crew_id === crew.id),
+			})),
+		},
+
+		movies: movieIds.length,
+		episodes: episodeIds.length,
+		genres: [...movieGenres, ...tvGenres]
+			.map(g => ({
+				id: g.genre_id,
+				name: g.genre.name,
+			})),
 		specialItems: result.specialItems.map(specialItem => ({
 			...specialItem,
 			episode: specialItem.episode
@@ -268,28 +293,6 @@ export const getSpecial = ({id}: {id: string}) => {
 				: undefined,
 		})),
 
-		credits: {
-			cast: castsData.map(cast => ({
-				...cast,
-				person: peoplesData.find(person => person.id === cast.person_id),
-				roles: rolesData.filter(r => r.cast_id === cast.id),
-			})),
-			crew: crewsData.map(crew => ({
-				...crew,
-				person: peoplesData.find(person => person.id === crew.person_id),
-				jobs: jobsData.filter(j => j.crew_id === crew.id),
-			})),
-		},
-
-		movies: movieIds.length,
-		episodes: episodeIds.length,
-		// genres: result.specialItems
-		// 	.map(specialItem => specialItem.episode?.tv?.genre_tv ?? []).flat()
-		// 	.concat(result.specialItems.map(specialItem => specialItem?.movie?.genre_movie ?? []).flat())
-		// 	.map(g => ({
-		// 		id: g.genre_id,
-		// 		name: g.genre.name,
-		// 	})),
 	};
 
 	return data;

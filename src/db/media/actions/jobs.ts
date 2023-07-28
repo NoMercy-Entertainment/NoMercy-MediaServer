@@ -25,7 +25,7 @@ export const selectJob = (relations = false) => {
 	if (relations) {
 		return globalThis.mediaDb.query.jobs.findMany({
 			with: {
-				crews: true,
+				crew: true,
 			},
 		});
 	}

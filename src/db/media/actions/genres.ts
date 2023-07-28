@@ -23,7 +23,6 @@ export const selectGenre = (relations = false) => {
 			with: {
 				genre_movie: true,
 				genre_tv: true,
-				musicGenre_track: true,
 			},
 		});
 	}

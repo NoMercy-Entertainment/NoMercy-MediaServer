@@ -5,7 +5,7 @@ import { Artist } from '@server/db/media/actions/artists';
 import { MusicGenreTrack } from '@server/db/media/actions/musicGenre_track';
 import { MusicGenre } from '@server/db/media/actions/musicGenres';
 import { Playlist } from '@server/db/media/actions/playlists';
-import { track } from '@server/db/media/actions/tracks';
+import { Track } from '@server/db/media/actions/tracks';
 import { UserData } from '@server/db/media/actions/userData';
 import { tracks } from '@server/db/media/schema/tracks';
 import { userData } from '@server/db/media/schema/userData';
@@ -21,7 +21,7 @@ export default function (req: Request, res: Response) {
 	const genres: MusicGenre[] = [];
 	const playlistsItems: Playlist[] = [];
 	const userDataItems: UserData[] = [];
-	const trackItems: (track & {
+	const trackItems: (Track & {
 		musicGenre_track: (MusicGenreTrack & {
 			musicGenre: MusicGenre;
 		})[];
@@ -45,7 +45,7 @@ export default function (req: Request, res: Response) {
 	// @ts-ignore
 	const playlistData = globalThis.mediaDb.query.playlists.findMany({
 		where: eq(users.id, req.user.sub),
-		take: 12,
+		limit: 12,
 	}) as Playlist[];
 	playlistsItems.push(...playlistData);
 
@@ -55,7 +55,7 @@ export default function (req: Request, res: Response) {
 			eq(userData.user_id, req.user.sub),
 			isNotNull(userData.isFavorite)
 		),
-		take: 12,
+		limit: 12,
 		orderBy: desc(userData.updated_at),
 	}) as UserData[];
 	userDataItems.push(...userDataData);
@@ -70,7 +70,7 @@ export default function (req: Request, res: Response) {
 				},
 			},
 		},
-	}) as (track & {
+	}) as (Track & {
 		musicGenre_track: (MusicGenreTrack & {
 			musicGenre: MusicGenre;
 		})[];
@@ -82,7 +82,6 @@ export default function (req: Request, res: Response) {
 		with: {
 			album: true,
 		},
-		unique: ['album_id'],
 	}) as (AlbumMusicGenre & {
 		album: Album;
 	})[];
@@ -93,7 +92,6 @@ export default function (req: Request, res: Response) {
 		with: {
 			artist: true,
 		},
-		unique: ['artist_id'],
 	}) as (ArtistMusicGenre & {
 		artist: Artist;
 	})[];

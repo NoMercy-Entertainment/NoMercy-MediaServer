@@ -10,7 +10,6 @@ import { PersonAppend } from '@server/providers/tmdb/people/index';
 import { SeasonAppend } from '@server/providers/tmdb/season/index';
 import downloadImage from '@server/functions/downloadImage';
 import { imagesPath } from '@server/state';
-import { mediaDb } from '@server/db/media';
 import { eq } from 'drizzle-orm';
 import { tvs } from '@server/db/media/schema/tvs';
 import { seasons } from '@server/db/media/schema/seasons';

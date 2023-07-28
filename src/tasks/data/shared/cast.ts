@@ -1,10 +1,10 @@
 import { Cast, insertCast } from '@server/db/media/actions/casts';
 import logger from '@server/functions/logger';
 import { EpisodeAppend } from '@server/providers/tmdb/episode/index';
-import { CompleteMovieAggregate } from './movie/fetchMovie';
 import { insertRole } from '@server/db/media/actions/roles';
 import Logger from '@server/functions/logger/logger';
 import { Crew } from '@server/db/media/actions/crews';
+import { CompleteMovieAggregate } from '../movie/fetchMovie';
 
 export default (
 	req: EpisodeAppend | CompleteMovieAggregate,

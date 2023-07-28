@@ -1,9 +1,10 @@
-import { CompleteMovieAggregate } from './movie/fetchMovie';
-import { CompleteTvAggregate } from './fetchTvShow';
+
 import Logger from '@server/functions/logger/logger';
 import { image } from './image';
 import translation from './translation';
 import { insertPeople } from '@server/db/media/actions/people';
+import { CompleteTvAggregate } from '../tv/fetchTvShow';
+import { CompleteMovieAggregate } from '../movie/fetchMovie';
 
 export default (
 	req: CompleteTvAggregate | CompleteMovieAggregate,

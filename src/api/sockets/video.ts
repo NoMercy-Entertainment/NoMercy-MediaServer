@@ -1,7 +1,7 @@
 import { NewUserData, insertUserData } from '@server/db/media/actions/userData';
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { userData } from '@server/db/media/schema/userData';
-import { mediaDb } from '@server/db/media';
+
 
 export default function (socket: any) {
 	socket.on('setTime', (data: any) => {
@@ -146,7 +146,7 @@ export default function (socket: any) {
 
 			if (videos.length > 0) {
 				mediaDb.delete(userData)
-					.where(inArray(userData.id, videos.map(v => v.id)))
+					.where(inArray(userData.id, videos.map(v => v.id!)))
 					.run();
 			}
 		}

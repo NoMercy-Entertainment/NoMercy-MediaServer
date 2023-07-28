@@ -13,7 +13,7 @@
     "format": "eslint 'src/**/*.{js,ts}' --fix",
     "start": "yarn copy-files && node ./dist/src/index.js",
     "copy-files": "copyfiles -a ./src/database/config/**/* ./src/database/queue/**/* ./dist",
-    "build": "tsc",
+    "build": "tsc --skipLibCheck -p ./tsconfig.json",
     "watch": "tsc-watch --compiler typescript/bin/tsc --onSuccess 'yarn start'",
     "watch-only": "tsc -w --noEmit"
   },
@@ -76,6 +76,7 @@
     "prettier": "^2.8.0",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
     "tsc-silent": "^1.2.2",
     "tsc-watch": "^6.0.4",
     "tsx": "^3.12.6",
