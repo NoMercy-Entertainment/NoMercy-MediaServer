@@ -1,10 +1,11 @@
 import {
+	AbleUserParams,
 	AddUserParams,
 	NotificationsParams, removeUserParams,
 	userPermissionsParams
 } from '@server/types/server';
 import { AppState, useSelector } from '@server/state/redux';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import Logger from '@server/functions/logger';
 
@@ -17,7 +18,7 @@ import { users } from '@server/db/media/schema/users';
 import { defaultUserOptions } from '@server/state/redux/config';
 
 export const AddUser = (req: Request, res: Response) => {
-	const { user_id, email, name }: AddUserParams = req.body;
+	const { user_id, email, name, enabled }: AddUserParams = req.body;
 
 	try {
 
@@ -25,6 +26,7 @@ export const AddUser = (req: Request, res: Response) => {
 			id: user_id,
 			email: email,
 			name: name,
+			allowed: enabled,
 		});
 
 
@@ -60,11 +62,11 @@ export const AddUser = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `Error deleting user: ${error}`,
+			message: `Error adding user: ${error}`,
 		});
 		return res.json({
 			status: 'ok',
-			message: `Something went wrong deleting user: ${error}`,
+			message: `Something went wrong adding user: ${error}`,
 		});
 	}
 
@@ -209,7 +211,7 @@ export const userPermissions = (req: Request, res: Response) => {
 };
 
 export const updateUserPermissions = (req: Request, res: Response) => {
-	const { user_id, allowed, manage, audioTranscoding, videoTranscoding, noTranscoding, libraries: libs = [] }: userPermissionsParams = req.body;
+	const { user_id, enabled, manage, audioTranscoding, videoTranscoding, noTranscoding, libraries: libs = [] }: userPermissionsParams = req.body;
 
 	try {
 		const Libs = globalThis.mediaDb.query.libraries.findMany({
@@ -222,7 +224,7 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 
 		updateUser({
 			id: user_id,
-			allowed: allowed,
+			allowed: enabled,
 			manage: manage,
 			audioTranscoding: audioTranscoding,
 			videoTranscoding: videoTranscoding,
@@ -241,7 +243,7 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 			{
 				...globalThis.allowedUsers.find(u => u.id == user_id)!,
 				user_id,
-				allowed,
+				allowed: enabled,
 				manage,
 				audioTranscoding,
 				videoTranscoding,
@@ -321,3 +323,45 @@ export const notificationSettings = (req: Request, res: Response) => {
 	// 		});
 	// 	});
 };
+
+export const AbleUser = (req: Request, res: Response) => {
+	const { user_id, enabled }: AbleUserParams = req.body;
+
+	try {
+
+		const user = updateUser({
+			id: user_id,
+			allowed: enabled,
+		});
+
+		const newAllowedUsers = [
+			...globalThis.allowedUsers.filter(u => u.id != user_id),
+			{
+				...globalThis.allowedUsers.find(u => u.id == user_id)!,
+				user_id,
+				allowed: enabled,
+			},
+		];
+
+		globalThis.allowedUsers = newAllowedUsers;
+
+		Logger.log({
+			level: 'info',
+			name: 'access',
+			color: 'magentaBright',
+			message: `User ${user.name} permissions updated.`,
+		});
+
+		return res.json({
+			status: 'ok',
+			message: `Successfully updated user permissions for ${user.name}.`,
+		});
+
+	} catch (error) {
+		return res.status(400).json({
+			status: 'ok',
+			message: `Something went wrong updating permissions: ${error}`,
+		});
+	}
+
+}

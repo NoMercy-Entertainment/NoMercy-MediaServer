@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 
 import { getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helpers';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { InfoResponse } from '../../../types/server';
 import { createTitleSort } from '../../../tasks/files/filenameParser';

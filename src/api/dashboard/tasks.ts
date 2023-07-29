@@ -1,5 +1,5 @@
 import { AppState, useSelector } from '@server/state/redux';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import Logger from '@server/functions/logger';
 import { eq } from 'drizzle-orm';

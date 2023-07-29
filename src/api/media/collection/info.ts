@@ -1,6 +1,6 @@
 /* eslint-disable indent */
 
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { collections } from '@server/db/media/schema/collections';

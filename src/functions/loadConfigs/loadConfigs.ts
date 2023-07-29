@@ -4,11 +4,12 @@ import { setSecureExternalPort, setSecureInternalPort } from '@server/state/redu
 import { deviceName } from '../system';
 import { selectConfiguration } from '@server/db/media/actions/configuration';
 import { getEncoderLibraries } from '@server/db/media/actions/libraries';
+import { selectUser } from '@server/db/media/actions/users';
 
 export const loadConfigs = async () => {
 
 	const dbConf = selectConfiguration();
-
+	
 	const secureInternalPort = (dbConf.find(conf => conf.key == 'secureInternalPort')?.value as string) ?? process.env.DEFAULT_PORT;
 	setSecureInternalPort(parseInt(secureInternalPort, 10));
 
@@ -23,6 +24,8 @@ export const loadConfigs = async () => {
 
 	const libraries = await getEncoderLibraries();
 	setLibraries(libraries);
+
+	globalThis.allowedUsers = selectUser(true);
 
 };
 

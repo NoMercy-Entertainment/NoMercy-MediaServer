@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { readFile, writeFileSync } from 'fs';
 
 export default (req: Request, res: Response) => {

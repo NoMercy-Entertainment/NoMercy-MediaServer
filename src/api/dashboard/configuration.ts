@@ -1,6 +1,6 @@
 import { AppState, useSelector } from '@server/state/redux';
 import { ConfigData, ConfigParams, ResponseStatus } from '@server/types/server';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { setSecureExternalPort, setSecureInternalPort } from '@server/state/redux/system/actions';
 
 import Logger from '@server/functions/logger';

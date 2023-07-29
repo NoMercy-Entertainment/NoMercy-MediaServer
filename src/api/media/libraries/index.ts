@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { LibraryResponseContent } from '@server/types//server';
 import { createTitleSort } from '@server/tasks/files/filenameParser';
@@ -10,11 +10,13 @@ import { getAllowedLibrary } from '@server/db/media/actions/libraries';
 import { requestWorker } from '@server/api/requestWorker';
 
 export default async function (req: Request, res: Response) {
+	
+	const allowedLibrary = getAllowedLibrary(req, req.params.id);
 
 	const result = await requestWorker({
 		filename: __filename,
 		language: req.language,
-		user_id: req.user.sub,
+		allowedLibrary: allowedLibrary,
 		take: req.body.take,
 		page: req.body.page,
 		id: req.params.id,
@@ -29,11 +31,12 @@ export default async function (req: Request, res: Response) {
 	return res.json(result.result);
 }
 
-export const exec = ({ id, take, page, user_id, language }: { id: string, take: number; page: number; user_id: string, language: string }) => {
+export const exec = ({ id, take, page, allowedLibrary, language }: 
+	{ id: string, take: number; page: number; allowedLibrary: string, language: string }
+) => {
 	return new Promise(async (resolve, reject) => {
 		try {
-			const library = getAllowedLibrary(user_id, id);
-			if (!library) return reject({
+			if (!allowedLibrary) return reject({
 				error: {
 					code: 404,
 					message: 'Library not found',

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express-serve-static-core';
 import { isAllowed, isOwner, verifiedApi } from './permissions';
 
 import Logger from '@server/functions/logger';

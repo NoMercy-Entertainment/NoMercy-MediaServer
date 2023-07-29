@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { arch, platform, version } from '@server/functions/system';
 import { cachePath, configPath, logPath, metadataPath, transcodesPath } from '@server/state';
 

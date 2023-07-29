@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { encodeFile } from '@server/functions/ffmpeg/encodeFolder';
 import i18next from 'i18next';

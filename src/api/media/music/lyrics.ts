@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { findLyrics } from '../../../providers';
 import lyricsFinder from 'lyrics-finder';

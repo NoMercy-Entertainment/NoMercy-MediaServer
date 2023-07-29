@@ -1,13 +1,13 @@
 import { AppState, useSelector } from '@server/state/redux';
 import { KeycloakToken } from '@server/types/keycloak';
-import express, { Request, Response } from 'express';
+import express from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { setAccessToken, setRefreshToken } from '@server/state/redux/user/actions';
 
 import Logger from '../functions/logger';
 import axios from 'axios';
 import { keycloak_key } from '../functions/keycloak/config';
 import qs from 'qs';
-import { setOwner } from '@server/state/redux/system/actions';
 import { tokenFile } from '@server/state';
 import { tokenParser } from '../functions/tokenParser';
 import { writeFileSync } from 'fs';
@@ -99,7 +99,6 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 			setRefreshToken(data.refresh_token);
 
 			const userId = tokenParser(data.access_token).sub;
-			setOwner(userId);
 			writeToConfigFile('user_id', userId);
 
 			writeFileSync(tokenFile, JSON.stringify(data));

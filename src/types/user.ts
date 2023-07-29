@@ -14,3 +14,15 @@ export type Message = {
     updated_at?: number
     method?: string
 }
+
+export interface AllowedUser {
+    owner: boolean;
+    manage: boolean;
+    allowed: boolean;
+    audioTranscoding: boolean;
+    videoTranscoding: boolean;
+    noTranscoding: boolean;
+    id: string;
+    email: string;
+    name: string;
+}

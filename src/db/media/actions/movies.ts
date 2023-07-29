@@ -2,6 +2,7 @@
 import { convertBooleans } from '../../helpers';
 import { InferModel, ReturnTypeOrValue, and, inArray } from 'drizzle-orm';
 import { movies } from '../schema/movies';
+import { isOwner } from '@server/api/middleware/permissions';
 
 export type NewMovie = InferModel<typeof movies, 'insert'>;
 export const insertMovie = (data: NewMovie) => globalThis.mediaDb.insert(movies)
@@ -66,12 +67,16 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 					},
 				},
 			},
-			library: true,
+			library: {
+				with: {
+					library_user: true,
+				},
+			},
 			userData: true,
 		},
 	});
 
-	if (!movieData?.id) {
+	if (!movieData || (!movieData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
 		return null;
 	}
 
@@ -209,7 +214,11 @@ export const getMoviePlayback = ({ id, user_id, language }: { id: number; user_i
 					certification: true,
 				},
 			},
-			library: true,
+			library: {
+				with: {
+					library_user: true,
+				},
+			},
 			videoFiles: {
 				with: {
 					userData: true,
@@ -218,7 +227,7 @@ export const getMoviePlayback = ({ id, user_id, language }: { id: number; user_i
 		},
 	});
 
-	if (!movieData) {
+	if (!movieData || (!movieData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
 		return null;
 	}
 

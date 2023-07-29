@@ -1,5 +1,5 @@
 /* eslint-disable prefer-promise-reject-errors */
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { trackSort, uniqBy } from '@server/functions/stringArray';
 
 import { deviceId } from '@server/functions/system';

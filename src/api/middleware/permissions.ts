@@ -1,11 +1,11 @@
 import { AppState, useSelector } from '@server/state/redux';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express-serve-static-core';
 
 import Logger from '@server/functions/logger';
 import nodeCrypto from 'crypto';
 import { readFileSync } from 'fs';
 import { sleep } from '@server/functions/dateTime';
-import { sslCert } from '@server/state';
+import { owner, sslCert } from '@server/state';
 import { eq } from 'drizzle-orm';
 import { users } from '@server/db/media/schema/users';
 
@@ -13,7 +13,6 @@ let delay = 0;
 let timeout: NodeJS.Timeout;
 
 export const hasOwner = () => {
-	const owner = useSelector((state: AppState) => state.system.owner);
 	if (!owner) {
 		return false;
 	}
@@ -52,8 +51,10 @@ export const verifiedApi = (req: Request): boolean => {
 	}
 };
 
-export const isOwner = (req: Request): boolean => {
-	const owner = useSelector((state: AppState) => state.system.owner);
+export const isOwner = (req: Request | string): boolean => {
+	if (typeof req == 'string') {
+		return owner == req;
+	}
 	return owner == req.user.sub;
 };
 
@@ -119,6 +120,9 @@ export const isAllowed = (req: Request): boolean => {
 	if (req.user.sub == 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		return true;
 	}
+	if (isOwner(req) || isModerator(req)) {
+		return true;
+	}
 
 	if (!globalThis.allowedUsers.some(u => u.id == req.user.sub) && req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		Logger.log({
@@ -129,7 +133,7 @@ export const isAllowed = (req: Request): boolean => {
 		});
 	}
 
-	return isOwner(req) || isModerator(req) || globalThis.allowedUsers.some(u => u.id == req.user.sub);
+	return globalThis.allowedUsers.some(u => u.id == req.user.sub);
 };
 
 // export const allowedMiddleware = (req: Request, res: Response, next: NextFunction) => {

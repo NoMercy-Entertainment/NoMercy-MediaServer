@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { sortBy } from '@server/functions/stringArray';
 
 import { eq, isNull, or } from 'drizzle-orm';

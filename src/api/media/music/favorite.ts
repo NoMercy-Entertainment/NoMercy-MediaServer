@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { selectFavoriteTracks } from '@server/db/media/actions/track_user';
 import { deviceId } from '@server/functions/system';

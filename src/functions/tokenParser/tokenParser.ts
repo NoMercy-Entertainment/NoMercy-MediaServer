@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import jwt_decode, { JwtPayload } from 'jwt-decode';
 import { KeycloakToken } from '@server/types/keycloak';
 

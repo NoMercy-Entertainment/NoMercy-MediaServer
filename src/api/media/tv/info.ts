@@ -1,6 +1,6 @@
 /* eslint-disable indent */
 
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helpers';
 
 import { InfoResponse } from '../../../types/server';

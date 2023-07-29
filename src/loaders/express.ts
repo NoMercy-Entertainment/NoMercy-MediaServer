@@ -1,5 +1,5 @@
-import { AppState, useSelector } from '@server/state/redux';
-import express, { Application, NextFunction, Request, Response } from 'express';
+import express from 'express';
+import { Application, NextFunction, Request, Response } from 'express-serve-static-core';
 import {
 	serveImagesPath,
 	serveLibraryPaths,
@@ -14,15 +14,13 @@ import compression from 'compression';
 import cors from 'cors';
 import routes from '../api/index';
 import webhooks from '../api/routes/webhooks';
-import { setupComplete } from '@server/state';
+import { owner, setupComplete } from '@server/state';
 import { staticPermissions } from '../api/middleware/permissions';
 
 import { initKeycloak, kcMiddleware, mustHaveToken } from '@server/functions/keycloak';
 
 
 export default async (app: Application) => {
-	const owner = useSelector((state: AppState) => state.system.owner);
-
 	await initKeycloak();
 
 	app.use((req: Request, res: Response, next: NextFunction) => {

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { cachePath } from '@server/state';
 import downloadImage from '@server/functions/downloadImage';

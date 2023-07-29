@@ -1,4 +1,5 @@
 import {
+	AbleUser,
 	AddUser,
 	notificationSettings,
 	removeUser,
@@ -88,6 +89,7 @@ router.use(
 		});
 
 		route.post('/users', AddUser);
+		route.post('/users/able', AbleUser);
 		route.post('/users/delete', removeUser);
 
 		route.post('/users/permissions', userPermissions);

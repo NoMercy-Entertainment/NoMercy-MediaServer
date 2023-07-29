@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { asc, eq, inArray } from 'drizzle-orm';
 import { musicGenre_track } from '@server/db/media/schema/musicGenre_track';

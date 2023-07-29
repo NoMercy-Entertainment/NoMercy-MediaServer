@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { existsSync, readFileSync } from 'fs';
 
 import { convertToSeconds, parseYear } from '@server/functions/dateTime';
@@ -29,7 +29,11 @@ export default async function (req: Request, res: Response) {
 export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
 	return new Promise(async (resolve, reject) => {
 
-		const movie = getMoviePlayback({ id: parseInt(id, 10), user_id, language });
+		const movie = getMoviePlayback({ 
+			id: parseInt(id, 10), 
+			user_id, 
+			language 
+		});
 
 		if (!movie) {
 			return reject({
@@ -41,11 +45,11 @@ export const exec = ({ id, user_id, language }: { id: string; user_id: string; l
 			});
 		}
 
-		return resolve(getContent(movie, user_id, language));
+		return resolve(getContent(movie, language));
 	});
 };
 
-const getContent = (movie: MoviePlaybackWithRelations, user_id: string, language: string) => {
+const getContent = (movie: MoviePlaybackWithRelations, language: string) => {
 
 	if (!movie?.videoFiles) { return; }
 

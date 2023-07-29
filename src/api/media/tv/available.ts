@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { tvs } from '@server/db/media/schema/tvs';
 import { eq } from 'drizzle-orm';
 import { requestWorker } from '@server/api/requestWorker';
+import { isOwner } from '@server/api/middleware/permissions';
 
 export default async function (req: Request, res: Response) {
 
@@ -45,7 +46,7 @@ export const exec = ({ id, user_id, language }: { id: string; user_id: string; l
 			},
 		});
 
-		if (!tv || !tv?.library?.library_user?.some(l => l.user_id === user_id)) {
+		if (!tv || (!tv?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
 			return reject({
 				available: false,
 				server: 'local',

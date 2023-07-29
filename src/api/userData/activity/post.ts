@@ -1,5 +1,5 @@
 import { AppState, useSelector } from '@server/state/redux';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { insertActivityLog } from '@server/db/media/actions/activityLogs';
 import { insertDevice, selectDevice } from '@server/db/media/actions/devices';

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import i18n from '@server/loaders/i18n';
 import { requestWorker } from '@server/api/requestWorker';
 import { PersonCast, PersonWithAppends, person, personAppend } from '@server/providers/tmdb/people';

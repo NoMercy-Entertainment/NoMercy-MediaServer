@@ -4,6 +4,7 @@ import { InferModel, eq, ReturnTypeOrValue, inArray, and } from 'drizzle-orm';
 import { tvs } from '../schema/tvs';
 import i18next from 'i18next';
 import { sortBy } from '@server/functions/stringArray';
+import { isOwner } from '@server/api/middleware/permissions';
 
 export type NewTv = InferModel<typeof tvs, 'insert'>;
 export const insertTv = (data: NewTv) => globalThis.mediaDb.insert(tvs)
@@ -129,12 +130,16 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 					},
 				},
 			},
-			library: true,
+			library: {
+				with: {
+					library_user: true,
+				},
+			},
 			userData: true,
 		},
 	});
 
-	if (!tvData?.id) {
+	if (!tvData || (tvData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
 		return null;
 	}
 
@@ -295,12 +300,16 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 };
 
 export type TvPlaybackWithRelations = ReturnTypeOrValue<typeof getTvPlayback> | null;
-export const getTvPlayback = ({ id, language }: {id: number, language: string}) => {
+export const getTvPlayback = ({ id, user_id, language }: {id: number, user_id: string, language: string}) => {
 
 	const tvData = globalThis.mediaDb.query.tvs.findFirst({
 		where: (tvs, { eq }) => eq(tvs.id, id),
 		with: {
-			library: true,
+			library: {
+				with: {
+					library_user: true,
+				},
+			},
 			certification_tv: {
 				with: {
 					certification: true,
@@ -309,7 +318,7 @@ export const getTvPlayback = ({ id, language }: {id: number, language: string}) 
 		},
 	});
 
-	if (!tvData) {
+	if (!tvData || (tvData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
 		return null;
 	}
 

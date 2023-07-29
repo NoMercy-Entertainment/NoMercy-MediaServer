@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { logLevels, logNames, winstonLog } from '@server/state';
 
 import Logger from '@server/functions/logger';

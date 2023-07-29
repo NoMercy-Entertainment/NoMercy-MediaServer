@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import Logger from '@server/functions/logger';
 import {
-    createMediaFolder
+	createMediaFolder
 } from '@server/tasks/files/filenameParser';
 import { encodeInput } from '@server/functions/ffmpeg/encodeInput';
 import i18n from '../../loaders/i18n';
@@ -10,7 +10,7 @@ import { movie } from '@server/providers/tmdb/movie';
 import path from 'path';
 import { platform } from '@server/functions/system';
 import {
-    scanLibrary
+	scanLibrary
 } from '@server/tasks/files/scanLibraries';
 import storeMovie from '@server/tasks/data/movie';
 import storeTvShow from '@server/tasks/data/tv';

@@ -14,7 +14,7 @@ import { shuffle, unique } from '@server/functions/stringArray';
 import { deviceId } from '@server/functions/system';
 import { createTitleSort } from '@server/tasks/files/filenameParser';
 import { and, desc, eq, isNotNull } from 'drizzle-orm';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 export default function (req: Request, res: Response) {
 

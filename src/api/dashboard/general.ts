@@ -1,5 +1,5 @@
 import Logger from '@server/functions/logger';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { asc } from 'drizzle-orm';
 import { languages } from '@server/db/media/schema/languages';
 

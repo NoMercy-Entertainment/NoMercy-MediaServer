@@ -364,16 +364,18 @@ export interface AddUserParams {
 	user_id: string;
 	email: string;
 	name: string;
+	enabled: boolean;
 }
 export interface removeUserParams {
 	user_id: string;
 }
-export interface userPermissionsParams {
+export interface AbleUserParams {
 	user_id: string;
+	enabled: boolean;
 }
 export interface userPermissionsParams {
 	user_id: string;
-	allowed: boolean;
+	enabled: boolean;
 	manage: boolean;
 	audioTranscoding: boolean;
 	videoTranscoding: boolean;

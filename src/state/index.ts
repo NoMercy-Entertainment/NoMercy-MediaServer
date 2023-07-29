@@ -65,6 +65,9 @@ export const applicationPaths = {
 
 export const tokenFile = path.resolve(configPath, 'token.json');
 export const configFile = path.resolve(configPath, 'config.json');
+
+export const owner = JSON.parse(readFileSync(configFile, 'utf8'))?.user_id;
+
 export const errorLog = path.resolve(logPath, `errorLog-${new Date().toISOString()
 	.split('T')[0].replace(/-/gu, '')}.txt`);
 export const winstonLog = path.join(logPath, `serverLog-${new Date().toISOString()

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 // import data from './data';
 // import { isOwner } from '@server/api/middleware/permissions';

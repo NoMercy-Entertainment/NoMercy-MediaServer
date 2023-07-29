@@ -13,6 +13,8 @@ import {
 } from '@server/state/redux/music/actions';
 import socketioJwt from 'socketio-jwt';
 import { storeServerActivity } from '../api/userData/activity/post';
+import { isOwner } from '@server/api/middleware/permissions';
+import { insertUser } from '@server/db/media/actions/users';
 
 const io: any = null;
 export let myClientList: {
@@ -87,7 +89,12 @@ export const socket = {
 
 		io.use((socket, next) => {
 
-			if (globalThis.allowedUsers.some(u => u.id == (socket as any).decoded_token.sub)) {
+			if (isOwner((socket as any).decoded_token.sub) || globalThis.allowedUsers.some(u => u.id == (socket as any).decoded_token.sub)) {
+				insertUser({
+					id: (socket as any).decoded_token.sub, 
+					email: (socket as any).decoded_token.email,
+					name: (socket as any).decoded_token.name,
+				});
 				return next();
 			}
 

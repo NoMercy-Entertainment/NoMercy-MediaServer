@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { execSync } from 'child_process';
 import { ParsedShow, filenameParse } from '@server/functions/videoFilenameParser';

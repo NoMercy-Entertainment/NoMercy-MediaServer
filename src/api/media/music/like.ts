@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 
 import { track_user } from '@server/db/media/schema/track_user';

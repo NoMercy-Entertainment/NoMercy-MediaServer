@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { inArray } from 'drizzle-orm';
 import { libraries } from '@server/db/media/schema/libraries';

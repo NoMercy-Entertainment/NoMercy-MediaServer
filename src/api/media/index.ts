@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { parseYear } from '@server/functions/dateTime';
 import { asc, inArray } from 'drizzle-orm';
@@ -10,11 +10,13 @@ import { Tv } from '@server/db/media/actions/tvs';
 import { requestWorker } from '../requestWorker';
 
 export default async function (req: Request, res: Response) {
+	
+	const allowedLibraries = getAllowedLibraries(req);
 
 	const result = await requestWorker({
 		filename: __filename,
 		language: req.language,
-		user_id: req.user.sub,
+		allowedLibraries: allowedLibraries,
 		limit: req.body.limit,
 		offset: req.body.page,
 		take: req.body.take,
@@ -30,11 +32,9 @@ export default async function (req: Request, res: Response) {
 	return res.json(result.result);
 }
 
-export const exec = ({ user_id, language, limit, offset, take, page }: 
-	{ user_id: string; language: string; limit: number; offset: number; take: number; page: number }) => {
+export const exec = ({ allowedLibraries, language, limit, offset, take, page }: 
+	{ allowedLibraries: string[]; language: string; limit: number; offset: number; take: number; page: number }) => {
 	return new Promise(async (resolve, reject) => {
-
-		const allowedLibraries = getAllowedLibraries(user_id);
 
 		if (!allowedLibraries || allowedLibraries.length == 0) {
 			return reject({
@@ -179,9 +179,10 @@ export const exec = ({ user_id, language, limit, offset, take, page }:
 				data: data.filter(d => d.items.length > 0),
 			});
 		} catch (error) {
+			console.log(error);
 			return reject({
 				error: {
-					code: 500,
+					code: 501,
 					message: error,
 				},
 			});

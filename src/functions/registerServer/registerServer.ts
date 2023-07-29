@@ -1,6 +1,7 @@
 import { AppState, useSelector } from '@server/state/redux';
 import { deviceId, platform } from '../system';
-import express, { Request, Response } from 'express';
+import express from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { readFileSync, writeFileSync } from 'fs';
 import { setAccessToken, setRefreshToken } from '@server/state/redux/user/actions';
 
@@ -15,7 +16,6 @@ import inquirer from 'inquirer';
 import { keycloak_key } from '../keycloak/config';
 import open from 'open';
 import qs from 'qs';
-import { setOwner } from '@server/state/redux/system/actions';
 import storeConfig from '../storeConfig';
 import { applicationVersion, tokenFile } from '@server/state';
 import { tokenParser } from '../tokenParser';
@@ -177,7 +177,6 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 				setRefreshToken(data.refresh_token);
 
 				const userId = tokenParser(data.access_token).sub;
-				setOwner(userId);
 				writeToConfigFile('user_id', userId);
 
 				writeFileSync(tokenFile, JSON.stringify(data, null, 2));
@@ -249,7 +248,6 @@ export const login = ({ email, password, totp }) => {
 				setRefreshToken(data.refresh_token);
 
 				const userId = tokenParser(data.access_token).sub;
-				setOwner(userId);
 				writeToConfigFile('user_id', userId);
 
 				writeFileSync(tokenFile, JSON.stringify(data));

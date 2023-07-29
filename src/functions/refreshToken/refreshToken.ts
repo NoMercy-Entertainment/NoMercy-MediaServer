@@ -1,5 +1,5 @@
 import { AppState, useSelector } from '@server/state/redux';
-import { configFile, tokenFile } from '@server/state';
+import { tokenFile } from '@server/state';
 import DetectBrowsers from '../detectBrowsers';
 import { readFileSync, writeFileSync } from 'fs';
 import {
@@ -17,15 +17,11 @@ import {
 import Logger from '@server/functions/logger';
 import { keycloak_key } from '../keycloak/config';
 import qs from 'qs';
-import { setOwner } from '@server/state/redux/system/actions';
 import open from 'open';
 
 export const refreshToken = async () => {
 
 	const tokens = JSON.parse(readFileSync(tokenFile, 'utf-8'));
-	const config = JSON.parse(readFileSync(configFile, 'utf8'));
-
-	setOwner(config?.user_id ?? ('' as string));
 
 	if (tokens.access_token) {
 		setAccessToken(tokens.access_token);

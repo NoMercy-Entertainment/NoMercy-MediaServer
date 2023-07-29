@@ -2,7 +2,8 @@ import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 import { libraries } from '../schema/libraries';
-import { Request } from 'express';
+import { isOwner } from '@server/api/middleware/permissions';
+import { Request } from 'express-serve-static-core';
 
 export type NewLibrary = InferModel<typeof libraries, 'insert'>;
 export const insertLibrary = (data: NewLibrary, constraint: 'id' | 'title') => globalThis.mediaDb.insert(libraries)
@@ -130,22 +131,26 @@ export const selectLibraryWithRelations = (id: string) => {
 export type AllowedLibraries = ReturnType<typeof getAllowedLibraries>;
 export const getAllowedLibraries = (req: Request | string) => {
 
+	if (isOwner(req)) {
+		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
+	}
+
 	if (typeof req == 'string') {
 		return globalThis.mediaDb.query.library_user.findMany({
 			where: (library_user, { eq, and }) => eq(library_user.user_id, req),
 		}).map(l => l.library_id!);
 	}
-
-	if (req.isOwner) {
-		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
-	}
-
+	
 	return globalThis.mediaDb.query.library_user.findMany({
 		where: (library_user, { eq, and }) => eq(library_user.user_id, req.user.sub),
 	}).map(l => l.library_id!);
 };
 export type AllowedLibrary = ReturnType<typeof getAllowedLibrary>;
 export const getAllowedLibrary = (req: Request | string, id: string) => {
+
+	if (isOwner(req)) {
+		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
+	}
 
 	if (typeof req == 'string') {
 		return globalThis.mediaDb.query.library_user.findMany({
@@ -154,10 +159,6 @@ export const getAllowedLibrary = (req: Request | string, id: string) => {
 				eq(library_user.library_id, id)
 			),
 		}).map(l => l.library_id!);
-	}
-
-	if (req.isOwner) {
-		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
 	}
 
 	return globalThis.mediaDb.query.library_user.findMany({

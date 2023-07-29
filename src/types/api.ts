@@ -5,7 +5,7 @@ export interface ServerPingResponse {
         external_ip: string,
         id: number,
         server_id: string,
-        sub_id: string,
+        user_id: string,
         server_name: string,
         online: boolean,
         is_primary: number,

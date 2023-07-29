@@ -2,7 +2,7 @@ import {
     AppState,
     useSelector
 } from '@server/state/redux';
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 
 import { activityLogs } from '@server/db/media/schema/activityLogs';

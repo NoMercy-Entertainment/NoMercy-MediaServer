@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import { exec, execSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
 

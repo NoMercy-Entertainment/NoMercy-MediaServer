@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { InfoResponse } from '@server/types//server';
 import { createTitleSort } from '@server/tasks/files/filenameParser';

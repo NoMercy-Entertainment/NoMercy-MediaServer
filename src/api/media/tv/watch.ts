@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { Tv, TvPlaybackWithRelations, getTvPlayback } from '@server/db/media/actions/tvs';
 import i18next from 'i18next';
@@ -13,18 +13,49 @@ import { UserData } from '@server/db/media/actions/userData';
 import { CertificationTv } from '@server/db/media/actions/certification_tv';
 import { Media } from '@server/db/media/actions/medias';
 import { Certification } from '@server/db/media/actions/certifications';
+import { requestWorker } from '@server/api/requestWorker';
 
-export default function (req: Request, res: Response) {
+export default async function (req: Request, res: Response) {
 
-	const tv = getTvPlayback({ id: parseInt(req.params.id, 10), language: req.language });
-	if (!tv) {
-		return res.status(404).json({
-			success: false,
-			error: 'Tv show not found',
+	const result = await requestWorker({
+		filename: __filename,
+		id: req.params.id,
+		language: req.language,
+		user_id: req.user.sub,
+	});
+
+	if (result.error) {
+		return res.status(result.error.code ?? 500).json({
+			status: 'error',
+			message: result.error.message,
 		});
 	}
-	return res.json(getContent(tv, req.language));
-};
+	return res.json(result.result);
+}
+
+export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve, reject) => {
+
+		const tv = getTvPlayback({ 
+			id: parseInt(id, 10), 
+			user_id, 
+			language 
+		});
+
+		if (!tv) {
+			return reject({
+				error: {
+					code: 404,
+					message: 'Tv show not found',
+				},
+				success: false,
+			});
+		}
+
+		return resolve(getContent(tv, language));
+
+	});
+}
 
 const getContent = (data: TvPlaybackWithRelations, language: string) => {
 	if (!data) return;
@@ -124,9 +155,9 @@ const playlist = (episode: PlaylistItem, language: string) => {
 			? episode.tv.backdrop
 			: null,
 
-		image: episode.still ?? episode.tv.poster
-			? episode.still ?? episode.tv.poster
-			: null,
+		image: episode.still
+			? episode.still 
+			: episode.tv.poster || null,
 
 		video_type: 'tv',
 		season: episode.seasonNumber,

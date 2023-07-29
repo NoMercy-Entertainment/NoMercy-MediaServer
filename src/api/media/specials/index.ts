@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express-serve-static-core';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { sortBy } from '@server/functions/stringArray';
