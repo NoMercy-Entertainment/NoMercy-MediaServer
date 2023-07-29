@@ -52,11 +52,11 @@ export const kcMiddleware = async (req: Request, res: Response, next: NextFuncti
 	}
 
 	const token = req.query.token ?? (req.headers.authorization as string)?.split(',')[0]?.split(' ')[1];
-
+	
 	try {
-
+		
 		const userinfo = await _keycloak.userinfo(token);
-
+		
 		req.user = userinfo;
 		req.access_token = token as string;
 		req.isOwner = isOwner(req);

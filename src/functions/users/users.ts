@@ -1,4 +1,4 @@
-import { setAllowedUsers, setUsers } from '@server/state/redux/config/actions';
+import { setUsers } from '@server/state/redux/config/actions';
 
 import Logger from '@server/functions/logger';
 import { UserResponse } from '@server/types/api';
@@ -40,13 +40,13 @@ export const getUsers = async () => {
 				};
 			}));
 
-			setAllowedUsers(users.map((d) => {
+			globalThis.allowedUsers = users.map((d) => {
 				return {
 					...d,
 					created_at: new Date(d.created_at).getTime(),
 					updated_at: new Date(d.created_at).getTime(),
 				};
-			}));
+			});
 
 			Logger.log({
 				level: 'info',

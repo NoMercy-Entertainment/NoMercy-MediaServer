@@ -154,7 +154,7 @@ export interface Device {
 	updated_at?: number;
 }
 export interface ActivityLog {
-	sub_id: string;
+	user_id: string;
 	deviceId: string;
 	type: string;
 	time: number;
@@ -361,18 +361,18 @@ export interface ConfigData {
 }
 
 export interface AddUserParams {
-	sub_id: string;
+	user_id: string;
 	email: string;
 	name: string;
 }
 export interface removeUserParams {
-	sub_id: string;
+	user_id: string;
 }
 export interface userPermissionsParams {
-	sub_id: string;
+	user_id: string;
 }
 export interface userPermissionsParams {
-	sub_id: string;
+	user_id: string;
 	allowed: boolean;
 	manage: boolean;
 	audioTranscoding: boolean;
@@ -381,16 +381,16 @@ export interface userPermissionsParams {
 	libraries: string[];
 }
 export interface NotificationsParams {
-	sub_id: string;
+	user_id: string;
 	name: string;
 	notificationIds: string[];
 }
 
 export interface updateEncoderProfilesParams extends Library {
-	sub_id: string;
+	user_id: string;
 }
 export interface updateEncoderProfilesParams extends Library {
-	sub_id: string;
+	user_id: string;
 }
 
 export interface ResponseStatus {

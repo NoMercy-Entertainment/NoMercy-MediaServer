@@ -7,9 +7,6 @@ import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express';
 
 import Logger from '@server/functions/logger';
-import {
-	setAllowedUsers
-} from '@server/state/redux/config/actions';
 
 import { eq, inArray } from 'drizzle-orm';
 import { libraries } from '@server/db/media/schema/libraries';
@@ -20,29 +17,28 @@ import { users } from '@server/db/media/schema/users';
 import { defaultUserOptions } from '@server/state/redux/config';
 
 export const AddUser = (req: Request, res: Response) => {
-	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
-	const { sub_id, email, name }: AddUserParams = req.body;
+	const { user_id, email, name }: AddUserParams = req.body;
 
 	try {
 
 		const data = insertUser({
-			id: sub_id,
+			id: user_id,
 			email: email,
 			name: name,
 		});
 
 
 		const newAllowedUsers = [
-			...allowedUsers,
+			...globalThis.allowedUsers,
 			{
-				id: sub_id,
+				id: user_id,
 				email: email,
 				name: name,
 				...defaultUserOptions,
 			},
 		];
 
-		setAllowedUsers(newAllowedUsers);
+		globalThis.allowedUsers = newAllowedUsers;
 
 		Logger.log({
 			level: 'info',
@@ -75,33 +71,31 @@ export const AddUser = (req: Request, res: Response) => {
 };
 
 export const removeUser = (req: Request, res: Response) => {
-	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-	const { sub_id }: removeUserParams = req.body;
+	const { user_id }: removeUserParams = req.body;
 
 	try {
 
 		mediaDb.delete(library_user)
-			.where(eq(library_user.user_id, sub_id))
+			.where(eq(library_user.user_id, user_id))
 			.run();
 
 		mediaDb.delete(users)
-			.where(eq(users.id, sub_id))
+			.where(eq(users.id, user_id))
 			.run();
 
-		const newAllowedUsers = [...allowedUsers.filter(u => u.id != sub_id)];
-
-		setAllowedUsers(newAllowedUsers);
+		const newAllowedUsers = [...globalThis.allowedUsers.filter(u => u.id != user_id)];
+		globalThis.allowedUsers = newAllowedUsers;
 
 		Logger.log({
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `User ${sub_id} deleted.`,
+			message: `User ${user_id} deleted.`,
 		});
 		return res.json({
 			status: 'ok',
-			message: `User ${sub_id} deleted.`,
+			message: `User ${user_id} deleted.`,
 		});
 
 	} catch (error) {
@@ -120,12 +114,12 @@ export const removeUser = (req: Request, res: Response) => {
 };
 
 export const userPermissions = (req: Request, res: Response) => {
-	const { sub_id }: userPermissionsParams = req.body;
+	const { user_id }: userPermissionsParams = req.body;
 
 	try {
 		const data = globalThis.mediaDb.query.users.findMany({
-			where: sub_id
-				? eq(users.id, sub_id)
+			where: user_id
+				? eq(users.id, user_id)
 				: undefined,
 			with: {
 				library_user: true,
@@ -152,10 +146,10 @@ export const userPermissions = (req: Request, res: Response) => {
 		});
 	}
 
-	// sub_id
+	// user_id
 	// 	? await confDb.user.findMany({
 	// 		where: {
-	// 			sub_id: sub_id,
+	// 			user_id: user_id,
 	// 		},
 	// 		include: {
 	// 			Libraries: true,
@@ -215,9 +209,7 @@ export const userPermissions = (req: Request, res: Response) => {
 };
 
 export const updateUserPermissions = (req: Request, res: Response) => {
-	const { sub_id, allowed, manage, audioTranscoding, videoTranscoding, noTranscoding, libraries: libs = [] }: userPermissionsParams = req.body;
-
-	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
+	const { user_id, allowed, manage, audioTranscoding, videoTranscoding, noTranscoding, libraries: libs = [] }: userPermissionsParams = req.body;
 
 	try {
 		const Libs = globalThis.mediaDb.query.libraries.findMany({
@@ -225,11 +217,11 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 		});
 
 		mediaDb.delete(library_user)
-			.where(eq(library_user.user_id, sub_id))
+			.where(eq(library_user.user_id, user_id))
 			.run();
 
 		updateUser({
-			id: sub_id,
+			id: user_id,
 			allowed: allowed,
 			manage: manage,
 			audioTranscoding: audioTranscoding,
@@ -240,15 +232,15 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 		for (const libr of Libs) {
 			insertLibraryUser({
 				library_id: libr.id as string,
-				user_id: sub_id,
+				user_id: user_id,
 			});
 		}
 
 		const newAllowedUsers = [
-			...allowedUsers.filter(u => u.id != sub_id),
+			...globalThis.allowedUsers.filter(u => u.id != user_id),
 			{
-				...allowedUsers.find(u => u.id == sub_id)!,
-				sub_id,
+				...globalThis.allowedUsers.find(u => u.id == user_id)!,
+				user_id,
 				allowed,
 				manage,
 				audioTranscoding,
@@ -257,18 +249,18 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 			},
 		];
 
-		setAllowedUsers(newAllowedUsers);
+		globalThis.allowedUsers = newAllowedUsers;
 
 		Logger.log({
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `User ${sub_id} permissions updated.`,
+			message: `User ${user_id} permissions updated.`,
 		});
 
 		return res.json({
 			status: 'ok',
-			message: `Successfully updated user permissions for ${sub_id}.`,
+			message: `Successfully updated user permissions for ${user_id}.`,
 		});
 
 	} catch (error) {
@@ -282,19 +274,19 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 };
 
 export const notificationSettings = (req: Request, res: Response) => {
-	const { sub_id, notificationIds }: NotificationsParams = req.body;
+	const { user_id, notificationIds }: NotificationsParams = req.body;
 
 	// await confDb.user
 	// 	.update({
 	// 		where: {
-	// 			sub_id: sub_id,
+	// 			user_id: user_id,
 	// 		},
 	// 		data: {
 	// 			Notifications: {
 	// 				set: notificationIds.map(id => ({
 	// 					notificationId_userId: {
 	// 						notificationId: id,
-	// 						userId: sub_id,
+	// 						userId: user_id,
 	// 					},
 	// 				})),
 	// 			},

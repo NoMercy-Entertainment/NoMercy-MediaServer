@@ -3,6 +3,8 @@ import env from 'dotenv';
 
 env.config();
 
+globalThis.allowedUsers = [];
+
 (async () => {
 	await boot();
 })();

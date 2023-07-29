@@ -1,4 +1,5 @@
 import { deviceName } from '@server/functions/system';
+import { applicationVersion } from '@server/state';
 import { ConfigData } from '@server/types/server';
 
 export const configData: ConfigData = {
@@ -11,6 +12,7 @@ export const configData: ConfigData = {
 	requestWorkers: 15,
 	encoderWorkers: 1,
 	maxAttempts: 2,
+	serverVersion: applicationVersion,
 };
 
 export const notificationData: { [arg: string]: boolean; } = {

@@ -86,9 +86,8 @@ export const socket = {
 		);
 
 		io.use((socket, next) => {
-			const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
 
-			if (allowedUsers.some(u => u.id == (socket as any).decoded_token.sub)) {
+			if (globalThis.allowedUsers.some(u => u.id == (socket as any).decoded_token.sub)) {
 				return next();
 			}
 

@@ -17,7 +17,7 @@ import open from 'open';
 import qs from 'qs';
 import { setOwner } from '@server/state/redux/system/actions';
 import storeConfig from '../storeConfig';
-import { tokenFile } from '@server/state';
+import { applicationVersion, tokenFile } from '@server/state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
 // import open from '@server/functions/open';
@@ -28,7 +28,6 @@ const registerServer = async () => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const external_ip = useSelector((state: AppState) => state.system.external_ip);
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
-	const server_version = useSelector((state: AppState) => state.system.server_version);
 	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
 		: 7635;
@@ -45,7 +44,7 @@ const registerServer = async () => {
 		internal_port: internal_port,
 		external_ip: external_ip,
 		external_port: external_port,
-		server_version: server_version,
+		server_version: applicationVersion,
 		platform: platform.toTitleCase(),
 	};
 

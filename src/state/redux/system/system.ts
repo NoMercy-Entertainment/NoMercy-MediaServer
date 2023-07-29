@@ -2,7 +2,7 @@ import {
 	createSlice,
 	PayloadAction
 } from '@reduxjs/toolkit';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 
 import { makeMkv, mediaDbFile, subtitleEdit } from '../..';
 import Device from 'chromecast-api/lib/device';
@@ -26,11 +26,13 @@ export interface InitialState {
 	cast: Device[];
 	clientList: any[];
 }
+
+const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
 export const initialState: InitialState = {
 	database: mediaDbFile,
 	internal_ip: '',
 	external_ip: '',
-	server_version: 2,
+	server_version: version,
 	secureInternalPort: parseInt(process.env.DEFAULT_PORT as string, 10),
 	secureExternalPort: parseInt(process.env.DEFAULT_PORT as string, 10),
 	owner: '',

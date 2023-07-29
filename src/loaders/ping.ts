@@ -3,10 +3,11 @@ import { AppState, useSelector } from '@server/state/redux';
 import Logger from '../functions/logger';
 import { ServerPingResponse } from '@server/types/api';
 import axios from '../functions/axios';
-import { deviceId } from '../functions/system';
+import { deviceId, platform } from '../functions/system';
 import { setOwner } from '@server/state/redux/system/actions';
 import { eq } from 'drizzle-orm';
 import { configuration } from '@server/db/media/schema/configuration';
+import { applicationVersion } from '@server/state';
 
 export default async () => {
 	setInterval(async () => {
@@ -23,10 +24,11 @@ const ping = async () => {
 		internal_ip: useSelector((state: AppState) => state.system.internal_ip),
 		internal_port: useSelector((state: AppState) => state.system.secureInternalPort),
 		external_port: useSelector((state: AppState) => state.system.secureExternalPort),
-		server_version: useSelector((state: AppState) => state.system.server_version),
+		server_version: applicationVersion,
 		server_name: server_name?.value ?? deviceName,
 		server_id: deviceId,
 		online: true,
+		platform: platform,
 	};
 
 	await axios()

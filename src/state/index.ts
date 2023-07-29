@@ -1,8 +1,12 @@
 import { appPath, executableSuffix } from '../functions/system';
 
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import path from 'path';
+
+const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+
+export const applicationVersion = version;
 
 export const userName = process.env.USERNAME;
 
