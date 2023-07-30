@@ -2,7 +2,7 @@ import { setUsers } from '@server/state/redux/config/actions';
 
 import Logger from '@server/functions/logger';
 import { UserResponse } from '@server/types/api';
-import axios from '../axios';
+import apiClient from '../apiClient';
 import { deviceId } from '../system';
 import { AppState, useSelector } from '@server/state/redux';
 import { insertUser, selectUser } from '@server/db/media/actions/users';
@@ -10,8 +10,8 @@ import { insertUser, selectUser } from '@server/db/media/actions/users';
 export const getUsers = async () => {
 	const moderators = useSelector((state: AppState) => state.config.moderators);
 
-	await axios()
-		.get<UserResponse[]>(`https://api${process.env.ROUTE_SUFFIX}.nomercy.tv/server/users`, {
+	await apiClient()
+		.get<UserResponse[]>('server/users', {
 			params: {
 				server_id: deviceId,
 			},

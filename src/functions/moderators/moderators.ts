@@ -1,6 +1,6 @@
 import Logger from '@server/functions/logger';
 import { ModeratorsResponse } from '@server/types/api';
-import axios from '../axios';
+import apiClient from '../apiClient';
 import { setModerators } from '@server/state/redux/config/actions';
 
 export const moderators = async () => {
@@ -13,8 +13,8 @@ export const moderators = async () => {
 export default moderators;
 
 export const getMods = async () => {
-	await axios()
-		.get<ModeratorsResponse>(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/moderators`, {
+	await apiClient()
+		.get<ModeratorsResponse>('server/moderators', {
 			timeout: 1 * 60 * 1000,
 		})
 		.then(({ data }) => {

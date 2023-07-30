@@ -9,20 +9,22 @@ import {
 } from '@server/state/redux/config/actions';
 
 import Logger from '@server/functions/logger';
-import axios from 'axios';
 import { platform } from '@server/functions/system';
+import apiClient from '@server/functions/apiClient/apiClient';
 
 const baseConfiguration = async () => {
-	const response = await axios.get(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/info`).catch((error) => {
-		Logger.log({
-			level: 'error',
-			name: 'setup',
-			color: 'red',
-			message: `Something went wrong while fetching the API info: ${JSON.stringify(error, null, 2)}`,
-		});
+	const response = await apiClient()
+		.get('info')
+		.catch((error) => {
+			Logger.log({
+				level: 'error',
+				name: 'setup',
+				color: 'red',
+				message: `Something went wrong while fetching the API info: ${JSON.stringify(error, null, 2)}`,
+			});
 
-		process.exit(1);
-	});
+			process.exit(1);
+		});
 
 	// setCDNData(response.data.data);
 	setTmdbApiKey(response.data.data.keys.tmdb_key);

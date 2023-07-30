@@ -2,7 +2,7 @@ import { AppState, useSelector } from '@server/state/redux';
 
 import Logger from '../functions/logger';
 import { ServerPingResponse } from '@server/types/api';
-import axios from '../functions/axios';
+import apiClient from '../functions/apiClient';
 import { deviceId, platform } from '../functions/system';
 import { eq } from 'drizzle-orm';
 import { configuration } from '@server/db/media/schema/configuration';
@@ -30,8 +30,8 @@ const ping = async () => {
 		platform: platform,
 	};
 
-	await axios()
-		.post<ServerPingResponse>(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/ping`, data)
+	await apiClient()
+		.post<ServerPingResponse>('server/ping', data)
 		.then(({ data }) => {
 			Logger.log({
 				level: 'verbose',

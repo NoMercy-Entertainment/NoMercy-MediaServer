@@ -17,5 +17,5 @@ export default () => axios.create({
 		Accept: 'application/json',
 		Authorization: `Bearer ${store.getState().user.access_token}`,
 	},
-	baseURL: `https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/`,
+	baseURL: `https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/v1/`,
 }) as AxiosInstance;

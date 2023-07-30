@@ -9,7 +9,6 @@ import DetectBrowsers from '../detectBrowsers';
 import { KeycloakToken } from '@server/types/keycloak';
 import Logger from '@server/functions/logger';
 import { ServerRegisterResponse } from '@server/types/api';
-import axios from 'axios';
 import { getLanguage } from '../../api/middleware';
 import http from 'http';
 import inquirer from 'inquirer';
@@ -20,6 +19,7 @@ import storeConfig from '../storeConfig';
 import { applicationVersion, tokenFile } from '@server/state';
 import { tokenParser } from '../tokenParser';
 import writeToConfigFile from '../writeToConfigFile';
+import apiClient from '../apiClient/apiClient';
 // import open from '@server/functions/open';
 
 let registerComplete = false;
@@ -57,8 +57,8 @@ const registerServer = async () => {
 
 	let success = true;
 
-	await axios
-		.post<ServerRegisterResponse>(`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/register`,
+	await apiClient()
+		.post<ServerRegisterResponse>('server/register',
 			serverData,
 			{ headers: { 
 				Accept: 'application/json',
@@ -115,9 +115,8 @@ const registerServer = async () => {
 
 		const access_token: string = JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token;
 	
-		await axios
-			.post(
-				`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/assign`,
+		await apiClient()
+			.post('server/assign',
 				serverData,
 				{
 					headers: {
@@ -167,7 +166,7 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 			redirect_uri: redirect_uri,
 		});
 
-		await axios
+		await apiClient()
 			.post<KeycloakToken>(
 				useSelector((state: AppState) => state.user.keycloakUrl),
 				keycloakData
@@ -231,7 +230,7 @@ export const login = ({ email, password, totp }) => {
 			totp: totp,
 		});
 
-		await axios
+		await apiClient()
 			.post<KeycloakToken>(
 				useSelector((state: AppState) => state.user.keycloakUrl),
 				keycloakData
@@ -261,11 +260,8 @@ export const login = ({ email, password, totp }) => {
 					external_ip: external_ip,
 				};
 
-				await axios
-					.post(
-						`https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/server/assign`,
-						serverData,
-						{
+				await apiClient()
+					.post('server/assign', serverData, {
 							headers: {
 								Accept: 'application/json',
 								Authorization: `Bearer ${access_token}`,
