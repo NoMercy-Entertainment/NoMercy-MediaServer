@@ -6,6 +6,7 @@ import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { collections } from '@server/db/media/schema/collections';
 import { translations } from '@server/db/media/schema/translations';
 import { and, eq, gt, or, isNull } from 'drizzle-orm';
+import { isOwner } from '@server/api/middleware/permissions';
 
 export default function (req: Request, res: Response) {
 	const collection = globalThis.mediaDb.query.collections.findFirst({
@@ -65,7 +66,7 @@ const getContent = (data: any, user: string) => {
 			? JSON.parse(data.colorPalette)
 			: null,
 		collection: data.collection_movie?.map((c) => {
-			if (!c.movie || !c.movie?.library.library_user.some(u => u.user_id == user)) return;
+			if (!c.movie || (!isOwner(user) && !c.movie?.library.library_user.some(u => u.user_id == user))) return;
 
 			return {
 				id: c.movie?.id,
@@ -84,7 +85,7 @@ const getContent = (data: any, user: string) => {
 					? JSON.parse(c.movie?.colorPalette)
 					: null,
 			};
-		}).sort((a, b) => a.releaseDate.localeCompare(b.releaseDate)) ?? [],
+		}).sort((a, b) => a.releaseDate.localeCompare(b?.movie?.releaseDate)) ?? [],
 	};
 
 	return response;
