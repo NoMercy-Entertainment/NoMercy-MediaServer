@@ -11,8 +11,7 @@ import Logger from '@server/functions/logger';
 import { ServerRegisterResponse } from '@server/types/api';
 import { getLanguage } from '../../api/middleware';
 import http from 'http';
-import inquirer from 'inquirer';
-import { keycloak_key } from '../keycloak/config';
+// import inquirer from 'inquirer';
 import open from 'open';
 import qs from 'qs';
 import storeConfig from '../storeConfig';
@@ -60,10 +59,9 @@ const registerServer = async () => {
 	await apiClient()
 		.post<ServerRegisterResponse>('server/register',
 			serverData,
-			{ headers: { 
+			{ headers: {
 				Accept: 'application/json',
-			} 
-		})
+			} })
 		.catch((error) => {
 			success = false;
 			if (error.response) {
@@ -114,7 +112,7 @@ const registerServer = async () => {
 		});
 
 		const access_token: string = JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token;
-	
+
 		await apiClient()
 			.post('server/assign',
 				serverData,
@@ -123,8 +121,7 @@ const registerServer = async () => {
 						Accept: 'application/json',
 						Authorization: `Bearer ${access_token.trim()}`,
 					},
-				}
-			)
+				})
 			.then(() => {
 				Logger.log({
 					level: 'info',
@@ -142,7 +139,7 @@ const registerServer = async () => {
 				});
 			});
 	}
-	
+
 };
 
 export default registerServer;
@@ -158,9 +155,9 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 		}, null);
 
 		const keycloakData = qs.stringify({
-			client_id: 'nomercy-server',
+			client_id: 'd5a5a005-9ea6-4e83-bff7-9e442699889c',
 			grant_type: 'authorization_code',
-			client_secret: keycloak_key,
+			client_secret: 'LAByECfzJlJrFDl6P4iEgvP28YVRps9hxaLATGL1',
 			scope: 'openid offline_access',
 			code: req.query.code,
 			redirect_uri: redirect_uri,
@@ -184,7 +181,7 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 
 				Logger.log({
 					level: 'info',
-					name: 'keycloak',
+					name: 'auth',
 					color: 'blueBright',
 					message: 'Server authenticated',
 				});
@@ -195,7 +192,7 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 			.catch(({ response }) => {
 				Logger.log({
 					level: 'error',
-					name: 'keycloak',
+					name: 'auth',
 					color: 'red',
 					message: JSON.stringify(response?.data ?? response, null, 2),
 				});
@@ -221,9 +218,9 @@ const tempServer = (redirect_uri: string, internal_port: number) => {
 export const login = ({ email, password, totp }) => {
 	return new Promise(async (resolve, reject) => {
 		const keycloakData = qs.stringify({
-			client_id: 'nomercy-server',
+			client_id: 'd5a5a005-9ea6-4e83-bff7-9e442699889c',
 			grant_type: 'password',
-			client_secret: keycloak_key,
+			client_secret: 'LAByECfzJlJrFDl6P4iEgvP28YVRps9hxaLATGL1',
 			scope: 'openid offline_access',
 			username: email,
 			password: password,
@@ -238,7 +235,7 @@ export const login = ({ email, password, totp }) => {
 			.then(({ data }) => {
 				Logger.log({
 					level: 'info',
-					name: 'keycloak',
+					name: 'auth',
 					color: 'blueBright',
 					message: 'Server authenticated',
 				});
@@ -262,12 +259,11 @@ export const login = ({ email, password, totp }) => {
 
 				await apiClient()
 					.post('server/assign', serverData, {
-							headers: {
-								Accept: 'application/json',
-								Authorization: `Bearer ${access_token}`,
-							},
-						}
-					)
+						headers: {
+							Accept: 'application/json',
+							Authorization: `Bearer ${access_token}`,
+						},
+					})
 					.catch(({ response }) => {
 						Logger.log({
 							level: 'error',
@@ -282,7 +278,7 @@ export const login = ({ email, password, totp }) => {
 			.catch(({ response }) => {
 				Logger.log({
 					level: 'error',
-					name: 'keycloak',
+					name: 'auth',
 					color: 'red',
 					message: JSON.stringify(response.data, null, 2),
 				});
@@ -293,39 +289,39 @@ export const login = ({ email, password, totp }) => {
 
 export const loginPrompt = () => {
 	return new Promise((resolve) => {
-		inquirer
-			.prompt([
-				{
-					type: 'input',
-					name: 'email',
-					message: 'Email address: ',
-				},
-				{
-					type: 'password',
-					name: 'password',
-					message: 'Password: ',
-				},
-				{
-					type: 'input',
-					name: 'totp',
-					message: '2fa code: ',
-				},
-			])
-			.then((answers) => {
-				login({
-					email: answers.email,
-					password: answers.password,
-					totp: isNaN(answers.totp)
-						? undefined
-						: answers.totp,
-				}).then(resolve);
-			})
-			.catch((error) => {
-				if (error.isTtyError) {
-					// Prompt couldn't be rendered in the current environment
-				} else {
-					// Something else went wrong
-				}
-			});
+		// inquirer
+		// 	.prompt([
+		// 		{
+		// 			type: 'input',
+		// 			name: 'email',
+		// 			message: 'Email address: ',
+		// 		},
+		// 		{
+		// 			type: 'password',
+		// 			name: 'password',
+		// 			message: 'Password: ',
+		// 		},
+		// 		{
+		// 			type: 'input',
+		// 			name: 'totp',
+		// 			message: '2fa code: ',
+		// 		},
+		// 	])
+		// 	.then((answers) => {
+		// 		login({
+		// 			email: answers.email,
+		// 			password: answers.password,
+		// 			totp: isNaN(answers.totp)
+		// 				? undefined
+		// 				: answers.totp,
+		// 		}).then(resolve);
+		// 	})
+		// 	.catch((error) => {
+		// 		if (error.isTtyError) {
+		// 			// Prompt couldn't be rendered in the current environment
+		// 		} else {
+		// 			// Something else went wrong
+		// 		}
+		// 	});
 	});
 };

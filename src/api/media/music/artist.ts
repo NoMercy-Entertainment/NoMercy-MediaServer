@@ -34,7 +34,7 @@ export const exec = ({ id, user }: { id: string; user: string; }) => {
 				error: {
 					message: 'You are not authorized to access this artist',
 					code: 401,
-				}
+				},
 			});
 		}
 

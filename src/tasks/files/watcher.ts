@@ -12,7 +12,8 @@ export const watcher = () => {
 			try {
 				watch(lib.folder.path as string, {
 					recursive: true,
-				}, (event: string, filename: string) => fileChangeEvent(event, filename, lib));
+					encoding: 'buffer',
+				}, (event, filename) => fileChangeEvent(event, filename!.toString('utf8'), lib));
 				console.log('Watching', lib.folder.path);
 			} catch (error) {
 				// console.error(error);
@@ -38,13 +39,13 @@ const excludes = [
 const fileChangeEvent = (event: string, filename: string, lib: { folder: { path: any; }; }) => {
 
 	for (const exclude of excludes) {
-		if (filename.endsWith(exclude)) return;
+		if (filename.endsWith(exclude)) return Buffer.from('');
 	}
 
 	const path = `${lib.folder.path}\\${filename}`;
 	if (event === 'change') {
 		stat(path, (err, stat) => {
-			if (err) return console.error(err);
+			if (err) return Buffer.from('');;
 			if (stat.isFile()) {
 				handleFileChange(path, stat);
 			} else {
@@ -53,10 +54,12 @@ const fileChangeEvent = (event: string, filename: string, lib: { folder: { path:
 		});
 	} else if (event === 'rename') {
 		stat(path, (err, stat) => {
-			if (err) return console.error(err);
-			// console.log(path, stat);
+			if (err) return Buffer.from('');;
+			console.log(path, stat);
 		});
-	}
+	} 
+	return Buffer.from('');
+
 };
 
 interface Change {

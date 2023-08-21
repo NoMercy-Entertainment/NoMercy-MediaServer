@@ -11,7 +11,7 @@ import { join } from 'path';
 import {
 	EncodingLibrary,
 	getEncoderLibraryById,
-	selectLibrariesWithRelations,
+	selectLibrariesWithRelations
 } from '@server/db/media/actions/libraries';
 import { RunningTask, insertRunningTask } from '@server/db/media/actions/runningTasks';
 import { Movie } from '@server/db/media/actions/movies';
@@ -137,14 +137,14 @@ const scan = async (lib: EncodingLibrary, jobs: {
 
 		} else if (lib.type == 'music') {
 
-			if(path.folder?.path.includes('M:')) continue;
+			if (path.folder?.path.includes('M:')) continue;
 
 			const folders = await getFolders({
 				folder: path.folder?.path,
 				filter: ['mp3', 'flac'],
 				ignoreBaseFilter: true,
 			});
-			
+
 			const parsedFolders = folders.getParsedFolders();
 
 			for (const parsedFolder of parsedFolders) {

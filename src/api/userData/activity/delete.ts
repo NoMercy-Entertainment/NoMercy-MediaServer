@@ -1,6 +1,6 @@
 import {
-    AppState,
-    useSelector
+	AppState,
+	useSelector
 } from '@server/state/redux';
 import { Request, Response } from 'express-serve-static-core';
 
@@ -12,7 +12,7 @@ export default (req: Request, res: Response) => {
 	const socket = useSelector((state: AppState) => state.system.socket);
 
 	try {
-		mediaDb.delete(activityLogs)
+		globalThis.mediaDb.delete(activityLogs)
 			.run();
 		socket.emit('setDevices', []);
 

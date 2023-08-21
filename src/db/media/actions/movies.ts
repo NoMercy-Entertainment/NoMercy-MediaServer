@@ -83,7 +83,8 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 	const mediasData = globalThis.mediaDb.query.medias.findMany({
 		where: (medias, { eq }) => and(
 			eq(medias.movie_id, id),
-			eq(medias.type, 'Trailer')),
+			eq(medias.type, 'Trailer')
+		),
 	});
 
 	const imagesData = globalThis.mediaDb.query.images.findMany({
@@ -113,13 +114,13 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 			person_id: true,
 		},
 	});
-	
+
 	const personData = castsData.length === 0 && crewsData.length === 0
 		? []
 		: globalThis.mediaDb.query.people.findMany({
-			where: (people) => inArray(people.id, [
-				...castsData.map(cast => cast.person_id), 
-				...crewsData.map(crew => crew.person_id)
+			where: people => inArray(people.id, [
+				...castsData.map(cast => cast.person_id),
+				...crewsData.map(crew => crew.person_id),
 			]),
 			columns: {
 				id: true,
@@ -136,7 +137,7 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 	const rolesData = castsData.length === 0
 		? []
 		: globalThis.mediaDb.query.roles.findMany({
-			where: (roles) => inArray(roles.cast_id, castsData.map(cast => cast.id)),
+			where: roles => inArray(roles.cast_id, castsData.map(cast => cast.id)),
 			columns: {
 				cast_id: true,
 				character: true,
@@ -146,7 +147,7 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 	const jobsData = crewsData.length === 0
 		? []
 		: globalThis.mediaDb.query.jobs.findMany({
-			where: (jobs) => inArray(jobs.crew_id, crewsData.map(crew => crew.id)),
+			where: jobs => inArray(jobs.crew_id, crewsData.map(crew => crew.id)),
 			columns: {
 				crew_id: true,
 				job: true,
@@ -173,7 +174,7 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 	}
 
 	const translationsData = globalThis.mediaDb.query.translations.findMany({
-		where: (translations, { eq, or, and }) => 
+		where: (translations, { eq, or, and }) =>
 			and(
 				eq(translations.iso6391, language),
 				eq(translations.movie_id, id)
@@ -234,7 +235,8 @@ export const getMoviePlayback = ({ id, user_id, language }: { id: number; user_i
 	const mediasData = globalThis.mediaDb.query.medias.findMany({
 		where: (medias, { eq, and }) => and(
 			eq(medias.movie_id, id),
-			eq(medias.type, 'logo')),
+			eq(medias.type, 'logo')
+		),
 	});
 
 	const translationsData = globalThis.mediaDb.query.translations.findMany({

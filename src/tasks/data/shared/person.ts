@@ -1,10 +1,10 @@
 
 import Logger from '@server/functions/logger/logger';
-import { image } from './image';
 import translation from './translation';
 import { insertPeople } from '@server/db/media/actions/people';
 import { CompleteTvAggregate } from '../tv/fetchTvShow';
 import { CompleteMovieAggregate } from '../movie/fetchMovie';
+import { image } from './image';
 
 export default (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
@@ -49,7 +49,7 @@ export default (
 		}
 
 		translation(person, transaction, 'person');
-		image(person, transaction, 'profile', 'person');
+		image(person, 'profile', 'person');
 
 	}
 

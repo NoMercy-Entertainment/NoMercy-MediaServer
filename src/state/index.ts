@@ -66,7 +66,7 @@ export const applicationPaths = {
 export const tokenFile = path.resolve(configPath, 'token.json');
 export const configFile = path.resolve(configPath, 'config.json');
 
-export const owner = JSON.parse(readFileSync(configFile, 'utf8'))?.user_id;
+export const owner = existsSync(configFile) && JSON.parse(readFileSync(configFile, 'utf8'))?.user_id;
 
 export const errorLog = path.resolve(logPath, `errorLog-${new Date().toISOString()
 	.split('T')[0].replace(/-/gu, '')}.txt`);
@@ -131,7 +131,7 @@ export enum logNameEnums {
 	'command',
 	'encoder',
 	'http',
-	'keycloak',
+	'auth',
 	'log',
 	'moviedb',
 	'networking',

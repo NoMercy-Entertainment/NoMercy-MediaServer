@@ -10,7 +10,7 @@ import { getAllowedLibrary } from '@server/db/media/actions/libraries';
 import { requestWorker } from '@server/api/requestWorker';
 
 export default async function (req: Request, res: Response) {
-	
+
 	const allowedLibrary = getAllowedLibrary(req, req.params.id);
 
 	const result = await requestWorker({
@@ -31,9 +31,8 @@ export default async function (req: Request, res: Response) {
 	return res.json(result.result);
 }
 
-export const exec = ({ id, take, page, allowedLibrary, language }: 
-	{ id: string, take: number; page: number; allowedLibrary: string, language: string }
-) => {
+export const exec = ({ id, take, page, allowedLibrary, language }:
+	{ id: string, take: number; page: number; allowedLibrary: string, language: string }) => {
 	return new Promise(async (resolve, reject) => {
 		try {
 			if (!allowedLibrary) return reject({
@@ -109,7 +108,7 @@ export const exec = ({ id, take, page, allowedLibrary, language }:
 		}
 	});
 
-}
+};
 
 export const getContent = (data: any) => {
 	const response: LibraryResponseContent[] = [];

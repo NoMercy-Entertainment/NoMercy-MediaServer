@@ -80,7 +80,7 @@ const season = async (
 		await episode(tv.id, season, transaction, people);
 
 		translation(season, transaction, 'season');
-		image(season, transaction, 'poster', 'season');
+		image(season, 'poster', 'season');
 
 		// if (season.poster_path) {
 		// 	downloadAndHash({

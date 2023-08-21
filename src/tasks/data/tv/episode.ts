@@ -99,7 +99,7 @@ const episode = async (
 		}
 
 		translation(episode, transaction, 'episode');
-		image(episode, transaction, 'still', 'episode');
+		image(episode, 'still', 'episode');
 
 		// if (episode.still_path) {
 		// 	 downloadAndHash({

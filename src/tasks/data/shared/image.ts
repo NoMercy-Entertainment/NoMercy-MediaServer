@@ -19,18 +19,16 @@ import { medias } from '@server/db/media/schema/medias';
 import { guestStars } from '@server/db/media/schema/guestStars';
 import { insertImage } from '@server/db/media/actions/images';
 import { movies } from '@server/db/media/schema/movies';
-import Logger from '@server/functions/logger/logger';
-import { Media } from '@server/db/media/actions/medias';
+import { images } from '@server/db/media/schema/images';
+import Logger from '@server/functions/logger';
 
 export const image = (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | MovieAppend | PersonAppend | CompleteMovieAggregate,
-	transaction: any[],
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
-	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar'
+	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar',
 ) => {
+	
 	if (!req.images[`${type}s`]) return;
-
-	const lang = useSelector((state: AppState) => state.config.language);
 
 	for (const image of req.images[`${type}s`] as Array<Image>) {
 
@@ -48,11 +46,11 @@ export const image = (
 				[`${table}_id`]: req.id,
 			});
 
-			if (!query || (['en', lang, null].includes(image.iso_639_1) && !query?.blurHash && !query?.colorPalette)) {
+			if (!query?.blurHash || !query?.colorPalette) {
 				downloadAndHash({
-					src: image.file_path,
-					table: 'media',
-					column: 'src',
+					src: (image[`${type}_path`] as string) ?? (image.file_path as string),
+					table: 'image',
+					column: 'filePath',
 					type: type,
 					only: ['colorPalette', 'blurHash'],
 				});
@@ -69,33 +67,31 @@ export const image = (
 	}
 };
 
-export const downloadAndHash = ({ src, table, column, type, transaction, only }: {
+export const downloadAndHash = ({ src, table, column, type, only }: {
 	src: string,
 	column: string,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
-	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar';
-	transaction?: Array<Media>,
+	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar' | 'image';
 	only?: Array<'colorPalette' | 'blurHash'>;
 }) => {
 
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	// queue.add({
-	// 	file: __filename,
-	// 	fn: 'execute',
-	// 	args: { src, table, column, type, transaction, only },
-	// });
+	queue.add({
+		file: __filename,
+		fn: 'execute',
+		args: { src, table, column, type, only },
+	});
 };
 
-export const execute = async ({ src, table, column, type, transaction, only }: {
+export const execute = async ({ src, table, column, type, only }: {
 	src: string,
 	column: string,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
-	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar';
-	transaction?: Array<Media>,
+	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar' | 'image';
 	only?: Array<'colorPalette' | 'blurHash'>;
 }) => {
-
+	
 	const models = {
 		movie: movies,
 		tv: tvs,
@@ -103,6 +99,7 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 		episode: episodes,
 		person: people,
 		media: medias,
+		image: images,
 		guestStar: guestStars,
 	};
 
@@ -167,7 +164,7 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 
 	const newFile = src?.replace(/.jpg$|.png$/u, '.webp');
 
-	const query = globalThis.mediaDb.select()
+	const query = mediaDb.select()
 		.from(models[table])
 		.where(eq(models[table][column], src))
 		.get();
@@ -185,7 +182,7 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 		.then(({ colorPalette, blurHash }) => {
 
 			try {
-				mediaDb.update(models[table])
+				globalThis.mediaDb.update(models[table])
 					.set({
 						colorPalette: colorPalette && (!only || only.includes('colorPalette'))
 							? JSON.stringify(colorPalette)
@@ -195,13 +192,12 @@ export const execute = async ({ src, table, column, type, transaction, only }: {
 							: undefined,
 					 })
 					.where(eq(models[table][column], src))
-					.returning();
+					.run();
+					
 			} catch (e) {
 				console.log(e);
 			}
-
 		})
 		.catch(e => console.log(table, e));
-
 };
 

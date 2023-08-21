@@ -19,8 +19,8 @@ export default async function (req: Request, res: Response) {
 		},
 	});
 
-	if (!result) { 
-		return null; 
+	if (!result) {
+		return null;
 	}
 
 	const albumTrackResult = globalThis.mediaDb.query.album_track.findMany({
@@ -35,7 +35,7 @@ export default async function (req: Request, res: Response) {
 
 		switch (value) {
 		case true:
-			mediaDb.insert(track_user)
+			globalThis.mediaDb.insert(track_user)
 				.values({
 					track_id: id,
 					user_id: req.user.sub,
@@ -45,7 +45,7 @@ export default async function (req: Request, res: Response) {
 			break;
 
 		default:
-			mediaDb.delete(track_user)
+			globalThis.mediaDb.delete(track_user)
 				.where(
 					and(
 						eq(track_user.user_id, req.user.sub),

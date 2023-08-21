@@ -127,7 +127,7 @@ export class FFMpegArchive extends FFMpeg {
 					},
 				},
 			},
-		})
+		});
 	}
 
 	async fromFile(file: string) {
@@ -138,7 +138,7 @@ export class FFMpegArchive extends FFMpeg {
 		if (this.isTvShow) {
 
 			let currentScore = 0;
-			i18next.changeLanguage('en');
+			await i18next.changeLanguage('en');
 			const searchResult = await searchTv(this.title, this.year ?? undefined)
 				.then((tvs) => {
 					let show = tvs[0];
@@ -184,7 +184,7 @@ export class FFMpegArchive extends FFMpeg {
 			}
 		} else {
 			let currentScore = 0;
-			i18next.changeLanguage('en');
+			await i18next.changeLanguage('en');
 			const searchResult = await searchMovie(this.title, this.year)
 				.then((movies) => {
 					let show = movies[0];

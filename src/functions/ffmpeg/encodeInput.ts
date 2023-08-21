@@ -65,5 +65,5 @@ export const encodeEpisode = async ({ episode }: { episode: EP }) => {
 
 	await onDemand.makeStack();
 	// onDemand.check();
-	onDemand.start(() => onDemand.buildSprite());
+	await onDemand.start(() => onDemand.buildSprite());
 };

@@ -80,7 +80,7 @@ export const socket = {
 		io.use(
 			// @ts-ignore
 			socketioJwt.authorize({
-				secret: useSelector((state: AppState) => state.config.keycloakCertificate),
+				secret: useSelector((state: AppState) => state.config.publicKey),
 				// timeout: 15000,
 				handshake: true,
 				auth_header_required: false,
@@ -91,7 +91,7 @@ export const socket = {
 
 			if (isOwner((socket as any).decoded_token.sub) || globalThis.allowedUsers.some(u => u.id == (socket as any).decoded_token.sub)) {
 				insertUser({
-					id: (socket as any).decoded_token.sub, 
+					id: (socket as any).decoded_token.sub,
 					email: (socket as any).decoded_token.email,
 					name: (socket as any).decoded_token.name,
 				});

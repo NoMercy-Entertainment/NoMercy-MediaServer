@@ -6,7 +6,6 @@ import { setAccessToken, setRefreshToken } from '@server/state/redux/user/action
 
 import Logger from '../functions/logger';
 import axios from 'axios';
-import { keycloak_key } from '../functions/keycloak/config';
 import qs from 'qs';
 import { tokenFile } from '@server/state';
 import { tokenParser } from '../functions/tokenParser';
@@ -74,9 +73,9 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 	const redirect_uri = `http://${internal_ip}:${secureInternalPort}/sso-callback`;
 
 	const keycloakData = qs.stringify({
-		client_id: 'nomercy-server',
+		client_id: 'd5a5a005-9ea6-4e83-bff7-9e442699889c',
 		grant_type: 'authorization_code',
-		client_secret: keycloak_key,
+		client_secret: 'LAByECfzJlJrFDl6P4iEgvP28YVRps9hxaLATGL1',
 		scope: 'openid offline_access',
 		code: req.query.code,
 		redirect_uri: redirect_uri,
@@ -90,7 +89,7 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 		.then(({ data }) => {
 			Logger.log({
 				level: 'info',
-				name: 'keycloak',
+				name: 'auth',
 				color: 'blueBright',
 				message: 'Server authenticated',
 			});
@@ -108,7 +107,7 @@ router.get('/sso-callback', async (req: Request, res: Response) => {
 		.catch(({ response }) => {
 			Logger.log({
 				level: 'error',
-				name: 'keycloak',
+				name: 'auth',
 				color: 'red',
 				message: JSON.stringify(response.data, null, 2),
 			});

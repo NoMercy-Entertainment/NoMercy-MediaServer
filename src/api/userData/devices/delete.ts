@@ -7,7 +7,7 @@ import { devices } from '@server/db/media/schema/devices';
 export const deleteDevices = (req: Request, res: Response) => {
 
 	try {
-		mediaDb.delete(devices)
+		globalThis.mediaDb.delete(devices)
 			.run();
 		return res.json({
 			success: 'true',

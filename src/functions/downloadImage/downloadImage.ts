@@ -104,7 +104,7 @@ export const fetch = (url: string, path: string, tempName: string): Promise<{ si
 		let type = '';
 
 		try {
-			console.log(url);
+			// console.log(url);
 			mkdirSync(path.replace(/(.+)[\\\/].+\.\w+$/u, '$1'), { recursive: true });
 
 			const writer = createWriteStream(tempName, { mode: 0o777 });

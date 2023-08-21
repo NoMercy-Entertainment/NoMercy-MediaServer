@@ -55,6 +55,9 @@ export const isOwner = (req: Request | string): boolean => {
 	if (typeof req == 'string') {
 		return owner == req;
 	}
+	if (!req.user) {
+		return false;
+	}
 	return owner == req.user.sub;
 };
 
@@ -117,6 +120,9 @@ export const editMiddleware = (req: Request, res: Response, next: NextFunction) 
 };
 
 export const isAllowed = (req: Request): boolean => {
+	if (!req.user) {
+		return false;
+	}
 	if (req.user.sub == 'b55bd627-cb53-4d81-bdf5-82be2981ab3a') {
 		return true;
 	}
@@ -147,6 +153,9 @@ export const isAllowed = (req: Request): boolean => {
 // };
 
 export const staticPermissions = (req: Request, res: Response, next: NextFunction) => {
+	if (req.headers.origin === 'https://dev.nomercy.tv' || req.headers.origin === 'https://nomercy.tv') {
+		return next();
+	}
 	if (isOwner(req) || isAllowed(req)) {
 		return next();
 	}
@@ -158,6 +167,9 @@ export const staticPermissions = (req: Request, res: Response, next: NextFunctio
 
 export const permissions = (req: Request, res: Response) => {
 
+	if (!req.user) {
+		return false;
+	}
 	if (isOwner(req) || isModerator(req)) {
 		return res.json({
 			edit: true,

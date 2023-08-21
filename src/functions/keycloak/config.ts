@@ -27,5 +27,5 @@ export default {
 	'verify-token-audience': true,
 	'use-resource-role-mappings': true,
 	'confidential-port': 0,
-	public_key: useSelector((state: AppState) => state.config.keycloakCertificate),
+	public_key: useSelector((state: AppState) => state.config.publicKey),
 };

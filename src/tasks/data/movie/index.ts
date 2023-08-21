@@ -152,8 +152,7 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		crew(movie, crewInsert, people, 'movie');
 
 		if (movie.belongs_to_collection) {
-			await collection(movie, libraryId, transaction);
-
+			await collection(movie, libraryId);
 		}
 
 		translation(movie, transaction, 'movie');
@@ -244,9 +243,9 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		//   create: productionCountriesInsert,
 		// }));
 
-		image(movie, transaction, 'backdrop', 'movie');
-		image(movie, transaction, 'logo', 'movie');
-		image(movie, transaction, 'poster', 'movie');
+		image(movie, 'backdrop', 'movie');
+		image(movie, 'logo', 'movie');
+		image(movie, 'poster', 'movie');
 
 		downloadTVDBImages({ type: 'movie', data: movie });
 

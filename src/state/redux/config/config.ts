@@ -20,7 +20,6 @@ const initialState = {
 	colors: <CDNInfoResponse['data']['colors']>{},
 	deviceName: deviceName,
 	downloads: new Array<Files>(),
-	keycloakCertificate: '',
 	makemkv_key: '',
 	acoustic_id: '',
 	moderators: new Array<{ id: string; name: string }>(),
@@ -49,6 +48,10 @@ const initialState = {
 	assToVtt: true,
 
 	language: 'en',
+
+	publicKey: '',
+	clientId: '',
+	clientSecret: '',
 
 };
 
@@ -104,8 +107,14 @@ const config = createSlice({
 		setAssToVtt: (state, action: PayloadAction<boolean>) => {
 			state.assToVtt = action.payload;
 		},
-		setKeycloakCertificate: (state, action: PayloadAction<string>) => {
-			state.keycloakCertificate = action.payload;
+		setPublicKey: (state, action: PayloadAction<string>) => {
+			state.publicKey = action.payload;
+		},
+		setClientId: (state, action: PayloadAction<string>) => {
+			state.clientId = action.payload;
+		},
+		setClientSecret: (state, action: PayloadAction<string>) => {
+			state.clientSecret = action.payload;
 		},
 		setChromeCast: (state, action: PayloadAction<ChromeCast>) => {
 			// @ts-expect-error

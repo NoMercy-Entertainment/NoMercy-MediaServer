@@ -12,7 +12,6 @@ import Logger from '@server/functions/logger/logger';
 const collection = async (
 	movie: CompleteMovieAggregate,
 	libraryId: string,
-	transaction: any[]
 ) => {
 
 	try {

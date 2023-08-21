@@ -140,7 +140,7 @@ export const getAllowedLibraries = (req: Request | string) => {
 			where: (library_user, { eq, and }) => eq(library_user.user_id, req),
 		}).map(l => l.library_id!);
 	}
-	
+
 	return globalThis.mediaDb.query.library_user.findMany({
 		where: (library_user, { eq, and }) => eq(library_user.user_id, req.user.sub),
 	}).map(l => l.library_id!);

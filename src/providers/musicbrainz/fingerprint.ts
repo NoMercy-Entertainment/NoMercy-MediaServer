@@ -6,19 +6,19 @@ import mbApiClient from './mbApiClient';
 
 export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileList): Promise<void | Result> => {
 
-    Logger.log({
-        name: 'fingerprint',
-        color: 'blue',
-        level: 'info',
-        message: `Getting fingerprint for: ${file.path}`,
-    });
+	Logger.log({
+		name: 'fingerprint',
+		color: 'blue',
+		level: 'info',
+		message: `Getting fingerprint for: ${file.path}`,
+	});
 
-    const fingerprint = execSync(`${fingerprintCalc} -json "${file.path}"`).toString();
+	const fingerprint = execSync(`${fingerprintCalc} -json "${file.path}"`).toString();
 
-    console.log(fingerprint);
-    if (!fingerprint) {
-        return;
-    }
+	console.log(fingerprint);
+	if (!fingerprint) {
+		return;
+	}
 
 	const fingerprintData = JSON.parse(fingerprint ?? '{}');
 
@@ -29,22 +29,22 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
 		'compress',
 	].join('+');
 
-    try {
-        const response = await mbApiClient.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
-            params: {
-                client: process.env.ACOUSTIC_ID,
-                duration: parseInt(fingerprintData.duration, 10),
-                fingerprint: fingerprintData.fingerprint,
-            },
-        });
+	try {
+		const response = await mbApiClient.get<FingerprintLookup>(`https://api.acoustid.org/v2/lookup?meta=${meta}`, {
+			params: {
+				client: process.env.ACOUSTIC_ID,
+				duration: parseInt(fingerprintData.duration, 10),
+				fingerprint: fingerprintData.fingerprint,
+			},
+		});
 
-        console.log(response.data);
+		console.log(response.data);
 
-        return response.data?.results?.[0];
-        
-    } catch (error: any) {
-        console.log(error.response.data.error)
-    }
+		return response.data?.results?.[0];
+
+	} catch (error: any) {
+		console.log(error.response.data.error);
+	}
 };
 
 

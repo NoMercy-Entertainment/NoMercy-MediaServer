@@ -12,7 +12,7 @@ const mbApi = new MusicBrainzApi({
 
 export const fallbackSearch = async (type: string, title: FolderList | ParsedFileList) => {
 	if (!title.title && !title.name) return;
-	i18next.changeLanguage('en');
+	await i18next.changeLanguage('en');
 
 	let currentScore = 0;
 

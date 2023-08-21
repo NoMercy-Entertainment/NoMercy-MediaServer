@@ -239,7 +239,7 @@ rules:
   prefer-object-spread:
     - error
   prefer-promise-reject-errors:
-    - error
+    - off
   prefer-regex-literals:
     - error
   prefer-rest-params:

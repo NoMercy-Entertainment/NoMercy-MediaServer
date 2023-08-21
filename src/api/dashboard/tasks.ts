@@ -35,7 +35,7 @@ export const deleteTask = (req: Request, res: Response) => {
 	const { id } = req.body;
 
 	try {
-		mediaDb.delete(runningTasks)
+		globalThis.mediaDb.delete(runningTasks)
 			.where(eq(runningTasks.id, id))
 			.run();
 

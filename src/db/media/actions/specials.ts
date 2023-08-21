@@ -48,7 +48,7 @@ export const selectSpecial = (relations = false) => {
 };
 
 export type SelectSpecial = ReturnType<typeof getSpecial>;
-export const getSpecial = ({id}: {id: string}) => {
+export const getSpecial = ({ id }: {id: string}) => {
 
 	const result = globalThis.mediaDb.query.specials.findFirst({
 		where: (specials, { eq }) => eq(specials.id, id),
@@ -213,9 +213,9 @@ export const getSpecial = ({id}: {id: string}) => {
 		: [];
 
 	const movieGenres = result.specialItems
-			.map(specialItem => specialItem?.movie?.genre_movie ?? []).flat();
+		.map(specialItem => specialItem?.movie?.genre_movie ?? []).flat();
 	const tvGenres = result.specialItems
-		.map(specialItem => specialItem.episode?.tv?.genre_tv ?? []).flat()
+		.map(specialItem => specialItem.episode?.tv?.genre_tv ?? []).flat();
 
 	const data = {
 		...result,

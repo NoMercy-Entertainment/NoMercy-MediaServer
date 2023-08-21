@@ -10,7 +10,7 @@ import { Tv } from '@server/db/media/actions/tvs';
 import { requestWorker } from '../requestWorker';
 
 export default async function (req: Request, res: Response) {
-	
+
 	const allowedLibraries = getAllowedLibraries(req);
 
 	const result = await requestWorker({
@@ -32,7 +32,7 @@ export default async function (req: Request, res: Response) {
 	return res.json(result.result);
 }
 
-export const exec = ({ allowedLibraries, language, limit, offset, take, page }: 
+export const exec = ({ allowedLibraries, language, limit, offset, take, page }:
 	{ allowedLibraries: string[]; language: string; limit: number; offset: number; take: number; page: number }) => {
 	return new Promise(async (resolve, reject) => {
 
@@ -103,7 +103,7 @@ export const exec = ({ allowedLibraries, language, limit, offset, take, page }:
 			});
 
 			const episodesResponse = globalThis.mediaDb.query.episodes.findMany({
-				where: (episodes) => inArray(episodes.tv_id, tvsResponse.map(t => t.id)),
+				where: episodes => inArray(episodes.tv_id, tvsResponse.map(t => t.id)),
 				columns: {
 					id: true,
 				},

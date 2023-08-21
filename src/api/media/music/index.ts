@@ -45,7 +45,7 @@ export default function (req: Request, res: Response) {
 	// @ts-ignore
 	const playlistData = globalThis.mediaDb.query.playlists.findMany({
 		where: eq(users.id, req.user.sub),
-		limit: 12,
+		limit: 14,
 	}) as Playlist[];
 	playlistsItems.push(...playlistData);
 
@@ -55,7 +55,7 @@ export default function (req: Request, res: Response) {
 			eq(userData.user_id, req.user.sub),
 			isNotNull(userData.isFavorite)
 		),
-		limit: 12,
+		limit: 14,
 		orderBy: desc(userData.updated_at),
 	}) as UserData[];
 	userDataItems.push(...userDataData);

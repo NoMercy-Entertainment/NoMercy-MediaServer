@@ -73,13 +73,11 @@ export default async (app: Application) => {
 
 	app.get('/images/*', serveImagesPath);
 	app.get('/transcodes/*', serveTranscodePath);
-
+	
 	app.use(kcMiddleware);
-
 	app.use(mustHaveToken);
-
+	
 	serveLibraryPaths(app);
-
 	// app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
 
 	app.use((req: Request, res: Response, next: NextFunction) => {

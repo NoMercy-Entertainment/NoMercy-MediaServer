@@ -116,7 +116,7 @@ const getContent = (data: MovieWithRelations) => {
 
 const getMovieData = async (id: string) => {
 
-	i18n.changeLanguage('en');
+	await i18n.changeLanguage('en');
 
 	const data = await movie(parseInt(id, 10));
 

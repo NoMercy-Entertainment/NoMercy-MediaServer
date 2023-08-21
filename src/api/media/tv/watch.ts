@@ -36,10 +36,10 @@ export default async function (req: Request, res: Response) {
 export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
 	return new Promise(async (resolve, reject) => {
 
-		const tv = getTvPlayback({ 
-			id: parseInt(id, 10), 
-			user_id, 
-			language 
+		const tv = getTvPlayback({
+			id: parseInt(id, 10),
+			user_id,
+			language,
 		});
 
 		if (!tv) {
@@ -55,7 +55,7 @@ export const exec = ({ id, user_id, language }: { id: string; user_id: string; l
 		return resolve(getContent(tv, language));
 
 	});
-}
+};
 
 const getContent = (data: TvPlaybackWithRelations, language: string) => {
 	if (!data) return;
@@ -78,13 +78,13 @@ const getContent = (data: TvPlaybackWithRelations, language: string) => {
 
 type PlaylistItem = (Episode & {
 	tv: (Tv & {
-		medias: Media[]; 
-		translations: Translation[]; 
+		medias: Media[];
+		translations: Translation[];
 		certification_tv: (CertificationTv & {
 			certification: Certification;
-		})[]; 
-	}); 
-	translations: Translation[]; 
+		})[];
+	});
+	translations: Translation[];
 	videoFiles: (VideoFile & {
 		userData: UserData[];
 	})[];
@@ -156,7 +156,7 @@ const playlist = (episode: PlaylistItem, language: string) => {
 			: null,
 
 		image: episode.still
-			? episode.still 
+			? episode.still
 			: episode.tv.poster || null,
 
 		video_type: 'tv',

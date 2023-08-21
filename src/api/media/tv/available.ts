@@ -23,8 +23,8 @@ export default async function (req: Request, res: Response) {
 	return res.json(result.result);
 }
 
-export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
-	return new Promise(async (resolve, reject) => {
+export const exec = ({ id, user_id }: { id: string; user_id: string }) => {
+	return new Promise((resolve, reject) => {
 
 		const tv = globalThis.mediaDb.query.tvs.findFirst({
 			where: eq(tvs.id, parseInt(id, 10)),

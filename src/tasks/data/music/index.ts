@@ -50,7 +50,7 @@ export const storeMusic = async ({
 			recursive: true,
 			filter: ['mp3', 'flac', 'm4a'],
 			ignoreBaseFilter: true,
-		})
+		});
 
 		const parsedFiles = await getParsedFiles(fileList, folder);
 
@@ -163,7 +163,7 @@ const getMatch = async (file: ParsedFileList) => {
 
 	const trackInfoFile = join(apiCachePath, `fileInfo_${file.name.replace(/\.\w{3,}$/u, '.json')}`);
 
-	let match: Recording | undefined = undefined;
+	let match: Recording | undefined;
 
 	if (existsSync(trackInfoFile)) {
 		match = JSON.parse(readFileSync(trackInfoFile, 'utf8'));

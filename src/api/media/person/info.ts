@@ -27,7 +27,7 @@ export default async function (req: Request, res: Response) {
 export const exec = ({ id, language }: { id: string, language: string }) => {
 	return new Promise(async (resolve, reject) => {
 
-		i18n.changeLanguage('en');
+		await i18n.changeLanguage('en');
 
 		const data = globalThis.mediaDb.query.people.findFirst({
 			where: (people, { eq }) => eq(people.id, parseInt(id, 10)),
@@ -49,13 +49,16 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			},
 		});
 
-		const tvIds = data?.casts.filter(t => !!t.tv_id).map(c => c.tv_id!).concat(0) ?? [0];
-		const movieIds = data?.casts.filter(m => !!m.movie_id).map(c => c.movie_id!).concat(0) ?? [0];
+		const tvIds = data?.casts.filter(t => !!t.tv_id).map(c => c.tv_id!)
+			.concat(0) ?? [0];
+		const movieIds = data?.casts.filter(m => !!m.movie_id).map(c => c.movie_id!)
+			.concat(0) ?? [0];
 
 		const imagesData = globalThis.mediaDb.query.images.findMany({
 			where: (images, { eq, and }) => and(
 				eq(images.person_id, parseInt(id, 10)),
-				eq(images.type, 'profile')),
+				eq(images.type, 'profile')
+			),
 		});
 
 		const movieData = globalThis.mediaDb.query.movies.findMany({
@@ -65,11 +68,12 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 		const tvData = globalThis.mediaDb.query.tvs.findMany({
 			where: (tv, { eq, and }) => eq(tv.id, parseInt(id, 10)),
 		});
-		
+
 		const mediasData = globalThis.mediaDb.query.medias.findMany({
 			where: (medias, { eq, and }) => and(
 				eq(medias.person_id, parseInt(id, 10)),
-				eq(medias.type, 'profile')),
+				eq(medias.type, 'profile')
+			),
 		});
 
 		const translationsData = globalThis.mediaDb.query.translations.findFirst({
@@ -311,4 +315,4 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 
 		return resolve(result);
 	});
-}
+};

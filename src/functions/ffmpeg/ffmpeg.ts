@@ -312,8 +312,8 @@ export class FFMpeg extends EventEmitter {
 
 	suspendChildren(makeProcess: ChildProcess) {
 		if (process.platform === 'win32') {
-			const ids = this.getChildProcesses(makeProcess.pid);
-			let pids = ids.length + 1;
+			const ids = this.getChildProcesses(makeProcess.pid!);
+			const pids = ids.length + 1;
 			// if (suspend(makeProcess.pid)) {
 			// 	console.log(`Suspended process: ${makeProcess.pid}`);
 			// 	pids -= 1;
@@ -352,8 +352,8 @@ export class FFMpeg extends EventEmitter {
 
 	resumeChildren(makeProcess: ChildProcess) {
 		if (process.platform === 'win32') {
-			const ids = this.getChildProcesses(makeProcess.pid);
-			let pids = ids.length + 1;
+			const ids = this.getChildProcesses(makeProcess.pid!);
+			const pids = ids.length + 1;
 			// if (resume(makeProcess.pid)) {
 			// 	console.log(`Resumed process: ${makeProcess.pid}`);
 			// 	pids -= 1;

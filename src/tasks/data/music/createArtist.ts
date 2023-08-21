@@ -1,24 +1,24 @@
-import { CurrentFolder } from ".";
-import Logger from "@server/functions/logger";
-import { insertArtistLibrary } from "@server/db/media/actions/artist_library";
-import { insertArtistMusicGenre } from "@server/db/media/actions/artist_musicGenre";
-import { insertArtist, findArtist } from "@server/db/media/actions/artists";
-import { insertMusicGenre } from "@server/db/media/actions/musicGenres";
-import { getBestArtistImag } from "@server/functions/artistImage";
-import colorPalette, { colorPaletteFromFile } from "@server/functions/colorPalette";
-import createBlurHash from "@server/functions/createBlurHash";
-import { sleep } from "@server/functions/dateTime";
-import downloadImage from "@server/functions/downloadImage";
-import { fanart_artist } from "@server/providers/fanart/music";
-import { ArtistWithAppends, artistAppend, artist } from "@server/providers/musicbrainz/artist";
-import { apiCachePath, imagesPath } from "@server/state";
-import { PaletteColors } from "@server/types/server";
-import { existsSync, readFileSync, writeFileSync, copyFileSync, statSync, rmSync } from "fs";
-import { join, resolve } from "path";
+import { CurrentFolder } from '.';
+import Logger from '@server/functions/logger';
+import { insertArtistLibrary } from '@server/db/media/actions/artist_library';
+import { insertArtistMusicGenre } from '@server/db/media/actions/artist_musicGenre';
+import { insertArtist, findArtist } from '@server/db/media/actions/artists';
+import { insertMusicGenre } from '@server/db/media/actions/musicGenres';
+import { getBestArtistImag } from '@server/functions/artistImage';
+import colorPalette, { colorPaletteFromFile } from '@server/functions/colorPalette';
+import createBlurHash from '@server/functions/createBlurHash';
+import { sleep } from '@server/functions/dateTime';
+import downloadImage from '@server/functions/downloadImage';
+import { fanart_artist } from '@server/providers/fanart/music';
+import { ArtistWithAppends, artistAppend, artist } from '@server/providers/musicbrainz/artist';
+import { apiCachePath, imagesPath } from '@server/state';
+import { PaletteColors } from '@server/types/server';
+import { existsSync, readFileSync, writeFileSync, copyFileSync, statSync, rmSync } from 'fs';
+import { join, resolve } from 'path';
 import {
 	Artist
 } from '../../../providers/musicbrainz/fingerprint';
-import { EncodingLibrary } from "@server/db/media/actions/libraries";
+import { EncodingLibrary } from '@server/db/media/actions/libraries';
 
 export const createArtist = async (library: EncodingLibrary, artist: Artist, currentFolder: CurrentFolder) => {
 
@@ -28,7 +28,7 @@ export const createArtist = async (library: EncodingLibrary, artist: Artist, cur
 		color: 'magentaBright',
 		message: `Adding artist: ${artist.name}`,
 	});
-	
+
 	const artistName = artist.name
 		.replace(/[\/]/gu, '_')
 		.replace(/“/gu, '')
@@ -127,7 +127,7 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 	let image: string | null = null;
 	let palette: PaletteColors | null = null;
 	let blurHash: string | null = null;
-	
+
 	const artistName = _artist.name
 		.replace(/[\/]/gu, '_')
 		.replace(/“/gu, '')

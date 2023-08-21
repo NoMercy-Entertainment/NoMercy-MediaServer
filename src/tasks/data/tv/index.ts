@@ -271,9 +271,9 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			// );
 		}
 
-		image(tv, transaction, 'backdrop', 'tv');
-		image(tv, transaction, 'logo', 'tv');
-		image(tv, transaction, 'poster', 'tv');
+		image(tv, 'backdrop', 'tv');
+		image(tv, 'logo', 'tv');
+		image(tv, 'poster', 'tv');
 
 		downloadTVDBImages({ type: 'tv', data: tv });
 

@@ -1,25 +1,25 @@
 
-import { insertAlbumTrack } from "@server/db/media/actions/album_track";
-import { insertArtistTrack } from "@server/db/media/actions/artist_track";
-import { insertMusicGenreTrack } from "@server/db/media/actions/musicGenre_track";
-import { insertMusicGenre } from "@server/db/media/actions/musicGenres";
-import { insertTrack } from "@server/db/media/actions/tracks";
-import { AudioFFprobe } from "@server/encoder/ffprobe/ffprobe";
-import { colorPaletteFromFile } from "@server/functions/colorPalette";
-import createBlurHash from "@server/functions/createBlurHash";
-import { humanTime, sleep } from "@server/functions/dateTime";
-import Logger from "@server/functions/logger";
+import { insertAlbumTrack } from '@server/db/media/actions/album_track';
+import { insertArtistTrack } from '@server/db/media/actions/artist_track';
+import { insertMusicGenreTrack } from '@server/db/media/actions/musicGenre_track';
+import { insertMusicGenre } from '@server/db/media/actions/musicGenres';
+import { insertTrack } from '@server/db/media/actions/tracks';
+import { AudioFFprobe } from '@server/encoder/ffprobe/ffprobe';
+import { colorPaletteFromFile } from '@server/functions/colorPalette';
+import createBlurHash from '@server/functions/createBlurHash';
+import { humanTime, sleep } from '@server/functions/dateTime';
+import Logger from '@server/functions/logger';
 import {
 	Artist, Medium, Release
 } from '../../../providers/musicbrainz/fingerprint';
-import { apiCachePath, imagesPath } from "@server/state";
-import { ParsedFileList } from "@server/tasks/files/filenameParser";
-import { PaletteColors } from "@server/types/server";
-import { execSync } from "child_process";
-import { existsSync, readFileSync, writeFileSync, copyFileSync, statSync, rmSync } from "fs";
-import { join, resolve } from "path";
-import { RecordingWithAppends, recordingAppend, recording } from "@server/providers/musicbrainz/recording";
-import { CurrentFolder } from ".";
+import { apiCachePath, imagesPath } from '@server/state';
+import { ParsedFileList } from '@server/tasks/files/filenameParser';
+import { PaletteColors } from '@server/types/server';
+import { execSync } from 'child_process';
+import { existsSync, readFileSync, writeFileSync, copyFileSync, statSync, rmSync } from 'fs';
+import { join, resolve } from 'path';
+import { RecordingWithAppends, recordingAppend, recording } from '@server/providers/musicbrainz/recording';
+import { CurrentFolder } from '.';
 
 export const createTrack = async (
 	track: Medium,

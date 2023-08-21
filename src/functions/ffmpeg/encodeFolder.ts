@@ -37,7 +37,7 @@ export const execute = async ({ onDemand }: { onDemand: FFMpegArchive}) => {
 
 	await instance.start(async () => {
 		instance.buildSprite();
-		instance.makeSubtitles();
+		await instance.makeSubtitles();
 		await instance.addToDatabase();
 		process.send!({
 			type: 'encoder-end',

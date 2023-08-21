@@ -29,10 +29,10 @@ export default async function (req: Request, res: Response) {
 export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
 	return new Promise(async (resolve, reject) => {
 
-		const movie = getMoviePlayback({ 
-			id: parseInt(id, 10), 
-			user_id, 
-			language 
+		const movie = getMoviePlayback({
+			id: parseInt(id, 10),
+			user_id,
+			language,
 		});
 
 		if (!movie) {

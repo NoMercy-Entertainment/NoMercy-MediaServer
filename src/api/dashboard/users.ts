@@ -1,9 +1,4 @@
-import {
-	AbleUserParams,
-	AddUserParams,
-	NotificationsParams, removeUserParams,
-	userPermissionsParams
-} from '@server/types/server';
+import { AbleUserParams, AddUserParams, NotificationsParams, removeUserParams, userPermissionsParams } from '@server/types/server';
 import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express-serve-static-core';
 
@@ -30,17 +25,13 @@ export const AddUser = (req: Request, res: Response) => {
 		});
 
 
-		const newAllowedUsers = [
-			...globalThis.allowedUsers,
+		globalThis.allowedUsers = [
+			...globalThis.allowedUsers.filter(u => u.id != data.id),
 			{
-				id: user_id,
-				email: email,
-				name: name,
 				...defaultUserOptions,
+				...data,
 			},
 		];
-
-		globalThis.allowedUsers = newAllowedUsers;
 
 		Logger.log({
 			level: 'info',
@@ -78,11 +69,11 @@ export const removeUser = (req: Request, res: Response) => {
 
 	try {
 
-		mediaDb.delete(library_user)
+		globalThis.mediaDb.delete(library_user)
 			.where(eq(library_user.user_id, user_id))
 			.run();
 
-		mediaDb.delete(users)
+			globalThis.mediaDb.delete(users)
 			.where(eq(users.id, user_id))
 			.run();
 
@@ -218,7 +209,7 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 			where: inArray(libraries.id, libs),
 		});
 
-		mediaDb.delete(library_user)
+		globalThis.mediaDb.delete(library_user)
 			.where(eq(library_user.user_id, user_id))
 			.run();
 
@@ -275,7 +266,9 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const notificationSettings = (req: Request, res: Response) => {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const { user_id, notificationIds }: NotificationsParams = req.body;
 
 	// await confDb.user
@@ -328,22 +321,18 @@ export const AbleUser = (req: Request, res: Response) => {
 	const { user_id, enabled }: AbleUserParams = req.body;
 
 	try {
-
 		const user = updateUser({
 			id: user_id,
 			allowed: enabled,
 		});
-
-		const newAllowedUsers = [
+		globalThis.allowedUsers = [
 			...globalThis.allowedUsers.filter(u => u.id != user_id),
 			{
 				...globalThis.allowedUsers.find(u => u.id == user_id)!,
-				user_id,
+				id: user_id,
 				allowed: enabled,
 			},
 		];
-
-		globalThis.allowedUsers = newAllowedUsers;
 
 		Logger.log({
 			level: 'info',
@@ -364,4 +353,4 @@ export const AbleUser = (req: Request, res: Response) => {
 		});
 	}
 
-}
+};

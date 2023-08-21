@@ -8,7 +8,7 @@ export default async function (req: Request, res: Response) {
 	const files = req.body.files as string[];
 	const libraryId = req.body.libraryId as string;
 
-	i18next.changeLanguage('en');
+	await i18next.changeLanguage('en');
 
 	for (const file of files ?? []) {
 		await encodeFile({ path: file, libraryId });

@@ -1,19 +1,19 @@
 import {
-    BelongsToCollection,
-    ExternalIDS,
-    MovieAlternativeTitles,
-    MovieCast,
-    MovieCredits,
-    MovieCrew,
-    MovieImages,
-    MovieKeywords,
-    MovieRecommendations,
-    MovieReleaseDates,
-    MovieSimilar,
-    MovieTranslations,
-    MovieVideos,
-    MovieWatchProviders,
-    movie
+	BelongsToCollection,
+	ExternalIDS,
+	MovieAlternativeTitles,
+	MovieCast,
+	MovieCredits,
+	MovieCrew,
+	MovieImages,
+	MovieKeywords,
+	MovieRecommendations,
+	MovieReleaseDates,
+	MovieSimilar,
+	MovieTranslations,
+	MovieVideos,
+	MovieWatchProviders,
+	movie
 } from '../../../providers/tmdb/movie/index';
 import { Cast, Country, Crew, Genre, Language } from '../../../providers/tmdb/shared/index';
 import { PersonAppend, person } from '../../../providers/tmdb/people/index';

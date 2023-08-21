@@ -15,4 +15,4 @@ export default () => {
 		schema: queueDbSchema,
 		// logger: new MyLogger(),
 	});
-}
+};

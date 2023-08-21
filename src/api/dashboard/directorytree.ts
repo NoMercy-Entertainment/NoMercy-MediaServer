@@ -168,7 +168,7 @@ const extensions = [
 export const fileList = async (req: Request, res: Response) => {
 	const folder = req.body.folder as string;
 	const type = req.body.type as string;
-	i18next.changeLanguage('en');
+	await i18next.changeLanguage('en');
 
 	if (!folder || folder == null || folder == undefined || folder == '' || folder == '/') {
 		return res.status(400).json({
@@ -294,7 +294,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 						body: `One moment, we're fetching ${searchResult.name} from TMDB.`,
 						variant: 'info',
 					} as SnackbarProps);
-					i18next.changeLanguage('en');
+					await i18next.changeLanguage('en');
 					const tvData = await fetchTv(searchResult.id);
 
 					await storeTvShow({
@@ -331,7 +331,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 				variant: 'info',
 			} as SnackbarProps);
 			let currentScore = 0;
-			i18next.changeLanguage('en');
+			await i18next.changeLanguage('en');
 			const searchResult = await searchMovie(parsed.title, parsed.year)
 				.then((movies) => {
 					let show = movies[0];

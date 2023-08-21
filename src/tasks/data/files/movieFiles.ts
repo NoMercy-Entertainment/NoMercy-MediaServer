@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-import { fileChangedAgo } from '@server/functions/dateTime';
+import { fileChangedAgo, humanTime } from '@server/functions/dateTime';
 import Logger from '@server/functions/logger';
 import { jsonToString } from '@server/functions/stringArray';
 import { cachePath } from '@server/state';
@@ -11,6 +11,9 @@ import FileList from '../../../tasks/files/getFolders';
 import type { VideoFFprobe } from '../../../encoder/ffprobe/ffprobe';
 import { File, insertFileDB } from '@server/db/media/actions/files';
 import { findFoldersDB } from '@server/db/media/actions/folders';
+import { insertVideoFileDB } from '@server/db/media/actions/videoFiles';
+import { getQualityTag } from '@server/functions/ffmpeg/quality/quality';
+import { getExistingSubtitles } from '@server/functions/ffmpeg/subtitles/subtitle';
 
 export default async ({ data, folder, libraryId }) => {
 	return await FileList({
@@ -103,22 +106,22 @@ export default async ({ data, folder, libraryId }) => {
 			}
 
 			try {
-				// if (file.ffprobe?.format && file.folder) {
-				// 	insertVideoFileDB({
-				// 		filename: file.ffprobe!.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
-				// 		folder: file.folder,
-				// 		hostFolder: file.ffprobe!.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
-				// 		duration: humanTime(file.ffprobe!.format.duration),
-				// 		quality: JSON.stringify(getQualityTag(file.ffprobe)),
-				// 		share: folders.find(f => folder.includes(f.path?.replace(/\\/gu, '/')))?.id ?? undefined,
-				// 		subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe as VideoFFprobe)),
-				// 		languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
-				// 		chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
-				// 		movie_id: data.id,
-				// 	});
+				if (file.ffprobe?.format && file.folder) {
+					insertVideoFileDB({
+						filename: file.ffprobe!.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
+						folder: file.folder,
+						hostFolder: file.ffprobe!.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
+						duration: humanTime(file.ffprobe!.format.duration),
+						quality: JSON.stringify(getQualityTag(file.ffprobe)),
+						share: folders.find(f => folder.includes(f.path?.replace(/\\/gu, '/')))?.id ?? undefined,
+						subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe as VideoFFprobe)),
+						languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
+						chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
+						movie_id: data.id,
+					});
 	
-				// 	foundFiles += 1;
-				// }
+					foundFiles += 1;
+				}
 
 			} catch (error) {
 				Logger.log({

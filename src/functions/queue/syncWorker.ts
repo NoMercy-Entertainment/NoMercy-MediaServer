@@ -1,11 +1,11 @@
 import mediaDb from '@server/db/media';
 import queueDb from '@server/db/queue';
 
-process?.on('message', async (message) => {
-	
+process?.on('message', async (message: any) => {
+
 	mediaDb();
 	queueDb();
-	
+
 	if (message.type == 'job') {
 
 		const { file, fn: func, args } = message.job.payload;
@@ -15,7 +15,7 @@ process?.on('message', async (message) => {
 		if (typeof req[func] == 'function') {
 			try {
 				await req[func]({ ...args })
-					.then(result => (process as any).send({ result }));
+					.then((result: any) => (process as any).send({ result }));
 			} catch (error) {
 				(process as any).send({ error });
 			}

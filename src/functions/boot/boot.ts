@@ -43,11 +43,11 @@ export default async () => {
 		rmSync(transcodesPath, { recursive: true });
 	}
 
-	if (!setupComplete) {
-		await firstBoot();
-	} else {
+	if (setupComplete) {
 		mediaDB();
 		queueDB();
+	} else {
+		await firstBoot();
 	}
 
 	await refreshToken();

@@ -1,34 +1,34 @@
-import { insertAlbumArtist } from "@server/db/media/actions/album_artist";
-import { insertAlbumLibrary } from "@server/db/media/actions/album_library";
-import { insertAlbumMusicGenre } from "@server/db/media/actions/album_musicGenre";
-import { findAlbum, insertAlbum } from "@server/db/media/actions/albums";
-import { insertMusicGenre } from "@server/db/media/actions/musicGenres";
-import Logger from "@server/functions/logger";
-import { ParsedFileList } from "@server/tasks/files/filenameParser";
-import { CurrentFolder } from ".";
-import { createArtist } from "./createArtist";
-import { createTrack } from "./createTrack";
-import { PaletteColors } from "@server/types/server";
-import { join } from "path";
-import colorPalette, { colorPaletteFromFile } from "@server/functions/colorPalette";
-import createBlurHash from "@server/functions/createBlurHash";
-import { sleep } from "@server/functions/dateTime";
-import downloadImage from "@server/functions/downloadImage";
-import { fanart_album } from "@server/providers/fanart/music";
+import { insertAlbumArtist } from '@server/db/media/actions/album_artist';
+import { insertAlbumLibrary } from '@server/db/media/actions/album_library';
+import { insertAlbumMusicGenre } from '@server/db/media/actions/album_musicGenre';
+import { findAlbum, insertAlbum } from '@server/db/media/actions/albums';
+import { insertMusicGenre } from '@server/db/media/actions/musicGenres';
+import Logger from '@server/functions/logger';
+import { ParsedFileList } from '@server/tasks/files/filenameParser';
+import { CurrentFolder } from '.';
+import { createArtist } from './createArtist';
+import { createTrack } from './createTrack';
+import { PaletteColors } from '@server/types/server';
+import { join } from 'path';
+import colorPalette, { colorPaletteFromFile } from '@server/functions/colorPalette';
+import createBlurHash from '@server/functions/createBlurHash';
+import { sleep } from '@server/functions/dateTime';
+import downloadImage from '@server/functions/downloadImage';
+import { fanart_album } from '@server/providers/fanart/music';
 import {
 	releaseCover, ReleaseWithAppends, releaseAppend,
 	release
-} from "@server/providers/musicbrainz/release";
-import { apiCachePath, imagesPath } from "@server/state";
+} from '@server/providers/musicbrainz/release';
+import { apiCachePath, imagesPath } from '@server/state';
 import {
 	existsSync, readFileSync, writeFileSync,
 	copyFileSync, readdirSync, statSync, rmSync
-} from "fs";
-import { Image } from "@server/providers/musicbrainz/cover";
+} from 'fs';
+import { Image } from '@server/providers/musicbrainz/cover';
 import {
 	Artist, Release
 } from '../../../providers/musicbrainz/fingerprint';
-import { EncodingLibrary } from "@server/db/media/actions/libraries";
+import { EncodingLibrary } from '@server/db/media/actions/libraries';
 
 export const createAlbum = async (
 	library: EncodingLibrary,
@@ -36,7 +36,7 @@ export const createAlbum = async (
 	album: Release,
 	recordingID: string,
 	title: string,
-	artist: Artist[], 
+	artist: Artist[],
 	currentFolder: CurrentFolder
 ) => {
 
@@ -224,7 +224,7 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 				}
 			}
 		} catch (error: any) {
-			console.log(error?.response?.data?.["error message"]);
+			console.log(error?.response?.data?.['error message']);
 		}
 
 		try {

@@ -47,7 +47,7 @@ const getContent = (data: TvWithRelations) => {
 	if (!data) return;
 
 	const groupedMedia = groupBy(data.images, 'type');
-	
+
 	const title = data.translations[0]?.title || data.title;
 	const overview = data.translations[0]?.overview || data.overview;
 
@@ -172,7 +172,7 @@ const getContent = (data: TvWithRelations) => {
 
 const getTvData = async (id: string) => {
 
-	i18n.changeLanguage('en');
+	await i18n.changeLanguage('en');
 
 	const data = await TV(parseInt(id, 10));
 

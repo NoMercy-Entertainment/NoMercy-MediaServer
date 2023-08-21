@@ -35,7 +35,9 @@ export const setKeepOriginal = (payload: {[arg: string]: any}) => store.dispatch
 
 export const setAssToVtt = (payload: boolean) => store.dispatch(config.actions.setAssToVtt(payload));
 
-export const setKeycloakCertificate = (payload: string) => store.dispatch(config.actions.setKeycloakCertificate(payload));
+export const setPublicKey = (payload: string) => store.dispatch(config.actions.setPublicKey(payload));
+export const setClientId = (payload: string) => store.dispatch(config.actions.setClientId(payload));
+export const setClientSecret = (payload: string) => store.dispatch(config.actions.setClientSecret(payload));
 
 export const setChromeCast = (payload: ChromeCast) => store.dispatch(config.actions.setChromeCast(payload));
 
