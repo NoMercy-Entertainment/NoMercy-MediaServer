@@ -41,7 +41,7 @@ export const seed = async () => {
 		message: 'Seeding database',
 	});
 
-	await storeConfig(configData, null);
+	storeConfig(configData, null);
 
 	const Genres = await genres();
 	for (const genre of Genres) {

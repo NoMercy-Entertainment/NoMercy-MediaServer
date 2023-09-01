@@ -2,6 +2,9 @@ import { deviceName } from '@server/functions/system';
 import { applicationVersion } from '@server/state';
 import { ConfigData } from '@server/types/server';
 
+import env from 'dotenv';
+env.config();
+
 export const configData: ConfigData = {
 	secureInternalPort: process.env.DEFAULT_PORT ?? 7635,
 	secureExternalPort: process.env.DEFAULT_PORT ?? 7635,
