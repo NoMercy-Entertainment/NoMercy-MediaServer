@@ -34,7 +34,7 @@ export default async () => {
 	await getAuthKeys();
 
 	await get_external_ip();
-	await get_internal_ip();
+	get_internal_ip();
 
 	await baseConfiguration();
 	logo();
