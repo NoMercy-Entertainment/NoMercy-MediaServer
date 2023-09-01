@@ -3,12 +3,12 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import config from './config';
 import music from './music';
 import system from './system';
-import user from './user';
+// import user from './user';
 
 export const appReducer = combineReducers({
 	system: system.reducer,
 	config: config.reducer,
-	user: user.reducer,
+	// user: user.reducer,
 	music: music.reducer,
 });
 

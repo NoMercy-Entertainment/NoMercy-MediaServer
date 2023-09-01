@@ -3,7 +3,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 const user = createSlice({
 	name: 'user',
 	initialState: {
-		keycloakUrl: 'https://dev.nomercy.tv/oauth/token',
+		tokenUrl: globalThis.tokenUrl,
 		access_token: '',
 		refresh_token: '',
 		expires_in: 7200,

@@ -55,6 +55,7 @@
     "@types/node-schedule": "^2.1.0",
     "@types/os-utils": "^0.0.1",
     "@types/spdy": "^3.4.5",
+    "@types/unzipper": "^0.10.6",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.4.0",
     "@zerollup/ts-transform-paths": "^1.7.18",
@@ -84,6 +85,8 @@
     "typescript": "5.1.6"
   },
   "dependencies": {
+    "@inquirer/password": "^1.1.8",
+    "@inquirer/prompts": "^3.0.3",
     "@napi-rs/canvas": "^0.1.43",
     "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^5.1.1",
@@ -120,6 +123,7 @@
     "image-hash": "^5.3.1",
     "image-size": "^1.0.2",
     "inquirer": "9.2.10",
+    "is-wsl": "^3.0.0",
     "jwt-decode": "^3.1.2",
     "keycloak-backend": "^5.0.0",
     "keycloak-connect": "^22.0.1",

@@ -6,7 +6,7 @@ import baseConfiguration from '../../loaders/cdn/cdn';
 import chromeCast from '../chromeCast';
 import dev from './dev';
 import firstBoot from '../firstBoot';
-import { getKeycloakKeys } from '../keycloak';
+import { getAuthKeys } from '../keycloak';
 import logo from '../logo';
 import queue from '../queue';
 import seed from '@server/db/seed';
@@ -14,7 +14,7 @@ import { watcher } from '@server/tasks/files/watcher';
 import certificate from '../certificate';
 import loadConfigs from '../loadConfigs';
 import moderators from '../moderators';
-import refreshToken from '../refreshToken';
+import refreshToken from '../auth/refreshToken';
 import getUsers from '../users';
 import server from '@server/loaders/server';
 import mediaDB from '@server/db/media';
@@ -30,10 +30,11 @@ export default async () => {
 			// process.exit(1);
 		});
 
-	await getKeycloakKeys();
+
+	await getAuthKeys();
 
 	await get_external_ip();
-	get_internal_ip();
+	await get_internal_ip();
 
 	await baseConfiguration();
 	logo();
@@ -49,10 +50,10 @@ export default async () => {
 	} else {
 		await firstBoot();
 	}
+	
+	loadConfigs();
 
 	await refreshToken();
-
-	await loadConfigs();
 
 	await certificate();
 
@@ -62,7 +63,7 @@ export default async () => {
 
 	await seed();
 
-	await loadConfigs();
+	loadConfigs();
 
 	await portMap();
 

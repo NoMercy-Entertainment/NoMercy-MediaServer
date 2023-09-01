@@ -14,7 +14,7 @@ export const serverRunning = () => {
 	console.log(
 		g()`╔══════════════════════════════════════════════╗\n`
 		+ g()`║     ` +		a7()`Secure server running: on port: `	+		c3()`${secureInternalPort}`.replace(', ', '')	+		g()`     ║\n`
-		+ g()`║       ` +		cc()`visit: `							+ link()`https://app${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv`					+		g()`          ║\n`
+		+ g()`║      ` +		cc()`visit: `							+ link()`https://app${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv`					+		g()`       ║\n`
 		+ g()`╚══════════════════════════════════════════════╝`
 	);
 };

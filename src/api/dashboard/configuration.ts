@@ -41,34 +41,32 @@ export const configuration = (req: Request, res: Response) => {
 };
 
 export const createConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
-
-	await storeConfig(req.body, req.user.sub)
-		.then(() => {
-			Logger.log({
-				level: 'info',
-				name: 'configuration',
-				color: 'magentaBright',
-				message: 'Created configuration.',
-			});
-
-			return res.json({
-				status: 'ok',
-				message: 'Successfully created configuration.',
-			});
-		})
-		.catch(() => {
-			Logger.log({
-				level: 'info',
-				name: 'configuration',
-				color: 'magentaBright',
-				message: 'Error creating configuration',
-			});
-
-			return res.json({
-				status: 'ok',
-				message: 'Something went wrong creating configuration',
-			});
+	try {
+		storeConfig(req.body, req.user.sub);
+		Logger.log({
+			level: 'info',
+			name: 'configuration',
+			color: 'magentaBright',
+			message: 'Created configuration.',
 		});
+
+		return res.json({
+			status: 'ok',
+			message: 'Successfully created configuration.',
+		});
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'configuration',
+			color: 'magentaBright',
+			message: 'Error creating configuration',
+		});
+
+		return res.json({
+			status: 'ok',
+			message: 'Something went wrong creating configuration',
+		});
+	};
 };
 
 export const updateConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
@@ -86,63 +84,62 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 	const encoder = useSelector((state: AppState) => state.config.encoderWorker);
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
-	await storeConfig(body as unknown as ConfigData, req.user.sub)
-		.then(() => {
-			if (deviceName != body.deviceName) {
-				updateRegistry = true;
-			}
-			body.queueWorkers != null && queue.setWorkers(body.queueWorkers);
-			body.cronWorkers != null && cron.setWorkers(body.cronWorkers);
-			body.dataWorkers != null && data.setWorkers(body.dataWorkers);
-			body.requestWorkers != null && request.setWorkers(body.requestWorkers);
-			body.encoderWorkers != null && encoder.setWorkers(body.encoderWorkers);
-			body.deviceName != null && setDeviceName(body.deviceName);
+	try {
+		storeConfig(body as unknown as ConfigData, req.user.sub);
+		if (deviceName != body.deviceName) {
+			updateRegistry = true;
+		}
+		body.queueWorkers != null && queue.setWorkers(body.queueWorkers);
+		body.cronWorkers != null && cron.setWorkers(body.cronWorkers);
+		body.dataWorkers != null && data.setWorkers(body.dataWorkers);
+		body.requestWorkers != null && request.setWorkers(body.requestWorkers);
+		body.encoderWorkers != null && encoder.setWorkers(body.encoderWorkers);
+		body.deviceName != null && setDeviceName(body.deviceName);
 
-			if (body.secureInternalPort && secureInternalPort != body.secureInternalPort) {
-				needsReboot = true;
-			}
+		if (body.secureInternalPort && secureInternalPort != body.secureInternalPort) {
+			needsReboot = true;
+		}
 
-			if (updateRegistry) {
-				ping();
-			}
+		if (updateRegistry) {
+			ping();
+		}
 
-			body.secureInternalPort != null && setSecureInternalPort(body.secureInternalPort);
-			body.secureExternalPort != null && setSecureExternalPort(body.secureExternalPort);
+		body.secureInternalPort != null && setSecureInternalPort(body.secureInternalPort);
+		body.secureExternalPort != null && setSecureExternalPort(body.secureExternalPort);
 
-			Logger.log({
-				level: 'info',
-				name: 'configuration',
-				color: 'magentaBright',
-				message: 'Updated configuration.',
-			});
-
-			if (needsReboot) {
-				Logger.log({
-					level: 'info',
-					name: 'configuration',
-					color: 'magentaBright',
-					message: 'Changes require restart, restarting...',
-				});
-
-				reboot();
-			}
-
-			return res.json({
-				status: 'ok',
-				message: 'Successfully updated configuration.',
-			});
-		})
-		.catch(() => {
-			Logger.log({
-				level: 'info',
-				name: 'configuration',
-				color: 'magentaBright',
-				message: 'Error updating configuration',
-			});
-
-			return res.status(400).json({
-				status: 'ok',
-				message: 'Something went wrong updating configuration',
-			});
+		Logger.log({
+			level: 'info',
+			name: 'configuration',
+			color: 'magentaBright',
+			message: 'Updated configuration.',
 		});
+
+		if (needsReboot) {
+			Logger.log({
+				level: 'info',
+				name: 'configuration',
+				color: 'magentaBright',
+				message: 'Changes require restart, restarting...',
+			});
+
+			reboot();
+		}
+
+		return res.json({
+			status: 'ok',
+			message: 'Successfully updated configuration.',
+		});
+	} catch (error) {
+		Logger.log({
+			level: 'info',
+			name: 'configuration',
+			color: 'magentaBright',
+			message: 'Error updating configuration',
+		});
+
+		return res.status(400).json({
+			status: 'ok',
+			message: 'Something went wrong updating configuration',
+		});
+	};
 };

@@ -1,29 +1,25 @@
 import Logger from '@server/functions/logger';
 import axios from 'axios';
-import { setClientId, setClientSecret, setPublicKey } from '@server/state/redux/config/actions';
 import { NextFunction, Response, Request } from 'express';
-import { AppState, useSelector } from '@server/state/redux';
 import { isAllowed, isModerator, isOwner } from '@server/api/middleware/permissions';
 import { getLanguage } from '@server/api/middleware';
 import i18next from 'i18next';
 import passportClient from 'laravel-passport-express';
 import jwtDecode from 'jwt-decode';
+import { authBaseUrl } from '../auth/config';
 
-export let _keycloak;
-export let _keycloakBackend;
+export let _auth: any;
+export let _authBackend: any;
 
-export const initKeycloak = async () => {
-	if (_keycloak) {
-		return _keycloak;
+export const initAuth = async () => {
+	if (_auth) {
+		return _auth;
 	}
 
-	const clientId = useSelector((state: AppState) => state.config.clientId);
-	const clientSecret = useSelector((state: AppState) => state.config.clientSecret);
-
-	_keycloak = passportClient({
+	_auth = passportClient({
 		url: 'https://dev.nomercy.tv',
-		clientId: clientId,
-		clientSecret: clientSecret
+		clientId: globalThis.client_id,
+		clientSecret: globalThis.client_secret
 	});
 
 	Logger.log({
@@ -32,10 +28,10 @@ export const initKeycloak = async () => {
 		color: 'blueBright',
 		message: 'Keycloak loaded',
 	});
-	return _keycloak;
+	return _auth;
 };
 
-export const kcMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const AuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
 	if (!req.headers.authorization && !req.query.token) {
 		return next();
 	}
@@ -82,7 +78,7 @@ export const mustHaveToken = (req: Request, res: Response, next: NextFunction) =
 };
 
 export const getKeycloak = () => {
-	if (!_keycloak) {
+	if (!_auth) {
 		Logger.log({
 			level: 'error',
 			name: 'App',
@@ -90,22 +86,20 @@ export const getKeycloak = () => {
 			message: 'Keycloak has not been initialized. Please called init first.',
 		});
 	}
-	return _keycloak;
+	return _auth;
 };
 
-export const getKeycloakKeys = async () => {
+export const getAuthKeys = async () => {
 
-	const realm = 'https://dev.nomercy.tv/oauth';
-
-	const info = await axios.get(realm, {
+	const info = await axios.get(authBaseUrl, {
 		headers: {
 			'Accept-Encoding': 'gzip,deflate,compress',
 			'Accept': 'application/json',
 		},
 	});;
 
-	setPublicKey(info.data.public_key);
-	setClientId(info.data.client_id);
-	setClientSecret(info.data.client_secret);
+	globalThis.public_key = info.data.public_key;
+	globalThis.client_id = info.data.server.client_id;
+	globalThis.client_secret = info.data.server.client_secret;
 
 };

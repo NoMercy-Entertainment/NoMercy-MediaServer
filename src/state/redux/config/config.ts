@@ -31,16 +31,16 @@ const initialState = {
 
 	chromeCast: <ChromeCast>{},
 
-	queueWorker: new DatabaseQueue({ name: 'queue', workers: 1 }),
-	queueWorkers: 1,
-	cronWorker: new DatabaseQueue({ name: 'cron', workers: 1 }),
-	cronWorkers: 1,
-	dataWorker: new DatabaseQueue({ name: 'data', workers: 1 }),
-	dataWorkers: 1,
-	requestWorker: new SyncQueue({ name: 'request', workers: 1 }),
-	requestWorkers: 1,
-	encoderWorker: new DatabaseQueue({ name: 'encoder', workers: 1 }),
-	encoderWorkers: 1,
+	queueWorker: new DatabaseQueue({ name: 'queue', workers: 0 }),
+	queueWorkers: 0,
+	cronWorker: new DatabaseQueue({ name: 'cron', workers: 0 }),
+	cronWorkers: 0,
+	dataWorker: new DatabaseQueue({ name: 'data', workers: 0 }),
+	dataWorkers: 0,
+	requestWorker: new SyncQueue({ name: 'request', workers: 0 }),
+	requestWorkers: 0,
+	encoderWorker: new DatabaseQueue({ name: 'encoder', workers: 0 }),
+	encoderWorkers: 0,
 
 	libraries: new Array<LibraryWithRelations>(),
 	preferredOrder: <PreferredOrder>{},
@@ -48,11 +48,6 @@ const initialState = {
 	assToVtt: true,
 
 	language: 'en',
-
-	publicKey: '',
-	clientId: '',
-	clientSecret: '',
-
 };
 
 const config = createSlice({
@@ -106,15 +101,6 @@ const config = createSlice({
 		},
 		setAssToVtt: (state, action: PayloadAction<boolean>) => {
 			state.assToVtt = action.payload;
-		},
-		setPublicKey: (state, action: PayloadAction<string>) => {
-			state.publicKey = action.payload;
-		},
-		setClientId: (state, action: PayloadAction<string>) => {
-			state.clientId = action.payload;
-		},
-		setClientSecret: (state, action: PayloadAction<string>) => {
-			state.clientSecret = action.payload;
 		},
 		setChromeCast: (state, action: PayloadAction<ChromeCast>) => {
 			// @ts-expect-error

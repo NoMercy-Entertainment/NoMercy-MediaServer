@@ -58,6 +58,7 @@ export class SyncQueue extends EventEmitter {
 	myEmitter = new events.EventEmitter();
 
 	maxAttempts = 2;
+	delay = 0;
 
 	constructor({ name = 'default', keepJobs = false, workers = 0 }: SyncQueueProps) {
 		super();
@@ -129,15 +130,18 @@ export class SyncQueue extends EventEmitter {
 	setWorkers(workers: number) {
 		if (workers > this.workers) {
 			for (let i = 0; i < workers - this.workers; i++) {
-				this.createWorker();
+				setTimeout(() => {
+					this.createWorker();
+				}, 1000 * i);
 			}
-			this.workers = workers;
 		} else {
-			for (let i = 0; i < this.workers - workers; i++) {
+			for (let i = this.workers; i < this.workers - workers; i++) {
 				this.removeWorker();
 			}
-			this.workers = workers;
 		}
+
+		this.workers = workers;
+		
 		return this;
 	}
 
@@ -291,10 +295,6 @@ export class SyncQueue extends EventEmitter {
 
 	start() {
 		this.isDisabled = false;
-
-		for (let i = this.forks.length; i < this.workers; i++) {
-			this.createWorker();
-		}
 	}
 
 	sendMessageTo(worker: Worker, message: any) {
@@ -317,7 +317,7 @@ export class SyncQueue extends EventEmitter {
 		if (this.isDisabled) {
 			setTimeout(() => {
 				this.run();
-			}, 0);
+			}, this.delay);
 			return;
 		};
 
@@ -326,7 +326,7 @@ export class SyncQueue extends EventEmitter {
 			// console.log('no free worker');
 			setTimeout(() => {
 				this.run();
-			}, 0);
+			}, this.delay);
 			return;
 		};
 		// console.log('free worker', Worker.id);
@@ -340,7 +340,7 @@ export class SyncQueue extends EventEmitter {
 			// console.log('no job? ', job?.id);
 			setTimeout(() => {
 				this.run();
-			}, 0);
+			}, this.delay);
 			return;
 		}
 
@@ -358,10 +358,11 @@ export class SyncQueue extends EventEmitter {
 
 		Worker.worker.send({ type: 'job', job });
 
-		Worker.worker.on('message', (message: any) => {
+		const workerCallback = (message: any) => {
 			if (message.type === 'dependency') {
 				// console.log(message);
 			} else {
+				Worker.worker.off('message', workerCallback);
 				this.emit(job.id, message);
 
 				this.remove(job);
@@ -375,9 +376,11 @@ export class SyncQueue extends EventEmitter {
 				}
 				setTimeout(() => {
 					this.run();
-				}, 0);
+				}, this.delay);
 			}
-		});
+		}
+
+		Worker.worker.on('message', workerCallback);
 	}
 }
 

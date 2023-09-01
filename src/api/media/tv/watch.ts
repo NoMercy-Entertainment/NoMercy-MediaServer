@@ -148,17 +148,14 @@ const playlist = (episode: PlaylistItem, language: string) => {
 		description: overview,
 		duration: videoFile?.duration,
 		specialId: undefined,
-		poster: episode.tv.poster
-			? episode.tv.poster
+		
+		poster: episode.still ?? episode.tv.backdrop ?? episode.tv.poster
+			? '/images/original' + (episode.still ?? episode.tv.backdrop ?? episode.tv.poster)?.replace('.jpg', '.webp')
 			: null,
-		backdrop: episode.tv.backdrop
-			? episode.tv.backdrop
+		image: episode.still ?? episode.tv.backdrop ?? episode.tv.poster
+			? '/images/original' + (episode.still ?? episode.tv.backdrop ?? episode.tv.poster)?.replace('.jpg', '.webp')
 			: null,
-
-		image: episode.still
-			? episode.still
-			: episode.tv.poster || null,
-
+			
 		video_type: 'tv',
 		season: episode.seasonNumber,
 		episode: episode.episodeNumber,

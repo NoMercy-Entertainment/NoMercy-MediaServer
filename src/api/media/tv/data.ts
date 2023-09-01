@@ -5,7 +5,6 @@ import { deviceId } from '@server/functions/system';
 import i18next from 'i18next';
 import { sortBy } from '@server/functions/stringArray';
 import { PlaylistItem } from '@server/types//video';
-import { AppState, useSelector } from '@server/state/redux';
 import { Episode } from '@server/db/media/actions/episodes';
 import { Media } from '@server/db/media/actions/medias';
 import { Translation } from '@server/db/media/actions/translations';
@@ -39,8 +38,6 @@ export type PlaylistItemData = (Episode & {
 });
 
 export default ({ data }: { data: PlaylistItemData; }): PlaylistItem => {
-
-	const access_token = useSelector((state: AppState) => state.user.access_token);
 
 	const videoFile = data.VideoFile?.[0];
 

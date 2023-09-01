@@ -1,27 +1,12 @@
 import { AppState, useSelector } from '@server/state/redux';
 import { deviceId, platform } from '../system';
-import express from 'express';
-import { Request, Response } from 'express-serve-static-core';
-import { readFileSync, writeFileSync } from 'fs';
-import { setAccessToken, setRefreshToken } from '@server/state/redux/user/actions';
 
-import DetectBrowsers from '../detectBrowsers';
-import { KeycloakToken } from '@server/types/keycloak';
 import Logger from '@server/functions/logger';
 import { ServerRegisterResponse } from '@server/types/api';
-import { getLanguage } from '../../api/middleware';
-import http from 'http';
-// import inquirer from 'inquirer';
-import open from 'open';
-import qs from 'qs';
-import storeConfig from '../storeConfig';
-import { applicationVersion, tokenFile } from '@server/state';
-import { tokenParser } from '../tokenParser';
-import writeToConfigFile from '../writeToConfigFile';
+import { applicationVersion } from '@server/state';
 import apiClient from '../apiClient/apiClient';
-// import open from '@server/functions/open';
-
-let registerComplete = false;
+import { tempServer } from '../auth/helpers';
+import { aquireToken } from '../auth/login';
 
 const registerServer = async () => {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
@@ -33,8 +18,6 @@ const registerServer = async () => {
 	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
 		: 7635;
-
-	const redirect_uri = `http://${internal_ip}:${internal_port}/sso-callback`;
 
 	const serverData = {
 		server_id: deviceId,
@@ -54,16 +37,13 @@ const registerServer = async () => {
 		message: 'Registering server, this takes a moment...',
 	});
 
-	let success = true;
-
 	await apiClient()
-		.post<ServerRegisterResponse>('server/register',
-			serverData,
-			{ headers: {
-				Accept: 'application/json',
-			} })
-		.catch((error) => {
-			success = false;
+		.post<ServerRegisterResponse>('server/register', serverData)
+		.then(async ({ data }) => {
+			await assignServer();
+		})
+		.catch(async (error) => {
+			error = true;
 			if (error.response) {
 				Logger.log({
 					level: 'info',
@@ -72,256 +52,42 @@ const registerServer = async () => {
 					message: error?.response?.data?.message ?? error,
 				});
 			}
-		});
 
-	if (success || !JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token) {
-		const detected = DetectBrowsers();
-
-		if (detected) {
-			tempServer(redirect_uri, internal_port);
-
-			Logger.log({
-				level: 'info',
-				name: 'setup',
-				color: 'blueBright',
-				message: 'Opening browser, please login',
-			});
-
-			await open(
-				`https://auth.nomercy.tv/realms/NoMercyTV/protocol/openid-connect/auth?redirect_uri=${encodeURIComponent(
-					redirect_uri
-				)}&client_id=nomercy-server&response_type=code&module=register`,
-				{
-					wait: true,
-				}
-			);
-
-		} else {
-			await loginPrompt().then(() => {
-				registerComplete = true;
-			});
-		}
-
-		await new Promise((resolve) => {
-			// eslint-disable-next-line no-unmodified-loop-condition
-			while (!registerComplete) {
-				// /
+			if ((typeof error == 'boolean' && error == false) || error?.response?.data?.message) {
+				await aquireToken().then(async () => {
+					tempServer(internal_port);
+					await registerServer();
+				});
 			}
-
-			resolve(true);
 		});
-
-		const access_token: string = JSON.parse(readFileSync(tokenFile, 'utf8'))?.access_token;
-
-		await apiClient()
-			.post('server/assign',
-				serverData,
-				{
-					headers: {
-						Accept: 'application/json',
-						Authorization: `Bearer ${access_token.trim()}`,
-					},
-				})
-			.then(() => {
-				Logger.log({
-					level: 'info',
-					name: 'register',
-					color: 'blueBright',
-					message: 'Server validated',
-				});
-			})
-			.catch(({ response }) => {
-				Logger.log({
-					level: 'error',
-					name: 'register',
-					color: 'red',
-					message: JSON.stringify(response?.data ?? response, null, 2),
-				});
-			});
-	}
-
 };
 
 export default registerServer;
 
-const tempServer = (redirect_uri: string, internal_port: number) => {
-	const app = express();
-	const httpsServer = http.createServer(app);
+export const assignServer = async () => {
 
-	app.get('/sso-callback', async (req: Request, res: Response) => {
+	const external_ip = useSelector((state: AppState) => state.system.external_ip);
+	const serverData = {
+		server_id: deviceId,
+		external_ip: external_ip,
+	};
 
-		await storeConfig({
-			language: getLanguage(req),
-		}, null);
-
-		const keycloakData = qs.stringify({
-			client_id: 'd5a5a005-9ea6-4e83-bff7-9e442699889c',
-			grant_type: 'authorization_code',
-			client_secret: 'LAByECfzJlJrFDl6P4iEgvP28YVRps9hxaLATGL1',
-			scope: 'openid offline_access',
-			code: req.query.code,
-			redirect_uri: redirect_uri,
-		});
-
-		await apiClient()
-			.post<KeycloakToken>(
-				useSelector((state: AppState) => state.user.keycloakUrl),
-				keycloakData
-			)
-			.then(({ data }) => {
-				setAccessToken(data.access_token);
-				setRefreshToken(data.refresh_token);
-
-				const userId = tokenParser(data.access_token).sub;
-				writeToConfigFile('user_id', userId);
-
-				writeFileSync(tokenFile, JSON.stringify(data, null, 2));
-
-				res.send('<script>window.close();</script>').end();
-
-				Logger.log({
-					level: 'info',
-					name: 'auth',
-					color: 'blueBright',
-					message: 'Server authenticated',
-				});
-
-				registerComplete = true;
-				httpsServer.close();
-			})
-			.catch(({ response }) => {
-				Logger.log({
-					level: 'error',
-					name: 'auth',
-					color: 'red',
-					message: JSON.stringify(response?.data ?? response, null, 2),
-				});
-				return res.json(response?.data);
+	await apiClient()
+		.post('server/assign', serverData)
+		.then(() => {
+			Logger.log({
+				level: 'info',
+				name: 'register',
+				color: 'blueBright',
+				message: 'Server validated',
 			});
-	});
-
-	return httpsServer
-		.listen(internal_port, '0.0.0.0', () => {
-			console.log(`listening on port ${internal_port}`);
 		})
-		.on('error', (error) => {
+		.catch(({ response }) => {
 			Logger.log({
 				level: 'error',
-				name: 'App',
-				color: 'magentaBright',
-				message: `Sorry Something went wrong starting the secure server: ${JSON.stringify(error, null, 2)}`,
+				name: 'register',
+				color: 'red',
+				message: JSON.stringify(response?.data ?? response, null, 2),
 			});
-			process.exit(1);
 		});
-};
-
-export const login = ({ email, password, totp }) => {
-	return new Promise(async (resolve, reject) => {
-		const keycloakData = qs.stringify({
-			client_id: 'd5a5a005-9ea6-4e83-bff7-9e442699889c',
-			grant_type: 'password',
-			client_secret: 'LAByECfzJlJrFDl6P4iEgvP28YVRps9hxaLATGL1',
-			scope: 'openid offline_access',
-			username: email,
-			password: password,
-			totp: totp,
-		});
-
-		await apiClient()
-			.post<KeycloakToken>(
-				useSelector((state: AppState) => state.user.keycloakUrl),
-				keycloakData
-			)
-			.then(({ data }) => {
-				Logger.log({
-					level: 'info',
-					name: 'auth',
-					color: 'blueBright',
-					message: 'Server authenticated',
-				});
-
-				setAccessToken(data.access_token);
-				setRefreshToken(data.refresh_token);
-
-				const userId = tokenParser(data.access_token).sub;
-				writeToConfigFile('user_id', userId);
-
-				writeFileSync(tokenFile, JSON.stringify(data));
-			})
-			.then(async () => {
-
-				const external_ip = useSelector((state: AppState) => state.system.external_ip);
-				const access_token = useSelector((state: AppState) => state.user.access_token);
-				const serverData = {
-					server_id: deviceId,
-					external_ip: external_ip,
-				};
-
-				await apiClient()
-					.post('server/assign', serverData, {
-						headers: {
-							Accept: 'application/json',
-							Authorization: `Bearer ${access_token}`,
-						},
-					})
-					.catch(({ response }) => {
-						Logger.log({
-							level: 'error',
-							name: 'register',
-							color: 'red',
-							message: JSON.stringify(response?.data ?? response, null, 2),
-						});
-					});
-
-				resolve(true);
-			})
-			.catch(({ response }) => {
-				Logger.log({
-					level: 'error',
-					name: 'auth',
-					color: 'red',
-					message: JSON.stringify(response.data, null, 2),
-				});
-				reject(new Error(response.data));
-			});
-	});
-};
-
-export const loginPrompt = () => {
-	return new Promise((resolve) => {
-		// inquirer
-		// 	.prompt([
-		// 		{
-		// 			type: 'input',
-		// 			name: 'email',
-		// 			message: 'Email address: ',
-		// 		},
-		// 		{
-		// 			type: 'password',
-		// 			name: 'password',
-		// 			message: 'Password: ',
-		// 		},
-		// 		{
-		// 			type: 'input',
-		// 			name: 'totp',
-		// 			message: '2fa code: ',
-		// 		},
-		// 	])
-		// 	.then((answers) => {
-		// 		login({
-		// 			email: answers.email,
-		// 			password: answers.password,
-		// 			totp: isNaN(answers.totp)
-		// 				? undefined
-		// 				: answers.totp,
-		// 		}).then(resolve);
-		// 	})
-		// 	.catch((error) => {
-		// 		if (error.isTtyError) {
-		// 			// Prompt couldn't be rendered in the current environment
-		// 		} else {
-		// 			// Something else went wrong
-		// 		}
-		// 	});
-	});
 };

@@ -31,13 +31,6 @@ export interface User {
 }
 
 export interface KC extends KeycloakTokenParsed {
-	// name: string
-	// email: string
-	// given_name: string
-	// family_name: string
-	// sub: string
-	// exp: number
-
     sub: string;
     email_verified?: boolean;
     name?: string;
@@ -54,41 +47,9 @@ export interface kc extends Keycloak {
 	tokenParsed: KC
 }
 
-// export interface KAuthRequest extends Request {
-// 	kauth: {
-// 		grant: {
-// 			access_token: {
-// 				token: string;
-// 				clientId: string;
-// 				header: {
-// 					alg: string;
-// 					typ: string;
-// 					kid: string;
-// 				};
-// 				content: KC;
-// 				signature: Buffer;
-// 				signed: string;
-// 			},
-// 			refresh_token: string | undefined;
-// 			id_token: string | undefined;
-// 			token_type: string | undefined;
-// 			expires_in: string | undefined;
-// 			__raw: string;
-// 		}
-// 	};
-// }
-
 export interface KAuthRequest extends Request {
 	token: {
 		token: string;
-		// clientId: string;
-		// header: {
-		// 	alg: string;
-		// 	typ: string;
-		// 	kid: string;
-		// };
 		content: KC;
-		// signature: Buffer;
-		// signed: string;
 	},
 }

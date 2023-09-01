@@ -122,15 +122,13 @@ const getContent = (movie: MoviePlaybackWithRelations, language: string) => {
 				? (videoFile.userData?.[0].time / convertToSeconds(videoFile.duration) * 100)
 				: null,
 
-			poster: movie.poster
-				? movie.poster
+			poster: movie.backdrop ?? movie.poster
+				? '/images/original' + (movie.backdrop ?? movie.poster)?.replace('.jpg', '.webp')
 				: null,
-			backdrop: movie.backdrop
-				? movie.backdrop
+			image: movie.backdrop ?? movie.poster
+				? '/images/original' + (movie.backdrop ?? movie.poster)?.replace('.jpg', '.webp')
 				: null,
-			image: movie.poster ?? movie.backdrop
-				? movie.poster ?? movie.backdrop
-				: null,
+
 			sources: [
 				{
 					src: `${baseFolder}${videoFile.filename}`,

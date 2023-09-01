@@ -6,7 +6,7 @@ import { selectConfiguration } from '@server/db/media/actions/configuration';
 import { getEncoderLibraries } from '@server/db/media/actions/libraries';
 import { selectUser } from '@server/db/media/actions/users';
 
-export const loadConfigs = async () => {
+export const loadConfigs = () => {
 
 	const dbConf = selectConfiguration();
 	
@@ -22,7 +22,7 @@ export const loadConfigs = async () => {
 	const language = dbConf.find(conf => conf.key == 'language')?.value as string;
 	setLanguage(language);
 
-	const libraries = await getEncoderLibraries();
+	const libraries = getEncoderLibraries();
 	setLibraries(libraries);
 
 	globalThis.allowedUsers = selectUser(true);

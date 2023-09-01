@@ -85,7 +85,7 @@ export const sslKey = path.resolve(certPath, 'key.pem');
 export const ffmpeg = path.resolve(binariesPath, `ffmpeg${executableSuffix}`);
 export const ffprobe = path.resolve(binariesPath, `ffprobe${executableSuffix}`);
 
-export const fingerprintCalc = path.resolve(binariesPath, `fpcalc${executableSuffix}`);
+export const fpcalc = path.resolve(binariesPath, `fpcalc${executableSuffix}`);
 
 export const languagesFile = path.resolve(dataPath, 'languages.json');
 

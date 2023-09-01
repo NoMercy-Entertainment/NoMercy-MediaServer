@@ -1,4 +1,4 @@
-import { AppState, store, useSelector } from '@server/state/redux';
+import { store } from '@server/state/redux';
 import { Server, Socket } from 'socket.io';
 
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
@@ -80,7 +80,7 @@ export const socket = {
 		io.use(
 			// @ts-ignore
 			socketioJwt.authorize({
-				secret: useSelector((state: AppState) => state.config.publicKey),
+				secret: globalThis.public_key,
 				// timeout: 15000,
 				handshake: true,
 				auth_header_required: false,

@@ -278,7 +278,7 @@ const createFileObject = async (parent: string, path: string, type: string) => {
 			if (searchResult) {
 
 				episode = globalThis.mediaDb.query.tvs.findFirst({
-					where: eq(tvs.titleSort, createTitleSort(parsed.title)),
+					where: eq(tvs.titleSort, createTitleSort(searchResult.name)),
 					with: {
 						episodes: {
 							where: and(

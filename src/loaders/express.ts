@@ -17,11 +17,12 @@ import webhooks from '../api/routes/webhooks';
 import { owner, setupComplete } from '@server/state';
 import { staticPermissions } from '../api/middleware/permissions';
 
-import { initKeycloak, kcMiddleware, mustHaveToken } from '@server/functions/keycloak';
+import { initAuth, AuthMiddleware, mustHaveToken } from '@server/functions/keycloak';
+import { AppState, useSelector } from '@server/state/redux';
 
 
 export default async (app: Application) => {
-	await initKeycloak();
+	await initAuth();
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
 		res.header('X-Powered-By', 'NoMercy MediaServer');
@@ -31,9 +32,12 @@ export default async (app: Application) => {
 		next();
 	});
 
+	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
+	const origins = allowedOrigins(internal_ip);
+	
 	app.use(
 		cors({
-			// origin: allowedOrigins,
+			// origin: origins,
 			origin: '*',
 		})
 	);
@@ -58,7 +62,7 @@ export default async (app: Application) => {
 	});
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		if (allowedOrigins.some(o => o == req.headers.origin)) {
+		if (origins.some(o => o == req.headers.origin)) {
 			res.set('Access-Control-Allow-Origin', req.headers.origin as string);
 		}
 
@@ -74,7 +78,7 @@ export default async (app: Application) => {
 	app.get('/images/*', serveImagesPath);
 	app.get('/transcodes/*', serveTranscodePath);
 	
-	app.use(kcMiddleware);
+	app.use(AuthMiddleware);
 	app.use(mustHaveToken);
 	
 	serveLibraryPaths(app);

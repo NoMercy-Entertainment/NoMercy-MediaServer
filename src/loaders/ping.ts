@@ -16,7 +16,9 @@ export default async () => {
 };
 
 const ping = async () => {
-	const server_name = globalThis.mediaDb.query.configuration.findFirst({ where: eq(configuration.key, 'server_name') });
+	const server_name = globalThis.mediaDb.query.configuration.findFirst({ 
+		where: eq(configuration.key, 'server_name') 
+	});
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
 	const data = {

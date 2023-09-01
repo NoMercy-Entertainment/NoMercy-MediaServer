@@ -35,6 +35,8 @@ export class DatabaseQueue {
 
 	maxAttempts = 2;
 
+	delay = 2000;
+
 	constructor({ name = 'default', keepJobs = false, workers = 0 }: DatabaseQueueProps) {
 		this.name = name;
 		this.keepJobs = keepJobs;
@@ -109,16 +111,19 @@ export class DatabaseQueue {
 
 	setWorkers(workers: number) {
 		if (workers > this.workers) {
-			for (let i = 0; i < workers - this.workers; i++) {
-				this.createWorker();
+			for (let i = this.workers; i < workers - this.workers; i++) {
+				setTimeout(() => {
+					this.createWorker();
+				}, 1000 * i);
 			}
-			this.workers = workers;
 		} else {
-			for (let i = 0; i < this.workers - workers; i++) {
+			for (let i = this.workers; i < this.workers - workers; i++) {
 				this.removeWorker();
 			}
-			this.workers = workers;
 		}
+
+		this.workers = workers;
+		
 		return this;
 	}
 
@@ -258,10 +263,6 @@ export class DatabaseQueue {
 
 	start() {
 		this.isDisabled = false;
-
-		for (let i = this.forks.length; i < this.workers; i++) {
-			this.createWorker();
-		}
 	}
 
 	sendMessageTo(worker: Worker, message: any) {
@@ -284,7 +285,7 @@ export class DatabaseQueue {
 		if (this.isDisabled) {
 			setTimeout(() => {
 				this.run();
-			}, 1000 * 10);
+			}, this.delay);
 			return;
 		};
 
@@ -293,7 +294,7 @@ export class DatabaseQueue {
 			// console.log('no free worker');
 			setTimeout(() => {
 				this.run();
-			}, 1000 * 10);
+			}, this.delay);
 			return;
 		};
 		// console.log('free worker', Worker.id);
@@ -307,7 +308,7 @@ export class DatabaseQueue {
 			// console.log('no job? ', job?.id);
 			setTimeout(() => {
 				this.run();
-			}, 1000 * 10);
+			}, this.delay);
 			return;
 		}
 
@@ -350,7 +351,7 @@ export class DatabaseQueue {
 
 		Worker.worker.send({ type: 'job', job });
 
-		Worker.worker.on('message', (message: any) => {
+		const workerCallback = (message: any) => {
 			if (message.type !== 'encoder-progress' && message.type !== 'dependency') {
 				// console.log(message);
 			}
@@ -399,14 +400,19 @@ export class DatabaseQueue {
 				Worker.job = <QueueJob>{};
 				this.runningJobs = this.runningJobs.filter(j => j != job.id);
 
+				Worker.worker.off('message', workerCallback);
+
 				if (this.workers < this.forks.length) {
 					this.deleteWorker(Worker);
 				}
+				
 				setTimeout(() => {
 					this.run();
-				}, 1000 * 10);
+				}, this.delay);
 			}
-		});
+		}
+
+		Worker.worker.on('message', workerCallback);
 	}
 }
 

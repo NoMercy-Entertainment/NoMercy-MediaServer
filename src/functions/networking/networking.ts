@@ -7,6 +7,7 @@ import { ServerOptions } from 'socket.io';
 import axios from 'axios';
 import chalk from 'chalk';
 import os from 'os';
+import isWsl from '../isWsl';
 
 export const get_external_ip = async () => {
 	await axios
@@ -25,6 +26,17 @@ export const get_external_ip = async () => {
 };
 
 export const get_internal_ip = () => {
+	if (isWsl) {
+		Logger.log({
+			level: 'error',
+			name: 'networking',
+			color: 'red',
+			message: 'You are running the server on WSL, this is not supported, Sorry.',
+		});
+
+		process.exit(1);
+	}
+
 	const interfaces = os.networkInterfaces();
 	const addresses: any[] = [];
 	for (const k in interfaces) {
@@ -107,7 +119,7 @@ export const portMap = async () => {
 	return result;
 };
 
-export const allowedOrigins = [
+export const allowedOrigins = (internal_ip) => [
 	'https://nomercy.tv',
 	'wss://nomercy.tv',
 	'ws://nomercy.tv',
@@ -120,10 +132,10 @@ export const allowedOrigins = [
 	'http://localhost:3000',
 	'http://localhost:5173',
 	'http://localhost:5174',
-	`https://${get_internal_ip()}:3000`,
-	`https://${get_internal_ip()}:5173`,
-	`http://${get_internal_ip()}:3000`,
-	`http://${get_internal_ip()}:5173`,
+	`https://${internal_ip}:3000`,
+	`https://${internal_ip}:5173`,
+	`http://${internal_ip}:3000`,
+	`http://${internal_ip}:5173`,
 	'https://www.gstatic.com',
 ];
 

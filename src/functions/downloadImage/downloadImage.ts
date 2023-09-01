@@ -4,11 +4,9 @@ import { ffmpeg, tempPath } from '@server/state';
 import { join, resolve as pathResolve } from 'path';
 
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import Logger from '@server/functions/logger';
 import { PaletteColors } from '@server/types/server';
 import axios from 'axios';
 import colorPalette from '../colorPalette';
-import createBlurHash from '../createBlurHash';
 import { randomUUID } from 'crypto';
 import sizeOf from 'image-size';
 
@@ -29,11 +27,12 @@ export default ({ url, path, only, usableImageSizes }: {
 	}[]| undefined,
 }): Promise<DownloadImage> => {
 
-	Logger.log({
-		name: 'image',
-		message: `Downloading image: ${url}`,
-		level: 'verbose',
-	});
+	// Logger.log({
+	// 	name: 'image',
+	// 	message: `Downloading image: ${url}`,
+	// 	level: 'info',
+	// 	color: 'green',
+	// });
 
 	return new Promise(async (resolve, reject) => {
 		if (!path) {
@@ -75,13 +74,20 @@ export default ({ url, path, only, usableImageSizes }: {
 			}
 
 			let hash: string | null = null;
-			if (!only || only.includes('blurHash')) {
-				try {
-					hash = await createBlurHash(buffer);
-				} catch (error) {
-					//
-				}
-			}
+			// if (!only || only.includes('blurHash')) {
+			// 	try {
+			// 		hash = await createBlurHash(buffer);
+			// 	} catch (error) {
+			// 		//
+			// 	}
+			// }
+			// const now4 = Date.now();
+			// Logger.log({
+			// 	name: 'image',
+			// 	message: `Created blurhash in ${now4 - now3}ms`,
+			// 	level: 'info',
+			// 	color: 'green',
+			// });
 
 			resolve({
 				dimensions: dimensions,
@@ -151,7 +157,9 @@ export const convertImageToWebp = (input: string, output: string, usableImageSiz
 			});
 		}
 
-		exec(`${ffmpeg} -i "${input}" -y ${sizes.join(' ')}`, (error: ExecException | null) => {
+		const command = `${ffmpeg} -i "${input}" -y ${sizes.join(' ')}`;
+
+		exec(command, (error: ExecException | null) => {
 			if (error) {
 				console.log(error);
 				return reject(error);

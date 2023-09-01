@@ -11,7 +11,6 @@ import { createTrack } from './createTrack';
 import { PaletteColors } from '@server/types/server';
 import { join } from 'path';
 import colorPalette, { colorPaletteFromFile } from '@server/functions/colorPalette';
-import createBlurHash from '@server/functions/createBlurHash';
 import { sleep } from '@server/functions/dateTime';
 import downloadImage from '@server/functions/downloadImage';
 import { fanart_album } from '@server/providers/fanart/music';
@@ -208,9 +207,9 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 					palette = image
 						? await colorPalette(image)
 						: null;
-					blurHash = image
-						? await createBlurHash(image)
-						: null;
+					// blurHash = image
+					// 	? await createBlurHash(image)
+					// 	: null;
 					image && await downloadImage({ url: image, path: `${imagesPath}/music/${id}.jpg` })
 						.catch((e) => {
 							console.log(e);
@@ -232,16 +231,16 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 			if (hasImage) {
 				image = '/cover.jpg';
 				palette = await colorPaletteFromFile(`${imagesPath}/music/${id}.png`);
-				blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${id}.png`));
+				// blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${id}.png`));
 			} else if (existsSync(`${base}/cover.jpg`)) {
 				image = '/cover.jpg';
 				palette = await colorPaletteFromFile(`${base}/cover.jpg`);
-				blurHash = await createBlurHash(readFileSync(`${base}/cover.jpg`));
+				// blurHash = await createBlurHash(readFileSync(`${base}/cover.jpg`));
 				copyFileSync(`${base}/cover.jpg`, `${imagesPath}/music/${id}.jpg`);
 			} else if (existsSync(`${base}/cover.png`)) {
 				image = '/cover.png';
 				palette = await colorPaletteFromFile(`${base}/cover.png`);
-				blurHash = await createBlurHash(readFileSync(`${base}/cover.png`));
+				// blurHash = await createBlurHash(readFileSync(`${base}/cover.png`));
 				copyFileSync(`${base}/cover.png`, `${imagesPath}/music/${id}.png`);
 			} else {
 				const img = readdirSync(`${p}`).find(a => a.endsWith('.jpg') || a.endsWith('.png'));
@@ -250,7 +249,7 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 						? `/${img}`
 						: null;
 					palette = await colorPaletteFromFile(`${p}/${img}`);
-					blurHash = await createBlurHash(readFileSync(`${p}/${img}`));
+					// blurHash = await createBlurHash(readFileSync(`${p}/${img}`));
 					copyFileSync(`${p}/${img}`, `${imagesPath}/music/${id}.png`);
 				}
 			}

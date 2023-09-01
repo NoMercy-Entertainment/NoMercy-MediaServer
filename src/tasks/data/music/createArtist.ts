@@ -6,7 +6,6 @@ import { insertArtist, findArtist } from '@server/db/media/actions/artists';
 import { insertMusicGenre } from '@server/db/media/actions/musicGenres';
 import { getBestArtistImag } from '@server/functions/artistImage';
 import colorPalette, { colorPaletteFromFile } from '@server/functions/colorPalette';
-import createBlurHash from '@server/functions/createBlurHash';
 import { sleep } from '@server/functions/dateTime';
 import downloadImage from '@server/functions/downloadImage';
 import { fanart_artist } from '@server/providers/fanart/music';
@@ -164,7 +163,7 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 						console.log(e);
 					});
 				palette = await colorPaletteFromFile(`${imagesPath}/music/${_artist.id}.jpg`);
-				blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${_artist.id}.jpg`));
+				// blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${_artist.id}.jpg`));
 				return {
 					image,
 					colorPalette: palette,
@@ -180,16 +179,16 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 		if (hasImage) {
 			image = `/${_artist.id}.jpg`;
 			palette = await colorPaletteFromFile(`${imagesPath}/music/${_artist.id}.jpg`);
-			blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${_artist.id}.jpg`));
+			// blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${_artist.id}.jpg`));
 		} else if (existsSync(`${base}.jpg`)) {
 			image = `/${artistName}.jpg`;
 			palette = await colorPaletteFromFile(`${base}.jpg`);
-			blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
+			// blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
 			copyFileSync(`${base}.jpg`, `${imagesPath}/music/${_artist.id}.jpg`);
 		} else if (existsSync(`${base}.png`)) {
 			image = `/${artistName}.png`;
 			palette = await colorPaletteFromFile(`${base}.png`);
-			blurHash = await createBlurHash(readFileSync(`${base}.png`));
+			// blurHash = await createBlurHash(readFileSync(`${base}.png`));
 			copyFileSync(`${base}.png`, `${imagesPath}/music/${_artist.id}.png`);
 		} else {
 			const x = await getBestArtistImag(artistName, base);
@@ -202,7 +201,7 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 				});
 				image = `/${artistName}.${x.extension}`;
 				palette = await colorPalette(x.url);
-				blurHash = await createBlurHash(x.url);
+				// blurHash = await createBlurHash(x.url);
 				await downloadImage({ url: x.url, path: `${imagesPath}/music/${_artist.id}.${x.extension}` })
 					.catch(() => {
 						//

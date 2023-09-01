@@ -1,6 +1,6 @@
 import { ParsedFileList } from '@server/tasks/files/filenameParser';
 import { execSync } from 'child_process';
-import { fingerprintCalc } from '@server/state';
+import { fpcalc } from '@server/state';
 import Logger from '@server/functions/logger';
 import mbApiClient from './mbApiClient';
 
@@ -13,7 +13,7 @@ export const getAcousticFingerprintFromParsedFileList = async (file: ParsedFileL
 		message: `Getting fingerprint for: ${file.path}`,
 	});
 
-	const fingerprint = execSync(`${fingerprintCalc} -json "${file.path}"`).toString();
+	const fingerprint = execSync(`${fpcalc} -json "${file.path}"`).toString();
 
 	console.log(fingerprint);
 	if (!fingerprint) {

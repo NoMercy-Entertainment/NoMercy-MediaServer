@@ -27,11 +27,11 @@ const router = express.Router();
 
 router.post('/', index);
 router.post('/movie/:id', movieInfo);
-router.post('/movie/:id/watch', movieWatch);
+router.get('/movie/:id/watch', movieWatch);
 router.post('/movie/:id/available', movieAvailable);
 
 router.post('/tv/:id', tvInfo);
-router.post('/tv/:id/watch', tvWatch);
+router.get('/tv/:id/watch', tvWatch);
 router.post('/tv/:id/available', tvAvailable);
 
 router.post('/collections', collections);
@@ -39,7 +39,7 @@ router.post('/collection/:id', collectionInfo);
 
 router.post('/specials', specials);
 router.post('/special/:id', specialInfo);
-router.post('/special/:id/watch', specialWatch);
+router.get('/special/:id/watch', specialWatch);
 
 router.post('/libraries', libraries);
 router.post('/libraries/:id', library);

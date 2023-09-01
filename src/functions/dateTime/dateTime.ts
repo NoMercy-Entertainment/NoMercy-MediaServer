@@ -1,4 +1,4 @@
-import { ffmpeg, ffprobe, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '@server/state';
+import { ffmpeg, ffprobe, fpcalc, makeMkv, sslCA, sslCert, sslKey, subtitleEdit } from '@server/state';
 import fs, { existsSync } from 'fs';
 
 import { pad } from '@server/functions/stringArray';
@@ -527,7 +527,6 @@ export const dateFormat = (date: Date | number, format: string) => {
 /**
  * @name File last modifed
  * @description Return file change time in hours ago.
- * @author: Stoney_Eagle <stoney@nomercy.tv>
  * @example fileChangedAgo("ffmpeg",'days') // 5
  */
 export const fileLastModified = (name: string) => {
@@ -553,6 +552,9 @@ export const fileLastModified = (name: string) => {
 		break;
 	case 'sslKey':
 		file = sslKey;
+		break;
+	case 'fpcalc':
+		file = fpcalc;
 		break;
 	default:
 		return Number.MAX_SAFE_INTEGER;

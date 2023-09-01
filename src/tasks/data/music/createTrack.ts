@@ -6,7 +6,6 @@ import { insertMusicGenre } from '@server/db/media/actions/musicGenres';
 import { insertTrack } from '@server/db/media/actions/tracks';
 import { AudioFFprobe } from '@server/encoder/ffprobe/ffprobe';
 import { colorPaletteFromFile } from '@server/functions/colorPalette';
-import createBlurHash from '@server/functions/createBlurHash';
 import { humanTime, sleep } from '@server/functions/dateTime';
 import Logger from '@server/functions/logger';
 import {
@@ -187,16 +186,16 @@ export const getTrackImage = async (file: ParsedFileList, id: string) => {
 		if (hasImage) {
 			image = `${file.path.replace(/.+([\\\/].+)\.\w{3,}$/u, '$1.jpg')}`;
 			colorPalette = await colorPaletteFromFile(`${imagesPath}/music/${id}.jpg`);
-			blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${id}.jpg`));
+			// blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${id}.jpg`));
 		} else if (existsSync(`${base}.jpg`)) {
 			image = `${file.path.replace(/.+([\\\/].+)\.\w{3,}$/u, '$1.jpg')}`;
 			colorPalette = await colorPaletteFromFile(`${base}.jpg`);
-			blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
+			// blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
 			copyFileSync(`${base}.jpg`, `${imagesPath}/music/${id}.jpg`);
 		} else if (existsSync(`${base}.png`)) {
 			image = `${file.path.replace(/.+([\\\/].+)\.\w{3,}$/u, '$1.png')}`;
 			colorPalette = await colorPaletteFromFile(`${base}.png`);
-			blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
+			// blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
 			copyFileSync(`${base}.png`, `${imagesPath}/music/${id}.png`);
 		}
 

@@ -1,7 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-import { readFileSync } from 'fs';
-import { tokenFile } from '@server/state';
+import { getAccessToken } from '../auth/helpers';
 
 export interface AxiosInstance {
 	request<T = any> (config: AxiosRequestConfig): Promise<AxiosResponse<T>>;
@@ -16,7 +15,7 @@ export interface AxiosInstance {
 export default () => axios.create({
 	headers: {
 		Accept: 'application/json',
-		Authorization: `Bearer ${JSON.parse(readFileSync(tokenFile, 'utf-8') ?? '{}')?.access_token}`,
+		Authorization: `Bearer ${globalThis.access_token ?? getAccessToken()}`,
 	},
 	baseURL: `https://api${process.env.ROUTE_SUFFIX ?? ''}.nomercy.tv/v1/`,
 }) as AxiosInstance;

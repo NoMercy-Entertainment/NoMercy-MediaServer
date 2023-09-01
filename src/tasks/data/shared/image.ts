@@ -169,13 +169,17 @@ export const execute = async ({ src, table, column, type, only }: {
 		.where(eq(models[table][column], src))
 		.get();
 
-	if (query?.blurHash && query?.colorPalette && existsSync(`${imagesPath}/${imageSizes[0].size}${newFile}`)) {
+	const newFilePath = `${imagesPath}/${imageSizes[0].size}${newFile}`;
+
+	if (query?.blurHash && query?.colorPalette && existsSync(newFilePath)) {
 		return;
 	}
 
+	const imageUrl = `https://image.tmdb.org/t/p/${imageSizes[0].size}${src}`;
+
 	await downloadImage({
-		url: `https://image.tmdb.org/t/p/${imageSizes[0].size}${src}`,
-		path: `${imagesPath}/${imageSizes[0].size}${newFile}`,
+		url: imageUrl,
+		path: newFilePath,
 		usableImageSizes: usableImageSizes,
 		only: only,
 	})
