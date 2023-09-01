@@ -31,14 +31,6 @@ export default async () => {
 		});
 
 
-	await getAuthKeys();
-
-	await get_external_ip();
-	get_internal_ip();
-
-	await baseConfiguration();
-	logo();
-
 	writeFileSync('query.log', '');
 	if (existsSync(transcodesPath)) {
 		rmSync(transcodesPath, { recursive: true });
@@ -50,6 +42,14 @@ export default async () => {
 	} else {
 		await firstBoot();
 	}
+
+	await getAuthKeys();
+
+	await get_external_ip();
+	get_internal_ip();
+
+	await baseConfiguration();
+	logo();
 	
 	loadConfigs();
 
