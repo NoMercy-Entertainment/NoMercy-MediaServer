@@ -27,14 +27,8 @@ export const get_external_ip = async () => {
 
 export const get_internal_ip = () => {
 	if (isWsl) {
-		Logger.log({
-			level: 'error',
-			name: 'networking',
-			color: 'red',
-			message: 'You are running the server on WSL, this is not supported, Sorry.',
-		});
-
-		process.exit(1);
+		console.log('You are running the server on WSL, this is not supported, Sorry.');
+		process.exit(0);
 	}
 
 	const interfaces = os.networkInterfaces();
