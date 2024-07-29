@@ -3,10 +3,11 @@ import { AppState, useSelector } from '@server/state/redux';
 import fs from 'fs';
 import i18next from 'i18next';
 import { storeServerActivity } from '../../api/userData/activity/post';
+import SocketIO from 'socket.io';
 
 const watchDir = `${__dirname}/../../cache/working/`;
 
-export default function (socket) {
+export default function(socket: SocketIO.Socket & { decoded_token: { sub: string, name: string } }) {
 	socket.on('servers', () => {
 		const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
@@ -37,17 +38,29 @@ export default function (socket) {
 
 	const handlePause = (id: any) => {
 		const queueWorker = useSelector((state: AppState) => state.config.queueWorker);
-		queueWorker.sendMessage({ type: 'encoder-pause', id });
+		queueWorker.sendMessage({
+			type: 'encoder-pause',
+			id,
+		});
 		queueWorker.forks.forEach((worker) => {
-			console.log('socket', { type: 'encoder-pause', id });
-			worker.worker.send({ type: 'encoder-pause', id });
+			console.log('socket', {
+				type: 'encoder-pause',
+				id,
+			});
+			worker.worker.send({
+				type: 'encoder-pause',
+				id,
+			});
 		});
 	};
 
 	const handleResume = (id: any) => {
 		const queueWorker = useSelector((state: AppState) => state.config.queueWorker);
 		queueWorker.forks.forEach((worker) => {
-			worker.worker.send({ type: 'encoder-resume', id });
+			worker.worker.send({
+				type: 'encoder-resume',
+				id,
+			});
 		});
 	};
 

@@ -189,7 +189,7 @@ export const pad = (number: string | number, places = 2): string => {
  * * Shuffle array,
  * @param {Array} array Array
  */
-export const shuffle = (array: Array<any>): Array<any> => {
+export const shuffle = <T>(array: Array<T>): Array<T> => {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
 		[array[i], array[j]] = [array[j], array[i]];
@@ -373,13 +373,6 @@ export const unique = <T>(array: T[], key: string): T[] => {
 	);
 };
 
-export const uniqueBy = (array: any, key: any) => {
-	if (!array) {
-		return [];
-	}
-	return Array.from(new Map(array.map((x: any) => [key(x), x])).values());
-};
-
 /**
  * * Return only unique objects by key,
  * @param {string} value
@@ -518,10 +511,10 @@ export const javaHash = (input: crypto.BinaryLike) => {
 	return hexToUuid(md5Bytes.toString('hex'));
 };
 
-export const chunk = (arr: any[], amount: number) => {
+export const chunk = <T>(arr: T[], amount: number): T[][] => {
 	return arr.reduce((all, one, i) => {
 		const ch = Math.floor(i / amount);
-
+		// @ts-ignore
 		all[ch] = [].concat(all[ch] || [], one);
 
 		return all;
@@ -706,6 +699,8 @@ export const create_UUID = () => {
 	) // /tv/1433/season/1/episode/1?api_key=ABCDEFGHIJK&language=en-US
  */
 export const stringFormat = (template: string, ...values: Array<string | number>): string => {
+	if (values.length === 0) return template;
+
 	const regex = new RegExp(/\{(?<index>\d+)\}/u, 'gu');
 	const matches = template.match(regex);
 	if (matches?.length == null) return '';
@@ -903,7 +898,7 @@ export const removeDiacritics = (str: string) => {
 	return str;
 };
 
-export const getClosestRating = (ratings: Array<{ certification: Certification}>, language: string) => {
+export const getClosestRating = <T extends Array<{ certification: Certification }>>(ratings: T, country: string): T[0]|undefined => {
 	const newRatings = ratings.map((r) => {
 		return {
 			rating: r.certification.rating,
@@ -918,7 +913,7 @@ export const getClosestRating = (ratings: Array<{ certification: Certification}>
 
 	if (!newRatings || newRatings.length == 0) return;
 
-	newRating = newRatings.find(r => r.iso31661 == language.toUpperCase());
+	newRating = newRatings.find(r => r.iso31661 == country.toUpperCase());
 	if (!newRating) {
 		newRating = newRatings.find(r => r.iso31661 == 'US');
 	}

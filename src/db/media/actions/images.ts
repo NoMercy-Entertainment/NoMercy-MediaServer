@@ -6,18 +6,16 @@ import { RequireOnlyOne } from '@server/types/helpers';
 
 export type NewImage = InferModel<typeof images, 'insert'>;
 export const insertImage = (data: NewImage) => globalThis.mediaDb.insert(images)
-	.values({
-		...convertBooleans(data),
-	})
-	.onConflictDoUpdate({
-		target: [images.filePath],
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
-	})
+	.values(convertBooleans(data))
+	// .onConflictDoUpdate({
+	// 	target: [images.filePath],
+	// 	set: {
+	// 		...convertBooleans(data),
+	// 		updated_at: new Date().toISOString()
+	// 			.slice(0, 19)
+	// 			.replace('T', ' '),
+	// 	},
+	// })
 	.returning()
 	.get();
 

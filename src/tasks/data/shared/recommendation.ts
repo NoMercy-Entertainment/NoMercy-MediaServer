@@ -9,6 +9,7 @@ import { insertRecommendation } from '@server/db/media/actions/recommendations';
 import { getMoviesDB } from '@server/db/media/actions/movies';
 import Logger from '@server/functions/logger/logger';
 import { selectTvsDB } from '@server/db/media/actions/tvs';
+import { parseYear } from '@server/functions/dateTime';
 
 export default async (
 	req: CompleteTvAggregate | CompleteMovieAggregate,
@@ -16,8 +17,10 @@ export default async (
 	type: 'movie' | 'tv'
 ) => {
 
-	const movies = getMoviesDB().map(m => m.id);
-	const tvs = selectTvsDB().map(m => m.id);
+	const movies = getMoviesDB()
+		.map(m => m.id);
+	const tvs = selectTvsDB()
+		.map(m => m.id);
 
 	for (const recommendation of req.recommendations.results as Array<Movie | TvShow>) {
 
@@ -38,12 +41,14 @@ export default async (
 			// recommendation.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`).then((hash) => {
 			// 	blurHash.backdrop = hash;
 			// }),
-			recommendation.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${recommendation.poster_path}`).then((hash) => {
-				palette.poster = hash;
-			}),
-			recommendation.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`).then((hash) => {
-				palette.backdrop = hash;
-			}),
+			recommendation.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${recommendation.poster_path}`)
+				.then((hash) => {
+					palette.poster = hash;
+				}),
+			recommendation.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${recommendation.backdrop_path}`)
+				.then((hash) => {
+					palette.backdrop = hash;
+				}),
 		]);
 
 		try {
@@ -53,21 +58,22 @@ export default async (
 				overview: recommendation.overview,
 				poster: recommendation.poster_path,
 				blurHash: JSON.stringify(blurHash),
-				colorPalette: JSON.stringify(palette),
+				color_palette: JSON.stringify(palette),
 				movieFrom_id: type === 'movie'
-					? req.id
-					: undefined,
+					?					req.id
+					:					undefined,
 				movieTo_id: type === 'movie' && movies.includes(recommendation.id)
-					? recommendation.id
-					: undefined,
+					?					recommendation.id
+					:					undefined,
 				tvFrom_id: type === 'tv'
-					? req.id
-					: undefined,
+					?					req.id
+					:					undefined,
 				tvTo_id: type === 'tv' && tvs.includes(recommendation.id)
-					? recommendation.id
-					: undefined,
+					?					recommendation.id
+					:					undefined,
 				title: (recommendation as TvShow).name ?? (recommendation as Movie).title,
-				titleSort: createTitleSort((recommendation as TvShow).name ?? (recommendation as Movie).title),
+				titleSort: createTitleSort((recommendation as TvShow).name ?? (recommendation as Movie).title,
+					parseYear((recommendation as TvShow).first_air_date ?? (recommendation as Movie).release_date)),
 			}, type);
 		} catch (error) {
 			Logger.log({

@@ -3,11 +3,11 @@ import { writeFileSync } from 'fs';
 import Logger from '@server/functions/logger';
 import { tokenUrl } from './config';
 import { aquireToken } from './login';
-import { getRefreshToken, getTokenExpiration, tempServer } from './helpers';
+import { getRefreshToken, tempServer } from './helpers';
 import { AppState, useSelector } from '@server/state/redux';
+import { keycloak_key } from '../keycloak/config';
 
 export const refreshToken = async () => {
-	console.log(getTokenExpiration() ?? 7200);
 	await refresh();
 	refreshLoop();
 };
@@ -29,23 +29,26 @@ const refresh = async () => {
 	});
 
 	if (!getRefreshToken()) {
+		console.log('no refresh token');
 		const secureInternalPort = useSelector((state: AppState) => state.system.secureInternalPort);
 		const server = tempServer(secureInternalPort);
 
 		await aquireToken();
 
-		server?.close();
+		server.close();
 
 		return;
 	}
-	
+
 	const refreshTokenData = new URLSearchParams({
 		client_id: globalThis.client_id,
 		grant_type: 'refresh_token',
-		client_secret: globalThis.client_secret,
+		client_secret: keycloak_key,
 		scope: globalThis.authorizationScopes,
 		refresh_token: getRefreshToken(),
-	}).toString();
+	});
+
+	// console.log(refreshTokenData);
 
 	try {
 
@@ -54,14 +57,14 @@ const refresh = async () => {
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},
-			body: refreshTokenData,
+			body: refreshTokenData.toString(),
 		});
 
 		const data = await response.json();
 
 		if (data.error) {
 			throw new Error(data.error_description);
-		}	
+		}
 
 		globalThis.access_token = data.access_token;
 		globalThis.refresh_token = data.refresh_token;
@@ -72,10 +75,10 @@ const refresh = async () => {
 		globalThis.nbp = data['not-before-policy'];
 		globalThis.session_state = data.session_state;
 		globalThis.scope = data.scope;
-		
+
 		if (data.access_token) {
 			writeFileSync(tokenFile, JSON.stringify(data));
-		
+
 			Logger.log({
 				level: 'info',
 				name: 'auth',
@@ -95,5 +98,5 @@ const refresh = async () => {
 		await aquireToken();
 	}
 
-	return;
+
 };

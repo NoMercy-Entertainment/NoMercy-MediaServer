@@ -1,4 +1,5 @@
 export const createLibraryFile = () => {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const config = {
 		enablePhotos: true,
 		enableRealtimeMonitor: true,

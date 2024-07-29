@@ -1,26 +1,26 @@
 export enum MonetizationTypes {
-	'flatrate',
-	'free',
-	'ads',
-	'rent',
-	'buy',
+	flatrate = 'flatrate',
+	free = 'free',
+	ads = 'ads',
+	rent = 'rent',
+	buy = 'buy',
 }
 
 export enum StatusTypes {
-	'Returning Series',
-	Planned,
-	'In Production',
-	Ended,
-	Cancelled,
-	Pilot,
+	ReturningSeries = 'Returning Series',
+	Planned = 'Planned',
+	InProduction = 'In Production',
+	Ended = 'Ended',
+	Cancelled = 'Cancelled',
+	Pilot = 'Pilot',
 }
 
 export enum TvShowTypes {
-	Documentary,
-	News,
-	Miniseries,
-	Reality,
-	Scripted,
-	'Talk Show',
-	Video,
+	Documentary = 'Documentary',
+	News = 'News',
+	Miniseries = 'Miniseries',
+	Reality = 'Reality',
+	Scripted = 'Scripted',
+	TalkShow = 'Talk Show',
+	Video = 'Video',
 }

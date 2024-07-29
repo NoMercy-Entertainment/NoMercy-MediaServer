@@ -5,6 +5,8 @@ import os from 'os';
 import osu from 'os-utils';
 import { platform } from '@server/functions/system';
 import util from 'util';
+import SocketIO from 'socket.io';
+
 const memTotal = os.totalmem();
 const threads = osu.cpuCount();
 
@@ -33,9 +35,9 @@ const cpuIAverage = (i: string | number) => {
 };
 
 const cpuILoadInit = (index) => {
-	return function () {
+	return function() {
 		const start = cpuIAverage(index);
-		return function (dif: any = {}) {
+		return function(dif: any = {}) {
 			const end = cpuIAverage(index);
 			dif.cpu = index;
 			dif.idle = Math.round(end.idle - start.idle);
@@ -44,8 +46,8 @@ const cpuILoadInit = (index) => {
 			const percent = Math.round(100 - (dif.idle / dif.total) * 100);
 
 			dif.percent = isNaN(percent)
-				? 0
-				: percent;
+				?				0
+				:				percent;
 			return dif;
 		};
 	};
@@ -57,7 +59,7 @@ const cpuILoad = (info: any[]) => {
 		const a = cpuILoadInit(i)();
 		info.push(a);
 	}
-	return function () {
+	return function() {
 		const res: any = [];
 		const cpus = os.cpus();
 		for (let i = 0, len = cpus.length; i < len; i++) {
@@ -78,18 +80,22 @@ const gpuLoad = async () => {
 		const gpuEncodeLoad = '$([math]::Round((((Get-Counter "\\GPU Engine(*engtype_VideoEncode)\\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))';
 		const EncodeLoad = exec(gpuEncodeLoad, {
 			shell: 'powershell.exe',
-		}).then((res) => {
-			encoder = parseFloat(res.stdout.replace(/[\n\r]+/u, '').trim()
-				.replace(',', '.'));
-		});
+		})
+			.then((res) => {
+				encoder = parseFloat(res.stdout.replace(/[\n\r]+/u, '')
+					.trim()
+					.replace(',', '.'));
+			});
 
 		const gpuDecodeLoad = '$([math]::Round((((Get-Counter "\\GPU Engine(*engtype_VideoDecode)\\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))';
 		const DecodeLoad = exec(gpuDecodeLoad, {
 			shell: 'powershell.exe',
-		}).then((res) => {
-			decoder = parseFloat(res.stdout.replace(/[\n\r]+/u, '').trim()
-				.replace(',', '.'));
-		});
+		})
+			.then((res) => {
+				decoder = parseFloat(res.stdout.replace(/[\n\r]+/u, '')
+					.trim()
+					.replace(',', '.'));
+			});
 
 		// const _3dDecodeLoad = '$([math]::Round((((Get-Counter "\\GPU Engine(*engtype_3D)\\Utilization Percentage").CounterSamples | where CookedValue).CookedValue | measure -sum).sum,2))';
 		// const _3dLoad = exec(_3dDecodeLoad, {
@@ -115,7 +121,7 @@ setInterval(() => {
 }, 1500);
 
 
-export default (socket: { on: (arg0: string, arg1: { (): void; (): void; (): void; }) => void; emit: (arg0: string, arg1: { model: any; os: any; threads: number; platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin'; memUsage: number; memTotal: number; sysUptime: any; Uptime: any; coreUtil: never[]; }) => void; }) => {
+export default (socket: SocketIO.Socket & { decoded_token: { sub: string, name: string } }) => {
 
 	let watcher: string | number | NodeJS.Timeout | undefined;
 	clearInterval(watcher);
@@ -150,13 +156,15 @@ const cpuStats = async () => {
 	const memUsage = Math.round((mem / memTotal) * 100);
 	const operatingSystem = await nosu.os.oos();
 	const dist = operatingSystem == 'not supported'
-		? os.type().split('_')[0]
-		: operatingSystem;
+		?		os.type()
+			.split('_')[0]
+		:		operatingSystem;
 	const coreUtil = await cpuILoad(info)();
 	const gpuUtil = await gpuLoad();
 
 	return {
-		model: cpu.model().replace(/\s{2,}/gu, ''),
+		model: cpu.model()
+			.replace(/\s{2,}/gu, ''),
 		os: dist,
 		threads,
 		platform: osu.platform(),

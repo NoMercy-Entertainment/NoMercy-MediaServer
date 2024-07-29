@@ -1,4 +1,4 @@
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 import { Regions } from './regions';
 import { WatchProvider, WatchProviders } from '../shared';
 
@@ -11,39 +11,41 @@ export async function providers(): Promise<Array<WatchProvider>> {
 	const data: Array<WatchProvider> = [];
 
 	await Promise.all([
-		watchProviderMovie().then((providers) => {
-			for (const provider of providers) {
-				data.push({
-					...provider,
-				});
-			}
-		}),
-		watchProviderTv().then((providers) => {
-			for (const provider of providers) {
-				data.push({
-					...provider,
-				});
-			}
-		}),
+		watchProviderMovie()
+			.then((providers) => {
+				for (const provider of providers) {
+					data.push({
+						...provider,
+					});
+				}
+			}),
+		watchProviderTv()
+			.then((providers) => {
+				for (const provider of providers) {
+					data.push({
+						...provider,
+					});
+				}
+			}),
 	]);
 
 	return data;
 }
 
 export const watchProviderMovie = async () => {
-	const { data } = await tmdbApiClient.get<WatchProviders>('watch/providers/movie');
+	const { data } = await new tmdbClient().get<WatchProviders>('watch/providers/movie');
 
 	return data.results;
 };
 
 export const watchProviderRegions = async () => {
-	const { data } = await tmdbApiClient.get<Regions>('watch/providers/regions');
+	const { data } = await new tmdbClient().get<Regions>('watch/providers/regions');
 
 	return data.results;
 };
 
 export const watchProviderTv = async () => {
-	const { data } = await tmdbApiClient.get<WatchProviders>('watch/providers/tv');
+	const { data } = await new tmdbClient().get<WatchProviders>('watch/providers/tv');
 
 	return data.results;
 };

@@ -1,8 +1,8 @@
-import mediaDb from '@server/db/media';
 import queueDb from '@server/db/queue';
+import mediaDb from '@server/db/media';
 
 process.on('message', async (message: any) => {
-	
+
 	mediaDb();
 	queueDb();
 

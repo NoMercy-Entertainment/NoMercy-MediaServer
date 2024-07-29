@@ -3,7 +3,7 @@ import { Request, Response } from 'express-serve-static-core';
 // import data from './data';
 // import { isOwner } from '@server/api/middleware/permissions';
 import { PlaylistItem } from '@server/types//video';
-import { convertToSeconds } from '@server/functions/dateTime';
+import { convertToSeconds, parseYear } from '@server/functions/dateTime';
 import i18next from 'i18next';
 import { getClosestRating, sortBy } from '@server/functions/stringArray';
 import { deviceId } from '@server/functions/system';
@@ -19,7 +19,7 @@ import { Certification } from '@server/db/media/actions/certifications';
 
 export default async function (req: Request, res: Response) {
 
-	const items = getSpecial({ id: req.params.id });
+	const items = getSpecial({ id: req.params.id, user_id: req.user.sub });
 
 	if (!items) {
 		return res.status(404).json({
@@ -98,33 +98,53 @@ const data = ({ index, data, id, language }: { index: number; data: TVData | Mov
 		});
 	});
 
+	let progress: { percentage: number; date: string; } | null = null;
+
+	if (videoFile?.userData?.[0]?.time) {
+		progress = {
+			percentage: (videoFile.userData?.[0].time / convertToSeconds(videoFile?.duration)) * 100,
+			date: videoFile.userData?.[0].updated_at,
+		};
+	}
+
 	const item: PlaylistItem = {
 		id: data.id,
-		title: title,
+		title: (data as TVData).episodeNumber
+			? `${show} %S${(data as TVData).seasonNumber}%E${(data as TVData).episodeNumber} - ${title}`
+			: title,
 		description: overview,
 		duration: videoFile?.duration ?? null,
 		special_id: id,
 
-		poster: ((data as TVData)?.tv?.poster
-			? (data as TVData)?.tv?.poster
-			: (data as MovieData)?.poster) ?? null,
-		backdrop: ((data as TVData)?.tv?.backdrop
-			? (data as TVData)?.tv?.backdrop
-			: (data as MovieData)?.backdrop) ?? null,
+		// poster: ((data as TVData)?.tv?.poster
+		// 	? (data as TVData)?.tv?.poster
+		// 	: (data as MovieData)?.poster) ?? null,
 
-		image: ((data as TVData)?.still
-			? (data as TVData)?.still
-			: (data as MovieData)?.poster) ?? null,
+		// image: ((data as TVData)?.still
+		// 	? (data as TVData)?.still
+		// 	: (data as MovieData)?.poster) ?? null,
 
-		logo: logo,
+		// logo: logo,
 
-		year: (data as TVData)?.tv?.firstAirDate?.split('-')[0] ?? '',
+		poster: (data as MovieData).backdrop ?? (data as TVData)?.tv.backdrop ?? (data as TVData)?.tv.poster
+			? `https://image.tmdb.org/t/p/w300${((data as MovieData).backdrop ?? (data as TVData)?.tv.backdrop ?? (data as TVData)?.tv.poster)}`
+			: null,
+		image: (data as TVData)?.still ?? (data as MovieData).backdrop ?? (data as TVData)?.still
+			? `https://image.tmdb.org/t/p/w300${((data as TVData)?.still ?? (data as MovieData).backdrop ?? (data as TVData)?.still)}`
+			: null,
+		logo: logo
+			? `https://image.tmdb.org/t/p/original${(logo)}`
+			: null,
+
+		year: parseYear((data as TVData)?.tv?.firstAirDate ?? (data as MovieData).releaseDate ?? ''),
 		video_type: (data as TVData)?.tv?.firstAirDate
 			? 'tv'
 			: 'movie',
 		production: (data as TVData)?.tv?.status != 'Ended',
-		season: (data as TVData).seasonNumber,
-		episode: (data as TVData).episodeNumber,
+
+		season: 0,
+		episode: index + 1,
+
 		episode_id: data.id,
 		origin: deviceId,
 		uuid: parseInt(`${(data as TVData)?.tv?.id ?? ''}${data.id}`, 10),
@@ -132,10 +152,9 @@ const data = ({ index, data, id, language }: { index: number; data: TVData | Mov
 		tmdbid: (data as TVData)?.tv?.id ?? (data as MovieData)!.id!,
 		show: show,
 		playlist_type: 'special',
-		rating: getClosestRating(data?.certifications ?? [], language),
-		progress: videoFile && videoFile?.userData?.[0]?.time
-			? (videoFile.userData[0].time / convertToSeconds(videoFile.duration)) * 100
-			: null,
+		rating: getClosestRating(data?.certifications ?? [], language)?.certification,
+
+		progress: progress,
 
 		textTracks: sortBy(textTracks, 'language'),
 		sources: [
@@ -158,6 +177,10 @@ const data = ({ index, data, id, language }: { index: number; data: TVData | Mov
 				kind: 'chapters',
 			},
 			{
+				file: `${baseFolder}/skippers.vtt`,
+				kind: 'skippers',
+			},
+			{
 				file: `${baseFolder}/sprite.webp`,
 				kind: 'sprite',
 			},
@@ -166,6 +189,7 @@ const data = ({ index, data, id, language }: { index: number; data: TVData | Mov
 				kind: 'fonts',
 			},
 		],
+
 	};
 
 	return item;

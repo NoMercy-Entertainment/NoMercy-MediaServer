@@ -8,7 +8,8 @@ const isWsl = () => {
 		return false;
 	}
 
-	if (os.release().toLowerCase().includes('microsoft')) {
+	if (os.release().toLowerCase()
+		.includes('microsoft')) {
 		if (isDocker()) {
 			return false;
 		}
@@ -17,11 +18,15 @@ const isWsl = () => {
 	}
 
 	try {
-		return fs.readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft')
-			? !isDocker() : false;
+		return fs.readFileSync('/proc/version', 'utf8').toLowerCase()
+			.includes('microsoft')
+			? !isDocker()
+			: false;
 	} catch {
 		return false;
 	}
 };
 
-export default process.env.__IS_WSL_TEST__ ? isWsl : isWsl();
+export default process.env.__IS_WSL_TEST__
+	? isWsl
+	: isWsl();

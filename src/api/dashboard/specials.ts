@@ -10,6 +10,7 @@ import { Tv } from '@server/db/media/actions/tvs';
 import { Movie } from '@server/db/media/actions/movies';
 import { Episode } from '@server/db/media/actions/episodes';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const specialz = (req: Request, res: Response) => {
 
 	try {
@@ -67,21 +68,21 @@ export const special = (req: Request, res: Response) => {
 				...d,
 				id: (d as any)?.episodeId ?? (d as any)?.movieId,
 				movie: d.movie
-					? {
+					?					{
 						...d.movie,
 					}
-					: undefined,
+					:					undefined,
 				episode: d.episode
-					? {
+					?					{
 						...d.episode,
 						tv: d.episode.tv
-							? {
+							?							{
 								show: d.episode.tv.title,
 								duration: d.episode.tv.duration,
 							}
-							: undefined,
+							:							undefined,
 					}
-					: undefined,
+					:					undefined,
 			})),
 		};
 		return res.json(response);
@@ -104,6 +105,8 @@ export const special = (req: Request, res: Response) => {
 export interface updateSpecialsParams {
 	sub_id: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createSpecials = async (req: Request, res: Response) => {
 
 	const palette: any = {
@@ -111,24 +114,15 @@ export const createSpecials = async (req: Request, res: Response) => {
 		backdrop: undefined,
 	};
 
-	const blurHash: any = {
-		poster: undefined,
-		backdrop: undefined,
-	};
-
 	await Promise.all([
-		// req.body.poster && createBlurHash(`https://image.tmdb.org/t/p/w185${req.body.poster}`).then((hash) => {
-		// 	blurHash.poster = hash;
-		// }),
-		// req.body.backdrop && createBlurHash(`https://image.tmdb.org/t/p/w185${req.body.backdrop}`).then((hash) => {
-		// 	blurHash.backdrop = hash;
-		// }),
-		req.body.poster && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.poster}`).then((hash) => {
-			palette.poster = hash;
-		}),
-		req.body.backdrop && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.backdrop}`).then((hash) => {
-			palette.backdrop = hash;
-		}),
+		req.body.poster && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.poster}`)
+			.then((hash) => {
+				palette.poster = hash;
+			}),
+		req.body.backdrop && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.backdrop}`)
+			.then((hash) => {
+				palette.backdrop = hash;
+			}),
 	]);
 
 	// confDb.special.upsert({
@@ -142,7 +136,7 @@ export const createSpecials = async (req: Request, res: Response) => {
 	// 		description: req.body.description,
 	// 		id: req.body.id,
 	// 		blurHash: JSON.stringify(blurHash),
-	// 		colorPalette: JSON.stringify(palette),
+	// 		color_palette: JSON.stringify(palette),
 	// 	},
 	// 	update: {
 	// 		title: req.body.title,
@@ -151,7 +145,7 @@ export const createSpecials = async (req: Request, res: Response) => {
 	// 		description: req.body.description,
 	// 		id: req.body.id,
 	// 		blurHash: JSON.stringify(blurHash),
-	// 		colorPalette: JSON.stringify(palette),
+	// 		color_palette: JSON.stringify(palette),
 	// 	},
 	// })
 	// 	.then((data) => {
@@ -166,6 +160,8 @@ export const createSpecials = async (req: Request, res: Response) => {
 export interface updateSpecialsParams {
 	sub_id: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const updateSpecials = async (req: Request, res: Response) => {
 
 	// await confDb.specialItem.deleteMany({
@@ -179,36 +175,27 @@ export const updateSpecials = async (req: Request, res: Response) => {
 		backdrop: undefined,
 	};
 
-	const blurHash: any = {
-		poster: undefined,
-		backdrop: undefined,
-	};
-
 	await Promise.all([
-		// req.body.poster && createBlurHash(`https://image.tmdb.org/t/p/w185${req.body.poster}`).then((hash) => {
-		// 	blurHash.poster = hash;
-		// }),
-		// req.body.backdrop && createBlurHash(`https://image.tmdb.org/t/p/w185${req.body.backdrop}`).then((hash) => {
-		// 	blurHash.backdrop = hash;
-		// }),
-		req.body.poster && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.poster}`).then((hash) => {
-			palette.poster = hash;
-		}),
-		req.body.backdrop && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.backdrop}`).then((hash) => {
-			palette.backdrop = hash;
-		}),
+		req.body.poster && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.poster}`)
+			.then((hash) => {
+				palette.poster = hash;
+			}),
+		req.body.backdrop && colorPalette(`https://image.tmdb.org/t/p/w185${req.body.backdrop}`)
+			.then((hash) => {
+				palette.backdrop = hash;
+			}),
 	]);
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const specialInsert = {
 		title: req.body.title,
 		backdrop: req.body.backdrop,
 		poster: req.body.poster,
 		description: req.body.description,
-		blurHash: JSON.stringify(blurHash),
-		colorPalette: JSON.stringify(palette),
+		color_palette: JSON.stringify(palette),
 		id: req.body.id,
 		item: req.body.item
-			? {
+			?			{
 				connectOrCreate: req.body.Item.map((item: any) => ({
 					where: {
 						movieId: item.movieId ?? undefined,
@@ -222,7 +209,7 @@ export const updateSpecials = async (req: Request, res: Response) => {
 					},
 				})),
 			}
-			: undefined,
+			:			undefined,
 	};
 
 	// confDb.special.update({
@@ -255,7 +242,11 @@ export const updateSpecials = async (req: Request, res: Response) => {
 };
 
 export const searchSpecials = (req: Request, res: Response) => {
-	const { id, media_type } = req.body.item as { id: number; media_type: 'movie' | 'tv'; };
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const {
+		id,
+		media_type,
+	} = req.body.item as { id: number; media_type: 'movie' | 'tv'; };
 
 	const data: (SpecialEpisode | Movie | null)[] = [];
 

@@ -5,9 +5,7 @@ import { casts } from '../schema/casts';
 
 export type NewCast = InferModel<typeof casts, 'insert'>;
 export const insertCast = (data: NewCast) => globalThis.mediaDb.insert(casts)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [casts.id],
 		set: {

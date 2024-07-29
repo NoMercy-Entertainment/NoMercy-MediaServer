@@ -6,14 +6,14 @@ import env from 'dotenv';
 env.config();
 
 export const configData: ConfigData = {
-	secureInternalPort: process.env.DEFAULT_PORT ?? 7635,
-	secureExternalPort: process.env.DEFAULT_PORT ?? 7635,
+	secureInternalPort: process.env.DEFAULT_PORT ?? 7636,
+	secureExternalPort: process.env.DEFAULT_PORT ?? 7636,
 	deviceName: deviceName,
-	queueWorkers: 2,
-	cronWorkers: 0,
-	dataWorkers: 15,
-	requestWorkers: 5,
-	encoderWorkers: 1,
+	queueWorkers: 1,
+	cronWorkers: 2,
+	dataWorkers: 2,
+	requestWorkers: 2,
+	encoderWorkers: 2,
 	maxAttempts: 2,
 	serverVersion: applicationVersion,
 };
@@ -44,8 +44,8 @@ export const encoderProfiles = [
 			maxrate: undefined,
 			preset: 'slow',
 			profile: 'high',
-			codec: 'H264',
-			audio: 'aac',
+			codec: 'H.264',
+			audio: 'libfdk_aac',
 		},
 	},
 	{
@@ -60,8 +60,8 @@ export const encoderProfiles = [
 			maxrate: undefined,
 			preset: 'slow',
 			profile: 'high',
-			codec: 'H264',
-			audio: 'aac',
+			codec: 'H.264',
+			audio: 'libfdk_aac',
 		},
 	},
 	{
@@ -75,8 +75,8 @@ export const encoderProfiles = [
 			bitrate: undefined,
 			maxrate: undefined,
 			preset: 'slow',
-			codec: 'H264',
-			audio: 'aac',
+			codec: 'H.264',
+			audio: 'libfdk_aac',
 		},
 	},
 ];

@@ -1,17 +1,14 @@
 import { InferModel } from 'drizzle-orm';
+
 import { folder_library } from '../schema/folder_library';
 
 export type NewFolderLibrary = InferModel<typeof folder_library, 'insert'>;
 export const insertLibraryFolder = (data: NewFolderLibrary) => {
 	return globalThis.mediaDb.insert(folder_library)
-		.values({
-			...data,
-		})
+		.values(data)
 		.onConflictDoUpdate({
 			target: [folder_library.library_id, folder_library.folder_id],
-			set: {
-				...data,
-			},
+			set: data,
 		})
 		.returning()
 		.get();

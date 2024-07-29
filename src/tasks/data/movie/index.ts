@@ -1,16 +1,13 @@
-
 import Logger from '@server/functions/logger';
 import alternative_title from '../shared/alternative_title';
 import collection from './collection';
 import colorPalette from '@server/functions/colorPalette';
 // import createBlurHash from '@server/functions/createBlurHash';
 import { createTitleSort } from '../../files/filenameParser';
-import downloadTVDBImages from '../../images/downloadTVDBImages';
 import fetchMovie from './fetchMovie';
 import findMediaFiles from '../files';
 import genre from '../shared/genre';
 import i18n from '../../../loaders/i18n';
-import { image } from '../shared/image';
 import keyword from '../shared/keyword';
 import person from '../shared/person';
 import recommendation from '../shared/recommendation';
@@ -26,12 +23,27 @@ import { and, eq } from 'drizzle-orm';
 import { certifications } from '@server/db/media/schema/certifications';
 import { insertLibraryMovie } from '@server/db/media/actions/library_movie';
 import { QueueJob } from '@server/db/queue/schema/queueJobs';
+import { parseYear } from '@server/functions/dateTime';
+import { image } from '@server/tasks/data/shared/image';
+import downloadTVDBImages from '@server/tasks/images/downloadTVDBImages';
 // import { existsSync } from 'fs';
 
-export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'manual' } }:
+export const storeMovie = async ({
+	id,
+	folder,
+	libraryId,
+	job,
+	task = { id: 'manual' },
+}:
 	{ id: number; folder: string, libraryId: string, job?: QueueJob, task?: { id: string; }; }) => {
 
-	console.log({ id, folder, libraryId, job, task });
+	console.log({
+		id,
+		folder,
+		libraryId,
+		job,
+		task,
+	});
 	// if (!existsSync(folder)) {
 	// 	return {
 	// 		success: false,
@@ -69,24 +81,15 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 			backdrop: undefined,
 		};
 
-		const blurHash: any = {
-			poster: undefined,
-			backdrop: undefined,
-		};
-
 		await Promise.all([
-			// movie.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${movie.poster_path}`).then((hash) => {
-			// 	blurHash.poster = hash;
-			// }),
-			// movie.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${movie.backdrop_path}`).then((hash) => {
-			// 	blurHash.backdrop = hash;
-			// }),
-			movie.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${movie.poster_path}`).then((hash) => {
-				palette.poster = hash;
-			}),
-			movie.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${movie.backdrop_path}`).then((hash) => {
-				palette.backdrop = hash;
-			}),
+			movie.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${movie.poster_path}`)
+				.then((hash) => {
+					palette.poster = hash;
+				}),
+			movie.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${movie.backdrop_path}`)
+				.then((hash) => {
+					palette.backdrop = hash;
+				}),
 		]);
 
 		try {
@@ -103,17 +106,16 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 				overview: movie.overview,
 				popularity: movie.popularity,
 				poster: movie.poster_path,
-				blurHash: JSON.stringify(blurHash),
-				colorPalette: JSON.stringify(palette),
+				color_palette: JSON.stringify(palette),
 				releaseDate: movie.release_date,
 				revenue: isNaN(movie.revenue / 1000)
-					? null
-					: Math.floor(movie.revenue / 1000),
+					?					null
+					:					Math.floor(movie.revenue / 1000),
 				runtime: movie.runtime,
 				status: movie.status,
 				tagline: movie.tagline,
 				title: movie.title,
-				titleSort: createTitleSort(movie.title, movie.release_date),
+				titleSort: createTitleSort(movie.title, parseYear(movie.release_date)),
 				video: movie.video.toString(),
 				voteAverage: movie.vote_average,
 				voteCount: movie.vote_count,
@@ -139,7 +141,7 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 			};
 		}
 
-		person(movie, transaction);
+		await person(movie, transaction);
 
 		const people = (movie.people).map(p => p.id);
 
@@ -247,7 +249,10 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		image(movie, 'logo', 'movie');
 		image(movie, 'poster', 'movie');
 
-		downloadTVDBImages({ type: 'movie', data: movie });
+		downloadTVDBImages({
+			type: 'movie',
+			data: movie,
+		});
 
 		Logger.log({
 			level: 'info',
@@ -264,9 +269,15 @@ export const storeMovie = async ({ id, folder, libraryId, job, task = { id: 'man
 		});
 
 		if (folder) {
-			await findMediaFiles({ type: 'movie', data: movie, folder, libraryId, sync: true });
+			await findMediaFiles({
+				type: 'movie',
+				data: movie,
+				folder,
+				libraryId,
+				sync: false,
+			});
 
-			process.send!({
+			process.send?.({
 				type: 'custom',
 				event: 'update_content',
 				data: ['libraries', libraryId],

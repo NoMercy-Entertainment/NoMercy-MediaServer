@@ -8,10 +8,11 @@ import { insertGenreMovie } from '@server/db/media/actions/genre_movie';
 import { insertTranslation } from '@server/db/media/actions/translations';
 import { insertCollectionMovie } from '@server/db/media/actions/collection_movie';
 import Logger from '@server/functions/logger/logger';
+import { parseYear } from '@server/functions/dateTime';
 
 const collection = async (
 	movie: CompleteMovieAggregate,
-	libraryId: string,
+	libraryId: string
 ) => {
 
 	try {
@@ -34,12 +35,14 @@ const collection = async (
 			// collection.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`).then((hash) => {
 			// 	blurHash.backdrop = hash;
 			// }),
-			collection.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${collection.poster_path}`).then((hash) => {
-				palette.poster = hash;
-			}),
-			collection.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`).then((hash) => {
-				palette.backdrop = hash;
-			}),
+			collection.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${collection.poster_path}`)
+				.then((hash) => {
+					palette.poster = hash;
+				}),
+			collection.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${collection.backdrop_path}`)
+				.then((hash) => {
+					palette.backdrop = hash;
+				}),
 		]);
 
 		try {
@@ -50,7 +53,7 @@ const collection = async (
 				parts: collection.parts.length,
 				poster: collection.poster_path,
 				blurHash: JSON.stringify(blurHash),
-				colorPalette: JSON.stringify(palette),
+				color_palette: JSON.stringify(palette),
 				title: collection.name,
 				titleSort: createTitleSort(collection.name),
 				library_id: libraryId,
@@ -75,11 +78,11 @@ const collection = async (
 					iso6391: tr.iso_639_1,
 					name: tr.name,
 					overview: tr.data && tr.data?.overview
-						? tr.data?.overview
-						: null,
+						?						tr.data?.overview
+						:						null,
 					title: tr.data && tr.data?.name
-						? tr.data?.name
-						: null,
+						?						tr.data?.name
+						:						null,
 					collection_id: collection.id,
 				}, 'collection');
 			} catch (error) {
@@ -111,12 +114,14 @@ const collection = async (
 				// p.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`).then((hash) => {
 				// 	blurHash.backdrop = hash;
 				// }),
-				p.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${p.poster_path}`).then((hash) => {
-					palette.poster = hash;
-				}),
-				p.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`).then((hash) => {
-					palette.backdrop = hash;
-				}),
+				p.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${p.poster_path}`)
+					.then((hash) => {
+						palette.poster = hash;
+					}),
+				p.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${p.backdrop_path}`)
+					.then((hash) => {
+						palette.backdrop = hash;
+					}),
 			]);
 
 			try {
@@ -125,7 +130,7 @@ const collection = async (
 					adult: p.adult,
 					backdrop: p.backdrop_path,
 					blurHash: JSON.stringify(blurHash),
-					colorPalette: JSON.stringify(palette),
+					color_palette: JSON.stringify(palette),
 					originalLanguage: p.original_language,
 					originalTitle: p.original_title,
 					overview: p.overview,
@@ -133,7 +138,7 @@ const collection = async (
 					poster: p.poster_path,
 					releaseDate: p.release_date,
 					title: p.title,
-					titleSort: createTitleSort(p.title, p.release_date),
+					titleSort: createTitleSort(p.title, parseYear(p.release_date)),
 					voteAverage: p.vote_average,
 					voteCount: p.vote_count,
 					library_id: libraryId,
@@ -184,7 +189,7 @@ const collection = async (
 	// 	parts: collection.parts.length,
 	// 	poster: collection.poster_path,
 	// 	blurHash: JSON.stringify(blurHash),
-	// 	colorPalette: JSON.stringify(palette),
+	// 	color_palette: JSON.stringify(palette),
 	// 	title: collection.name,
 	// 	titleSort: createTitleSort(collection.name),
 	// 	library_id: libraryId,
@@ -209,7 +214,7 @@ const collection = async (
 	// 								adult: p.adult,
 	// 								backdrop: p.backdrop_path,
 	// 								blurHash: p.blurHash,
-	// 								colorPalette: p.colorPalette,
+	// 								color_palette: p.colorPalette,
 	// 								originalLanguage: p.original_language,
 	// 								originalTitle: p.original_title,
 	// 								overview: p.overview,

@@ -1,13 +1,13 @@
 /* eslint-disable prefer-promise-reject-errors */
 import { Request, Response } from 'express-serve-static-core';
+import { removeDiacritics, sortBy } from '@server/functions/stringArray';
 
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import { deviceId } from '@server/functions/system';
-import { removeDiacritics, sortBy, unique } from '@server/functions/stringArray';
-import { selectArtists } from '@server/db/media/actions/artists';
 import { requestWorker } from '@server/api/requestWorker';
+import { selectArtists } from '@server/db/media/actions/artists';
 
-export default async function (req: Request, res: Response) {
+export default async function(req: Request, res: Response) {
 
 	const result = await requestWorker({
 		filename: __filename,
@@ -16,16 +16,20 @@ export default async function (req: Request, res: Response) {
 	});
 
 	if (result.error) {
-		return res.status(result.error.code ?? 500).json({
-			status: 'error',
-			message: result.error.message,
-		});
+		return res.status(result.error.code ?? 500)
+			.json({
+				status: 'error',
+				message: result.error.message,
+			});
 	}
 	return res.json(result.result);
 
 }
 
-export const exec = ({ letter, user }: { letter: string; user: string; }) => {
+export const exec = ({
+	letter,
+	user,
+}: { letter: string; user: string; }) => {
 	return new Promise((resolve, reject) => {
 
 		const music = selectArtists(letter, user);
@@ -39,7 +43,7 @@ export const exec = ({ letter, user }: { letter: string; user: string; }) => {
 
 		const results = {
 			type: 'artists',
-			data: sortBy(unique(music
+			data: sortBy(music
 				.map((m) => {
 					return {
 						...m,
@@ -47,9 +51,10 @@ export const exec = ({ letter, user }: { letter: string; user: string; }) => {
 						name: m.name.replace(/["'\[\]*]/gu, ''),
 						titleSort: removeDiacritics(createTitleSort(m.name)),
 						origin: deviceId,
-						colorPalette: JSON.parse(m.colorPalette ?? '{}'),
+						color_palette: JSON.parse(m.colorPalette ?? '{}'),
+						tracks: m.artist_track?.length,
 					};
-				}), 'titleSort'), 'titleSort'),
+				}), 'titleSort'),
 		};
 
 		return resolve(results);
@@ -57,27 +62,27 @@ export const exec = ({ letter, user }: { letter: string; user: string; }) => {
 };
 
 export interface ArtistsResponse {
-    type: string;
-    data: ArtistsData[];
+	type: string;
+	data: ArtistsData[];
 }
 
 export interface ArtistsData {
-    id: string;
-    name: string;
-    description: null | string;
-    cover: null | string;
-    folder: null | string;
-    colorPalette: null | string;
-    blurHash: null | string;
-    libraryId: string;
-    trackId: null | string;
-    _count: Count;
-    type: string;
-    titleSort: string;
-    origin: string;
+	id: string;
+	name: string;
+	description: null | string;
+	cover: null | string;
+	folder: null | string;
+	color_palette: string | null;
+	blurHash: null | string;
+	libraryId: string;
+	trackId: null | string;
+	_count: Count;
+	type: string;
+	titleSort: string;
+	origin: string;
 }
 
 export interface Count {
-    Album: number;
-    track: number;
+	Album: number;
+	track: number;
 }

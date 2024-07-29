@@ -3,7 +3,7 @@ import { Request, Response } from 'express-serve-static-core';
 import { selectFavoriteTracks } from '@server/db/media/actions/track_user';
 import { deviceId } from '@server/functions/system';
 
-export default function (req: Request, res: Response) {
+export default function(req: Request, res: Response) {
 
 	const music = selectFavoriteTracks(req.user.sub);
 
@@ -29,7 +29,7 @@ export default function (req: Request, res: Response) {
 				folder: a.folder,
 				libraryId: a.library_id,
 				origin: deviceId,
-				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
+				color_palette: JSON.parse(a.colorPalette ?? '{}'),
 			}));
 			const albums = t.track.album?.map(a => ({
 				id: a.id,
@@ -39,20 +39,22 @@ export default function (req: Request, res: Response) {
 				description: a.description,
 				libraryId: a.library_id,
 				origin: deviceId,
-				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
+				color_palette: JSON.parse(a.colorPalette ?? '{}'),
 			}));
 
 			return {
 				...t.track,
 				type: 'favorite',
 				date: t.track.date,
-				lyrics: undefined,
+				lyrics: typeof t.track.lyrics === 'string' && t.track.lyrics.includes('{')
+					?					JSON.parse(t.track.lyrics)
+					:					t.track.lyrics,
 				favorite_track: true,
 				libraryId: t.track.folder_id,
 				artistId: artists?.[0]?.id,
 				origin: deviceId,
 				cover: albums?.[0]?.cover,
-				colorPalette: albums?.[0]?.colorPalette,
+				color_palette: albums?.[0]?.colorPalette,
 				artist_track: artists,
 				album_track: albums,
 				album: albums?.[0],
@@ -66,58 +68,61 @@ export default function (req: Request, res: Response) {
 }
 
 export interface FavoritesResponse {
-    cover: string;
-    description: null;
-    name: string;
-    type: string;
-    track: track[];
+	cover: string;
+	description: null;
+	name: string;
+	type: string;
+	track: track[];
 }
 
 export interface track {
-    type: string;
-    date: string | null;
-    lyrics: undefined;
-    favorite_track: boolean;
-    libraryId: string;
-    artistId: string;
-    origin: string;
-    cover: string | null;
-    colorPalette: any;
-    artist_track: Artist[];
-    album: Album;
-    created_at: string;
-    name: string | null;
-    updated_at: string;
-    id: string;
-    track: number | null;
-    disc: number | null;
-    folder: string | null;
-    filename: string | null;
-    duration: string | null;
-    quality: number | null;
-    path: string | null;
-    blurHash: string | null;
-    folder_id: string;
+	type: string;
+	date: string | null;
+	lyrics: undefined;
+	favorite_track: boolean;
+	libraryId: string;
+	artistId: string;
+	origin: string;
+	cover: string | null;
+	color_palette;
+	any;
+	artist_track: Artist[];
+	album: Album;
+	created_at: string;
+	name: string | null;
+	updated_at: string;
+	id: string;
+	track: number | null;
+	disc: number | null;
+	folder: string | null;
+	filename: string | null;
+	duration: string | null;
+	quality: number | null;
+	path: string | null;
+	blurHash: string | null;
+	folder_id: string;
 }
 
 export interface Artist {
-    id: string;
-    name: string;
-    cover: string | null;
-    description: string | null;
-    folder: string | null;
-    libraryId: string;
-    origin: string;
-    colorPalette: any;
+	id: string;
+	name: string;
+	cover: string | null;
+	description: string | null;
+	folder: string | null;
+	libraryId: string;
+	origin: string;
+	color_palette;
+	any;
 }
 
 export interface Album {
-    id: string;
-    name: string;
-    folder: string | null;
-    cover: string | null;
-    description: string | null;
-    libraryId: string;
-    origin: string;
-    colorPalette: any;
+	id: string;
+	name: string;
+	folder: string | null;
+	cover: string | null;
+	description: string | null;
+	libraryId: string;
+	origin: string;
+	color_palette;
+	any;
 }

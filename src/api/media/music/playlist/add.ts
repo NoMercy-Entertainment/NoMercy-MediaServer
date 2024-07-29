@@ -2,7 +2,8 @@ import { Request, Response } from 'express-serve-static-core';
 
 // import { imageHash } from 'image-hash';
 
-export default function (req: Request, res: Response) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default (req: Request, res: Response) => {
 
 	try {
 		// const music = await confDb.playlist.findFirst({
@@ -136,7 +137,7 @@ export default function (req: Request, res: Response) {
 		// 			},
 		// 		},
 		// 		data: {
-		// 			colorPalette: palette
+		// 			color_palette: palette
 		// 				? jsonToString(palette)
 		// 				: null,
 		// 		},
@@ -149,7 +150,7 @@ export default function (req: Request, res: Response) {
 	} catch (error) {
 		console.log(error);
 	}
-}
+};
 
 // const createImageHash = (image) => {
 // 	return new Promise((resolve, reject) => {

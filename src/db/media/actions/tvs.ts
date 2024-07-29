@@ -1,6 +1,5 @@
-
 import { convertBooleans } from '../../helpers';
-import { InferModel, eq, ReturnTypeOrValue, inArray, and } from 'drizzle-orm';
+import { eq, inArray, InferModel, ReturnTypeOrValue } from 'drizzle-orm';
 import { tvs } from '../schema/tvs';
 import i18next from 'i18next';
 import { sortBy } from '@server/functions/stringArray';
@@ -8,23 +7,16 @@ import { isOwner } from '@server/api/middleware/permissions';
 
 export type NewTv = InferModel<typeof tvs, 'insert'>;
 export const insertTv = (data: NewTv) => globalThis.mediaDb.insert(tvs)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: tvs.id,
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
+		set: convertBooleans(data, true),
 	})
 	.returning()
 	.get();
 
 export type Tv = InferModel<typeof tvs, 'select'>;
-export const selectTv = (data: Tv) => {
+export const selectTv = (data: Tv, user_id: string) => {
 	return globalThis.mediaDb.query.tvs.findFirst({
 		with: {
 			alternativeTitles: true,
@@ -53,7 +45,9 @@ export const selectTv = (data: Tv) => {
 					keyword: true,
 				},
 			},
-			userData: true,
+			userData: {
+				where: (userData, { eq }) => eq(userData.user_id, user_id),
+			},
 			recommendation_from: true,
 			recommendation_to: true,
 			similar_from: true,
@@ -66,11 +60,9 @@ export const selectTv = (data: Tv) => {
 	});
 };
 
-export type TvUpdate = Partial<InferModel<typeof tvs, 'select'>> & { id: number };
+export type TvUpdate = Partial<InferModel<typeof tvs, 'insert'>> & { id: number };
 export const updateTv = (data: TvUpdate) => globalThis.mediaDb.update(tvs)
-	.set({
-		...convertBooleans(data),
-	})
+	.set(convertBooleans(data))
 	.where(eq(tvs.id, data.id))
 	.returning()
 	.get();
@@ -91,7 +83,11 @@ export const selectTvDB = (id: number) => globalThis.mediaDb.select()
 
 export type TvWithRelations = ReturnTypeOrValue<typeof getTv>;
 
-export const getTv = ({ id, user_id, language }: { id: number, user_id: string, language: string }) => {
+export const getTv = ({
+	id,
+	user_id,
+	language,
+}: { id: number, user_id: string, language: string }) => {
 
 	const tvData = globalThis.mediaDb.query.tvs.findFirst({
 		where: (tvs, { eq }) => eq(tvs.id, id),
@@ -135,23 +131,47 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 					library_user: true,
 				},
 			},
-			userData: true,
+			userData: {
+				where: (userData, { eq }) => eq(userData.user_id, user_id),
+			},
 		},
 	});
 
-	if (!tvData || (tvData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
+	if (!tvData || (!tvData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
 		return null;
 	}
 
 	const mediasData = globalThis.mediaDb.query.medias.findMany({
-		where: (medias, { eq }) => and(
+		where: (medias, {
+			eq,
+			and,
+		}) => and(
 			eq(medias.tv_id, id),
 			eq(medias.type, 'Trailer')
 		),
 	});
 
 	const imagesData = globalThis.mediaDb.query.images.findMany({
-		where: (images, { eq }) => eq(images.tv_id, id),
+		where: (images, {
+			eq,
+			and,
+			or,
+		}) => or(
+			and(
+				eq(images.tv_id, id),
+				eq(images.iso6391, 'en'),
+				eq(images.type, 'logo')
+			),
+			and(
+				eq(images.tv_id, id),
+				eq(images.type, 'poster')
+			),
+			and(
+				eq(images.tv_id, id),
+				eq(images.type, 'backdrop')
+			)
+		),
+		orderBy: (images, { desc }) => desc(images.voteAverage),
 	});
 
 	const similarData = globalThis.mediaDb.query.similars.findMany({
@@ -186,9 +206,9 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		columns: {
 			id: true,
 			name: true,
-			deathday: true,
+			deathDay: true,
 			profile: true,
-			colorPalette: true,
+			color_palette: true,
 			gender: true,
 			knownForDepartment: true,
 			popularity: true,
@@ -232,7 +252,7 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 			overview: true,
 			title: true,
 			still: true,
-			colorPalette: true,
+			color_palette: true,
 			airDate: true,
 		},
 	});
@@ -252,7 +272,11 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 	});
 
 	const translationsData = globalThis.mediaDb.query.translations.findMany({
-		where: (translations, { eq, or, and }) =>
+		where: (translations, {
+			eq,
+			or,
+			and,
+		}) =>
 			or(
 				and(
 					eq(translations.iso6391, language),
@@ -283,11 +307,12 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 		seasons: seasonsData.map(season => ({
 			...season,
 			translation: translationsData.find(t => t.season_id === season.id),
-			episodes: episodesData.filter(episode => episode.seasonNumber === season.seasonNumber).map(episode => ({
-				...episode,
-				translation: translationsData.find(t => t.episode_id === episode.id),
-				videoFiles: videoFileData.filter(videoFile => videoFile.episode_id === episode.id),
-			})),
+			episodes: episodesData.filter(episode => episode.seasonNumber === season.seasonNumber)
+				.map(episode => ({
+					...episode,
+					translation: translationsData.find(t => t.episode_id === episode.id),
+					videoFiles: videoFileData.filter(videoFile => videoFile.episode_id === episode.id),
+				})),
 		})),
 		translations: translationsData.filter(translation => translation.tv_id === id),
 		medias: mediasData,
@@ -301,7 +326,11 @@ export const getTv = ({ id, user_id, language }: { id: number, user_id: string, 
 };
 
 export type TvPlaybackWithRelations = ReturnTypeOrValue<typeof getTvPlayback> | null;
-export const getTvPlayback = ({ id, user_id, language }: {id: number, user_id: string, language: string}) => {
+export const getTvPlayback = ({
+	id,
+	user_id,
+	language,
+}: { id: number, user_id: string, language: string }) => {
 
 	const tvData = globalThis.mediaDb.query.tvs.findFirst({
 		where: (tvs, { eq }) => eq(tvs.id, id),
@@ -319,7 +348,7 @@ export const getTvPlayback = ({ id, user_id, language }: {id: number, user_id: s
 		},
 	});
 
-	if (!tvData || (tvData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
+	if (!tvData || (!tvData?.library?.library_user?.some(l => l.user_id === user_id) && !isOwner(user_id))) {
 		return null;
 	}
 
@@ -337,50 +366,66 @@ export const getTvPlayback = ({ id, user_id, language }: {id: number, user_id: s
 	const videoFileData = globalThis.mediaDb.query.videoFiles.findMany({
 		where: medias => inArray(medias.episode_id, episodesData.map(episode => episode.id)),
 		with: {
-			userData: true,
+			userData: {
+				where: (userData, { eq }) => eq(userData.user_id, user_id),
+			},
 		},
 	});
 
-	const mediasData = globalThis.mediaDb.query.medias.findMany({
-		where: (medias, { eq }) => and(
-			eq(medias.tv_id, id),
-			eq(medias.type, 'logo')
+	const imagesData = globalThis.mediaDb.query.images.findMany({
+		where: (images, {
+			eq,
+			and,
+		}) => and(
+			eq(images.tv_id, id),
+			eq(images.type, 'logo'),
+			eq(images.iso6391, 'en')
 		),
+		orderBy: (images, { desc }) => desc(images.voteAverage),
 	});
 
 	const translationsData = globalThis.mediaDb.query.translations.findMany({
-		where: (translations, { eq, or, and }) => or(
+		where: (translations, {
+			eq,
+			or,
+			and,
+		}) => or(
 			and(
 				eq(translations.iso6391, language),
 				eq(translations.tv_id, id)
 			),
 			and(
 				eq(translations.iso6391, language),
-				inArray(translations.season_id, seasonsData.map(season => season.id).flat())
+				inArray(translations.season_id, seasonsData.map(season => season.id)
+					.flat())
 			),
 			and(
 				eq(translations.iso6391, language),
-				inArray(translations.episode_id, episodesData.map(episode => episode.id).flat())
+				inArray(translations.episode_id, episodesData.map(episode => episode.id)
+					.flat())
 			)
 		),
 	});
 
 	const result = {
 		...tvData,
-		seasons: sortBy(seasonsData, 'seasonNumber').map(season => ({
-			...season,
-			translation: translationsData.find(t => t.season_id === season.id),
-			episodes: sortBy(episodesData.filter(episode => episode.seasonNumber === season.seasonNumber), 'episodeNumber').map(episode => ({
-				...episode,
-				translations: translationsData.filter(t => t.episode_id === episode.id),
-				videoFiles: videoFileData.filter(videoFile => videoFile.episode_id === episode.id),
-				tv: {
-					...tvData,
-					medias: mediasData,
-					translations: translationsData.filter(t => t.tv_id === id),
-				},
+		seasons: sortBy(seasonsData, 'seasonNumber')
+			.map(season => ({
+				...season,
+				translation: translationsData.find(t => t.season_id === season.id),
+				episodes: sortBy(episodesData.filter(episode => episode.seasonNumber === season.seasonNumber), 'episodeNumber')
+					.map(episode => ({
+						...episode,
+						season: season,
+						translations: translationsData.filter(t => t.episode_id === episode.id),
+						videoFiles: videoFileData.filter(videoFile => videoFile.episode_id === episode.id),
+						tv: {
+							...tvData,
+							images: imagesData,
+							translations: translationsData.filter(t => t.tv_id === id),
+						},
+					})),
 			})),
-		})),
 		translations: translationsData.filter(translation => translation.tv_id === id),
 	};
 

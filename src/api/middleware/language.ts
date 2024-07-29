@@ -1,10 +1,8 @@
+import { NextFunction, Request, Response } from 'express';
 import { getLanguage } from '.';
 import i18next from '../../loaders/i18n';
 
-/**
- * @param {import('express').Request} req
- */
-const changeLanguage = (req, res, next) => {
+const changeLanguage = (req: Request, res: Response, next: NextFunction) => {
 
 	const language = getLanguage(req);
 

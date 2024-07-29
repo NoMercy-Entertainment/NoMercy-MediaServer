@@ -33,8 +33,9 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { Company } from '@server/providers/tmdb/company/company';
 import { Network } from '@server/providers/tmdb/networks/network';
 import { cachePath } from '@server/state';
-import { fileChangedAgo } from '@server/functions/dateTime';
+import { fileChangedAgo, sleep } from '@server/functions/dateTime';
 import path from 'path';
+// import Logger from '@server/providers/tvdb/logger';
 
 export default (id: number) => {
 	return new Promise<CompleteTvAggregate>((resolve, reject) => {
@@ -51,91 +52,93 @@ export default (id: number) => {
 				}
 			}
 
-			tv(id).then(async (show) => {
+			tv(id)
+				.then(async (show) => {
 
-				const people: Array<TvCast | TvCrew | Cast | Crew | PersonAppend | AggregateCredit> = [];
-				const newCast: Array<any> = [];
-				const newCrew: Array<any> = [];
-				const personPromise: Array<any> = [];
+					const people: Array<TvCast | TvCrew | Cast | Crew | PersonAppend | AggregateCredit> = [];
+					const newCast: Array<any> = [];
+					const newCrew: Array<any> = [];
+					const personPromise: Array<any> = [];
 
-				// @ts-expect-error
-				const data: CompleteTvAggregate = {
-					...show,
-				};
-				data.seasons = [];
+					// @ts-expect-error
+					const data: CompleteTvAggregate = {
+						...show,
+					};
+					data.seasons = [];
 
-				await seasons(
-					show.id,
-					show.seasons.map(s => s.season_number)
-				).then(async (Seasons) => {
+					await seasons(
+						show.id,
+						show.seasons.map(s => s.season_number)
+					).then(async (Seasons) => {
 
-					data.seasons.push(...Seasons.map(s => ({ ...s, episodes: [] })));
+						data.seasons.push(...Seasons.map(s => ({ ...s, episodes: [] })));
 
-					for (let i = 0; i < Seasons.length; i++) {
-						const Season = Seasons[i];
+						for (let i = 0; i < Seasons.length; i++) {
+							const Season = Seasons[i];
 
-						Season.credits.cast.map(c => people.push(c));
-						Season.credits.crew.map(c => people.push(c));
+							Season.credits.cast.map(c => people.push(c));
+							Season.credits.crew.map(c => people.push(c));
 
-						await episodes(show.id, Season.season_number, Season.episodes.map(e => e.episode_number))
-							.then((Episodes) => {
+							await episodes(show.id, Season.season_number, Season.episodes.map(e => e.episode_number))
+								.then((Episodes) => {
 
-								(data.seasons.find(s => s.season_number == Season.season_number) as SeasonAppend).episodes.push(...Episodes);
+									(data.seasons.find(s => s.season_number == Season.season_number) as SeasonAppend).episodes.push(...Episodes);
 
-								for (let j = 0; j < Episodes.length; j++) {
-									const Episode = Episodes[j];
+									for (let j = 0; j < Episodes.length; j++) {
+										const Episode = Episodes[j];
 
-									Episode.credits.cast.map(c => people.push(c));
-									Episode.credits.crew.map(c => people.push(c));
-								}
+										Episode.credits.cast.map(c => people.push(c));
+										Episode.credits.crew.map(c => people.push(c));
+									}
+								})
+								.catch(() => {
+									//
+								});
+							sleep(500);
+						}
+					});
+
+					data.aggregate_credits.cast.map(c => people.push(c));
+					data.aggregate_credits.crew.map(c => people.push(c));
+
+					for (const Person of unique(people, 'id')) {
+						personPromise.push(
+							await person(Person.id).then((p) => {
+								data.aggregate_credits.cast
+									.filter(c => c.id == p.id)
+									.map((c) => {
+										newCast.push({
+											...c,
+											...p,
+										});
+									});
+
+								data.aggregate_credits.crew
+									.filter(c => c.id == p.id)
+									.map((c) => {
+										newCrew.push({
+											...c,
+											...p,
+										});
+									});
 							})
-							.catch(() => {
-								//
-							});
+						);
 					}
+
+					const promiseChunks = chunk(personPromise, 500);
+					for (const promise of promiseChunks) {
+						await Promise.all(promise);
+					}
+					data.people = [];
+
+					data.people.push(...newCast);
+					data.people.push(...newCrew);
+
+					data.people = unique(data.people, 'id');
+
+					writeFileSync(showFile, jsonToString(data));
+					resolve(data);
 				});
-
-				data.aggregate_credits.cast.map(c => people.push(c));
-				data.aggregate_credits.crew.map(c => people.push(c));
-
-				for (const Person of unique(people, 'id')) {
-					personPromise.push(
-						await person(Person.id).then((p) => {
-							data.aggregate_credits.cast
-								.filter(c => c.id == p.id)
-								.map((c) => {
-									newCast.push({
-										...c,
-										...p,
-									});
-								});
-
-							data.aggregate_credits.crew
-								.filter(c => c.id == p.id)
-								.map((c) => {
-									newCrew.push({
-										...c,
-										...p,
-									});
-								});
-						})
-					);
-				}
-
-				const promiseChunks = chunk(personPromise, 500);
-				for (const promise of promiseChunks) {
-					await Promise.all(promise);
-				}
-				data.people = [];
-
-				data.people.push(...newCast);
-				data.people.push(...newCrew);
-
-				data.people = unique(data.people, 'id');
-
-				writeFileSync(showFile, jsonToString(data));
-				resolve(data);
-			});
 		} catch (error) {
 			reject(error);
 		}

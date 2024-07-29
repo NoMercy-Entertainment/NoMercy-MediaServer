@@ -10,7 +10,7 @@ export const encoderProfiles = (req: Request, res: Response) => {
 			data.map(d => ({
 				...d,
 				param: undefined,
-				container: [{ key: d.container, val: d.container }],
+				container: d.container,
 				params: JSON.parse(d.param ?? '{}'),
 			}))
 		);
@@ -32,6 +32,8 @@ export const encoderProfiles = (req: Request, res: Response) => {
 export interface updateEncoderProfilesParams {
 	sub_id: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createEncoderProfiles = async (req: Request, res: Response) => {
 	//
 };
@@ -39,6 +41,8 @@ export const createEncoderProfiles = async (req: Request, res: Response) => {
 export interface updateEncoderProfilesParams {
 	sub_id: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const updateEncoderProfiles = async (req: Request, res: Response) => {
 	//
 };

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express-serve-static-core';
-import jwt_decode, { JwtPayload } from 'jwt-decode';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { KeycloakToken } from '@server/types/keycloak';
 
 interface Payload extends JwtPayload {
@@ -17,11 +17,11 @@ export const requestTokenParser = (req: Request, res: Response) => {
 		});
 	}
 
-	const data: Payload = jwt_decode(token);
+	const data: Payload = jwtDecode(token);
 	return data;
 };
 
 export const tokenParser = (token: KeycloakToken['access_token']) => {
-	const data: Payload = jwt_decode(token);
+	const data: Payload = jwtDecode(token);
 	return data;
 };

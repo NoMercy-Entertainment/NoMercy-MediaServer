@@ -4,17 +4,10 @@ import { seasons } from '../schema/seasons';
 
 export type NewSeason = InferModel<typeof seasons, 'insert'>;
 export const insertSeason = (data: NewSeason) => globalThis.mediaDb.insert(seasons)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: seasons.id,
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
+		set: convertBooleans(data, true),
 	})
 	.returning()
 	.get();

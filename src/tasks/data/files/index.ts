@@ -14,8 +14,6 @@ export const execute = async ({ data, folder, libraryId, type }) => {
 		message: `Finding all usable files for: ${data.title ?? data.name}`,
 	});
 
-	console.log({ id: data.id, folder, libraryId, type });
-
 	if (folder) {
 		if (type === 'movie') {
 			await movieFiles({ data, folder, libraryId });

@@ -1,28 +1,26 @@
 import { convertBooleans } from '../../helpers';
-import { InferModel } from 'drizzle-orm';
+import { asc, InferModel } from 'drizzle-orm';
+
 import { createId } from '@paralleldrive/cuid2';
 import { libraries } from '../schema/libraries';
 import { isOwner } from '@server/api/middleware/permissions';
 import { Request } from 'express-serve-static-core';
 
 export type NewLibrary = InferModel<typeof libraries, 'insert'>;
-export const insertLibrary = (data: NewLibrary, constraint: 'id' | 'title') => globalThis.mediaDb.insert(libraries)
-	.values({
-		...convertBooleans(data),
-		id: data.id ?? createId(),
-	})
-	.onConflictDoUpdate({
-		target: libraries[constraint],
-		set: {
+export const insertLibrary = (data: NewLibrary, constraint: 'id' | 'title') =>
+	globalThis.mediaDb.insert(libraries)
+		.values({
 			...convertBooleans(data),
-			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
-	})
-	.returning()
-	.get();
+			id: data.id ?? createId(),
+		})
+		.onConflictDoUpdate({
+			target: libraries[constraint],
+			set: {
+				...convertBooleans(data, true),
+			},
+		})
+		.returning()
+		.get();
 
 export type Library = InferModel<typeof libraries, 'select'>;
 export const selectLibrary = () => {
@@ -76,6 +74,7 @@ export const selectLibrariesWithRelations = () => {
 				},
 			},
 		},
+		orderBy: asc(libraries.order),
 	});
 };
 
@@ -124,7 +123,8 @@ export const selectLibraryWithRelations = (id: string) => {
 				},
 			},
 		},
-		where: (libraries, { eq, and }) => eq(libraries.id, id),
+		where: (libraries, { eq }) => eq(libraries.id, id),
+		orderBy: asc(libraries.order),
 	});
 };
 
@@ -132,38 +132,51 @@ export type AllowedLibraries = ReturnType<typeof getAllowedLibraries>;
 export const getAllowedLibraries = (req: Request | string) => {
 
 	if (isOwner(req)) {
-		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
+		return globalThis.mediaDb.query.libraries.findMany({
+			orderBy: asc(libraries.order),
+		})
+			.map(l => l.id!);
 	}
 
 	if (typeof req == 'string') {
 		return globalThis.mediaDb.query.library_user.findMany({
-			where: (library_user, { eq, and }) => eq(library_user.user_id, req),
-		}).map(l => l.library_id!);
+			where: (library_user, { eq }) => eq(library_user.user_id, req),
+		})
+			.map(l => l.library_id!);
 	}
 
 	return globalThis.mediaDb.query.library_user.findMany({
-		where: (library_user, { eq, and }) => eq(library_user.user_id, req.user.sub),
-	}).map(l => l.library_id!);
+		where: (library_user, { eq }) => eq(library_user.user_id, req.user.sub),
+	})
+		.map(l => l.library_id!);
 };
 export type AllowedLibrary = ReturnType<typeof getAllowedLibrary>;
 export const getAllowedLibrary = (req: Request | string, id: string) => {
 
 	if (isOwner(req)) {
-		return globalThis.mediaDb.query.libraries.findMany().map(l => l.id!);
+		return globalThis.mediaDb.query.libraries.findMany({
+			orderBy: asc(libraries.order),
+		})
+			.map(l => l.id!);
 	}
 
 	if (typeof req == 'string') {
 		return globalThis.mediaDb.query.library_user.findMany({
-			where: (library_user, { eq, and }) => and(
+			where: (library_user, {
+				eq,
+				and,
+			}) => and(
 				eq(library_user.user_id, req),
 				eq(library_user.library_id, id)
 			),
-		}).map(l => l.library_id!);
+		})
+			.map(l => l.library_id!);
 	}
 
 	return globalThis.mediaDb.query.library_user.findMany({
 		where: (library_user, { eq }) => eq(library_user.user_id, req.user.sub),
-	}).map(l => l.library_id!);
+	})
+		.map(l => l.library_id!);
 };
 
 export const getLibrary = (req: Request, id: string) => {
@@ -175,7 +188,10 @@ export const getLibrary = (req: Request, id: string) => {
 	}
 
 	return globalThis.mediaDb.query.library_user.findFirst({
-		where: (library_user, { eq, and }) => and(
+		where: (library_user, {
+			eq,
+			and,
+		}) => and(
 			eq(library_user.library_id, id),
 			eq(library_user.user_id, req.user.sub)
 		),
@@ -202,6 +218,7 @@ export const getEncoderLibraryById = (id: string) => {
 			},
 		},
 		where: (libraries, { eq }) => eq(libraries.id, id),
+		orderBy: asc(libraries.order),
 	})!;
 };
 
@@ -220,6 +237,7 @@ export const getEncoderLibraryByType = (type: string) => {
 			},
 		},
 		where: (libraries, { eq }) => eq(libraries.type, type),
+		orderBy: asc(libraries.order),
 	});
 };
 
@@ -237,5 +255,6 @@ export const getEncoderLibraries = () => {
 				},
 			},
 		},
+		orderBy: asc(libraries.order),
 	});
 };

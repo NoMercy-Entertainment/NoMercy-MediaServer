@@ -1,5 +1,4 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
 
 import { fileChangedAgo, humanTime } from '@server/functions/dateTime';
 import Logger from '@server/functions/logger';
@@ -14,6 +13,7 @@ import { findFoldersDB } from '@server/db/media/actions/folders';
 import { insertVideoFileDB } from '@server/db/media/actions/videoFiles';
 import { getQualityTag } from '@server/functions/ffmpeg/quality/quality';
 import { getExistingSubtitles } from '@server/functions/ffmpeg/subtitles/subtitle';
+import { resolve } from 'path';
 
 export default async ({ data, folder, libraryId }) => {
 	return await FileList({
@@ -21,10 +21,10 @@ export default async ({ data, folder, libraryId }) => {
 		recursive: true,
 	}).then(async (fileList) => {
 
-		const folderFile = join(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
+		const folderFile = resolve(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
 
 		let parsedFiles: ParsedFileList[];
-		if (existsSync(folderFile) && fileChangedAgo(folderFile, 'days') < 1 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0) {
+		if (existsSync(folderFile) && fileChangedAgo(folderFile, 'minutes') < 2 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0) {
 			parsedFiles = JSON.parse(readFileSync(folderFile, 'utf-8'));
 		} else {
 			parsedFiles = await fileList.getParsedFiles();
@@ -108,18 +108,18 @@ export default async ({ data, folder, libraryId }) => {
 			try {
 				if (file.ffprobe?.format && file.folder) {
 					insertVideoFileDB({
-						filename: file.ffprobe!.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
+						filename: file.ffprobe?.format?.filename?.replace(/.+[\\\/](.+)/u, '/$1'),
 						folder: file.folder,
-						hostFolder: file.ffprobe!.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
-						duration: humanTime(file.ffprobe!.format.duration),
+						hostFolder: file.ffprobe?.format?.filename?.replace(/(.+)[\\\/].+/u, '$1'),
+						duration: humanTime(file.ffprobe?.format?.duration),
 						quality: JSON.stringify(getQualityTag(file.ffprobe)),
-						share: folders.find(f => folder.includes(f.path?.replace(/\\/gu, '/')))?.id ?? undefined,
+						share: folders.find(f => folder?.replace(/\\/gu, '/').includes(f.path?.replace(/\\/gu, '/')))?.id as string,
 						subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe as VideoFFprobe)),
-						languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
-						chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
+						languages: JSON.stringify((file.ffprobe as VideoFFprobe)?.streams?.audio?.map(a => a.language)),
+						chapters: JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters),
 						movie_id: data.id,
 					});
-	
+
 					foundFiles += 1;
 				}
 
@@ -139,12 +139,20 @@ export default async ({ data, folder, libraryId }) => {
 			color: 'magentaBright',
 			message: `Found ${foundFiles} usable files for: ${data.title ?? data.name}`,
 		});
-	}).catch((error) => {
-		Logger.log({
-			level: 'error',
-			name: 'App',
-			color: 'red',
-			message: JSON.stringify(['movie file', error]),
+
+		process?.send?.({
+        	type: 'custom',
+        	event: 'update_content',
+        	data: ['library'],
 		});
-	});
+
+	})
+		.catch((error) => {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['movie file', error]),
+			});
+		});
 };

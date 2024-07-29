@@ -32,6 +32,15 @@ export default (
 					[`${type}_id`]: req.id,
 				});
 
+			} catch (error) {
+				Logger.log({
+					level: 'error',
+					name: 'App',
+					color: 'red',
+					message: JSON.stringify(['aggregate crew', error]),
+				});
+			}
+			try {
 				insertJob({
 					crew_id: job.credit_id,
 					job: job.job,
@@ -44,7 +53,7 @@ export default (
 					level: 'error',
 					name: 'App',
 					color: 'red',
-					message: JSON.stringify(['aggregate crew', error]),
+					message: JSON.stringify(['aggregate job', error]),
 				});
 			}
 		}

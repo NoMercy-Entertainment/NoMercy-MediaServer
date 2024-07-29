@@ -1,4 +1,5 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { mediaAttachments } from '../schema/mediaAttachments';
 import { createId } from '@paralleldrive/cuid2';
@@ -12,11 +13,8 @@ export const insertMediaAttachment = (data: NewMediaAttachment) => globalThis.me
 	.onConflictDoUpdate({
 		target: mediaAttachments.type,
 		set: {
-			...convertBooleans(data),
+			...convertBooleans(data, true),
 			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
 		},
 	})
 	.returning()

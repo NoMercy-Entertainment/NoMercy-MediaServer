@@ -4,14 +4,10 @@ import { library_movie } from '../schema/library_movie';
 
 export type NewLibraryMovie = InferModel<typeof library_movie, 'insert'>;
 export const insertLibraryMovie = (data: NewLibraryMovie) => globalThis.mediaDb.insert(library_movie)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [library_movie.library_id, library_movie.movie_id],
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axiosRetry from 'axios-retry';
 
 
 const onRequest = (config: AxiosRequestConfig) => {
@@ -58,5 +59,10 @@ const mbApiClient = setupInterceptorsTo(
 		},
 	})
 );
+
+axiosRetry(mbApiClient, {
+	retries: 3,
+	retryDelay: axiosRetry.exponentialDelay,
+});
 
 export default mbApiClient;

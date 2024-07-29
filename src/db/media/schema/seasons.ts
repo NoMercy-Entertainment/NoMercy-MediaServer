@@ -10,13 +10,15 @@ import { translations } from './translations';
 import { images } from './images';
 
 export const seasons = sqliteTable('seasons', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
+	id: integer('id')
+		.primaryKey({ autoIncrement: true }),
 	title: text('title'),
 	airDate: text('airDate'),
 	episodeCount: integer('episodeCount'),
 	overview: text('overview'),
 	poster: text('poster'),
-	seasonNumber: integer('seasonNumber').notNull(),
+	seasonNumber: integer('seasonNumber')
+		.notNull(),
 	blurHash: text('blurHash'),
 	colorPalette: text('colorPalette'),
 
@@ -30,14 +32,22 @@ export const seasons = sqliteTable('seasons', {
 		.notNull(),
 
 	tv_id: integer('tv_id')
-		.references(() => tvs.id, { onDelete: 'cascade', onUpdate: 'cascade' })
+		.references(() => tvs.id, {
+			onDelete: 'cascade',
+			onUpdate: 'cascade',
+		})
 		.notNull(),
 }, db => ({
-	index: index('seasonIndex').on(db.id),
-	tvIndex: index('tvId_idx').on(db.tv_id),
+	index: index('seasonIndex')
+		.on(db.id),
+	tvIndex: index('tvId_idx')
+		.on(db.tv_id),
 }));
 
-export const seasonsRelations = relations(seasons, ({ many, one }) => ({
+export const seasonsRelations = relations(seasons, ({
+	many,
+	one,
+}) => ({
 	casts: many(casts),
 	crews: many(crews),
 	episodes: many(episodes),

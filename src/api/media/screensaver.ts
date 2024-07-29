@@ -6,7 +6,7 @@ import { LogoResponse } from '@server/types/server';
 import { and, desc, eq, or, gte, isNull } from 'drizzle-orm';
 import { images } from '@server/db/media/schema/images';
 
-export default function (req: Request, res: Response) {
+export default function(req: Request, res: Response) {
 
 	try {
 
@@ -14,10 +14,13 @@ export default function (req: Request, res: Response) {
 			where: or(
 				and(
 					eq(images.type, 'backdrop'),
-					gte(images.voteAverage, 4),
+					gte(images.voteAverage, 2),
 					isNull(images.iso6391)
 				),
-				eq(images.type, 'logo'),
+				and(
+					eq(images.type, 'logo'),
+					eq(images.iso6391, 'en')
+				)
 			),
 			orderBy: desc(images.voteAverage),
 			with: {
@@ -29,47 +32,53 @@ export default function (req: Request, res: Response) {
 		const tvCollection: typeof data = [];
 		const movieCollection: typeof data = [];
 
-		unique(data.filter(i => i.tv && i.type == 'backdrop'), 'tv_id').map(data => tvCollection.push(data));
+		unique(data.filter(i => i.tv && i.type == 'backdrop'), 'tv_id')
+			.map(data => tvCollection.push(data));
 
-		unique(data.filter(i => i.movie && i.type == 'backdrop'), 'movie_id').map(data => movieCollection.push(data));
-		
+		unique(data.filter(i => i.movie && i.type == 'backdrop'), 'movie_id')
+			.map(data => movieCollection.push(data));
+
 		const tv: LogoResponse[] = tvCollection.map((r) => {
-			const logo = sortBy(data.filter(i => i.type === 'logo'), 'voteAverage').find(i => i.tv_id === r.tv_id);
+			const logo = sortBy(data.filter(i => i.type === 'logo'), 'voteAverage')
+				.find(i => i.tv_id === r.tv_id);
 
 			return {
-				aspectRatio: r?.aspectRatio!,
-				src: r?.filePath!,
-				colorPalette: JSON.parse(r?.colorPalette ?? '{}'),
+				aspectRatio: r?.aspectRatio,
+				src: r?.filePath,
+				color_palette: JSON.parse(r?.colorPalette ?? '{}'),
 				meta: {
 					title: r?.tv?.title as string,
-					logo: logo 
-						? {
+					logo: logo
+						?						{
 							aspectRatio: logo.aspectRatio,
 							src: logo.filePath,
 						}
-						: null,
+						:						null,
 				},
 			};
-		}).filter(i => i.meta.logo);
+		})
+			.filter(i => i.meta.logo);
 
 		const movie: LogoResponse[] = movieCollection.map((r) => {
-			const logo = sortBy(data.filter(i => i.type === 'logo'), 'voteAverage').find(i => i.movie_id === r.movie_id);
+			const logo = sortBy(data.filter(i => i.type === 'logo'), 'voteAverage')
+				.find(i => i.movie_id === r.movie_id);
 
 			return {
-				aspectRatio: r?.aspectRatio!,
-				src: r?.filePath!,
-				colorPalette: JSON.parse(r?.colorPalette ?? '{}'),
+				aspectRatio: r?.aspectRatio,
+				src: r?.filePath,
+				color_palette: JSON.parse(r?.colorPalette ?? '{}'),
 				meta: {
 					title: r?.movie?.title as string,
-					logo: logo 
-						? {
+					logo: logo
+						?						{
 							aspectRatio: logo.aspectRatio,
 							src: logo.filePath,
 						}
-						: null,
+						:						null,
 				},
 			};
-		}).filter(i => i.src && i.meta.logo);
+		})
+			.filter(i => i.src && i.meta.logo);
 
 		const response: LogoResponse[] = shuffle([...tv, ...movie]);
 

@@ -2,7 +2,7 @@
 
 // import { AppState, useSelector } from '@server/state/redux';
 
-import { Ripper } from './RipperClass';
+// import { Ripper } from './RipperClass';
 
 export default () => {
 
@@ -12,7 +12,7 @@ export default () => {
 	// const queueWorker = useSelector((state: AppState) => state.config.queueWorker);
 	// queueWorker.setWorkers(parseInt(queueWorkers ?? '1', 10)).start();
 
-	const ripper = new Ripper();
+	// const ripper = new Ripper();
 	// const socket = useSelector((state: AppState) => state.system.socket);
 
 	// socket.on('connection', (s) => {

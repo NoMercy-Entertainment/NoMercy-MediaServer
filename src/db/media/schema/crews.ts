@@ -19,7 +19,7 @@ export const crews = sqliteTable('crews', {
 	movie_id: integer('movie_id')
 		.references(() => movies.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 	tv_id: integer('tv_id')
-		.references(() => tvs.id),
+		.references(() => tvs.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 	season_id: integer('season_id')
 		.references(() => seasons.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 	episode_id: integer('episode_id')

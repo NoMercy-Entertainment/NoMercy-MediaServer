@@ -1,7 +1,8 @@
 import { Request, Response } from 'express-serve-static-core';
 
 
-export default function (req: Request, res: Response) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default (req: Request, res: Response) => {
 
 	// const { name, description }: { name: string, description:string } = req.body;
 
@@ -17,4 +18,4 @@ export default function (req: Request, res: Response) {
 
 	// return res.json(music);
 
-}
+};

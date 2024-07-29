@@ -3,8 +3,6 @@ import { imagesPath, publicPath, subtitlesPath, transcodesPath } from '@server/s
 
 import { findFoldersDB } from '@server/db/media/actions/folders';
 import { existsSync } from 'fs';
-import { mustHaveToken } from '@server/functions/keycloak';
-import { staticPermissions } from '../middleware/permissions';
 
 export const serveImagesPath = (req: Request, res: Response) => {
 	if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
@@ -80,8 +78,8 @@ export const servePublicPath = (req: Request, res: Response) => {
 
 export const serveLibraryPaths = (app: Application) => {
 	findFoldersDB().map((r) => {
-		app.get(`/${r.id}/*`, mustHaveToken, staticPermissions, (req: Request, res: Response) => {
-		// app.get(`/${r.id}/*`, (req: Request, res: Response) => {
+		// app.get(`/${r.id}/*`, mustHaveToken, staticPermissions, (req: Request, res: Response) => {
+		app.get(`/${r.id}/*`, (req: Request, res: Response) => {
 			if (req.params[0].split(/[\\\/]/u).some(p => p.startsWith('.'))) {
 				return res.status(401).json({
 					status: 'error',

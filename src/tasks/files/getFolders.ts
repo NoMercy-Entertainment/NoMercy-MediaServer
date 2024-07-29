@@ -58,7 +58,7 @@ export class FileList {
 		this.filter = filter;
 		this.foldersOnly = foldersOnly;
 		this.ignoreBaseFilter = ignoreBaseFilter;
-		this.folderFile = path.join(cachePath, 'temp', `${this.folderToFileName(folder)}.json`);
+		this.folderFile = path.resolve(cachePath, 'temp', `${this.folderToFileName(folder)}.json`);
 	}
 
 	folderToFileName(folder: string): string {
@@ -120,7 +120,7 @@ export class FileList {
 	start(): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			try {
-				if (existsSync(this.folderFile) && fileChangedAgo(this.folderFile, 'days') < 50) {
+				if (existsSync(this.folderFile) && fileChangedAgo(this.folderFile, 'minutes') < 2) {
 					try {
 						this.tree = JSON.parse(readFileSync(this.folderFile, 'utf-8'));
 						return resolve();

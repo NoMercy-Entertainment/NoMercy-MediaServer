@@ -1,13 +1,10 @@
-import { image } from '../shared/image';
+import { downloadAndHash, image } from '../shared/image';
 
 import { CompleteTvAggregate } from './fetchTvShow';
 import Logger from '@server/functions/logger';
-// import aggregateCast from './aggregateCast';
-// import aggregateCrew from './aggregateCrew';
 import episode from './episode';
 import translation from '../shared/translation';
 import { insertSeason } from '@server/db/media/actions/seasons';
-// import createBlurHash from '@server/functions/createBlurHash/createBlurHash';
 import colorPalette from '@server/functions/colorPalette/colorPalette';
 import aggregateCast from './aggregateCast';
 import aggregateCrew from './aggregateCrew';
@@ -38,17 +35,11 @@ const season = async (
 			poster: undefined,
 		};
 
-		const blurHash: any = {
-			poster: undefined,
-		};
-
 		await Promise.all([
-			// season.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${season.poster_path}`).then((hash) => {
-			// 	blurHash.poster = hash;
-			// }),
-			season.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${season.poster_path}`).then((hash) => {
-				palette.poster = hash;
-			}),
+			season.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${season.poster_path}`)
+				.then((hash) => {
+					palette.poster = hash;
+				}),
 		]);
 
 		try {
@@ -60,7 +51,6 @@ const season = async (
 				seasonNumber: season.season_number,
 				title: season.name,
 				episodeCount: season.episode_count,
-				blurHash: JSON.stringify(blurHash),
 				colorPalette: JSON.stringify(palette),
 				tv_id: tv.id,
 			});
@@ -82,14 +72,14 @@ const season = async (
 		translation(season, transaction, 'season');
 		image(season, 'poster', 'season');
 
-		// if (season.poster_path) {
-		// 	downloadAndHash({
-		// 		src: season.poster_path,
-		// 		table: 'season',
-		// 		column: 'poster',
-		// 		type: 'season',
-		// 	});
-		// }
+		if (season.poster_path) {
+			downloadAndHash({
+				src: season.poster_path,
+				table: 'season',
+				column: 'poster',
+				type: 'season',
+			});
+		}
 	}
 
 	Logger.log({

@@ -1,5 +1,5 @@
-import { ExecException, exec } from 'child_process';
-import { PathLike, Stats, createWriteStream, mkdirSync, readFileSync, rmSync, statSync } from 'fs';
+import { exec, ExecException } from 'child_process';
+import { createWriteStream, mkdirSync, PathLike, readFileSync, rmSync, Stats, statSync } from 'fs';
 import { ffmpeg, tempPath } from '@server/state';
 import { join, resolve as pathResolve } from 'path';
 
@@ -11,20 +11,25 @@ import { randomUUID } from 'crypto';
 import sizeOf from 'image-size';
 
 export interface DownloadImage {
-    dimensions: ISizeCalculationResult;
-    stats: Stats;
+	dimensions: ISizeCalculationResult;
+	stats: Stats;
 	colorPalette: PaletteColors | null;
 	blurHash: string | null;
 }
 
-export default ({ url, path, only, usableImageSizes }: {
+export default ({
+	url,
+	path,
+	only,
+	usableImageSizes,
+}: {
 	url: string,
 	path: string,
 	only?: Array<'colorPalette' | 'blurHash'>,
 	usableImageSizes?: {
 		size: string;
 		type: string[];
-	}[]| undefined,
+	}[] | undefined,
 }): Promise<DownloadImage> => {
 
 	// Logger.log({
@@ -49,7 +54,10 @@ export default ({ url, path, only, usableImageSizes }: {
 				tempName = join(tempPath, `${randomUUID()}.jpg`);
 			}
 
-			const { size, type } = await fetch(url, path, tempName);
+			const {
+				size,
+				type,
+			} = await fetch(url, path, tempName);
 
 			if (size == 0) {
 				reject(new Error('size is 0'));
@@ -73,7 +81,7 @@ export default ({ url, path, only, usableImageSizes }: {
 				}
 			}
 
-			let hash: string | null = null;
+			const hash: string | null = null;
 			// if (!only || only.includes('blurHash')) {
 			// 	try {
 			// 		hash = await createBlurHash(buffer);
@@ -123,16 +131,18 @@ export const fetch = (url: string, path: string, tempName: string): Promise<{ si
 					size = parseInt(response?.headers?.['content-length'] ?? '0', 10);
 					type = response?.headers?.['content-type'] ?? null;
 					response.data.pipe(writer);
-				})
-				.catch(error => reject(error));
+				});
 
-			writer.on('finish', () => resolve({ size, type }));
+			writer.on('finish', () => resolve({
+				size,
+				type,
+			}));
 			writer.on('error', reject);
 
 			return size;
 
 		} catch (error) {
-			reject(error);
+			reject();
 		}
 
 		return {
@@ -143,8 +153,8 @@ export const fetch = (url: string, path: string, tempName: string): Promise<{ si
 };
 
 export const convertImageToWebp = (input: string, output: string, usableImageSizes?: {
-    size: string;
-    type: string[];
+	size: string;
+	type: string[];
 }[] | undefined): Promise<void> => {
 
 	return new Promise((resolve, reject): void => {
@@ -152,9 +162,10 @@ export const convertImageToWebp = (input: string, output: string, usableImageSiz
 		const sizes = [`-quality 100 -pix_fmt yuva420p "${output}"`];
 
 		if (usableImageSizes) {
-			usableImageSizes.slice(1).map((s) => {
-				sizes.push(`-quality 80 -pix_fmt yuva420p -vf "scale=${s.size.replace('w', '')}:-2" "${output.replace('original', s.size)}"`);
-			});
+			usableImageSizes.slice(1)
+				.map((s) => {
+					sizes.push(`-quality 80 -pix_fmt yuva420p -vf "scale=${s.size.replace('w', '')}:-2" "${output.replace('original', s.size)}"`);
+				});
 		}
 
 		const command = `${ffmpeg} -i "${input}" -y ${sizes.join(' ')}`;

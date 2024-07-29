@@ -294,7 +294,7 @@ export default (cert: string | Buffer | URL) => {
 		const contents = fs
 			.readFileSync(cert, 'utf8')
 			.match(/-----BEGIN CERTIFICATE-----\n(?<match>(.*\n.*)*)\n-----END CERTIFICATE-----\n/g)!
-			.map((c) => c.replace(/-----BEGIN CERTIFICATE-----\n/g, '').replace(/[\n\r]{1,2}-----END CERTIFICATE-----/g, ''));
+			.map((c) => c.replace(/-----BEGIN CERTIFICATE-----\n/gu, '').replace(/[\n\r]{1,2}-----END CERTIFICATE-----/gu, ''));
 		// .map(c => c.split("\n").filter(s => !s.includes('CERTIFICATE') && !s.includes('CERTIFICATE')).join("\n"));
 
 		const ceritifcates = contents.map((c) => {

@@ -32,7 +32,8 @@ export const artistImages = async (artist: string) => {
 	const tempFile = `${cachePath}/temp/${sanitizedName}.json`;
 
 	if (existsSync(tempFile)) {
-		return JSON.parse(readFileSync(tempFile, 'utf8')).filter(r => r.palette);
+		return JSON.parse(readFileSync(tempFile, 'utf8'))
+			.filter(r => r.palette);
 	}
 
 	const url = `${baseUrl}/music/${sanitizedName}/+images`;
@@ -49,7 +50,8 @@ export const artistImages = async (artist: string) => {
 				$('.image-list')
 					.children()
 					.each((i, el) => {
-						const item: any = $(el).children()
+						const item: any = $(el)
+							.children()
 							.closest('a')
 							.attr('href');
 
@@ -64,7 +66,8 @@ export const artistImages = async (artist: string) => {
 					});
 
 				if ($('.pagination-next')) {
-					const nextPageUrl = $('.pagination-next').children()
+					const nextPageUrl = $('.pagination-next')
+						.children()
 						.closest('a')
 						.attr('href')!;
 
@@ -85,23 +88,27 @@ export const artistImages = async (artist: string) => {
 							.then(async ({ data }) => {
 								const $ = load(data);
 
-								$('.gallery-image-votes').each((j, el) => {
-									const a = $(el).find('span');
-									const b = a.parent().contents();
-									const text = parseInt(
-										$(b[Array.prototype.findIndex.call(b, elem => $(elem).is(a)) + 1])
-											.text()
-											.trim(),
-										10
-									);
-									const direction = a.text();
+								$('.gallery-image-votes')
+									.each((j, el) => {
+										const a = $(el)
+											.find('span');
+										const b = a.parent()
+											.contents();
+										const text = parseInt(
+											$(b[Array.prototype.findIndex.call(b, elem => $(elem)
+												.is(a)) + 1])
+												.text()
+												.trim(),
+											10
+										);
+										const direction = a.text();
 
-									if (direction.includes('Up')) {
-										urls[i].up = text;
-									} else if (direction.includes('Down')) {
-										urls[i].down = text;
-									}
-								});
+										if (direction.includes('Up')) {
+											urls[i].up = text;
+										} else if (direction.includes('Down')) {
+											urls[i].down = text;
+										}
+									});
 
 								try {
 									const res = await axios.head(urls[i].url, { timeout: 5000 });
@@ -169,28 +176,31 @@ export const artistImages = async (artist: string) => {
 	return response.filter(r => !!r.palette);
 };
 
-export const storageArtistImageInDatabase = function (id: string, colorPalette: PaletteColors | null) {
-
+export const storageArtistImageInDatabase = function(id: string, colorPalette: PaletteColors | null) {
 	const artist = findArtist(id);
 
 	insertArtist({
 		...artist!,
 		colorPalette: colorPalette
-			? JSON.stringify(colorPalette)
-			: undefined,
+			?			JSON.stringify(colorPalette)
+			:			undefined,
 	});
 };
 
-export const getBestArtistImag = async function (artist: string, storagePath: string) {
+export const getBestArtistImag = async function(artist: string, storagePath: string) {
 	const image = (await artistImages(artist))[0];
 
 	let result: boolean | null = false;
 	let extension: string | null = '';
 
 	if (image) {
-		extension = image.type.replace('image/', '').replace('jpeg', 'jpg')
+		extension = image.type.replace('image/', '')
+			.replace('jpeg', 'jpg')
 			.replace('unknown', 'png');
-		await downloadImage({ url: image.url, path: `${storagePath}.${extension}`.replace('undefined', 'png') })
+		await downloadImage({
+			url: image.url,
+			path: `${storagePath}.${extension}`.replace('undefined', 'png'),
+		})
 			.then(() => (result = true))
 			.catch(() => {
 				//
@@ -198,10 +208,11 @@ export const getBestArtistImag = async function (artist: string, storagePath: st
 	}
 
 	return result
-		? {
-			path: `${storagePath}.${extension}`.replace(/[\\\/]undefined/gu, '').replace('undefined', 'png'),
+		?		{
+			path: `${storagePath}.${extension}`.replace(/[\\\/]undefined/gu, '')
+				.replace('undefined', 'png'),
 			extension: extension,
 			url: image.url,
 		}
-		: null;
+		:		null;
 };

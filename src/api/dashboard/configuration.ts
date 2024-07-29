@@ -40,7 +40,7 @@ export const configuration = (req: Request, res: Response) => {
 
 };
 
-export const createConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const createConfiguration = (req: Request, res: Response): Response<any, Record<string, ResponseStatus>> | void => {
 	try {
 		storeConfig(req.body, req.user.sub);
 		Logger.log({
@@ -69,7 +69,7 @@ export const createConfiguration = async (req: Request, res: Response): Promise<
 	};
 };
 
-export const updateConfiguration = async (req: Request, res: Response): Promise<Response<any, Record<string, ResponseStatus>> | void> => {
+export const updateConfiguration = (req: Request, res: Response): Response<any, Record<string, ResponseStatus>> | void => {
 
 	const body: ConfigParams = req.body;
 	let needsReboot = false;
@@ -85,16 +85,30 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 
 	try {
+
 		storeConfig(body as unknown as ConfigData, req.user.sub);
+
 		if (deviceName != body.deviceName) {
 			updateRegistry = true;
 		}
-		body.queueWorkers != null && queue.setWorkers(body.queueWorkers);
-		body.cronWorkers != null && cron.setWorkers(body.cronWorkers);
-		body.dataWorkers != null && data.setWorkers(body.dataWorkers);
-		body.requestWorkers != null && request.setWorkers(body.requestWorkers);
-		body.encoderWorkers != null && encoder.setWorkers(body.encoderWorkers);
-		body.deviceName != null && setDeviceName(body.deviceName);
+		if (body.queueWorkers != null) {
+			queue.setWorkers(body.queueWorkers).start();
+		}
+		if (body.cronWorkers != null) {
+			cron.setWorkers(body.cronWorkers).start();
+		}
+		if (body.dataWorkers != null) {
+			data.setWorkers(body.dataWorkers).start();
+		}
+		if (body.requestWorkers != null) {
+			request.setWorkers(body.requestWorkers).start();
+		}
+		if (body.encoderWorkers != null) {
+			encoder.setWorkers(body.encoderWorkers).start();
+		}
+		if (body.deviceName != null) {
+			setDeviceName(body.deviceName);
+		}
 
 		if (body.secureInternalPort && secureInternalPort != body.secureInternalPort) {
 			needsReboot = true;
@@ -104,8 +118,12 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 			ping();
 		}
 
-		body.secureInternalPort != null && setSecureInternalPort(body.secureInternalPort);
-		body.secureExternalPort != null && setSecureExternalPort(body.secureExternalPort);
+		if (body.secureInternalPort != null) {
+			setSecureInternalPort(body.secureInternalPort);
+		}
+		if (body.secureExternalPort != null) {
+			setSecureExternalPort(body.secureExternalPort);
+		}
 
 		Logger.log({
 			level: 'info',
@@ -129,6 +147,7 @@ export const updateConfiguration = async (req: Request, res: Response): Promise<
 			status: 'ok',
 			message: 'Successfully updated configuration.',
 		});
+
 	} catch (error) {
 		Logger.log({
 			level: 'info',

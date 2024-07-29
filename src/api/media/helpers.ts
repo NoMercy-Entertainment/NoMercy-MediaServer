@@ -1,103 +1,151 @@
 /* eslint-disable indent */
 
-import {
-	InfoCredit,
-	MediaItem
-} from '../../types/server';
+import { InfoCredit, MediaItem } from '../../types/server';
 
 import { Media } from '@server/db/media/actions/medias';
-import { Image } from '@server/providers/tmdb/shared/image';
+import colorPalette from '@server/functions/colorPalette';
+import { Movie } from '@server/providers/tmdb/movie';
+import { Image } from '@server/providers/tmdb/shared';
+import { TvShow } from '@server/providers/tmdb/tv';
 
-export const relatedMap = (data: any, type: string) => data.map((s) => {
-	return {
-		backdrop: s.backdrop,
-		id: s.media_id as number,
-		overview: s.overview,
-		poster: s.poster,
-		title: s.title,
-		titleSort: s.titleSort,
-		mediaType: type,
-		numberOfEpisodes: s[`${type.toUcFirst()}_to`]?.numberOfEpisodes ?? null,
-		haveEpisodes: s[`${type.toUcFirst()}_to`]?.haveEpisodes ?? null,
-		blurHash: JSON.parse(s.blurHash ?? '{}'),
-		colorPalette: JSON.parse(s.colorPalette ?? '{}'),
-	};
-}) ?? [];
+const fetchMissingColorPalettes = false;
 
-export const imageMap = <T = Media | Image>(data: T[]) => {
-	const res: MediaItem[] = [];
+export const priority = {
+	Trailer: 1,
+	Clip: 2,
+	'Featurette': 3,
+	'Behind the Scenes': 4,
+	'Opening Credits': 5,
+} as const;
 
-	for (const i of data ?? []) {
+
+export const relatedMap = async (data: any, type: string) => {
+	const res: any[] = [];
+
+	for (const s of data ?? []) {
+
+		const index = data.indexOf(s);
 
 		res.push({
-			aspectRatio: (i as Media).aspectRatio ?? (i as Image).aspect_ratio,
-			height: (i as Media).height,
-			id: (i as Media).id!,
-			iso6391: (i as Media).iso6391 ?? (i as Image).iso_639_1,
-			// @ts-ignore
-			src: (i as Media).src ?? (i as Media).filePath ?? (i as Image).file_path,
-			width: (i as Media).width ?? null,
-			blurHash: (i as Media).blurHash,
-			colorPalette: JSON.parse((i as Media).colorPalette ?? '{}'),
-			voteAverage: (i as Media).voteAverage ?? (i as Image).vote_average,
-			voteCount: (i as Media).voteCount ?? (i as Image).vote_count,
+			backdrop: s.backdrop,
+			id: s.media_id ?? s.id as number,
+			overview: s.overview,
+			poster: s.poster,
+			title: s.title,
+			titleSort: s.titleSort,
+			mediaType: type,
+			numberOfEpisodes: s[`${type.toUcFirst()}_to`]?.numberOfEpisodes ?? null,
+			haveEpisodes: s[`${type.toUcFirst()}_to`]?.haveEpisodes ?? null,
+			color_palette: (s as Media).colorPalette
+				?				JSON.parse((s as Media).colorPalette ?? '{}')
+				:				fetchMissingColorPalettes
+					?					{
+						poster: index < 10 && (s as any).poster
+							?							await colorPalette(`https://image.tmdb.org/t/p/w185${(s as any).poster}`)
+							:							null,
+						backdrop: index < 10 && (s as any).backdrop
+							?							await colorPalette(`https://image.tmdb.org/t/p/w185${(s as any).backdrop}`)
+							:							null,
+					}
+					:					null,
 		});
 	}
 	return res;
 };
 
-export const peopleMap = (data: Credit[], filter: string): InfoCredit[] => {
-	return data.map((c) => {
-		return {
-			gender: c.person.gender,
-			id: c.person.id,
-			creditId: c[filter]?.[0].creditId,
-			character: c[filter]?.map(c => c.character || c.job || 'unknown')?.join(', '),
-			knownForDepartment: c.person.knownForDepartment,
-			name: c.person.name,
-			profilePath: (c as any).Image?.filePath ?? c.person.profile,
-			popularity: c.person.popularity,
-			deathday: c.person.deathday ?? undefined,
-			// blurHash: c.person.blurHash,
-			colorPalette: JSON.parse(c.person.colorPalette ?? '{}'),
-		};
-	}) ?? [];
+export const imageMap = async <T = Media | TvShow | Movie | Image>(data: T[]) => {
+	const res: MediaItem[] = [];
+
+	for (const i of data ?? []) {
+
+		const index = data.indexOf(i);
+
+		res.push({
+			height: (i as Media).height,
+			id: (i as Media).id!,
+			// @ts-ignore
+			src: (i as Media).src ?? (i as Media).filePath ?? (i as TvShow | Movie).file_path,
+			width: (i as Media).width ?? null,
+			voteAverage: (i as Media).voteAverage ?? (i as TvShow | Movie).vote_average,
+			voteCount: (i as Media).voteCount ?? (i as TvShow | Movie).vote_count,
+			color_palette: (i as Media).colorPalette
+				?				JSON.parse((i as Media).colorPalette ?? '{}')
+				:				index < 10 && (i as any).file_path && fetchMissingColorPalettes
+					?					await colorPalette(`https://image.tmdb.org/t/p/w185${(i as any).file_path}`)
+					:					null,
+		});
+	}
+	return res;
+};
+
+export const peopleMap = async (data: Credit[], filter: string): Promise<InfoCredit[]> => {
+	const res: InfoCredit[] = [];
+
+	for (const c of data ?? []) {
+
+		const index = data.indexOf(c);
+
+		const item = c.person ?? c;
+
+		res.push({
+			// @ts-ignore
+			character: c[filter]?.map(c => c.character || c.job || 'unknown')
+				?.join(', ') ?? item.character ?? item.job ?? 'unknown',
+			profilePath: (c as any).Image?.filePath ?? item.profilePath ?? item.profile,
+			gender: item.gender,
+			id: item.id,
+			knownForDepartment: item.knownForDepartment,
+			name: item.name,
+			popularity: item.popularity,
+			deathDay: item.deathDay ?? undefined,
+			colorPalette: item.color_palette
+				?				JSON.parse(item.color_palette ?? '{}')
+				:				index < 10 && (c as any).file_path && fetchMissingColorPalettes
+					?					await colorPalette(`https://image.tmdb.org/t/p/w185${(c as any).Image?.filePath ?? item.profilePath ?? item.profile}`)
+					:					null,
+		});
+	}
+	
+
+	return res;
 };
 
 export type Credit = {
-    person: {
+	person: {
 		gender: number | null;
 		id: number;
 		knownForDepartment: string | null;
 		name: string | null;
 		popularity: number | null;
-		deathday: string | null;
-		colorPalette: string | null;
+		deathDay: string | null;
+		color_palette: string | null;
+		profilePath?: string | null;
 		profile: string | null;
-    };
-    jobs: {
-        crew_id: string | null;
-        job: string;
-    }[];
-    id: string;
-    person_id: number;
+	};
+	jobs: {
+		crew_id: string | null;
+		job: string;
+	}[];
+	id: string;
+	person_id: number;
 } | {
-    person: {
+	person: {
 		gender: number | null;
 		id: number;
 		knownForDepartment: string | null;
 		name: string | null;
 		popularity: number | null;
-		deathday: string | null;
-		colorPalette: string | null;
+		deathDay: string | null;
+		color_palette: string | null;
+		profilePath?: string | null;
 		profile: string | null;
-    };
-    roles: {
-        cast_id: string | null;
-        character: string;
-    }[];
-    id: string;
-    person_id: number;
+	};
+	roles: {
+		cast_id: string | null;
+		character: string;
+	}[];
+	id: string;
+	person_id: number;
 };
 
 export const getFromDepartmentMap = (data: Credit[], type: string, filter: string) => {
@@ -106,8 +154,8 @@ export const getFromDepartmentMap = (data: Credit[], type: string, filter: strin
 		.slice(0, 3)
 		.map(c => ({
 			id: c.person?.id,
-			name: c.person?.name!,
+			name: c.person?.name,
 			// blurHash: c.person?.blurHash,
-			colorPalette: c.person?.colorPalette,
+			color_palette: c.person?.colorPalette,
 		})) ?? [];
 };

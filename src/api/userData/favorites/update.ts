@@ -1,6 +1,7 @@
 import { Request, Response } from 'express-serve-static-core';
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async function (req: Request, res: Response) {
 	// const { id, type, value } = req.body;
 

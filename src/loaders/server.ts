@@ -41,7 +41,7 @@ export const server = async () => {
 		setHttpsServer(httpsServer);
 
 		httpsServer
-			.listen(secureInternalPort, '0.0.0.0', () => {
+			.listen(secureInternalPort, '192.168.2.201', () => {
 				serverRunning();
 				ping();
 			})
@@ -59,7 +59,7 @@ export const server = async () => {
 
 		setSocketServer(io);
 
-		socket.connect(io);
+		socket().connect(io);
 	}
 };
 

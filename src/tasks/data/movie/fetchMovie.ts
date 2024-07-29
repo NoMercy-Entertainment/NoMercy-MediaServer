@@ -44,7 +44,7 @@ export default (id: number) => {
 			movie(id).then(async (movie) => {
 
 				const people: Array<MovieCast | MovieCrew | Cast | Crew | PersonAppend> = [];
-				const personPromise: Array<any> = [];
+				const personPromise: Array<() => Promise<void>> = [];
 
 				// @ts-expect-error
 				const data: CompleteMovieAggregate = {
@@ -61,16 +61,14 @@ export default (id: number) => {
 				const newPeople: Array<any> = [];
 
 				for (const Pers of unique(people, 'id')) {
-					personPromise.push(
-						await person(Pers.id).then((p) => {
-							newPeople.push(p);
-						})
-					);
+					personPromise.push(() => person(Pers.id).then((p) => {
+						newPeople.push(p);
+					}));
 				}
 
 				const promiseChunks = chunk(personPromise, 500);
 				for (const promise of promiseChunks) {
-					await Promise.all(promise);
+					await Promise.allSettled(promise.map(p => p()));
 				}
 				data.people = [];
 

@@ -6,11 +6,13 @@ import * as album_artist from './schema/album_artist';
 import * as album_library from './schema/album_library';
 import * as album_musicGenre from './schema/album_musicGenre';
 import * as album_track from './schema/album_track';
+import * as album_user from './schema/album_user';
 import * as albums from './schema/albums';
 import * as alternativeTitles from './schema/alternativeTitles';
 import * as artist_library from './schema/artist_library';
 import * as artist_musicGenre from './schema/artist_musicGenre';
 import * as artist_track from './schema/artist_track';
+import * as artist_user from './schema/artist_user';
 import * as artists from './schema/artists';
 import * as casts from './schema/casts';
 import * as certification_movie from './schema/certification_movie';
@@ -53,6 +55,7 @@ import * as mediaStreams from './schema/mediaStreams';
 import * as messages from './schema/messages';
 import * as metadata from './schema/metadata';
 import * as movies from './schema/movies';
+import * as music_plays from './schema/music_plays';
 import * as musicGenre_track from './schema/musicGenre_track';
 import * as musicGenres from './schema/musicGenres';
 import * as notification_user from './schema/notification_user';
@@ -78,6 +81,7 @@ import * as users from './schema/users';
 import * as videoFiles from './schema/videoFiles';
 
 import { mediaDbFile } from '@server/state';
+// import { MyLogger } from '../helpers';
 
 export const mediaDbSchema = {
 	...activityLogs,
@@ -85,11 +89,13 @@ export const mediaDbSchema = {
 	...album_library,
 	...album_musicGenre,
 	...album_track,
+	...album_user,
 	...albums,
 	...alternativeTitles,
 	...artist_library,
 	...artist_musicGenre,
 	...artist_track,
+	...artist_user,
 	...artists,
 	...casts,
 	...certification_movie,
@@ -132,6 +138,7 @@ export const mediaDbSchema = {
 	...messages,
 	...metadata,
 	...movies,
+	...music_plays,
 	...musicGenre_track,
 	...musicGenres,
 	...notification_user,
@@ -162,4 +169,5 @@ export default () => {
 		schema: mediaDbSchema,
 		// logger: new MyLogger(),
 	});
-}
+	return globalThis.mediaDb;
+};

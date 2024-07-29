@@ -1,4 +1,4 @@
-import { sqliteTable, AnySQLiteColumn, numeric, text, index, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, numeric, text, index, integer } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 

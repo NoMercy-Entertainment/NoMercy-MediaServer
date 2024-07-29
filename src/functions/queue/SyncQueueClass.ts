@@ -141,7 +141,7 @@ export class SyncQueue extends EventEmitter {
 		}
 
 		this.workers = workers;
-		
+
 		return this;
 	}
 
@@ -378,7 +378,7 @@ export class SyncQueue extends EventEmitter {
 					this.run();
 				}, this.delay);
 			}
-		}
+		};
 
 		Worker.worker.on('message', workerCallback);
 	}

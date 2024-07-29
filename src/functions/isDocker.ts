@@ -1,6 +1,6 @@
-'use strict';
 
-import { readFileSync, statSync } from "fs";
+
+import { readFileSync, statSync } from 'fs';
 
 let isDocker;
 

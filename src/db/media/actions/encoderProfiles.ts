@@ -1,4 +1,5 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { encoderProfiles } from '../schema/encoderProfiles';
 import { createId } from '@paralleldrive/cuid2';

@@ -11,13 +11,10 @@ export default function (req: Request, res: Response) {
 		const url = `https://www.youtube.com/watch?v=${id}`;
 		const basePath = `${transcodesPath}/${id}/`;
 
-		execSync(`yt-dlp -F "${url}"`);
-
-		mkdirSync(`${basePath}`, { recursive: true });
-
 		const cmd = [
 			'yt-dlp',
 			`"${url}"`,
+			'-f "bv[vcodec^=avc1]+ba[acodec^=mp4a]"',
 			'--write-auto-subs',
 			'--write-subs',
 			'--sub-format vtt',
@@ -36,12 +33,19 @@ export default function (req: Request, res: Response) {
 			`"${basePath}video-%04d.ts"`,
 		].join(' ');
 
-		if (!existsSync(`${basePath}video.m3u8`)) {
-			exec(cmd, { cwd: `${basePath}` });
-		}
+		console.log(cmd);
 
-		while (!existsSync(`${basePath}video.m3u8`)) {
-			//
+		if (!existsSync(`${basePath}video.m3u8`)) {
+
+			execSync(`yt-dlp -F "${url}"`);
+
+			mkdirSync(`${basePath}`, { recursive: true });
+
+			exec(cmd, { cwd: `${basePath}` });
+
+			while (!existsSync(`${basePath}video.m3u8`)) {
+				//
+			}
 		}
 
 		const textTracks = readdirSync(`${basePath}`)

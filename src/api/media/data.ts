@@ -52,23 +52,24 @@ export type LibraryWithTvAndMovie = Library & {
 export const getContent = (data: LibraryWithTvAndMovie) => {
 	const response: LibraryResponseContent[] = [];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	for (const tv of data.tv) {
 		// const title = data.Translations.find(t => t.tvId == tv.id)?.title || tv.title;
 		// const overview = data.Translations.find(t => t.tvId == tv.id)?.overview || tv.overview;
-		const logo = tv.media.find(m => m.type == 'logo');
-		const userData = tv.userData?.[0];
+		// const logo = tv.media.find(m => m.type == 'logo');
+		// const userData = tv.userData?.[0];
 
-		const files = [
-			...tv.season.filter(t => t.seasonNumber > 0)
-				.map(s => s.episode.map(e => e.videoFile).flat())
-				.flat()
-				.map(f => f.episode_id),
-			// ...external?.find(t => t.id == tv.id && t.files)?.files ?? [],
-		];
-		// .filter((v, i, a) => a.indexOf(v) === i);
+		// const files = [
+		// 	...tv.season.filter(t => t.seasonNumber > 0)
+		// 		.map(s => s.episode.map(e => e.videoFile).flat())
+		// 		.flat()
+		// 		.map(f => f.episode_id),
+		// 	// ...external?.find(t => t.id == tv.id && t.files)?.files ?? [],
+		// ];
+		// // .filter((v, i, a) => a.indexOf(v) === i);
 
-		const hash = JSON.parse(tv.blurHash ?? '{}');
-		const palette = JSON.parse(tv.colorPalette ?? '{}');
+		// const hash = JSON.parse(tv.blurHash ?? '{}');
+		// const palette = JSON.parse(tv.colorPalette ?? '{}');
 
 		// response.push({
 		// 	id: tv.id,
@@ -86,7 +87,7 @@ export const getContent = (data: LibraryWithTvAndMovie) => {
 		// 		poster: hash?.poster ?? null,
 		// 		backdrop: hash?.backdrop ?? null,
 		// 	},
-		// 	colorPalette: {
+		// 	color_palette: {
 		// 		logo: JSON.parse(logo?.colorPalette ?? '{}') ?? null,
 		// 		poster: palette?.poster ?? null,
 		// 		backdrop: palette?.backdrop ?? null,
@@ -99,15 +100,16 @@ export const getContent = (data: LibraryWithTvAndMovie) => {
 		// 	// year: parseYear(tv.firstAirDate),
 		// });
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	for (const movie of data.movie) {
 		// const title = translations.find(t => t.movieId == movie.id)?.title || movie.title;
 		// const overview
 		// 	= translations.find(t => t.movieId == movie.id)?.overview || movie.overview;
-		const logo = movie.media.find(m => m.type == 'logo');
-		const userData = movie.userData?.[0];
+		// const logo = movie.media.find(m => m.type == 'logo');
+		// const userData = movie.userData?.[0];
 
-		const hash = JSON.parse(movie.blurHash ?? '{}');
-		const palette = JSON.parse(movie.colorPalette ?? '{}');
+		// const hash = JSON.parse(movie.blurHash ?? '{}');
+		// const palette = JSON.parse(movie.colorPalette ?? '{}');
 
 		// response.push({
 		// 	id: movie.id,
@@ -122,7 +124,7 @@ export const getContent = (data: LibraryWithTvAndMovie) => {
 		// 		poster: hash?.poster ?? null,
 		// 		backdrop: hash?.backdrop ?? null,
 		// 	},
-		// 	colorPalette: {
+		// 	color_palette: {
 		// 		logo: JSON.parse(logo?.colorPalette ?? '{}') ?? null,
 		// 		poster: palette?.poster ?? null,
 		// 		backdrop: palette?.backdrop ?? null,
@@ -140,7 +142,7 @@ export const getContent = (data: LibraryWithTvAndMovie) => {
 		// 		poster: c.poster,
 		// 		title: c.title[0].toUpperCase() + c.title.slice(1),
 		// 		titleSort: createTitleSort(c.title),
-		// 		colorPalette: JSON.parse(c.colorPalette ?? '[]'),
+		// 		color_palette: JSON.parse(c.colorPalette ?? '[]'),
 		// 		type: 'collection',
 		// 	})),
 		// });

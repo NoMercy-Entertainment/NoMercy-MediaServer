@@ -1,4 +1,3 @@
-
 import { insertAlbumTrack } from '@server/db/media/actions/album_track';
 import { insertArtistTrack } from '@server/db/media/actions/artist_track';
 import { insertMusicGenreTrack } from '@server/db/media/actions/musicGenre_track';
@@ -8,16 +7,14 @@ import { AudioFFprobe } from '@server/encoder/ffprobe/ffprobe';
 import { colorPaletteFromFile } from '@server/functions/colorPalette';
 import { humanTime, sleep } from '@server/functions/dateTime';
 import Logger from '@server/functions/logger';
-import {
-	Artist, Medium, Release
-} from '../../../providers/musicbrainz/fingerprint';
+import { Artist, Medium, Release } from '@server/providers/musicbrainz/fingerprint';
 import { apiCachePath, imagesPath } from '@server/state';
 import { ParsedFileList } from '@server/tasks/files/filenameParser';
 import { PaletteColors } from '@server/types/server';
 import { execSync } from 'child_process';
-import { existsSync, readFileSync, writeFileSync, copyFileSync, statSync, rmSync } from 'fs';
+import { copyFileSync, existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { RecordingWithAppends, recordingAppend, recording } from '@server/providers/musicbrainz/recording';
+import { recording, recordingAppend, RecordingWithAppends } from '@server/providers/musicbrainz/recording';
 import { CurrentFolder } from '.';
 
 export const createTrack = async (
@@ -36,7 +33,11 @@ export const createTrack = async (
 		message: `Adding track: ${title}`,
 	});
 
-	const { image, colorPalette, blurHash } = await getTrackImage(file, recordingID);
+	const {
+		image,
+		colorPalette,
+	} = await getTrackImage(file, recordingID);
+
 	const duration = humanTime(file.ffprobe?.format.duration);
 
 	if ((file.ffprobe as AudioFFprobe)?.audio?.codec_name == 'alac') {
@@ -76,18 +77,18 @@ export const createTrack = async (
 		// lyrics: lyrics,
 		cover: image,
 		colorPalette: colorPalette
-			? JSON.stringify(colorPalette)
-			: undefined,
-		blurHash: blurHash,
+			?			JSON.stringify(colorPalette)
+			:			undefined,
 		date: album.date?.year
-			? new Date(album.date.year, album.date.month ?? 1, album.date.day ?? 1)
+			?			new Date(album.date.year, album.date.month ?? 1, album.date.day ?? 1)
 				.toISOString()
 				.slice(0, 19)
 				.replace('T', ' ')
-			: undefined,
+			:			undefined,
 		folder: file.musicFolder
-			? `${file.folder}${file.musicFolder}`.replace('/Music', '')
-			: file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/u, '$1').replace('/Music', ''),
+			?			`${file.folder}${file.musicFolder}`.replace('/Music', '')
+			:			file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/u, '$1')
+				.replace('/Music', ''),
 		filename: `/${file.name}`,
 		duration: duration,
 		path: file.path,
@@ -124,7 +125,7 @@ export const createTrack = async (
 			track_id: recordingID,
 		});
 
-	};
+	}
 
 	Logger.log({
 		level: 'info',
@@ -153,7 +154,7 @@ export const getTrackInfo = async (recordingID: string) => {
 
 		response = await recording(recordingID)
 			.then(res => res)
-			.catch(({ response }) => {
+			.catch(() => {
 				// console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc=artist-credits+artists+releases+tags+genres`);
 				// console.log(response?.data);
 				return null;
@@ -178,7 +179,6 @@ export const getTrackImage = async (file: ParsedFileList, id: string) => {
 
 	let image: string | null = null;
 	let colorPalette: PaletteColors | null = null;
-	let blurHash: string | null = null;
 	const base = resolve(file.path.replace(/(.+)\.\w{3,}$/u, '$1'));
 	const hasImage = existsSync(`${imagesPath}/music/${id}.jpg`);
 
@@ -186,16 +186,13 @@ export const getTrackImage = async (file: ParsedFileList, id: string) => {
 		if (hasImage) {
 			image = `${file.path.replace(/.+([\\\/].+)\.\w{3,}$/u, '$1.jpg')}`;
 			colorPalette = await colorPaletteFromFile(`${imagesPath}/music/${id}.jpg`);
-			// blurHash = await createBlurHash(readFileSync(`${imagesPath}/music/${id}.jpg`));
 		} else if (existsSync(`${base}.jpg`)) {
 			image = `${file.path.replace(/.+([\\\/].+)\.\w{3,}$/u, '$1.jpg')}`;
 			colorPalette = await colorPaletteFromFile(`${base}.jpg`);
-			// blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
 			copyFileSync(`${base}.jpg`, `${imagesPath}/music/${id}.jpg`);
 		} else if (existsSync(`${base}.png`)) {
 			image = `${file.path.replace(/.+([\\\/].+)\.\w{3,}$/u, '$1.png')}`;
 			colorPalette = await colorPaletteFromFile(`${base}.png`);
-			// blurHash = await createBlurHash(readFileSync(`${base}.jpg`));
 			copyFileSync(`${base}.png`, `${imagesPath}/music/${id}.png`);
 		}
 
@@ -211,6 +208,5 @@ export const getTrackImage = async (file: ParsedFileList, id: string) => {
 	return {
 		image,
 		colorPalette,
-		blurHash,
 	};
 };

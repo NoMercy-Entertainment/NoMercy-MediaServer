@@ -19,41 +19,43 @@ import search from '../media/search';
 import specials from '../media/specials';
 import specialInfo from '../media/specials/info';
 import specialWatch from '../media/specials/watch';
+import specialAvailable from '../media/specials/available';
 import tvAvailable from '../media/tv/available';
 import tvInfo from '../media/tv/info';
 import tvWatch from '../media/tv/watch';
 
 const router = express.Router();
 
-router.post('/', index);
-router.post('/movie/:id', movieInfo);
+router.get('/', index);
+router.get('/movie/:id', movieInfo);
 router.get('/movie/:id/watch', movieWatch);
-router.post('/movie/:id/available', movieAvailable);
+router.get('/movie/:id/available', movieAvailable);
 
-router.post('/tv/:id', tvInfo);
+router.get('/tv/:id', tvInfo);
 router.get('/tv/:id/watch', tvWatch);
-router.post('/tv/:id/available', tvAvailable);
+router.get('/tv/:id/available', tvAvailable);
 
-router.post('/collections', collections);
-router.post('/collection/:id', collectionInfo);
+router.get('/collection', collections);
+router.get('/collection/:id', collectionInfo);
 
-router.post('/specials', specials);
-router.post('/special/:id', specialInfo);
-router.get('/special/:id/watch', specialWatch);
+router.get('/specials', specials);
+router.get('/specials/:id', specialInfo);
+router.get('/specials/:id/watch', specialWatch);
+router.get('/specials/:id/available', specialAvailable);
 
-router.post('/libraries', libraries);
-router.post('/libraries/:id', library);
+router.get('/libraries', libraries);
+router.get('/libraries/:id', library);
 
-router.post('/people', people);
-router.post('/person/:id', person);
+router.get('/person', people);
+router.get('/person/:id', person);
 
-router.post('/screensaver', screensaver);
+router.get('/screensaver', screensaver);
 
-router.post('/fonts', fonts);
-router.post('/search', search);
+router.get('/fonts', fonts);
+router.get('/search', search);
 
-router.post('/trailer/:id', trailer);
-router.post('/trailer/:id', deleteTrailer);
+router.get('/trailer/:id', trailer);
+router.get('/trailer/:id', deleteTrailer);
 
 router.post('/encodeandcast', encodeAndCast);
 

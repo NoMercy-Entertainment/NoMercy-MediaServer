@@ -1,4 +1,5 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { metadata } from '../schema/metadata';
 import { createId } from '@paralleldrive/cuid2';
@@ -12,11 +13,8 @@ export const insertMetadata = (data: NewMetadata) => globalThis.mediaDb.insert(m
 	.onConflictDoUpdate({
 		target: metadata.title,
 		set: {
-			...convertBooleans(data),
+			...convertBooleans(data, true),
 			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
 		},
 	})
 	.returning()

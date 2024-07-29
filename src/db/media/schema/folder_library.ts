@@ -5,10 +5,10 @@ import { relations } from 'drizzle-orm';
 
 export const folder_library = sqliteTable('folder_library', {
 	folder_id: text('folder_id')
-		.references(() => folders.id)
+		.references(() => folders.id, { onDelete: 'cascade', onUpdate: 'cascade' })
 		.notNull(),
 	library_id: text('library_id')
-		.references(() => libraries.id)
+		.references(() => libraries.id, { onDelete: 'cascade', onUpdate: 'cascade' })
 		.notNull(),
 }, db => ({
 	pk: primaryKey(db.folder_id, db.library_id),

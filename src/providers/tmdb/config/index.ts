@@ -1,4 +1,4 @@
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 import i18next from 'i18next';
 import { Configuration } from './configuration';
 import { TimeZone } from './timeZone';
@@ -13,7 +13,7 @@ export const configuration = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<Configuration>('configuration', params);
+	const { data } = await new tmdbClient().get<Configuration>('configuration', params);
 
 	return data;
 };
@@ -25,7 +25,7 @@ export const languages = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<Language[]>('configuration/languages', params);
+	const { data } = await new tmdbClient().get<Language[]>('configuration/languages', params);
 
 	return data;
 };
@@ -37,7 +37,7 @@ export const countries = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<Country[]>('configuration/countries', params);
+	const { data } = await new tmdbClient().get<Country[]>('configuration/countries', params);
 
 	return data;
 };
@@ -49,7 +49,7 @@ export const jobs = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<Job[]>('configuration/jobs', params);
+	const { data } = await new tmdbClient().get<Job[]>('configuration/jobs', params);
 
 	return data;
 };
@@ -61,7 +61,7 @@ export const primaryTranslations = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<string[]>('configuration/primary_translations', params);
+	const { data } = await new tmdbClient().get<string[]>('configuration/primary_translations', params);
 
 	return data;
 };
@@ -73,7 +73,7 @@ export const timezones = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<TimeZone[]>('configuration/timezones', params);
+	const { data } = await new tmdbClient().get<TimeZone[]>('configuration/timezones', params);
 
 	return data;
 };

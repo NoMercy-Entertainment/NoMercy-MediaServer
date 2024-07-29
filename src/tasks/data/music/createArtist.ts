@@ -2,21 +2,19 @@ import { CurrentFolder } from '.';
 import Logger from '@server/functions/logger';
 import { insertArtistLibrary } from '@server/db/media/actions/artist_library';
 import { insertArtistMusicGenre } from '@server/db/media/actions/artist_musicGenre';
-import { insertArtist, findArtist } from '@server/db/media/actions/artists';
+import { findArtist, insertArtist } from '@server/db/media/actions/artists';
 import { insertMusicGenre } from '@server/db/media/actions/musicGenres';
 import { getBestArtistImag } from '@server/functions/artistImage';
 import colorPalette, { colorPaletteFromFile } from '@server/functions/colorPalette';
 import { sleep } from '@server/functions/dateTime';
 import downloadImage from '@server/functions/downloadImage';
 import { fanart_artist } from '@server/providers/fanart/music';
-import { ArtistWithAppends, artistAppend, artist } from '@server/providers/musicbrainz/artist';
+import { artist, artistAppend, ArtistWithAppends } from '@server/providers/musicbrainz/artist';
 import { apiCachePath, imagesPath } from '@server/state';
 import { PaletteColors } from '@server/types/server';
-import { existsSync, readFileSync, writeFileSync, copyFileSync, statSync, rmSync } from 'fs';
+import { copyFileSync, existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import {
-	Artist
-} from '../../../providers/musicbrainz/fingerprint';
+import { Artist } from '../../../providers/musicbrainz/fingerprint';
 import { EncodingLibrary } from '@server/db/media/actions/libraries';
 
 export const createArtist = async (library: EncodingLibrary, artist: Artist, currentFolder: CurrentFolder) => {
@@ -36,10 +34,14 @@ export const createArtist = async (library: EncodingLibrary, artist: Artist, cur
 		.replace(/["*?<>|]/gu, '');
 
 	const artistFolder = isNaN(parseInt(artistName[0], 10))
-		? artistName[0].toUpperCase()
-		: '#';
+		?		artistName[0].toUpperCase()
+		:		'#';
 
-	const { image, colorPalette, blurHash } = await getArtistImage(currentFolder.folder.path as string, artist);
+	const {
+		image,
+		colorPalette,
+		blurHash,
+	} = await getArtistImage(currentFolder.folder.path as string, artist);
 
 	insertArtist({
 		id: artist.id,
@@ -47,8 +49,8 @@ export const createArtist = async (library: EncodingLibrary, artist: Artist, cur
 		cover: image,
 		blurHash: blurHash,
 		colorPalette: colorPalette
-			? JSON.stringify(colorPalette)
-			: undefined,
+			?			JSON.stringify(colorPalette)
+			:			undefined,
 		folder: `/${artistFolder.toUpperCase()}/${artistName}`,
 		library_id: library.id as string,
 	});
@@ -73,7 +75,8 @@ export const createArtist = async (library: EncodingLibrary, artist: Artist, cur
 		} catch (error) {
 			console.log(error);
 		}
-	};
+	}
+
 
 	process.send!({
 		type: 'custom',
@@ -101,7 +104,7 @@ export const getArtistInfo = async (artistID: string) => {
 
 		response = await artist(artistID)
 			.then(res => res)
-			.catch(({ response }) => {
+			.catch(() => {
 				// console.log(`http://musicbrainz.org/ws/2/recording/${recordingID}?fmt=json&inc=artist-credits+artists+releases+tags+genres`);
 				// console.log(response?.data);
 				return null;
@@ -125,7 +128,7 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 	});
 	let image: string | null = null;
 	let palette: PaletteColors | null = null;
-	let blurHash: string | null = null;
+	const blurHash: string | null = null;
 
 	const artistName = _artist.name
 		.replace(/[\/]/gu, '_')
@@ -134,8 +137,8 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 		.replace(/["*?<>|]/gu, '');
 
 	const artistFolder = isNaN(parseInt(artistName[0], 10))
-		? artistName[0].toUpperCase()
-		: '#';
+		?		artistName[0].toUpperCase()
+		:		'#';
 
 	const base = resolve(`${folder}/${artistFolder}/${artistName}/${artistName}`.replace(/[\\\/]undefined/gu, ''));
 
@@ -158,7 +161,10 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 
 			if (images?.artistthumb?.[0]?.url) {
 				image = images?.artistthumb?.[0]?.url;
-				await downloadImage({ url: image, path: `${imagesPath}/music/${_artist.id}.jpg` })
+				await downloadImage({
+					url: image,
+					path: `${imagesPath}/music/${_artist.id}.jpg`,
+				})
 					.catch((e) => {
 						console.log(e);
 					});
@@ -202,7 +208,10 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 				image = `/${artistName}.${x.extension}`;
 				palette = await colorPalette(x.url);
 				// blurHash = await createBlurHash(x.url);
-				await downloadImage({ url: x.url, path: `${imagesPath}/music/${_artist.id}.${x.extension}` })
+				await downloadImage({
+					url: x.url,
+					path: `${imagesPath}/music/${_artist.id}.${x.extension}`,
+				})
 					.catch(() => {
 						//
 					});
@@ -227,7 +236,10 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 					color: 'magentaBright',
 					message: `Fetching artist image: ${artistName}`,
 				});
-				await downloadImage({ url: x.url, path: `${imagesPath}/music/${_artist.id}.${x.extension}` })
+				await downloadImage({
+					url: x.url,
+					path: `${imagesPath}/music/${_artist.id}.${x.extension}`,
+				})
 					.catch(() => {
 						//
 					});
@@ -246,7 +258,7 @@ export const getArtistImage = async (folder: string, _artist: Artist) => {
 
 	return {
 		image,
-		colorPalette: palette,
+		color_palette: palette,
 		blurHash,
 	};
 };

@@ -15,10 +15,7 @@ export default async function (req: Request, res: Response) {
 	});
 
 	if (result.error) {
-		return res.status(result.error.code ?? 500).json({
-			status: 'error',
-			message: result.error.message,
-		});
+		return res.json(false);
 	}
 	return res.json(result.result);
 }

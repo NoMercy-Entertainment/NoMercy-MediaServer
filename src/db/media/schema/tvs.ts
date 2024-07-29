@@ -1,4 +1,3 @@
-
 import { boolean, datetime } from '../../helpers';
 import { relations, sql } from 'drizzle-orm';
 import { text, sqliteTable, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
@@ -19,13 +18,17 @@ import { certification_tv } from './certification_tv';
 import { genre_tv } from './genre_tv';
 
 export const tvs = sqliteTable('tvs', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
-	title: text('title').notNull(),
-	titleSort: text('titleSort').notNull(),
+	id: integer('id')
+		.primaryKey({ autoIncrement: true }),
+	title: text('title')
+		.notNull(),
+	titleSort: text('titleSort')
+		.notNull(),
 	haveEpisodes: integer('haveEpisodes'),
 	folder: text('folder'),
 	backdrop: text('backdrop'),
-	created_at: datetime('created_at').notNull()
+	created_at: datetime('created_at')
+		.notNull()
 		.default(sql`CURRENT_TIMESTAMP`),
 	duration: integer('duration'),
 	firstAirDate: text('firstAirDate'),
@@ -61,14 +64,22 @@ export const tvs = sqliteTable('tvs', {
 	colorPalette: text('colorPalette'),
 
 	library_id: text('library_id')
-		.references(() => libraries.id, { onDelete: 'cascade', onUpdate: 'cascade' })
+		.references(() => libraries.id, {
+			onDelete: 'cascade',
+			onUpdate: 'cascade',
+		})
 		.notNull(),
 }, db => ({
-	index: index('tvIndex').on(db.id),
-	unique: uniqueIndex('tvUnique').on(db.id),
+	index: index('tvIndex')
+		.on(db.id),
+	unique: uniqueIndex('tvUnique')
+		.on(db.id),
 }));
 
-export const tvsRelations = relations(tvs, ({ many, one }) => ({
+export const tvsRelations = relations(tvs, ({
+	many,
+	one,
+}) => ({
 	library: one(libraries, {
 		fields: [tvs.library_id],
 		references: [libraries.id],

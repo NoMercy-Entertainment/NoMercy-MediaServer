@@ -1,13 +1,12 @@
 import { Request, Response } from 'express-serve-static-core';
 import i18n from '@server/loaders/i18n';
 import { requestWorker } from '@server/api/requestWorker';
-import { PersonCast, PersonWithAppends, person, personAppend } from '@server/providers/tmdb/people';
+import { person, personAppend, PersonCast, PersonWithAppends } from '@server/providers/tmdb/people';
 import { inArray } from 'drizzle-orm';
 import { sortBy, unique } from '@server/functions/stringArray';
 import { parseYear } from '@server/functions/dateTime';
 
-
-export default async function (req: Request, res: Response) {
+export default async function(req: Request, res: Response) {
 
 	const result = await requestWorker({
 		filename: __filename,
@@ -16,16 +15,20 @@ export default async function (req: Request, res: Response) {
 	});
 
 	if (result.error) {
-		return res.status(result.error.code ?? 500).json({
-			status: 'error',
-			message: result.error.message,
-		});
+		return res.status(result.error.code ?? 500)
+			.json({
+				status: 'error',
+				message: result.error.message,
+			});
 	}
 	return res.json(result.result);
 }
 
-export const exec = ({ id, language }: { id: string, language: string }) => {
-	return new Promise(async (resolve, reject) => {
+export const exec = ({
+	id,
+	language,
+}: { id: string, language: string }) => {
+	return new Promise(async (resolve) => {
 
 		await i18n.changeLanguage('en');
 
@@ -49,35 +52,41 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			},
 		});
 
-		const tvIds = data?.casts.filter(t => !!t.tv_id).map(c => c.tv_id!)
+		const tvIds = data?.casts.filter(t => !!t.tv_id)
+			.map(c => c.tv_id!)
 			.concat(0) ?? [0];
-		const movieIds = data?.casts.filter(m => !!m.movie_id).map(c => c.movie_id!)
+		const movieIds = data?.casts.filter(m => !!m.movie_id)
+			.map(c => c.movie_id!)
 			.concat(0) ?? [0];
 
-		const imagesData = globalThis.mediaDb.query.images.findMany({
-			where: (images, { eq, and }) => and(
-				eq(images.person_id, parseInt(id, 10)),
-				eq(images.type, 'profile')
-			),
-		});
+		// const imagesData = globalThis.mediaDb.query.images.findMany({
+		// 	where: (images, { eq, and }) => and(
+		// 		eq(images.person_id, parseInt(id, 10)),
+		// 		eq(images.type, 'profile')
+		// 	),
+		// });
 
-		const movieData = globalThis.mediaDb.query.movies.findMany({
-			where: (movies, { eq, and }) => eq(movies.id, parseInt(id, 10)),
-		});
+		// const movieData = globalThis.mediaDb.query.movies.findMany({
+		// 	where: (movies, { eq }) => eq(movies.id, parseInt(id, 10)),
+		// });
 
-		const tvData = globalThis.mediaDb.query.tvs.findMany({
-			where: (tv, { eq, and }) => eq(tv.id, parseInt(id, 10)),
-		});
+		// const tvData = globalThis.mediaDb.query.tvs.findMany({
+		// 	where: (tv, { eq }) => eq(tv.id, parseInt(id, 10)),
+		// });
 
-		const mediasData = globalThis.mediaDb.query.medias.findMany({
-			where: (medias, { eq, and }) => and(
-				eq(medias.person_id, parseInt(id, 10)),
-				eq(medias.type, 'profile')
-			),
-		});
+		// const mediasData = globalThis.mediaDb.query.medias.findMany({
+		// 	where: (medias, { eq, and }) => and(
+		// 		eq(medias.person_id, parseInt(id, 10)),
+		// 		eq(medias.type, 'profile')
+		// 	),
+		// });
 
 		const translationsData = globalThis.mediaDb.query.translations.findFirst({
-			where: (translations, { eq, and, or }) => or(
+			where: (translations, {
+				eq,
+				and,
+				or,
+			}) => or(
 				and(
 					eq(translations.iso6391, language),
 					inArray(translations.tv_id, tvIds)
@@ -91,17 +100,18 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 
 		let p: PersonWithAppends<typeof personAppend[number]> | undefined;
 
-		await person(parseInt(id, 10)).then((person) => {
-			p = person;
-		});
+		await person(parseInt(id, 10))
+			.then((person) => {
+				p = person;
+			});
 
 		const result: any = {
 			...data,
 			...p,
 			biography: translationsData?.biography == null
-				? data?.biography ?? p?.biography
-				: translationsData?.biography,
-			knownFor: p && unique(sortBy(p.combined_credits.cast, 'popularity', 'desc'), 'title')
+				?				data?.biography ?? p?.biography
+				:				translationsData?.biography,
+			knownFor: p && unique(sortBy(p.combined_credits?.cast ?? [], 'popularity', 'desc'), 'title')
 				.map(c => ({
 					...c,
 					poster: c.poster_path,
@@ -135,7 +145,7 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			},
 			combined_credits: {
 				cast: p && sortBy(
-					(p.combined_credits.cast as unknown as PersonCast[])
+					(p.combined_credits?.cast as unknown as PersonCast[] ?? [])
 						.filter(c => !!c.release_date || !!c.first_air_date)
 						.map(c => ({
 							...c,
@@ -148,7 +158,7 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 						})), 'year', 'desc'
 				),
 				crew: p && sortBy(
-					(p.combined_credits.crew as unknown as PersonCast[])
+					(p.combined_credits?.crew as unknown as PersonCast[] ?? [])
 						.map(c => ({
 							...c,
 							hasItem: data?.crews.some((crew) => {
@@ -214,13 +224,13 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 						})), 'year', 'desc'
 				),
 			},
-			colorPalette: data?.colorPalette
-				? JSON.parse(data?.colorPalette)
-				: null,
+			color_palette: data?.colorPalette
+				?				JSON.parse(data?.colorPalette)
+				:				null,
 			// Media: data?.Media.map((m) => {
 			// 	return {
 			// 		...m,
-			// 		colorPalette: m.colorPalette
+			// 		color_palette: m.colorPalette
 			// 			? JSON.parse(m.colorPalette)
 			// 			: null,
 			// 	};
@@ -231,7 +241,7 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			// 		...c.movie?.id && {
 			// 			...c.movie,
 			// 			type: 'movie',
-			// 			colorPalette: c.movie?.colorPalette
+			// 			color_palette: c.movie?.colorPalette
 			// 				? JSON.parse(c.movie?.colorPalette)
 			// 				: null,
 			// 			blurHash: c.movie?.blurHash
@@ -241,7 +251,7 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			// 		...c.tv?.id && {
 			// 			...c.tv,
 			// 			type: 'tv',
-			// 			colorPalette: c.tv?.colorPalette
+			// 			color_palette: c.tv?.colorPalette
 			// 				? JSON.parse(c.tv?.colorPalette)
 			// 				: null,
 			// 			blurHash: c.tv?.blurHash
@@ -252,14 +262,14 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			// 		TV: undefined,
 			// 		// Season: c.Season?.id && {
 			// 		// 	...c.Season,
-			// 		// 	colorPalette: c.Season?.colorPalette
+			// 		// 	color_palette: c.Season?.colorPalette
 			// 		// 		? JSON.parse(c.Season?.colorPalette)
 			// 		// 		: null,
 			// 		// 	blurHash: c.Season?.blurHash,
 			// 		// },
 			// 		// Episode: c.Episode?.id && {
 			// 		// 	...c.Episode,
-			// 		// 	colorPalette: c.Episode?.colorPalette
+			// 		// 	color_palette: c.Episode?.colorPalette
 			// 		// 		? JSON.parse(c.Episode?.colorPalette)
 			// 		// 		: null,
 			// 		// 	blurHash: c.Episode?.blurHash
@@ -274,7 +284,7 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			// 		...c.movie?.id && {
 			// 			...c.movie,
 			// 			type: 'movie',
-			// 			colorPalette: c.movie?.colorPalette
+			// 			color_palette: c.movie?.colorPalette
 			// 				? JSON.parse(c.movie?.colorPalette)
 			// 				: null,
 			// 			blurHash: c.movie?.blurHash
@@ -284,7 +294,7 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			// 		...c.tv?.id && {
 			// 			...c.tv,
 			// 			type: 'tv',
-			// 			colorPalette: c.tv?.colorPalette
+			// 			color_palette: c.tv?.colorPalette
 			// 				? JSON.parse(c.tv?.colorPalette)
 			// 				: null,
 			// 			blurHash: c.tv?.blurHash
@@ -295,14 +305,14 @@ export const exec = ({ id, language }: { id: string, language: string }) => {
 			// 		TV: undefined,
 			// 		// Season: c.Season?.id && {
 			// 		// 	...c.Season,
-			// 		// 	colorPalette: c.Season?.colorPalette
+			// 		// 	color_palette: c.Season?.colorPalette
 			// 		// 		? JSON.parse(c.Season?.colorPalette)
 			// 		// 		: null,
 			// 		// 	blurHash: c.Season?.blurHash,
 			// 		// },
 			// 		// Episode: c.Episode?.id && {
 			// 		// 	...c.Episode,
-			// 		// 	colorPalette: c.Episode?.colorPalette
+			// 		// 	color_palette: c.Episode?.colorPalette
 			// 		// 		? JSON.parse(c.Episode?.colorPalette)
 			// 		// 		: null,
 			// 		// 	blurHash: c.Episode?.blurHash

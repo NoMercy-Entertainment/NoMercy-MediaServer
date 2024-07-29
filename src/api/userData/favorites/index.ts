@@ -1,9 +1,9 @@
 import { Request, Response } from 'express-serve-static-core';
 
 
-export default function (req: Request, res: Response) {
+export default function(req: Request, res: Response) {
 
-	const array: any[] = [];
+	// const array: any[] = [];
 
 	// const cursorQuery = (req.body.page as number) ?? undefined;
 	// const skip = cursorQuery
@@ -99,7 +99,7 @@ export default function (req: Request, res: Response) {
 	// 		titleSort: createTitleSort(d.title),
 	// 		numberOfEpisodes: d.numberOfEpisodes ?? undefined,
 	// 		haveEpisodes: files.length ?? undefined,
-	// 		colorPalette: d.colorPalette
+	// 		color_palette: d.colorPalette
 	// 			? JSON.parse(d.colorPalette ?? '{}')
 	// 			: null,
 	// 		blurHash: d.blurHash
@@ -114,8 +114,8 @@ export default function (req: Request, res: Response) {
 	const response = [];
 
 	const nextId = response.length < req.body.take
-		? undefined
-		: response.length + req.body.page;
+		?		undefined
+		:		response.length + req.body.page;
 
 	return res.json({
 		nextId: nextId,

@@ -6,7 +6,6 @@ import { cachePath } from '@server/state';
 import { fallbackSearch } from '../data/search';
 import fullUpdate from '@server/tasks/data/fullUpdate';
 import getFolders from './getFolders';
-import { join } from 'path';
 // import { needsUpdate } from '../data/needsUpdate';
 import {
 	EncodingLibrary,
@@ -16,6 +15,7 @@ import {
 import { RunningTask, insertRunningTask } from '@server/db/media/actions/runningTasks';
 import { Movie } from '@server/db/media/actions/movies';
 import { Tv } from '@server/db/media/actions/tvs';
+import { resolve } from 'path';
 
 export interface FolderInfo {
 	lib: EncodingLibrary;
@@ -176,7 +176,7 @@ const process = async (
 	index: number
 ) => {
 
-	const jsonFile = join(cachePath, 'temp', `${title.title ?? title.name}_cache.json`);
+	const jsonFile = resolve(cachePath, 'temp', `${title.title ?? title.name}_cache.json`);
 	let x: FolderInfo;
 	const updateDate = Date.now();
 
@@ -194,7 +194,7 @@ const process = async (
 		}
 
 		x = {
-			id: search?.id,
+			id: search.id as number,
 			title: (search as Tv).title ?? (search as Movie).title ?? title.title,
 			year: title.year,
 			folder: title.path,

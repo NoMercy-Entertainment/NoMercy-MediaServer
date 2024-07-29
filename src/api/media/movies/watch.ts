@@ -7,6 +7,7 @@ import i18next from 'i18next';
 import { getClosestRating, sortBy } from '@server/functions/stringArray';
 import { MoviePlaybackWithRelations, getMoviePlayback } from '@server/db/media/actions/movies';
 import { requestWorker } from '@server/api/requestWorker';
+import { PlaylistItem } from '@server/types/video';
 
 export default async function (req: Request, res: Response) {
 
@@ -27,7 +28,7 @@ export default async function (req: Request, res: Response) {
 }
 
 export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
-	return new Promise(async (resolve, reject) => {
+	return new Promise((resolve, reject) => {
 
 		const movie = getMoviePlayback({
 			id: parseInt(id, 10),
@@ -45,11 +46,11 @@ export const exec = ({ id, user_id, language }: { id: string; user_id: string; l
 			});
 		}
 
-		return resolve(getContent(movie, language));
+		return resolve([getContent(movie, language)]);
 	});
 };
 
-const getContent = (movie: MoviePlaybackWithRelations, language: string) => {
+const getContent = (movie: MoviePlaybackWithRelations, language: string): PlaylistItem | undefined => {
 
 	if (!movie?.videoFiles) { return; }
 
@@ -80,10 +81,10 @@ const getContent = (movie: MoviePlaybackWithRelations, language: string) => {
 			}
 		}) ?? [];
 
-	let fonts: any[] = [];
-	let fontsfile = '';
+	let fonts: PlaylistItem['fonts'] = [];
+	let fontsFile: PlaylistItem['fontsFile'] = '';
 	if (search && existsSync(`${videoFile?.hostFolder}fonts.json`)) {
-		fontsfile = `/${videoFile?.share}/${videoFile?.folder}fonts.json`;
+		fontsFile = `/${videoFile?.share}/${videoFile?.folder}fonts.json`;
 		fonts = JSON.parse(readFileSync(`${videoFile?.hostFolder}fonts.json`, 'utf8'));
 	}
 
@@ -100,68 +101,89 @@ const getContent = (movie: MoviePlaybackWithRelations, language: string) => {
 		? showTitle
 		: movie.title;
 
-	return [
-		{
-			id: movie.id,
-			title: title,
-			description: overview,
-			show: show,
-			origin: deviceId,
-			uuid: movie.id,
-			video_id: videoFile.id,
-			duration: videoFile.duration,
-			tmdbid: movie.id,
-			video_type: 'movie',
-			playlist_type: 'movie',
-			playlist_id: movie.id,
-			year: parseYear(movie.releaseDate),
-			logo: movie.medias[0]?.src ?? null,
-			rating: getClosestRating(movie.certification_movie, language),
+	let progress: { percentage: number; date: string; } | null = null;
 
-			progress: videoFile.userData?.[0]?.time
-				? (videoFile.userData?.[0].time / convertToSeconds(videoFile.duration) * 100)
-				: null,
+	if (videoFile.userData?.[0]?.time) {
+		progress = {
+			percentage: (videoFile.userData?.[0].time / convertToSeconds(videoFile?.duration)) * 100,
+			date: videoFile.userData?.[0].updated_at,
+		};
+	}
 
-			poster: movie.backdrop ?? movie.poster
-				? '/images/original' + (movie.backdrop ?? movie.poster)?.replace('.jpg', '.webp')
-				: null,
-			image: movie.backdrop ?? movie.poster
-				? '/images/original' + (movie.backdrop ?? movie.poster)?.replace('.jpg', '.webp')
-				: null,
+	const logo = movie.images?.[0]?.filePath ?? null;
 
-			sources: [
-				{
-					src: `${baseFolder}${videoFile.filename}`,
-					type: videoFile.filename.includes('.mp4')
-						? 'video/mp4'
-						: 'application/x-mpegURL',
-					languages: JSON.parse(videoFile.languages ?? '[]'),
-				},
-			],
+	return {
+		id: movie.id,
+		title: title,
+		description: overview,
+		show: show,
+		origin: deviceId,
+		uuid: movie.id,
+		video_id: videoFile.id,
+		duration: videoFile.duration,
+		tmdbid: movie.id,
+		video_type: 'movie',
+		playlist_type: 'movie',
+		year: parseYear(movie.releaseDate),
+		rating: getClosestRating(movie.certification_movie, language)?.certification,
 
-			fonts,
-			fontsfile,
-			textTracks: sortBy(textTracks, 'language'),
-			tracks: [
-				{
-					file: `${baseFolder}/previews.vtt`,
-					kind: 'thumbnails',
-				},
-				{
-					file: `${baseFolder}/chapters.vtt`,
-					kind: 'chapters',
-				},
-				{
-					file: `${baseFolder}/sprite.webp`,
-					kind: 'sprite',
-				},
-				{
-					file: `${baseFolder}/fonts.json`,
-					kind: 'fonts',
-				},
-			],
-			production: movie.status != 'Ended' && movie.status != 'Released',
-		},
-	];
+		progress: progress,
+
+		// poster: movie.backdrop ?? movie.poster
+		// 	? `/images/w300${(movie.backdrop ?? movie.poster)?.replace(/\.(jpg|png)$/u, '.webp')}`
+		// 	: null,
+		// image: movie.backdrop ?? movie.poster
+		// 	? `/images/w300${(movie.backdrop ?? movie.poster)?.replace(/\.(jpg|png)$/u, '.webp')}`
+		// 	: null,
+		// logo: logo
+		// 	? `/images/original${logo?.replace(/\.(jpg|png)$/u, '.webp')}`
+		// 	: null,
+		poster: movie.backdrop ?? movie.poster
+			? `https://image.tmdb.org/t/p/w300${movie.backdrop ?? movie.poster}`
+			: null,
+		image: movie.backdrop ?? movie.poster
+			? `https://image.tmdb.org/t/p/w300${movie.backdrop ?? movie.poster}`
+			: null,
+		logo: logo
+			? `https://image.tmdb.org/t/p/original${logo}`
+			: null,
+
+
+		sources: [
+			{
+				src: `${baseFolder}${videoFile.filename}`,
+				type: videoFile.filename.includes('.mp4')
+					? 'video/mp4'
+					: 'application/x-mpegURL',
+				languages: JSON.parse(videoFile.languages ?? '[]'),
+			},
+		],
+
+		fonts,
+		fontsFile,
+		textTracks: sortBy(textTracks, 'language'),
+		tracks: [
+			{
+				file: `${baseFolder}/previews.vtt`,
+				kind: 'thumbnails',
+			},
+			{
+				file: `${baseFolder}/chapters.vtt`,
+				kind: 'chapters',
+			},
+			{
+				file: `${baseFolder}/skippers.vtt`,
+				kind: 'skippers',
+			},
+			{
+				file: `${baseFolder}/sprite.webp`,
+				kind: 'sprite',
+			},
+			{
+				file: `${baseFolder}/fonts.json`,
+				kind: 'fonts',
+			},
+		],
+	};
 
 };

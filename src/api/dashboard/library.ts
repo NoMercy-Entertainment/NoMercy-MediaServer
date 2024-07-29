@@ -1,30 +1,26 @@
 import { Request, Response } from 'express-serve-static-core';
 
 import Logger from '@server/functions/logger';
-import {
-	createMediaFolder
-} from '@server/tasks/files/filenameParser';
-import { encodeInput } from '@server/functions/ffmpeg/encodeInput';
+import { createMediaFolder } from '@server/tasks/files/filenameParser';
 import i18n from '../../loaders/i18n';
 import { movie } from '@server/providers/tmdb/movie';
-import path from 'path';
-import { platform } from '@server/functions/system';
-import {
-	scanLibrary
-} from '@server/tasks/files/scanLibraries';
+import { scanLibrary } from '@server/tasks/files/scanLibraries';
 import storeMovie from '@server/tasks/data/movie';
 import storeTvShow from '@server/tasks/data/tv';
 import { tv } from '@server/providers/tmdb/tv';
-import { updateEncoderProfilesParams } from '@server/types/server';
 import { insertLibrary, selectLibrariesWithRelations } from '@server/db/media/actions/libraries';
 import { eq, inArray } from 'drizzle-orm';
-import { libraries } from '@server/db/media/schema/libraries';
-import { insertFolder } from '@server/db/media/actions/folders';
+import { libraries as dbLibraries } from '@server/db/media/schema/libraries';
 import { folders } from '@server/db/media/schema/folders';
-import { encoderProfiles } from '@server/db/media/schema/encoderProfiles';
+import { insertFolder } from '@server/db/media/actions/folders';
+import { insertLibraryFolder } from '@server/db/media/actions/folder_library';
+import path from 'path';
+import { updateEncoderProfilesParams } from '@server/types/server';
+import { insertEncoderProfileLibrary } from '@server/db/media/actions/encoderProfile_library';
+import { insertSubtitleLanguage } from '@server/db/media/actions/language_library';
 import { languages } from '@server/db/media/schema/languages';
 
-export const librarie = (req: Request, res: Response) => {
+export const libraries = (req: Request, res: Response) => {
 
 	const data = selectLibrariesWithRelations();
 
@@ -49,252 +45,183 @@ export const librarie = (req: Request, res: Response) => {
 };
 
 export const createLibrary = (req: Request, res: Response) => {
-	//
-	const {
-		type,
-		folders,
-		chapterImages,
-		specialSeasonName,
-		title,
-		subtitles,
-		encoderProfiles: profiles,
-	} = req.body;
 
-	const users = globalThis.mediaDb.query.users.findMany();
-
-	const lib = globalThis.mediaDb.query.libraries.findFirst({
-		where: eq(libraries.title, title),
-	});
-
-	const library = lib
-		? lib
-		: insertLibrary({
-			title: title,
-			autoRefreshInterval: 30,
-			chapterImages: chapterImages,
-			extractChapters: chapterImages,
-			extractChaptersDuring: true,
-			perfectSubtitleMatch: true,
-			realtime: true,
-			specialSeasonName: specialSeasonName,
-			type: type,
-			country: 'NL',
-			language: 'nl',
-		}, 'title');
-
-	folders.map((folder: string) => {
-		insertFolder({
-			path: folder,
-		});
-	});
-
-	const Folders = globalThis.mediaDb.query.folders.findMany();
-	const Languages = globalThis.mediaDb.query.languages.findMany();
-
-	// globalThis.mediaDb.query.libraries.update({
-	// 	where: {
-	// 		id: library.id,
-	// 	},
-	// 	data: {
-	// 		Folders: {
-	// 			connectOrCreate: Folders.map(folder => ({
-	// 				create: {
-	// 					folderId: folder.id,
-	// 				},
-	// 				where: {
-	// 					libraryId_folderId: {
-	// 						folderId: folder.id,
-	// 						libraryId: library.id,
-	// 					},
-	// 				},
-	// 			})),
-	// 		},
-	// 		User: {
-	// 			connectOrCreate: users.map(user => ({
-	// 				create: {
-	// 					userId: user.sub_id,
-	// 				},
-	// 				where: {
-	// 					libraryId_userId: {
-	// 						userId: user.sub_id,
-	// 						libraryId: library.id,
-	// 					},
-	// 				},
-	// 			})),
-	// 		},
-	// 		EncoderProfiles: {
-	// 			connectOrCreate: profiles.map((encoderProfile) => {
-	// 				return {
-	// 					create: {
-	// 						encoderProfileId: encoderProfile,
-	// 					},
-	// 					where: {
-	// 						libraryId_encoderProfileId: {
-	// 							encoderProfileId: encoderProfile,
-	// 							libraryId: library.id,
-	// 						},
-	// 					},
-	// 				};
-	// 			}),
-	// 		},
-	// 		SubtitleLanguages: {
-	// 			connectOrCreate: subtitles.map((subtitle) => {
-	// 				const language = Languages.find(l => l.iso_639_1 == subtitle)!;
-	// 				return {
-	// 					create: {
-	// 						languageId: language.id,
-	// 					},
-	// 					where: {
-	// 						libraryId_languageId: {
-	// 							languageId: language.id,
-	// 							libraryId: library.id,
-	// 						},
-	// 					},
-	// 				};
-	// 			}),
-	// 		},
-	// 	},
-	// });
+	const libraries = globalThis.mediaDb.query.libraries.findMany();
+	const library = insertLibrary({
+		title: `Library ${libraries.length + 1}`,
+		autoRefreshInterval: 30,
+		chapterImages: true,
+		extractChapters: true,
+		extractChaptersDuring: true,
+		perfectSubtitleMatch: true,
+		realtime: true,
+		specialSeasonName: 'Specials',
+		type: '',
+		country: '',
+		language: '',
+	}, 'id');
 
 	return res.json({
 		status: 'ok',
-		message: `Successfully created ${title} library.`,
+		data: library,
 	});
 };
 
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const updateLibrary = (req: Request, res: Response) => {
 	const {
-		autoRefreshInterval,
-		chapterImages,
-		country,
-		encoderProfiles: E,
-		extractChapters,
-		extractChaptersDuring,
-		folders: F,
 		id,
+		autoRefreshInterval,
 		image,
-		language,
 		perfectSubtitleMatch,
 		realtime,
 		specialSeasonName,
-		subtitles,
 		title,
-		type,
+		encoderProfiles: E,
+		folders: F,
+		subtitles: S,
 	}: updateEncoderProfilesParams = req.body;
 
-	const Folders = globalThis.mediaDb.query.folders.findMany({
-		where: inArray(folders.path,
-			F.map(f => (platform == 'windows'
-				? path.resolve(f)?.replace(/\/$/u, '')
-				: f?.replace(/\/$/u, '')))),
+	try {
+
+		const library = globalThis.mediaDb.query.libraries.findFirst({
+			where: eq(dbLibraries.id, id),
+		})!;
+
+		insertLibrary({
+			...library,
+			id,
+			autoRefreshInterval,
+			image,
+			perfectSubtitleMatch,
+			realtime,
+			title,
+			specialSeasonName,
+		}, 'id');
+
+	} catch (error) {
+		Logger.log({
+			level: 'error',
+			name: 'setup',
+			color: 'red',
+			message: 'Error updating the library: {0}',
+			args: [error],
+		});
+
+		return res.json({
+			status: 'error',
+			message: 'Something went wrong updating the library: {0}',
+			args: [error],
+		});
+
+	}
+	try {
+		const folderRoots = globalThis.mediaDb.query.folders.findMany({
+			where: inArray(folders.path, F),
+		});
+
+		for (const folder of F) {
+			insertLibraryFolder({
+				library_id: id,
+				folder_id: folderRoots.find(f => f.path == folder)!.id!,
+			});
+		}
+	} catch (error) {
+		Logger.log({
+			level: 'error',
+			name: 'setup',
+			color: 'red',
+			message: 'Error updating the library folder: {0}',
+			args: [error],
+		});
+
+		return res.json({
+			status: 'error',
+			message: 'Something went wrong updating the library folder: {0}',
+			args: [error],
+		});
+
+	}
+	try {
+
+		for (const encoderProfile of E) {
+			insertEncoderProfileLibrary({
+				library_id: id,
+				encoderProfile_id: encoderProfile,
+			});
+		}
+	} catch (error) {
+		Logger.log({
+			level: 'error',
+			name: 'setup',
+			color: 'red',
+			message: 'Error updating the encoder profile library: {0}',
+			args: [error],
+		});
+
+		return res.json({
+			status: 'error',
+			message: 'Something went wrong updating the encoder profile library: {0}',
+			args: [error],
+		});
+
+	}
+	try {
+		if (S.length > 0) {
+
+			const subtitleLanguages = globalThis.mediaDb.query.languages.findMany({
+				where: inArray(languages.iso_639_1, S),
+			});
+
+			for (const subtitle of S) {
+				insertSubtitleLanguage({
+					library_id: id,
+					type: 'subtitle',
+					language_id: subtitleLanguages.find(l => l.iso_639_1 == subtitle)!.id,
+				});
+			}
+		}
+
+	} catch (error) {
+		Logger.log({
+			level: 'error',
+			name: 'setup',
+			color: 'red',
+			message: 'Error updating the library subtitles: {0}',
+			args: [error],
+		});
+
+		return res.json({
+			status: 'error',
+			message: 'Something went wrong updating the library subtitles: {0}',
+			args: [error],
+		});
+
+	}
+
+	Logger.log({
+		level: 'info',
+		name: 'setup',
+		color: 'blueBright',
+		message: 'Updated library {0}',
+		args: [id],
 	});
 
-	const EncoderProfiles = globalThis.mediaDb.query.encoderProfiles.findMany({
-		where: inArray(encoderProfiles.id, E),
+	return res.json({
+		status: 'ok',
+		message: 'Successfully updated library {0}',
+		args: [id],
 	});
 
-	const Languages = globalThis.mediaDb.query.languages.findMany({
-		where: inArray(languages.iso_639_1, subtitles),
-	});
-
-	// globalThis.mediaDb.query.libraries
-	// 	.update({
-	// 		where: {
-	// 			id: id,
-	// 		},
-	// 		data: {
-	// 			id: id,
-	// 			autoRefreshInterval: autoRefreshInterval,
-	// 			chapterImages: chapterImages,
-	// 			extractChapters: extractChapters,
-	// 			extractChaptersDuring: extractChaptersDuring,
-	// 			image: image,
-	// 			perfectSubtitleMatch: perfectSubtitleMatch,
-	// 			realtime: realtime,
-	// 			specialSeasonName: specialSeasonName,
-	// 			title: title,
-	// 			type: type,
-	// 			Folders: {
-	// 				// set: [],
-	// 				connectOrCreate: Folders.map(f => ({
-	// 					where: {
-	// 						libraryId_folderId: {
-	// 							folderId: f.id,
-	// 							libraryId: id,
-	// 						},
-	// 					},
-	// 					create: {
-	// 						folderId: f.id,
-	// 					},
-	// 				})),
-	// 			},
-	// 			EncoderProfiles: {
-	// 				// set: [],
-	// 				connectOrCreate: EncoderProfiles.map(f => ({
-	// 					where: {
-	// 						libraryId_encoderProfileId: {
-	// 							encoderProfileId: f.id,
-	// 							libraryId: id,
-	// 						},
-	// 					},
-	// 					create: {
-	// 						encoderProfileId: f.id,
-	// 					},
-	// 				})),
-	// 			},
-	// 			SubtitleLanguages: {
-	// 				// set: [],
-	// 				connectOrCreate: Languages.map(f => ({
-	// 					where: {
-	// 						libraryId_languageId: {
-	// 							languageId: f.id,
-	// 							libraryId: id,
-	// 						},
-	// 					},
-	// 					create: {
-	// 						languageId: f.id,
-	// 					},
-	// 				})),
-	// 			},
-	// 			country: country,
-	// 			language: language.toLowerCase(),
-
-	// 			// metadata: metadata,
-	// 		},
-	// 		select: {
-	// 			title: true,
-	// 		},
-	// 	})
-	// 	.then((data) => {
-	// 		Logger.log({
-	// 			level: 'info',
-	// 			name: 'access',
-	// 			color: 'magentaBright',
-	// 			message: `Updated ${data.title} library.`,
-	// 		});
-
-	// 		return res.json({
-	// 			status: 'ok',
-	// 			message: `Successfully updated ${data.title} library.`,
-	// 		});
-	// 	})
-	// 	.catch((error) => {
-	// 		Logger.log({
-	// 			level: 'info',
-	// 			name: 'access',
-	// 			color: 'magentaBright',
-	// 			message: `Error updating user permissions: ${error}`,
-	// 		});
-	// 		return res.json({
-	// 			status: 'ok',
-	// 			message: `Something went wrong updating permissions: ${error}`,
-	// 		});
-	// 	});
 };
 
 export const rescanLibrary = (req: Request, res: Response) => {
 	const { id } = req.params;
-	const { forceUpdate, synchronous } = req.body;
+	const {
+		forceUpdate,
+		synchronous,
+	} = req.body;
 
 	scanLibrary(id, forceUpdate, synchronous)
 		.then((data) => {
@@ -302,7 +229,7 @@ export const rescanLibrary = (req: Request, res: Response) => {
 				Logger.log({
 					level: 'info',
 					name: 'job',
-					color: 'magentaBright',
+					color: 'blueBright',
 					message: 'Library does not exist',
 				});
 				return res.json({
@@ -314,7 +241,7 @@ export const rescanLibrary = (req: Request, res: Response) => {
 			Logger.log({
 				level: 'info',
 				name: 'job',
-				color: 'magentaBright',
+				color: 'blueBright',
 				message: 'Updated library.',
 			});
 		});
@@ -329,32 +256,36 @@ export const deleteLibrary = (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	try {
-		const data = globalThis.mediaDb.delete(libraries)
-			.where(eq(libraries.id, id))
+		const data = globalThis.mediaDb.delete(dbLibraries)
+			.where(eq(dbLibraries.id, id))
 			.returning()
 			.get();
 
 		Logger.log({
 			level: 'info',
-			name: 'access',
-			color: 'magentaBright',
-			message: `Deleted ${data?.title} library.`,
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Deleted {0} library.',
+			args: [data?.title],
 		});
 
 		return res.json({
 			status: 'error',
-			message: `Successfully deleted ${data?.title} library.`,
+			message: 'Successfully deleted {0} library.',
+			args: [data?.title],
 		});
 	} catch (error) {
 		Logger.log({
-			level: 'info',
-			name: 'access',
-			color: 'magentaBright',
-			message: `Error deleting the library: ${error}`,
+			level: 'error',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Error deleting the library: {0}',
+			args: [error],
 		});
 		return res.json({
 			status: 'ok',
-			message: `Something went wrong deleting the library: ${error}`,
+			message: 'Something went wrong deleting the library: {0}',
+			args: [error],
 		});
 
 	}
@@ -365,7 +296,7 @@ export const addNewItem = async (req: Request, res: Response) => {
 	const { id } = req.params;
 
 	const library = globalThis.mediaDb.query.libraries.findFirst({
-		where: eq(libraries.id, id),
+		where: eq(dbLibraries.id, id),
 		with: {
 			folder_library: {
 				with: {
@@ -383,8 +314,8 @@ export const addNewItem = async (req: Request, res: Response) => {
 	if (!library?.id) {
 		Logger.log({
 			level: 'info',
-			name: 'access',
-			color: 'magentaBright',
+			name: 'setup',
+			color: 'blueBright',
 			message: 'Library not found',
 		});
 		return res.json({
@@ -393,7 +324,10 @@ export const addNewItem = async (req: Request, res: Response) => {
 		});
 	}
 
-	const { type, id: itemId } = req.body;
+	const {
+		type,
+		id: itemId,
+	} = req.body;
 
 	await i18n.changeLanguage('en');
 
@@ -405,9 +339,10 @@ export const addNewItem = async (req: Request, res: Response) => {
 			id: movieData.id,
 			folder: createMediaFolder(library, movieData),
 			libraryId: library.id,
-		}).then((data) => {
-			return res.json(data);
-		});
+		})
+			.then((data) => {
+				return res.json(data);
+			});
 
 		break;
 	case 'tv':
@@ -417,9 +352,10 @@ export const addNewItem = async (req: Request, res: Response) => {
 			id: tvData.id,
 			folder: createMediaFolder(library, tvData),
 			libraryId: library.id,
-		}).then((data) => {
-			return res.json(data);
-		});
+		})
+			.then((data) => {
+				return res.json(data);
+			});
 
 		break;
 	case 'music':
@@ -429,15 +365,142 @@ export const addNewItem = async (req: Request, res: Response) => {
 	}
 
 };
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const encodeLibrary = async (req: Request, res: Response) => {
 
-	const id = parseInt(req.params.id, 10);
+	// const id = parseInt(req.params.id, 10);
 
-	const data = await encodeInput({ id });
+	// const data = await encodeInput({ id });
 
-	return res.json({
-		status: 'ok',
-		data,
-	});
+	// return res.json({
+	// 	status: 'ok',
+	// 	data,
+	// });
+};
+
+export const deleteLibraryFolder = (req: Request, res: Response) => {
+	const {
+		id: library_id,
+		folderId: folder_id,
+	} = req.params;
+
+	try {
+
+		globalThis.mediaDb
+			.delete(folders)
+			.where(eq(folders.id, folder_id))
+			.returning()
+			.run();
+
+		Logger.log({
+			level: 'info',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Deleted folder {0} from library {1}',
+			args: [folder_id, library_id],
+		});
+
+		return res.json({
+			status: 'ok',
+			message: 'Successfully deleted folder {0} from library {1}',
+			args: [folder_id, library_id],
+		});
+
+	} catch (error) {
+		Logger.log({
+			level: 'error',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Error deleting the folder: {0}',
+			args: [error],
+		});
+		return res.json({
+			status: 'error',
+			message: 'Something went wrong deleting the folder: {0}',
+			args: [error],
+		});
+	}
+
+};
+
+export const addLibraryFolder = (req: Request, res: Response) => {
+	const { id: library_id } = req.params;
+	const { path: folder } = req.body;
+
+	try {
+
+		const data = insertFolder({ path: path.resolve(folder) });
+
+		insertLibraryFolder({
+			library_id: library_id,
+			folder_id: data.id!,
+		});
+
+		Logger.log({
+			level: 'info',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Added folder {0} to library {1}',
+			args: [data?.path, library_id],
+		});
+
+		return res.json({
+			status: 'ok',
+			message: 'Successfully added folder {0} to library {1}',
+			args: [data?.path, library_id],
+		});
+	} catch (error) {
+		Logger.log({
+			level: 'error',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Error adding the folder: {0}',
+			args: [error],
+		});
+		return res.json({
+			status: 'error',
+			message: 'Something went wrong adding the folder: {0}',
+			args: [error],
+		});
+	}
+
+};
+
+export const sortLibrary = (req: Request, res: Response) => {
+	try {
+		req.body.libraries.forEach((library, index) => {
+			globalThis.mediaDb
+				.update(dbLibraries)
+				.set({
+					order: index,
+				})
+				.where(eq(dbLibraries.id, library.id))
+				.run();
+		});
+
+		Logger.log({
+			level: 'info',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Sorted libraries',
+		});
+
+		return res.json({
+			status: 'ok',
+			message: 'Successfully sorted libraries',
+		});
+	} catch (error) {
+		Logger.log({
+			level: 'error',
+			name: 'setup',
+			color: 'blueBright',
+			message: 'Error sorting the libraries: {0}',
+			args: [error],
+		});
+		return res.json({
+			status: 'error',
+			message: 'Something went wrong sorting the libraries: {0}',
+			args: [error],
+		});
+	}
 };

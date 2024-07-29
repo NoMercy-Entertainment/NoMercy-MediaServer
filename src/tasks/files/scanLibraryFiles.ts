@@ -27,7 +27,7 @@ export default () => {
 		// 					recursive: true,
 		// 				}).then(async (fileList) => {
 
-		// 					const folderFile = path.join(cachePath, 'temp', `${folder.path.replace(/[\\\/:]/gu, '_')}_parsed.json`);
+		// 					const folderFile = path.resolve(cachePath, 'temp', `${folder.path.replace(/[\\\/:]/gu, '_')}_parsed.json`);
 
 		// 					let parsedFiles: ParsedFileList[] = new Array<ParsedFileList>();
 

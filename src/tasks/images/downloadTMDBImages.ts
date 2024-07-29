@@ -23,7 +23,7 @@ interface DownloadTMDBImages {
 	};
 }
 
-export const execute = ({ type, data }: DownloadTMDBImages) => {
+export const execute = ({ data }: DownloadTMDBImages) => {
 	const imageSizes = [
 		{
 			size: 'original',
@@ -77,7 +77,7 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 
 	return new Promise<void>(async (resolve, reject) => {
 		try {
-			const combinedList: { [arg: string]: Array<Image|Cast|Crew> } = {
+			const combinedList: { [arg: string]: Array<Image | Cast | Crew> } = {
 				posters: (data.images as TvImages | MovieImages | SeasonImages)?.posters ?? [],
 				backdrops: (data.images as TvImages | MovieImages | SeasonImages)?.backdrops ?? [],
 				stills: (data.images as EpisodeImages)?.stills ?? [],
@@ -87,8 +87,8 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 				crew: (data.credits as TvCredits | MovieCredits)?.crew ?? [],
 			};
 
-			for (let i = 0; i < Object.values<Array<Image|Cast|Crew>>(combinedList).length; i++) {
-				const imgs = Object.values<Array<Image|Cast|Crew>>(combinedList)[i];
+			for (let i = 0; i < Object.values<Array<Image | Cast | Crew>>(combinedList).length; i++) {
+				const imgs = Object.values<Array<Image | Cast | Crew>>(combinedList)[i];
 				const allowedType = Object.keys(combinedList)[i];
 
 				for (let j = 0; j < imgs.length; j++) {
@@ -105,7 +105,7 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 
 						if (!size) continue;
 
-						const file = (image as Image).file_path ?? (image as Cast|Crew).profile_path;
+						const file = (image as Image).file_path ?? (image as Cast | Crew).profile_path;
 						if (!file) continue;
 
 						const newFile = file?.replace(/.jpg$|.png$/u, '.webp');
@@ -118,18 +118,23 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 						// 	continue;
 						// }
 
-						await	downloadImage({
+						await downloadImage({
 							url: `https://image.tmdb.org/t/p/${size}${file}`,
 							path: `${imagesPath}/${size}${newFile}`,
 							usableImageSizes,
 						})
-							.then(({ dimensions, stats, colorPalette, blurHash }) => {
-								const path = (image as Image).file_path ?? (image as Cast|Crew).profile_path;
+							.then(({
+								dimensions,
+								stats,
+								colorPalette,
+								blurHash,
+							}) => {
+								const path = (image as Image).file_path ?? (image as Cast | Crew).profile_path;
 								insertImage({
 									// id: path.match(/\w+/u)![0],
 									aspectRatio: (image as Image).aspect_ratio ?? (dimensions.width && dimensions.height
-										? dimensions.width / dimensions.height
-										: undefined),
+										?										dimensions.width / dimensions.height
+										:										undefined),
 									height: (image as Image).height ?? dimensions.height,
 									iso6391: (image as Image).iso_639_1 ?? undefined,
 									filePath: path,
@@ -140,9 +145,9 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 									name: path,
 									voteAverage: (image as Image).vote_average ?? undefined,
 									voteCount: (image as Image).vote_count ?? undefined,
-									colorPalette: colorPalette
-										? JSON.stringify(colorPalette)
-										: null,
+									color_palette: colorPalette
+										?										JSON.stringify(colorPalette)
+										:										null,
 									blurHash: blurHash,
 								});
 							})
@@ -160,14 +165,20 @@ export const execute = ({ type, data }: DownloadTMDBImages) => {
 	});
 };
 
-export const downloadTMDBImages = async ({ type, data }: DownloadTMDBImages) => {
+export const downloadTMDBImages = ({
+	type,
+	data,
+}: DownloadTMDBImages) => {
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	// await queue.add({
-	// 	file: __filename,
-	// 	fn: 'execute',
-	// 	args: { type, data },
-	// });
+	queue.add({
+		file: __filename,
+		fn: 'execute',
+		args: {
+			type,
+			data,
+		},
+	});
 };
 
 export default downloadTMDBImages;

@@ -11,9 +11,11 @@ import { Translation } from '@server/db/media/actions/translations';
 import { VideoFile } from '@server/db/media/actions/videoFiles';
 import { UserData } from '@server/db/media/actions/userData';
 import { CertificationTv } from '@server/db/media/actions/certification_tv';
-import { Media } from '@server/db/media/actions/medias';
 import { Certification } from '@server/db/media/actions/certifications';
 import { requestWorker } from '@server/api/requestWorker';
+import { PlaylistItem } from '@server/types/video';
+import { Image } from '@server/db/media/actions/images';
+import { Season } from '@server/db/media/actions/seasons';
 
 export default async function (req: Request, res: Response) {
 
@@ -34,7 +36,7 @@ export default async function (req: Request, res: Response) {
 }
 
 export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
-	return new Promise(async (resolve, reject) => {
+	return new Promise((resolve, reject) => {
 
 		const tv = getTvPlayback({
 			id: parseInt(id, 10),
@@ -76,22 +78,24 @@ const getContent = (data: TvPlaybackWithRelations, language: string) => {
 	return response;
 };
 
-type PlaylistItem = (Episode & {
+type EpisodeItem = (Episode & {
 	tv: (Tv & {
-		medias: Media[];
+		images: Image;
 		translations: Translation[];
 		certification_tv: (CertificationTv & {
 			certification: Certification;
 		})[];
 	});
+	season: Season;
 	translations: Translation[];
 	videoFiles: (VideoFile & {
 		userData: UserData[];
 	})[];
 });
-const playlist = (episode: PlaylistItem, language: string) => {
 
-	if (!episode?.videoFiles?.[0]) return;
+const playlist = (episode: EpisodeItem, language: string): PlaylistItem | undefined => {
+
+	if (!episode || !episode?.videoFiles?.[0]) return;
 
 	let search = false;
 
@@ -135,46 +139,72 @@ const playlist = (episode: PlaylistItem, language: string) => {
 			}
 		}) ?? [];
 
-	let fonts: any[] = [];
-	let fontsfile = '';
-	if (search && existsSync(`${videoFile?.hostFolder}fonts.json`)) {
-		fontsfile = `/${videoFile?.share}/${videoFile?.folder}fonts.json`;
-		fonts = JSON.parse(readFileSync(`${videoFile?.hostFolder}fonts.json`, 'utf8'));
+	let fonts: PlaylistItem['fonts'] = [];
+	let fontsFile: PlaylistItem['fontsFile'] = '';
+	if (search && existsSync(`${videoFile?.hostFolder}/fonts.json`)) {
+		fontsFile = `/${videoFile?.share}/${videoFile?.folder}/fonts.json`;
+		fonts = JSON.parse(readFileSync(`${videoFile?.hostFolder}/fonts.json`, 'utf8'));
 	}
 
+	let progress: { percentage: number; date: string; } | null = null;
+
+	if (videoFile.userData?.[0]?.time) {
+		progress = {
+			// @ts-ignore
+			percentage: (videoFile.userData?.[0].time / convertToSeconds(videoFile?.duration)) * 100,
+			// @ts-ignore
+			date: videoFile.userData?.[0].updated_at,
+		};
+	}
+
+	const logo = episode.tv.images.find(m => m.type == 'logo')?.filePath ?? null;
+
 	return {
+		// @ts-ignore
 		id: episode.id,
+		// @ts-ignore
 		title: title,
+		// @ts-ignore
 		description: overview,
 		duration: videoFile?.duration,
-		specialId: undefined,
-		
+
+		// poster: episode.still ?? episode.tv.backdrop ?? episode.tv.poster
+		// 	? '/images/w300' + (episode.still ?? episode.tv.backdrop ?? episode.tv.poster)?.replace(/\.(jpg|png)$/u, '.webp')
+		// 	: null,
+		// image: episode.still ?? episode.tv.backdrop ?? episode.tv.poster
+		// 	? '/images/w300' + (episode.still ?? episode.tv.backdrop ?? episode.tv.poster)?.replace(/\.(jpg|png)$/u, '.webp')
+		// 	: null,
+		// logo: logo
+		// 	? '/images/original' + (logo)?.replace(/\.(jpg|png)$/u, '.webp')
+		// 	: null,
 		poster: episode.still ?? episode.tv.backdrop ?? episode.tv.poster
-			? '/images/original' + (episode.still ?? episode.tv.backdrop ?? episode.tv.poster)?.replace('.jpg', '.webp')
+			? `https://image.tmdb.org/t/p/w300${episode.still ?? episode.tv.backdrop ?? episode.tv.poster}`
 			: null,
 		image: episode.still ?? episode.tv.backdrop ?? episode.tv.poster
-			? '/images/original' + (episode.still ?? episode.tv.backdrop ?? episode.tv.poster)?.replace('.jpg', '.webp')
+			? `https://image.tmdb.org/t/p/w300${episode.still ?? episode.tv.backdrop ?? episode.tv.poster}`
 			: null,
-			
+		logo: logo
+			? `https://image.tmdb.org/t/p/original${logo}`
+			: null,
+
 		video_type: 'tv',
 		season: episode.seasonNumber,
 		episode: episode.episodeNumber,
 		episode_id: episode.id,
 		origin: deviceId,
-		uuid: episode.id + episode.id,
-		video_id: videoFile?.id,
+		// @ts-ignore
+		uuid: episode.tv.id + (episode.id ?? null),
+		video_id: videoFile?.id ?? null,
+		// @ts-ignore
 		tmdbid: episode.tv.id,
 		show: show,
+		seasonName: episode.season?.title,
 		playlist_type: 'tv',
-		year: episode.tv.firstAirDate
-			? parseYear(episode.tv.firstAirDate)
-			: null,
-		logo: episode.tv.medias.find(m => m.type == 'logo')?.src ?? null,
-		rating: getClosestRating(episode.tv.certification_tv, language),
+		year: parseYear(episode?.tv?.firstAirDate ?? ''),
+		// @ts-ignore
+		rating: getClosestRating(episode.tv.certification_tv, language)?.certification,
 
-		progress: videoFile.userData?.[0]?.time
-			? (videoFile.userData?.[0].time / convertToSeconds(videoFile?.duration) * 100)
-			: null,
+		progress: progress,
 
 		sources: [
 			{
@@ -187,7 +217,7 @@ const playlist = (episode: PlaylistItem, language: string) => {
 		],
 
 		fonts,
-		fontsfile,
+		fontsFile,
 		textTracks: sortBy(textTracks, 'language'),
 		tracks: [
 			{
@@ -197,6 +227,10 @@ const playlist = (episode: PlaylistItem, language: string) => {
 			{
 				file: `${baseFolder}/chapters.vtt`,
 				kind: 'chapters',
+			},
+			{
+				file: `${baseFolder}/skippers.vtt`,
+				kind: 'skippers',
 			},
 			{
 				file: `${baseFolder}/sprite.webp`,

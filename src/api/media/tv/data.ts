@@ -1,5 +1,5 @@
 
-import { convertToSeconds } from '@server/functions/dateTime';
+import { convertToSeconds, parseYear } from '@server/functions/dateTime';
 
 import { deviceId } from '@server/functions/system';
 import i18next from 'i18next';
@@ -21,7 +21,7 @@ export type PlaylistItemData = (Episode & {
 	Media: Media[];
 	Translation: Translation[];
 	Tv: Tv & {
-		Certification: (CertificationTv & {
+		Certification?: (CertificationTv & {
 			Certification: Certification | null;
 		})[];
 		Media: Media[];
@@ -74,9 +74,10 @@ export default ({ data }: { data: PlaylistItemData; }): PlaylistItem => {
 	});
 
 	return {
-		id: data.id,
+		// @ts-ignore
+		id: data.id as string,
 		title: title as string,
-		description: overview,
+		description: overview as string,
 		duration: videoFile?.duration,
 		special_id: undefined,
 		poster: data.Tv.poster
@@ -87,34 +88,41 @@ export default ({ data }: { data: PlaylistItemData; }): PlaylistItem => {
 			: null,
 
 		image: data.still ?? data.Tv.poster
-			? data.still ?? data.Tv.poster
+			? data.still ?? data.Tv.poster ?? null
 			: null,
 
-		year: data.Tv.firstAirDate?.split('-')[0] ?? '',
+		year: parseYear(data.Tv.firstAirDate?.split('-')[0]),
 		video_type: 'tv',
 		production: data.Tv.status != 'Ended',
 		season: data.seasonNumber,
 		episode: data.episodeNumber,
 		episode_id: data.id,
 		origin: deviceId,
+		// @ts-ignore
 		uuid: data.Tv.id + data.id,
 		video_id: videoFile?.id as string,
+		// @ts-ignore
 		tmdbid: data.Tv.id,
 		show: show,
 		playlist_type: 'tv',
 		logo: data.Tv.Media.find(m => m.type == 'logo')?.src ?? null,
 		rating:
-			data.Tv.Certification.map((cr) => {
+			data.Tv.Certification?.map((cr) => {
 				return {
 					country: cr.iso31661 as string,
-					rating: cr.Certification?.rating,
-					meaning: cr.Certification?.meaning,
-					image: `/${cr.iso31661}/${cr.iso31661}_${cr.Certification?.rating}.svg`,
+					rating: cr.Certification?.rating as string,
+					meaning: cr.Certification?.meaning as string,
+					order: cr.Certification?.order as number,
 				};
-			})?.[0] ?? null,
+			})?.[0] ?? undefined,
 
+		// @ts-ignore
 		progress: data.VideoFile && data.VideoFile?.[0]?.UserData?.[0]?.time
-			? (data.VideoFile[0].UserData[0].time / convertToSeconds(data.VideoFile[0].duration)) * 100
+			? {
+				// @ts-ignore
+				percentage: (data.VideoFile[0].UserData[0].time / convertToSeconds(data.VideoFile[0].duration)) * 100,
+				date: data.VideoFile?.[0]?.UserData?.[0]?.updated_at,
+			}
 			: null,
 
 		textTracks: sortBy(textTracks, 'language'),

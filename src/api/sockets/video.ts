@@ -1,9 +1,9 @@
-import { NewUserData, insertUserData } from '@server/db/media/actions/userData';
+import { insertUserData, NewUserData } from '@server/db/media/actions/userData';
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { userData } from '@server/db/media/schema/userData';
+import SocketIO from 'socket.io';
 
-
-export default function (socket: any) {
+export default function(socket: SocketIO.Socket & { decoded_token: { sub: string, name: string } }) {
 	socket.on('setTime', (data: any) => {
 		if (data.tmdb_id && data.video_id) {
 			const progressInsert: NewUserData = {
@@ -29,16 +29,16 @@ export default function (socket: any) {
 			}
 		}
 	});
-	socket.on('addToList', (data: any) => {
+	socket.on('addToList', () => {
 		// console.log(data);
-		const id = Math.floor(Math.random() * 1000000);
+		// const id = Math.floor(Math.random() * 1000000);
 
-		const progressInsert = {
-			sub_id: socket.decoded_token.sub,
-			tmdb_id: parseInt(data.tmdb_id, 10),
-			time: 0,
-			video_id: id,
-		};
+		// const progressInsert = {
+		// 	sub_id: socket.decoded_token.sub,
+		// 	tmdb_id: parseInt(data.tmdb_id, 10),
+		// 	time: 0,
+		// 	video_id: id,
+		// };
 
 		try {
 			// await confDb.userData.upsert({
@@ -130,14 +130,14 @@ export default function (socket: any) {
 		if (data.tmdb_id && data.video_type) {
 
 			const videos = data.video_type == 'special'
-				? globalThis.mediaDb.query.userData.findMany({
+				?				globalThis.mediaDb.query.userData.findMany({
 					where: and(
 						eq(userData.user_id, socket.decoded_token.sub),
 						eq(userData[`${data.video_type}_id`], data.tmdb_id),
 						eq(userData.special_id, data.special_id)
 					),
 				})
-				: globalThis.mediaDb.query.userData.findMany({
+				:				globalThis.mediaDb.query.userData.findMany({
 					where: and(
 						eq(userData.user_id, socket.decoded_token.sub),
 						eq(userData[`${data.video_type}_id`], data.tmdb_id)
@@ -145,7 +145,7 @@ export default function (socket: any) {
 				});
 
 			if (videos.length > 0) {
-				mediaDb.delete(userData)
+				globalThis.mediaDb.delete(userData)
 					.where(inArray(userData.id, videos.map(v => v.id!)))
 					.run();
 			}
@@ -158,30 +158,6 @@ export default function (socket: any) {
 		console.log(data);
 	});
 
-	// socket.on('join', (data) => {
-	// 	// console.log("join",data);
-	// 	socket.nsp.to(socket.decoded_token.sub).emit('join', data);
-	// });
-	// socket.on('joinTime', (data) => {
-	// 	// console.log("joinTime",data);
-	// 	socket.nsp.to(socket.decoded_token.sub).emit('joinTime', data);
-	// });
-	// socket.on('joinPlay', (data) => {
-	// 	// console.log("joinPlay",data);
-	// 	socket.nsp.to(socket.decoded_token.sub).emit('joinPlay', data);
-	// });
-	// socket.on('joinPause', (data) => {
-	// 	// console.log("joinPause",data);
-	// 	socket.nsp.to(socket.decoded_token.sub).emit('joinPause', data);
-	// });
-	// socket.on('joinSeek', (data) => {
-	// 	// console.log("joinSeek",data);
-	// 	socket.nsp.to(socket.decoded_token.sub).emit('joinSeek', data);
-	// });
-	// socket.on('joinPlaylistitem', (data) => {
-	// 	// console.log("joinPlaylistitem",data);
-	// 	socket.nsp.to(socket.decoded_token.sub).emit('joinPlaylistitem', data);
-	// });
 	// socket.on('get_caster', () => {
 	// 	// console.log("get_caster");
 	// 	socket.nsp.to(socket.decoded_token.sub).emit('get_caster');
@@ -190,11 +166,6 @@ export default function (socket: any) {
 	// 	// console.log("send_caster",data);
 	// 	socket.nsp.to(socket.decoded_token.sub).emit('send_caster', data);
 	// });
-	// socket.on('set_remote_id', (data) => {
-	// 	// console.log("set_remote_id",data);
-	// 	socket.nsp.to(socket.decoded_token.sub).emit('set_remote_id', data);
-	// });
-
 	// socket.on('remote_audio_list', (data) => {
 	// 	// console.log("remote_audio_list",data);
 	// 	socket.nsp.to(socket.decoded_token.sub).emit('remote_audio_list', data);

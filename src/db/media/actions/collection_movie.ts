@@ -1,17 +1,14 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { collection_movie } from '../schema/collection_movie';
 
 export type NewCollectionMovie = InferModel<typeof collection_movie, 'insert'>;
 export const insertCollectionMovie = (data: NewCollectionMovie) => globalThis.mediaDb.insert(collection_movie)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [collection_movie.movie_id, collection_movie.collection_id],
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

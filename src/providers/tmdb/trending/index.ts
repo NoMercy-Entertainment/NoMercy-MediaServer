@@ -3,7 +3,7 @@ import { Movie } from '../movie/movie';
 import { PaginatedResponse } from '../helpers';
 import { Person } from '../people/person';
 import { TvShow } from '../tv/tv';
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 
 export const trending = async (window = 'day', limit = 10) => {
 	const res: {
@@ -16,7 +16,7 @@ export const trending = async (window = 'day', limit = 10) => {
 		personTrending: [],
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Person | Movie | TvShow>>(`trending/all/${window}`, { params: { page: 1 } });
+	const { data } = await new tmdbClient().get<PaginatedResponse<Person | Movie | TvShow>>(`trending/all/${window}`, { params: { page: 1 } });
 
 	for (let j = 0; j < data.results.length; j++) {
 		if (data.results[j].media_type === 'movie') {
@@ -31,7 +31,7 @@ export const trending = async (window = 'day', limit = 10) => {
 	const promises: Promise<AxiosResponse<PaginatedResponse<TvShow | Movie | Person>>>[] = [];
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
-		promises.push(tmdbApiClient.get<PaginatedResponse<Person | Movie | TvShow>>(`trending/all/${window}`, { params: { page: i } }));
+		promises.push(new tmdbClient().get<PaginatedResponse<Person | Movie | TvShow>>(`trending/all/${window}`, { params: { page: i } }));
 	}
 
 	const data2 = await Promise.all(promises);

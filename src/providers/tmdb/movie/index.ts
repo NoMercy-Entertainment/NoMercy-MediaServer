@@ -15,7 +15,7 @@ import { MovieWithAppends } from './movie-details';
 import { PaginatedResponse } from '../helpers';
 import i18next from 'i18next';
 import moment from 'moment';
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 
 export * from './account_states';
 export * from './alternative_titles';
@@ -72,7 +72,7 @@ export const movie = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<MovieWithAppends<typeof movieAppend[number]>>(`movie/${id}`, params);
+	const { data } = await new tmdbClient().get<MovieWithAppends<typeof movieAppend[number]>>(`movie/${id}`, params);
 
 	return data;
 };
@@ -91,13 +91,15 @@ export const movieChanges = async (id: number, daysBack = 1): Promise<MovieChang
 
 	const params = {
 		params: {
-			start_date: moment().subtract(daysBack, 'days')
+			start_date: moment()
+				.subtract(daysBack, 'days')
 				.format('YYYY-MM-DD'),
-			end_date: moment().format('YYYY-MM-DD'),
+			end_date: moment()
+				.format('YYYY-MM-DD'),
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<MovieChanges>(`movie/${id}/changes`, params);
+	const { data } = await new tmdbClient().get<MovieChanges>(`movie/${id}/changes`, params);
 
 	return data.changes;
 };
@@ -116,7 +118,7 @@ export const movieDiscover = async (params?: DiscoverMovieParams, limit = 10) =>
 		page: 1,
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('discover/movie', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>('discover/movie', {
 		params,
 	});
 
@@ -128,7 +130,7 @@ export const movieDiscover = async (params?: DiscoverMovieParams, limit = 10) =>
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Movie>>('discover/movie', {
+			new tmdbClient().get<PaginatedResponse<Movie>>('discover/movie', {
 				params: { page: i },
 			})
 		);
@@ -152,7 +154,7 @@ export const movieGenre = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<MovieGenre>('genre/movie/list', params);
+	const { data } = await new tmdbClient().get<MovieGenre>('genre/movie/list', params);
 
 	return data.genres;
 };
@@ -171,7 +173,7 @@ export const movieImages = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<MovieImages>(`movie/${id}/images`, params);
+	const { data } = await new tmdbClient().get<MovieImages>(`movie/${id}/images`, params);
 
 	return data;
 };
@@ -181,10 +183,10 @@ export const movieLatest = async () => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: 'Fetching Movie Lastest',
+		message: 'Fetching Movie Latest',
 	});
 
-	const { data } = await tmdbApiClient.get<MovieLatest>('movie/latest');
+	const { data } = await new tmdbClient().get<MovieLatest>('movie/latest');
 
 	return data;
 };
@@ -199,7 +201,7 @@ export const movieNowPlaying = async (limit = 10) => {
 
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/now_playing', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>('movie/now_playing', {
 		params: { page: 1 },
 	});
 
@@ -211,7 +213,7 @@ export const movieNowPlaying = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Movie>>('discover/movie', {
+			new tmdbClient().get<PaginatedResponse<Movie>>('discover/movie', {
 				params: { page: i },
 			})
 		);
@@ -238,7 +240,7 @@ export const moviePopular = async (limit = 10) => {
 
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/popular', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>('movie/popular', {
 		params: { page: 1 },
 	});
 
@@ -250,7 +252,7 @@ export const moviePopular = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<MoviePopular>('movie/popular', {
+			new tmdbClient().get<MoviePopular>('movie/popular', {
 				params: { page: i },
 			})
 		);
@@ -276,7 +278,7 @@ export const movieRecommendations = async (id: number, limit = 10) => {
 	});
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<Recommendations<Movie>>(`movie/${id}/recommendations`, {
+	const { data } = await new tmdbClient().get<Recommendations<Movie>>(`movie/${id}/recommendations`, {
 		params: { page: 1 },
 	});
 
@@ -288,7 +290,7 @@ export const movieRecommendations = async (id: number, limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<Recommendations<Movie>>(`movie/${id}/recommendations`, {
+			new tmdbClient().get<Recommendations<Movie>>(`movie/${id}/recommendations`, {
 				params: { page: i },
 			})
 		);
@@ -310,12 +312,12 @@ export const movieSimilar = async (id: number, limit = 10) => {
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Fething Movie Similar with id: ${id}`,
+		message: `Fetching Movie Similar with id: ${id}`,
 	});
 
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>(`movie/${id}/similar`, {
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>(`movie/${id}/similar`, {
 		params: { page: 1 },
 	});
 
@@ -327,7 +329,7 @@ export const movieSimilar = async (id: number, limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Movie>>(`movie/${id}/similar`, {
+			new tmdbClient().get<PaginatedResponse<Movie>>(`movie/${id}/similar`, {
 				params: { page: i },
 			})
 		);
@@ -354,7 +356,7 @@ export const movieTopRated = async (limit = 10) => {
 
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/top_rated', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>('movie/top_rated', {
 		params: { page: 1 },
 	});
 
@@ -363,7 +365,7 @@ export const movieTopRated = async (limit = 10) => {
 	}
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
-		const { data: data2 } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/top_rated', { params: { page: i } });
+		const { data: data2 } = await new tmdbClient().get<PaginatedResponse<Movie>>('movie/top_rated', { params: { page: i } });
 		for (let j = 0; j < data2.results.length; j++) {
 			arr.push(data2.results[j]);
 		}
@@ -382,7 +384,7 @@ export const movieTrending = async (window = 'day', limit = 10) => {
 
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>(`trending/movie/${window}`, { params: { page: 1 } });
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>(`trending/movie/${window}`, { params: { page: 1 } });
 
 	for (let j = 0; j < data.results.length; j++) {
 		arr.push(data.results[j]);
@@ -392,7 +394,7 @@ export const movieTrending = async (window = 'day', limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Movie>>(`trending/movie/${window}`, {
+			new tmdbClient().get<PaginatedResponse<Movie>>(`trending/movie/${window}`, {
 				params: { page: i },
 			})
 		);
@@ -409,17 +411,17 @@ export const movieTrending = async (window = 'day', limit = 10) => {
 	return arr;
 };
 
-export const movieUpcomming = async (limit = 10) => {
+export const movieUpcoming = async (limit = 10) => {
 	Logger.log({
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: 'Fetching Movie Upcomming',
+		message: 'Fetching Movie Upcoming',
 	});
 
 	const arr: Movie[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/upcomming', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>('movie/upcoming', {
 		params: { page: 1 },
 	});
 
@@ -428,7 +430,7 @@ export const movieUpcomming = async (limit = 10) => {
 	}
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
-		const { data: data2 } = await tmdbApiClient.get<PaginatedResponse<Movie>>('movie/upcomming', {
+		const { data: data2 } = await new tmdbClient().get<PaginatedResponse<Movie>>('movie/upcoming', {
 			params: { page: i },
 		});
 
@@ -454,7 +456,7 @@ export const movieVideos = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<MovieVideos>(`movie/${id}/videos`, params);
+	const { data } = await new tmdbClient().get<MovieVideos>(`movie/${id}/videos`, params);
 
 	return data.results;
 };
@@ -467,7 +469,7 @@ export const movieTranslations = async (id: number) => {
 		message: `Fetching Movie Translations with id: ${id}`,
 	});
 
-	const { data } = await tmdbApiClient.get<MovieTranslations>(`movie/${id}/translations`);
+	const { data } = await new tmdbClient().get<MovieTranslations>(`movie/${id}/translations`);
 
 	return data;
 };

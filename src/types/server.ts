@@ -1,10 +1,7 @@
-
 import { Movie } from '@server/providers/tmdb/movie';
 import { Socket } from 'socket.io';
 import { TvShow } from '@server/providers/tmdb/tv';
 import { Genre } from '@server/db/media/actions/genres';
-import { GenreTv } from '@server/db/media/actions/genre_tv';
-import { GenreMovie } from '@server/db/media/actions/genre_movie';
 import { UserData } from '@server/db/media/actions/userData';
 
 export interface MediaServer {
@@ -17,12 +14,14 @@ export interface MediaServer {
 	serverClients: ServerClient[];
 	socket: Socket | null;
 }
+
 export interface OwnerDetails {
 	local_address: string;
 	name: string;
 	server_id: string;
 	address: string;
 }
+
 export interface ServerLocation {
 	auto_connect: boolean;
 	server_id: string;
@@ -37,6 +36,7 @@ export interface ServerLocation {
 	server_version: number;
 	public_domain: string;
 }
+
 export interface Server {
 	auto_connect: boolean;
 	location: string;
@@ -49,6 +49,7 @@ export interface Server {
 	server_name: string;
 	platform: string;
 }
+
 export interface ServerClient {
 	socket_id: string;
 	id: string;
@@ -57,6 +58,7 @@ export interface ServerClient {
 	connected: boolean;
 	active_device: boolean;
 }
+
 export type Message = {
 	body?: string;
 	from?: string;
@@ -143,6 +145,7 @@ export interface SystemPath {
 	key: string;
 	value: string;
 }
+
 export interface Device {
 	id: string;
 	title: string;
@@ -153,6 +156,7 @@ export interface Device {
 	created_at?: number;
 	updated_at?: number;
 }
+
 export interface ActivityLog {
 	user_id: string;
 	deviceId: string;
@@ -162,6 +166,7 @@ export interface ActivityLog {
 	created_at?: number;
 	updated_at?: number;
 }
+
 export interface ServerInfo {
 	server: string;
 	os: string;
@@ -169,6 +174,7 @@ export interface ServerInfo {
 	version: string;
 	bootTime: number;
 }
+
 export interface ServerTask {
 	id: string;
 	title: string;
@@ -225,9 +231,9 @@ export interface InfoResponse {
 	crew: InfoCredit[];
 	director: Item[];
 	blurHash?: {
-		poster?: string|null|undefined,
-		backdrop?: string|null|undefined,
-		logo?: string|null|undefined,
+		poster?: string | null | undefined,
+		backdrop?: string | null | undefined,
+		logo?: string | null | undefined,
 	};
 	colorPalette?: {
 		poster?: PaletteColors | null,
@@ -253,13 +259,15 @@ export interface Item {
 	id: number | string | undefined;
 	name: string | null | undefined;
 	blurHash?: string | null;
-}[];
+}
+
+[];
 
 export interface MediaItem {
-	aspectRatio: number | null;
+	// aspectRatio: number | null;
 	height: number | null;
 	id: string | number;
-	iso6391: string | null;
+	// iso6391: string | null;
 	profilePath?: string | null;
 	poster?: string | null;
 	backdrop?: string | null;
@@ -267,7 +275,7 @@ export interface MediaItem {
 	voteAverage: number | null;
 	voteCount: number | null;
 	width: number | null;
-	colorPalette: PaletteColors | null;
+	color_palette: PaletteColors | null;
 	blurHash?: string | null;
 }
 
@@ -281,7 +289,7 @@ export interface InfoCredit {
 	name: string | null;
 	profilePath: string | null;
 	popularity: number | null;
-	deathday: string | null | undefined;
+	deathDay: string | null | undefined;
 	// blurHash?: string | null;
 	colorPalette?: PaletteColors | null;
 }
@@ -339,19 +347,29 @@ export interface LibraryResponseContent {
 	type: string;
 	mediaType: string;
 	blurHash?: {
-		poster?: string|null|undefined,
-		backdrop?: string|null|undefined,
-		logo?: string|null|undefined,
+		poster?: string | null | undefined,
+		backdrop?: string | null | undefined,
+		logo?: string | null | undefined,
 	};
-	colorPalette?: {
+	color_palette?: {
 		poster?: PaletteColors | null,
 		backdrop?: PaletteColors | null,
 		logo?: PaletteColors | null,
 	};
 	numberOfEpisodes?: number;
 	haveEpisodes?: number;
-	genres?: Genre[] | GenreTv[] | GenreMovie[];
-	year?: number | '';
+	genres: {
+		id: number;
+		item_id: number;
+		name: string | null;
+	}[];
+	videos?: ExtendedVideo[];
+	rating: {
+		rating: string;
+		iso31661: string;
+	} | undefined;
+	videoId?: string | null | undefined;
+	year?: number | null;
 	files?: Array<number | null> | undefined;
 	collection?: LibraryResponseContent[] | undefined;
 }
@@ -366,13 +384,16 @@ export interface AddUserParams {
 	name: string;
 	enabled: boolean;
 }
+
 export interface removeUserParams {
 	user_id: string;
 }
+
 export interface AbleUserParams {
 	user_id: string;
 	enabled: boolean;
 }
+
 export interface userPermissionsParams {
 	user_id: string;
 	enabled: boolean;
@@ -382,6 +403,7 @@ export interface userPermissionsParams {
 	noTranscoding: boolean;
 	libraries: string[];
 }
+
 export interface NotificationsParams {
 	user_id: string;
 	name: string;
@@ -391,6 +413,7 @@ export interface NotificationsParams {
 export interface updateEncoderProfilesParams extends Library {
 	user_id: string;
 }
+
 export interface updateEncoderProfilesParams extends Library {
 	user_id: string;
 }
@@ -435,17 +458,18 @@ export interface PaletteColors {
 }
 
 export interface LogoResponse {
-    aspectRatio: number | null;
-    src: string;
-	colorPalette: PaletteColors;
-    meta: {
-        title: string | undefined;
-        // tags: string[] | undefined;
-        logo: {
-            aspectRatio: number | null;
-            src: string;
-        } | null;
-    } | null;
+	aspectRatio: number | null;
+	src: string;
+	color_palette;
+	PaletteColors;
+	meta: {
+		title: string | undefined;
+		// tags: string[] | undefined;
+		logo: {
+			aspectRatio: number | null;
+			src: string;
+		} | null;
+	} | null;
 }
 
 export interface UserPermissions {

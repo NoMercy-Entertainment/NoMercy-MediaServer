@@ -115,7 +115,7 @@ export class FFMpeg extends EventEmitter {
 
 	open(file: string) {
 		return new Promise(async (resolve, reject) => {
-			file = file.replace('Z:/mnt/m/', 'M:/');
+			// file = file.replace('Z:/mnt/m/', 'M:/');
 			if (!file.includes('http') && !existsSync(file)) {
 				reject(new Error('File does not exist'));
 			}
@@ -198,8 +198,8 @@ export class FFMpeg extends EventEmitter {
 		this.addCommand('-i', `"${this.file}"`, true)
 			.addCommand('-probesize', '4092M', true)
 			.addCommand('-analyzeduration', '9999M', true)
-			.addCommand('-hide_banner', undefined, true)
-			.addCommand('-threads', Math.floor(this.threads * 0.75), true);
+			.addCommand('-hide_banner', undefined, true);
+		// .addCommand('-threads', Math.floor(this.threads * 0.75), true);
 
 		if (!this.debug) {
 			this.addCommand('-nostats', undefined, true);
@@ -240,7 +240,7 @@ export class FFMpeg extends EventEmitter {
 				this.addCommand('-re', undefined, true);
 			}
 			this.addCommand('-hide_banner', undefined, true);
-			this.addCommand('-threads', Math.floor(this.threads * 0.75), true);
+			// this.addCommand('-threads', Math.floor(this.threads * 0.5), true);
 			this.addCommand(ffmpeg, undefined, true);
 		}
 
@@ -463,8 +463,8 @@ export class FFMpeg extends EventEmitter {
 	}
 
 	start(cb?: (arg?: any) => unknown) {
-		return new Promise(async (resolve, reject) => {
-			if (this.commands.length == 0) {
+		return new Promise(async (resolve) => {
+			if (this.commands.length == 0 || this.commands?.at(-1)?.[1] == 'pipe:') {
 				console.error('No commands to execute');
 				await cb?.();
 				return resolve(this);
@@ -482,7 +482,7 @@ export class FFMpeg extends EventEmitter {
 				},
 				(error) => {
 					if (error) {
-						console.error(error);
+						// console.error(error);
 						// reject(error);
 					}
 				}
@@ -502,7 +502,8 @@ export class FFMpeg extends EventEmitter {
 
 				await cb?.();
 				if (code == 1) {
-					reject(new Error('Failed to encode file'));
+					// reject(new Error('Failed to encode file'));
+					resolve(this);
 				} else {
 					resolve(this);
 				}
@@ -550,6 +551,7 @@ export class FFMpeg extends EventEmitter {
 	}
 
 	buildCommand() {
+		console.log(this.commands);
 		this.#closeCommand();
 
 		this.#openCommand();
@@ -654,7 +656,7 @@ export class FFMpeg extends EventEmitter {
 
 		const dir = `${folder}/${path.split(/[\\\/]/u)[0].replace(/\w+\.\w{3,4}$/u, '')}`;
 
-		if (!dir.endsWith('.')) {
+		if (!dir.endsWith('.') && !existsSync(dir)) {
 			console.log('making folder:', `${folder}/${path.split(/[\\\/]/u)[0].replace(/\w+\.\w{3,4}$/u, '')}`);
 			mkdirSync(dir, { recursive: true });
 		}
@@ -680,11 +682,15 @@ export class FFMpeg extends EventEmitter {
 		}
 		if (this.isHDR && !this.#wantsSDR) {
 			if (this.hasGpu) {
-				this.addVideoFilter('format', 'p010');
-				this.addVideoFilter('hwupload', '');
-				this.addVideoFilter('tonemap_opencl', 'tonemap=mobius:param=0.01:desat=0:r=tv:p=bt709:t=bt709:m=bt709:format=nv12');
-				this.addVideoFilter('hwdownload', '');
-				this.addVideoFilter('format=nv12', '');
+				this.addVideoFilter('zscale=tin=smpte2084:min=bt2020nc:pin=bt2020:rin=tv:t=smpte2084:m=bt2020nc:p=bt2020:r=tv', '');
+				this.addVideoFilter('zscale=t=linear:npl=100', '');
+				this.addVideoFilter('format=gbrpf32le', '');
+				this.addVideoFilter('zscale=p=bt709', '');
+				this.addVideoFilter('tonemap=tonemap=hable:desat=0', '');
+				this.addVideoFilter('zscale=t=bt709:m=bt709:r=tv', '');
+				this.addVideoFilter('format=yuv420p', '');
+
+				// this.addVideoFilter('zscale=tin=smpte2084:min=bt2020nc:pin=bt2020:rin=tv:t=smpte2084:m=bt2020nc:p=bt2020:r=tv,zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p', '');
 			} else {
 				this.addVideoFilter('zscale', 'tin=smpte2084:min=bt2020nc:pin=bt2020:rin=tv:t=smpte2084:m=bt2020nc:p=bt2020:r=tv');
 				this.addVideoFilter('zscale', 't=linear:npl=100');
@@ -712,24 +718,36 @@ export class FFMpeg extends EventEmitter {
 			).key;
 		}
 
-		const crop = execSync(
-			`${ffmpeg} -ss 120 -i "${this.file}" -max_muxing_queue_size 999 -vframes 1000 -vf cropdetect -t 1000 -f null - 2>&1`
-		).toString('utf-8');
-
 		const counts = {};
-		const regex = /crop=(\d+:\d+:\d+:\d+)$/gmu;
-		let m;
-		while ((m = regex.exec(crop)) !== null) {
-			if (m.index === regex.lastIndex) {
-				regex.lastIndex++;
-			}
-			m.forEach((match, groupIndex) => {
-				if (groupIndex == 1) {
-					const crop = match;
-					counts[crop] = (counts[crop] || 0) + 1;
+
+		const execute = (interval) => {
+			const crop = execSync(
+				`${ffmpeg} -nostats -hide_banner -ss ${interval} -i "${this.file}" -max_muxing_queue_size 999 -vframes 1000 -vf cropdetect -t 1400 -f null - 2>&1`
+			).toString('utf-8');
+
+			const regex = /crop=(\d+:\d+:\d+:\d+)$/gmu;
+			let m;
+			while ((m = regex.exec(crop)) !== null) {
+				if (m.index === regex.lastIndex) {
+					regex.lastIndex++;
 				}
-			});
+				m.forEach((match, groupIndex) => {
+					if (groupIndex == 1) {
+						const crop = match;
+						counts[crop] = (counts[crop] || 0) + 1;
+					}
+				});
+			}
+		};
+
+		const duration = this.format.duration;
+		const max = Math.floor((duration as number) / 2);
+		const step = Math.floor(max / 10);
+
+		for (let i = 0; i < 10; i++) {
+			execute(i * step);
 		}
+
 		const result = chooseCrop(counts);
 
 		if (!result) return;

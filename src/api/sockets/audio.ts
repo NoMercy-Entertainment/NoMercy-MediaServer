@@ -1,13 +1,13 @@
-
 import { emitData } from './helpers';
 import { store } from '@server/state/redux';
+import SocketIO from 'socket.io';
 
 export interface SocketData {
 	value: any;
 	deviceId: string;
 }
 
-export default function (socket) {
+export default function(socket: SocketIO.Socket & { decoded_token: { sub: string, name: string } }) {
 
 	const toAll = socket.nsp.to(socket.decoded_token.sub);
 	const toOther = socket.to(socket.decoded_token.sub);

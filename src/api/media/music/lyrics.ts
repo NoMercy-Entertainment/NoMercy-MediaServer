@@ -5,7 +5,7 @@ import lyricsFinder from 'lyrics-finder';
 import { tracks } from '@server/db/media/schema/tracks';
 import { eq } from 'drizzle-orm';
 
-export default async function (req: Request, res: Response) {
+export default async function(req: Request, res: Response) {
 	let lyrics = '';
 	let song: {
 		id: string;
@@ -14,7 +14,7 @@ export default async function (req: Request, res: Response) {
 		updated_at: string;
 		folder: string | null;
 		cover: string | null;
-		colorPalette: string | null;
+		color_palette: string | null;
 		blurHash: string | null;
 		track: number | null;
 		disc: number | null;
@@ -36,7 +36,7 @@ export default async function (req: Request, res: Response) {
 				description: string | null;
 				folder: string | null;
 				cover: string | null;
-				colorPalette: string | null;
+				color_palette: string | null;
 				blurHash: string | null;
 				library_id: string;
 			};
@@ -83,9 +83,10 @@ export default async function (req: Request, res: Response) {
 	}
 
 	if (lyrics == '' && !song?.lyrics) {
-		return res.status(404).json({
-			message: 'No Lyrics found',
-		});
+		return res.status(404)
+			.json({
+				message: 'No Lyrics found',
+			});
 	}
 
 	try {

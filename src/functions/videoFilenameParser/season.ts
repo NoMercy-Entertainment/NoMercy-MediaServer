@@ -191,7 +191,7 @@ const rejectedRegexes = [
 	/^Backup_\d{5,}S\d{2}-\d{2}$/iu,
 
 	// 123 - Started appearing December 2014
-	/^123$"/,
+	/^123$"/u,
 
 	// abc - Started appearing January 2015
 	/^abc$"/iu,
@@ -200,7 +200,7 @@ const rejectedRegexes = [
 	/^b00bs$"/iu,
 
 	// 170424_26 - Started appearing August 2018
-	/^\d{6}_\d{2}$"/,
+	/^\d{6}_\d{2}$"/u,
 ];
 
 const requestInfoExp = /^(?:\[.+?\])+/;
@@ -343,8 +343,8 @@ export function parseMatchCollection(
 	}
 
 	const seriesName = (groups.title ?? '')
-		.replace(/\./g, ' ')
-		.replace(/_/g, ' ')
+		.replace(/\./gu, ' ')
+		.replace(/_/gu, ' ')
 		.replace(requestInfoExp, '')
 		.trim();
 

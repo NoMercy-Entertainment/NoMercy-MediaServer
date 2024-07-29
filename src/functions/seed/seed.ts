@@ -331,7 +331,7 @@ export const seed = async () => {
 	// 	create: {
 	// 		...special,
 	// 		blurHash: JSON.stringify(blurHash),
-	// 		colorPalette: JSON.stringify(palette),
+	// 		color_palette: JSON.stringify(palette),
 	// 		Item: {
 	// 			connectOrCreate: filteredItems.map((item, index: number) => ({
 	// 				where: {
@@ -348,7 +348,7 @@ export const seed = async () => {
 	// 	update: {
 	// 		...special,
 	// 		blurHash: JSON.stringify(blurHash),
-	// 		colorPalette: JSON.stringify(palette),
+	// 		color_palette: JSON.stringify(palette),
 	// 		Item: {
 	// 			connectOrCreate: filteredItems.map((item, index: number) => ({
 	// 				where: {

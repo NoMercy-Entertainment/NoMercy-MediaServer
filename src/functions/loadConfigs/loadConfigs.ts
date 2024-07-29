@@ -9,7 +9,7 @@ import { selectUser } from '@server/db/media/actions/users';
 export const loadConfigs = () => {
 
 	const dbConf = selectConfiguration();
-	
+
 	const secureInternalPort = (dbConf.find(conf => conf.key == 'secureInternalPort')?.value as string) ?? process.env.DEFAULT_PORT;
 	setSecureInternalPort(parseInt(secureInternalPort, 10));
 
@@ -25,7 +25,7 @@ export const loadConfigs = () => {
 	const libraries = getEncoderLibraries();
 	setLibraries(libraries);
 
-	globalThis.allowedUsers = selectUser(true);
+	globalThis.allowedUsers = selectUser();
 
 };
 

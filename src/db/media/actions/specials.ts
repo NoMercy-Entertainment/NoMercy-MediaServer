@@ -23,11 +23,8 @@ export const insertSpecial = (data: NewSpecial) => globalThis.mediaDb.insert(spe
 	.onConflictDoUpdate({
 		target: specials.title,
 		set: {
-			...convertBooleans(data),
+			...convertBooleans(data, true),
 			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
 		},
 	})
 	.returning()
@@ -48,7 +45,7 @@ export const selectSpecial = (relations = false) => {
 };
 
 export type SelectSpecial = ReturnType<typeof getSpecial>;
-export const getSpecial = ({ id }: {id: string}) => {
+export const getSpecial = ({ id, user_id }: {id: string, user_id: string}) => {
 
 	const result = globalThis.mediaDb.query.specials.findFirst({
 		where: (specials, { eq }) => eq(specials.id, id),
@@ -60,7 +57,9 @@ export const getSpecial = ({ id }: {id: string}) => {
 							season: true,
 							videoFiles: {
 								with: {
-									userData: true,
+									userData: {
+										where: (userData, { eq }) => eq(userData.user_id, user_id),
+									},
 								},
 							},
 							tv: {
@@ -83,7 +82,9 @@ export const getSpecial = ({ id }: {id: string}) => {
 							},
 							videoFiles: {
 								with: {
-									userData: true,
+									userData: {
+										where: (userData, { eq }) => eq(userData.user_id, user_id),
+									},
 								},
 							},
 						},

@@ -84,7 +84,7 @@ export default () => {
 		for (var i = 0; i < aLines.length; i++) {
 			let sLine = aLines[i];
 			if (sLine != '') {
-				sLine = sLine.replace(/ +(?= )/g, '');
+				sLine = sLine.replace(/ +(?= )/gu, '');
 				var aTokens = sLine.split(' ');
 				aDrives[aDrives.length] = {
 					filesystem: aTokens[0],

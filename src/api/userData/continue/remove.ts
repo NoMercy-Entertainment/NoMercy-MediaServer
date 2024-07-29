@@ -3,7 +3,8 @@ import { Request, Response } from 'express-serve-static-core';
 import { AppState, useSelector } from '@server/state/redux';
 
 export default function (req: Request, res: Response) {
-	const { id, type }: {id: string, type: string} = req.body;
+	const { id }: {id: string, type: string} = req.body;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const socket = useSelector((state: AppState) => state.system.socket);
 
 	if (!id) {
@@ -14,13 +15,13 @@ export default function (req: Request, res: Response) {
 
 	}
 
-	const where = type == 'tv'
-		? {
-			tvId: parseInt(id, 10),
-		}
-		: {
-			movieId: parseInt(id, 10),
-		};
+	// const where = type == 'tv'
+	// 	? {
+	// 		tvId: parseInt(id, 10),
+	// 	}
+	// 	: {
+	// 		movieId: parseInt(id, 10),
+	// 	};
 
 	// const userDatas = await confDb.userData.findMany({
 	// 	where: {

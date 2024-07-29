@@ -1,4 +1,3 @@
-
 import { boolean, datetime } from '../../helpers';
 import { relations, sql } from 'drizzle-orm';
 import { text, sqliteTable, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
@@ -21,13 +20,18 @@ import { collection_movie } from './collection_movie';
 import { images } from './images';
 
 export const movies = sqliteTable('movies', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
-	title: text('title').notNull(),
-	titleSort: text('titleSort').notNull(),
+	id: integer('id')
+		.primaryKey({ autoIncrement: true }),
+	title: text('title')
+		.notNull(),
+	titleSort: text('titleSort')
+		.notNull(),
 	duration: text('duration'),
-	show: boolean('show').default(false),
+	show: boolean('show')
+		.default(false),
 	folder: text('folder'),
-	adult: boolean('adult').default(false),
+	adult: boolean('adult')
+		.default(false),
 	backdrop: text('backdrop'),
 	budget: integer('budget'),
 	homepage: text('homepage'),
@@ -37,7 +41,8 @@ export const movies = sqliteTable('movies', {
 	overview: text('overview'),
 	popularity: real('popularity'),
 	poster: text('poster'),
-	releaseDate: datetime('releaseDate').notNull(),
+	releaseDate: datetime('releaseDate')
+		.notNull(),
 	revenue: integer('revenue'),
 	runtime: integer('runtime'),
 	status: text('status'),
@@ -50,20 +55,30 @@ export const movies = sqliteTable('movies', {
 	blurHash: text('blurHash'),
 	colorPalette: text('colorPalette'),
 
-	created_at: datetime('created_at').notNull()
+	created_at: datetime('created_at')
+		.notNull()
 		.default(sql`CURRENT_TIMESTAMP`),
-	updated_at: datetime('updated_at').notNull()
+	updated_at: datetime('updated_at')
+		.notNull()
 		.default(sql`CURRENT_TIMESTAMP`),
 
 	library_id: text('library_id')
-		.references(() => libraries.id, { onDelete: 'cascade', onUpdate: 'cascade' })
+		.references(() => libraries.id, {
+			onDelete: 'cascade',
+			onUpdate: 'cascade',
+		})
 		.notNull(),
 }, db => ({
-	index: index('movie_index').on(db.id),
-	unique: uniqueIndex('movie_unique').on(db.id),
+	index: index('movie_index')
+		.on(db.id),
+	unique: uniqueIndex('movie_unique')
+		.on(db.id),
 }));
 
-export const moviesRelations = relations(movies, ({ many, one }) => ({
+export const moviesRelations = relations(movies, ({
+	many,
+	one,
+}) => ({
 	library: one(libraries, {
 		fields: [movies.library_id],
 		references: [libraries.id],

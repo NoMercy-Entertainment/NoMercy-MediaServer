@@ -15,16 +15,17 @@ import { getEncoderLibraryById } from '@server/db/media/actions/libraries';
 import { createArtist } from './createArtist';
 import { createAlbum } from './createAlbum';
 import fallback from './fallback';
+import { recording } from '@server/providers/musicbrainz/recording';
 
 export interface CurrentFolder {
-    library_id: string;
-    folder_id: string;
-    folder: {
-        id: string | null;
-        created_at: string;
-        updated_at: string;
-        path: string | null;
-    };
+	library_id: string;
+	folder_id: string;
+	folder: {
+		id: string | null;
+		created_at: string;
+		updated_at: string;
+		path: string | null;
+	};
 }
 
 export const storeMusic = async ({
@@ -37,7 +38,11 @@ export const storeMusic = async ({
 	task?: { id: string; };
 }) => {
 
-	console.log({ folder, libraryId, task });
+	console.log({
+		folder,
+		libraryId,
+		task,
+	});
 	if (!existsSync(folder)) {
 		throw new Error(`Folder ${folder}does not exist`);
 	}
@@ -64,15 +69,18 @@ export const storeMusic = async ({
 		const library = getEncoderLibraryById(libraryId)!;
 
 		for (const [index, file] of parsedFiles.entries()) {
-			console.log({ index, files: parsedFiles.length });
+			// console.log({
+			// 	index,
+			// 	files: parsedFiles.length,
+			// });
 
 			const currentFolder = library.folder_library.find((lib) => {
 				return file.path.startsWith(lib.folder.path!.replace(/\\/gu, '/') as string);
 			})!;
-			console.log({ folder: currentFolder.folder.path });
+			// console.log({ folder: currentFolder.folder.path });
 
 			const match = await getMatch(file);
-			console.log({ title: match?.title });
+			// console.log({ title: match?.title });
 
 			if (!match?.title) {
 				await fallback(file, library, currentFolder);
@@ -80,8 +88,7 @@ export const storeMusic = async ({
 			}
 
 			for (const artist of match.artists ?? []) {
-				await createArtist(library, artist, currentFolder)
-					.catch(console.log);
+				await createArtist(library, artist, currentFolder);
 			}
 
 			await createAlbum(
@@ -92,10 +99,7 @@ export const storeMusic = async ({
 				match.title,
 				match.artists,
 				currentFolder
-			)
-				.catch(console.log);
-
-			console.log({ index, files: parsedFiles.length });
+			);
 		}
 
 		Logger.log({
@@ -114,14 +118,15 @@ export const storeMusic = async ({
 			},
 		};
 	} catch (error: any) {
-		if (error) {
-			Logger.log({
-				level: 'error',
-				name: 'App',
-				color: 'red',
-				message: JSON.stringify([`${__filename}`, error]),
-			});
-		}
+		console.log(error);
+		// if (error) {
+		// 	Logger.log({
+		// 		level: 'error',
+		// 		name: 'App',
+		// 		color: 'red',
+		// 		message: JSON.stringify([`${__filename}`, error]),
+		// 	});
+		// }
 
 		return {
 			success: false,
@@ -141,8 +146,9 @@ const getParsedFiles = async (fileList: FileList, folder: string) => {
 			&& fileChangedAgo(folderFile, 'days') < 50
 			&& JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0
 		) {
-			parsedFiles = JSON.parse(readFileSync(folderFile, 'utf-8')).sort((a: ParsedFileList, b: ParsedFileList) =>
-				a.path.localeCompare(b.path));
+			parsedFiles = JSON.parse(readFileSync(folderFile, 'utf-8'))
+				.sort((a: ParsedFileList, b: ParsedFileList) =>
+					a.path.localeCompare(b.path));
 		}
 		parsedFiles = (await fileList.getParsedFiles()).sort((a, b) => a.path.localeCompare(b.path));
 
@@ -173,14 +179,26 @@ const getMatch = async (file: ParsedFileList) => {
 		if (!data?.recordings) {
 			return;
 		}
-
-		const newMatch = filterRecordings(data?.recordings, file);
-
-		if (newMatch) {
-			match = newMatch;
-		} else {
+		
+		try {
+			const req = recording(data?.recordings[0].id);
 			match = data?.recordings[0];
+		} catch (error) {
+			try {
+				const req = recording(data?.recordings[1].id);
+				match = data?.recordings[1];
+			} catch (error) {
+				console.log(error);
+			}
 		}
+
+		// const newMatch = filterRecordings(data?.recordings, file);
+		//
+		// if (newMatch) {
+		// 	match = newMatch;
+		// } else {
+		// 	match = data?.recordings[0];
+		// }
 
 		if (match?.id) {
 			writeFileSync(trackInfoFile, JSON.stringify(match, null, 2));

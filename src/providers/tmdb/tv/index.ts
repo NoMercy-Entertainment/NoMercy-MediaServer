@@ -14,7 +14,7 @@ import { TvVideos } from './videos';
 import { TvWithAppends } from './details';
 import i18next from 'i18next';
 import moment from 'moment';
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 
 export * from './account_states';
 export * from './aggregate_credits';
@@ -73,7 +73,7 @@ export const tv = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<TvWithAppends<typeof tvAppend[number]>>(`tv/${id}`, params);
+	const { data } = await new tmdbClient().get<TvWithAppends<typeof tvAppend[number]>>(`tv/${id}`, params);
 
 	return data;
 };
@@ -92,13 +92,15 @@ export const tvChanges = async (id: number, daysBack = 1): Promise<TvChange[]> =
 
 	const params = {
 		params: {
-			start_date: moment().subtract(daysBack, 'days')
+			start_date: moment()
+				.subtract(daysBack, 'days')
 				.format('YYYY-MM-DD'),
-			end_date: moment().format('YYYY-MM-DD'),
+			end_date: moment()
+				.format('YYYY-MM-DD'),
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<TvChanges>(`tv/${id}/changes`, params);
+	const { data } = await new tmdbClient().get<TvChanges>(`tv/${id}/changes`, params);
 
 	return data.changes;
 };
@@ -116,11 +118,11 @@ export const tvDiscover = async (params?: DiscoverTvShowParams, limit = 10) => {
 	params = {
 		page: 1,
 		with_networks: params?.with_networks
-			? params.with_networks
-			: '213',
+			?			params.with_networks
+			:			'213',
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('discover/tv', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>('discover/tv', {
 		params,
 	});
 
@@ -132,7 +134,7 @@ export const tvDiscover = async (params?: DiscoverTvShowParams, limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<TvShow>>('discover/tv', {
+			new tmdbClient().get<PaginatedResponse<TvShow>>('discover/tv', {
 				params: { page: i },
 			})
 		);
@@ -156,7 +158,7 @@ export const tvGenre = async () => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<TvGenre>('genre/tv/list', params);
+	const { data } = await new tmdbClient().get<TvGenre>('genre/tv/list', params);
 
 	return data.genres;
 };
@@ -175,7 +177,7 @@ export const tvImages = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<TvImages>(`tv/${id}/images`, params);
+	const { data } = await new tmdbClient().get<TvImages>(`tv/${id}/images`, params);
 
 	return data;
 };
@@ -188,7 +190,7 @@ export const tvLatest = async () => {
 		message: 'Fetching TV Show Latest',
 	});
 
-	const { data } = await tmdbApiClient.get<TvLatest>('tv/latest', {
+	const { data } = await new tmdbClient().get<TvLatest>('tv/latest', {
 		params: { page: 1 },
 	});
 
@@ -205,7 +207,7 @@ export const tvOnTheAir = async (limit = 10) => {
 
 	const arr: TvShow[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('tv/on_the_air', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>('tv/on_the_air', {
 		params: { page: 1 },
 	});
 
@@ -217,7 +219,7 @@ export const tvOnTheAir = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<TvShow>>('tv/on_the_air', {
+			new tmdbClient().get<PaginatedResponse<TvShow>>('tv/on_the_air', {
 				params: { page: i },
 			})
 		);
@@ -244,7 +246,7 @@ export const tvPopular = async (limit = 10) => {
 
 	const arr: TvShow[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('tv/popular', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>('tv/popular', {
 		params: { page: 1 },
 	});
 
@@ -256,7 +258,7 @@ export const tvPopular = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<TvShow>>('tv/popular', {
+			new tmdbClient().get<PaginatedResponse<TvShow>>('tv/popular', {
 				params: { page: i },
 			})
 		);
@@ -283,7 +285,7 @@ export const tvRecommendations = async (id: number, limit = 10) => {
 
 	const arr: TvShow[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>(`tv/${id}/recommendations`, { params: { page: 1 } });
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>(`tv/${id}/recommendations`, { params: { page: 1 } });
 
 	for (let j = 0; j < data.results.length; j++) {
 		arr.push(data.results[j]);
@@ -293,7 +295,7 @@ export const tvRecommendations = async (id: number, limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<TvShow>>(`tv/${id}/recommendations`, {
+			new tmdbClient().get<PaginatedResponse<TvShow>>(`tv/${id}/recommendations`, {
 				params: { page: i },
 			})
 		);
@@ -320,7 +322,7 @@ export const tvSimilar = async (id: number, limit = 10) => {
 
 	const arr: TvShow[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>(`tv/${id}/similar`, {
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>(`tv/${id}/similar`, {
 		params: { page: 1 },
 	});
 
@@ -332,7 +334,7 @@ export const tvSimilar = async (id: number, limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<TvShow>>(`tv/${id}/similar`, {
+			new tmdbClient().get<PaginatedResponse<TvShow>>(`tv/${id}/similar`, {
 				params: { page: i },
 			})
 		);
@@ -359,7 +361,7 @@ export const tvTopRated = async (limit = 10) => {
 
 	const arr: TvShow[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('tv/top_rated', {
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>('tv/top_rated', {
 		params: { page: 1 },
 	});
 
@@ -371,7 +373,7 @@ export const tvTopRated = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<TvShow>>('tv/top_rated', {
+			new tmdbClient().get<PaginatedResponse<TvShow>>('tv/top_rated', {
 				params: { page: i },
 			})
 		);
@@ -398,7 +400,7 @@ export const tvTrending = async (window = 'day', limit = 10) => {
 
 	const arr: TvShow[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>(`trending/tv/${window}`, { params: { page: 1 } });
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>(`trending/tv/${window}`, { params: { page: 1 } });
 
 	for (let j = 0; j < data.results.length; j++) {
 		arr.push(data.results[j]);
@@ -408,7 +410,7 @@ export const tvTrending = async (window = 'day', limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<TvShow>>(`trending/tv/${window}`, {
+			new tmdbClient().get<PaginatedResponse<TvShow>>(`trending/tv/${window}`, {
 				params: { page: i },
 			})
 		);
@@ -439,7 +441,7 @@ export const tvVideos = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<TvVideos>(`tv/${id}/videos`, params);
+	const { data } = await new tmdbClient().get<TvVideos>(`tv/${id}/videos`, params);
 
 	return data.results;
 };
@@ -452,7 +454,7 @@ export const tvTranslations = async (id: number) => {
 		message: `Fetching TV Show Translations with id: ${id}`,
 	});
 
-	const { data } = await tmdbApiClient.get<TvShowTranslations>(`tv/${id}/translations`);
+	const { data } = await new tmdbClient().get<TvShowTranslations>(`tv/${id}/translations`);
 
 	return data;
 };

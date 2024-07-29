@@ -1,4 +1,3 @@
-
 import { datetime } from '../../helpers';
 import { relations, sql } from 'drizzle-orm';
 import { text, sqliteTable, integer, index } from 'drizzle-orm/sqlite-core';
@@ -15,7 +14,8 @@ import { translations } from './translations';
 import { images } from './images';
 
 export const episodes = sqliteTable('episodes', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
+	id: integer('id')
+		.primaryKey({ autoIncrement: true }),
 	title: text('title'),
 	airDate: text('airDate'),
 	episodeNumber: integer('episodeNumber')
@@ -40,18 +40,29 @@ export const episodes = sqliteTable('episodes', {
 		.default(sql`CURRENT_TIMESTAMP`),
 
 	tv_id: integer('tv_id')
-		.references(() => tvs.id, { onDelete: 'cascade', onUpdate: 'cascade' })
+		.references(() => tvs.id, {
+			onDelete: 'cascade',
+			onUpdate: 'cascade',
+		})
 		.notNull(),
 	season_id: integer('season_id')
-		.references(() => seasons.id, { onDelete: 'cascade', onUpdate: 'cascade' })
+		.references(() => seasons.id, {
+			onDelete: 'cascade',
+			onUpdate: 'cascade',
+		})
 		.notNull(),
 
 }, db => ({
-	index: index('episode_index').on(db.id),
-	seasonIndex: index('episode_season_index').on(db.season_id),
+	index: index('episode_index')
+		.on(db.id),
+	seasonIndex: index('episode_season_index')
+		.on(db.season_id),
 }));
 
-export const episodesRelations = relations(episodes, ({ many, one }) => ({
+export const episodesRelations = relations(episodes, ({
+	many,
+	one,
+}) => ({
 	tv: one(tvs, {
 		fields: [episodes.tv_id],
 		references: [tvs.id],

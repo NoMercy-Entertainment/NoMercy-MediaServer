@@ -35,7 +35,7 @@ export default async (data: string| Buffer, type?: string): Promise<PaletteColor
 		};
 
 	} catch (error) {
-		console.log(error);
+		// console.log(error);
 		return null;
 	}
 };

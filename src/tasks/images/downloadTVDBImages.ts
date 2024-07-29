@@ -1,4 +1,4 @@
-import { AppState, useSelector } from '@server/state/redux';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import getTVDBImages from './getTVDBImages';
 
 import { CompleteMovieAggregate } from '../data/movie/fetchMovie';
@@ -8,14 +8,18 @@ import downloadImage from '@server/functions/downloadImage/downloadImage';
 import { imagesPath } from '@server/state';
 import path from 'path';
 import { insertImage } from '@server/db/media/actions/images';
-import { insertCast } from '@server/db/media/actions/casts';
+import { AppState, useSelector } from '@server/state/redux';
+import { existsSync } from 'fs';
 
 interface DownloadTVDBImages {
 	type: 'tv' | 'movie';
 	data: (CompleteMovieAggregate | CompleteTvAggregate) & { task?: { id: string } };
 }
 
-export const execute = ({ type, data }: DownloadTVDBImages) => {
+export const execute = ({
+	type,
+	data,
+}: DownloadTVDBImages) => {
 
 	return new Promise<void>(async (resolve, reject) => {
 
@@ -28,8 +32,8 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 			});
 
 			const newType = type == 'tv'
-				? 'series'
-				: 'movies';
+				?				'series'
+				:				'movies';
 			const imageData = await getTVDBImages(
 				newType,
 				data
@@ -39,21 +43,26 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 				const image = imageData[i];
 				const file = `${imagesPath}/cast/${image.profile_path?.replace('.jpg', '.webp')}`;
 
-				// if (existsSync(`${imagesPath}/cast/${image.credit_id}.webp`)) continue;
+				if (existsSync(`${imagesPath}/cast/${image.credit_id}.webp`)) continue;
 
 				await downloadImage({
 					url: image.img,
 					path: path.resolve(`${imagesPath}/cast/${image.credit_id}.webp`),
 				})
 					// eslint-disable-next-line no-loop-func
-					.then(({ dimensions, stats, colorPalette, blurHash }) => {
+					.then(({
+						dimensions,
+						stats,
+						colorPalette,
+						blurHash,
+					}) => {
 						try {
 
 							insertImage({
 								filePath: `/${image.credit_id}.jpg`,
 								aspectRatio: dimensions.width && dimensions.height
-									? (dimensions.width / dimensions.height)
-									: 0.6666666666666666,
+									?									(dimensions.width / dimensions.height)
+									:									0.6666666666666666,
 								site: 'thetvdb.com',
 								iso6391: 'xx',
 								height: dimensions.height,
@@ -62,8 +71,8 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 								size: stats.size,
 								name: `${image.credit_id}.jpg`,
 								colorPalette: colorPalette
-									? JSON.stringify(colorPalette)
-									: null,
+									?									JSON.stringify(colorPalette)
+									:									null,
 								blurHash: blurHash,
 							});
 						} catch (error) {
@@ -75,24 +84,26 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 							});
 						}
 
-						try {
-							insertCast({
-								id: image.credit_id,
-								person_id: image.id,
-								[`${type}_id`]: data.id,
-							});
+						// try {
+						// 	insertCast({
+						// 		id: image.credit_id,
+						// 		person_id: image.id,
+						// 		[`${type}_id`]: data.id,
+						// 	});
 
-						} catch (error) {
-							Logger.log({
-								level: 'error',
-								name: 'App',
-								color: 'red',
-								message: JSON.stringify(['tvdb image cast', error]),
-							});
-						}
+						// } catch (error) {
+						// 	Logger.log({
+						// 		level: 'error',
+						// 		name: 'App',
+						// 		color: 'red',
+						// 		message: JSON.stringify(['tvdb image cast', error]),
+						// 	});
+						// }
 
 					})
-					.catch(console.log);
+					.catch(() => {
+						//
+					});
 			}
 
 			Logger.log({
@@ -115,14 +126,20 @@ export const execute = ({ type, data }: DownloadTVDBImages) => {
 	});
 };
 
-export const downloadTVDBImages = ({ type, data }: DownloadTVDBImages) => {
+export const downloadTVDBImages = ({
+	type,
+	data,
+}: DownloadTVDBImages) => {
 	const queue = useSelector((state: AppState) => state.config.dataWorker);
 
-	// queue.add({
-	// 	file: __filename,
-	// 	fn: 'execute',
-	// 	args: { type, data },
-	// });
+	queue.add({
+		file: __filename,
+		fn: 'execute',
+		args: {
+			type,
+			data,
+		},
+	});
 };
 
 export default downloadTVDBImages;

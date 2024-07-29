@@ -15,10 +15,7 @@ export default async function (req: Request, res: Response) {
 	});
 
 	if (result.error) {
-		return res.status(result.error.code ?? 500).json({
-			status: 'error',
-			message: result.error.message,
-		});
+		return res.json(false);
 	}
 	return res.json(result.result);
 }
@@ -48,7 +45,7 @@ export const exec = ({ id, user_id }: { id: string; user_id: string }) => {
 		}
 
 		resolve({
-			available: true,
+			available: !!movie?.videoFiles?.find(v => v.duration)?.duration || false,
 			server: 'local',
 		});
 	});

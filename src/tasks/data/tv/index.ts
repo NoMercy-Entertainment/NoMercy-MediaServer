@@ -1,4 +1,3 @@
-
 import Logger from '@server/functions/logger';
 import aggregateCast from './aggregateCast';
 import aggregateCrew from './aggregateCrew';
@@ -8,7 +7,6 @@ import colorPalette from '@server/functions/colorPalette/colorPalette';
 // import createBlurHash from '@server/functions/createBlurHash';
 import { createTitleSort } from '../../files/filenameParser';
 import creator from './creator';
-import downloadTVDBImages from '../../images/downloadTVDBImages';
 import fetchTvShow from './fetchTvShow';
 import findMediaFiles from '../files';
 import genre from '../shared/genre';
@@ -31,10 +29,20 @@ import { insertLibraryTv } from '@server/db/media/actions/library_tv';
 import { QueueJob } from '@server/db/queue/schema/queueJobs';
 // import { existsSync } from 'fs';
 
-export const storeTvShow = async ({ id, folder, libraryId, job }:
+export const storeTvShow = async ({
+	id,
+	folder,
+	libraryId,
+	job,
+}:
 	{ id: number; folder: string, libraryId: string, job?: QueueJob; }) => {
 
-	console.log({ id, folder, libraryId, job });
+	console.log({
+		id,
+		folder,
+		libraryId,
+		job,
+	});
 	// if (!existsSync(folder)) {
 	// 	throw new Error(`Folder ${folder}does not exist`);
 	// }
@@ -98,24 +106,15 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			backdrop: undefined,
 		};
 
-		const blurHash: any = {
-			poster: undefined,
-			backdrop: undefined,
-		};
-
 		await Promise.all([
-			// tv.poster_path && createBlurHash(`https://image.tmdb.org/t/p/w185${tv.poster_path}`).then((hash) => {
-			// 	blurHash.poster = hash;
-			// }),
-			// tv.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`).then((hash) => {
-			// 	blurHash.backdrop = hash;
-			// }),
-			tv.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${tv.poster_path}`).then((hash) => {
-				palette.poster = hash;
-			}),
-			tv.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`).then((hash) => {
-				palette.backdrop = hash;
-			}),
+			tv.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${tv.poster_path}`)
+				.then((hash) => {
+					palette.poster = hash;
+				}),
+			tv.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${tv.backdrop_path}`)
+				.then((hash) => {
+					palette.backdrop = hash;
+				}),
 		]);
 
 		try {
@@ -128,9 +127,9 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 				imdbId: tv.external_ids?.imdb_id,
 				tvdbId: tv.external_ids?.tvdb_id,
 				inProduction: tv.in_production,
-				lastEpisodeToAir: tv.last_episode_to_air?.id,
+				lastEpisodeToAir: tv.last_episode_to_air?.id ?? undefined,
 				mediaType: Type,
-				nextEpisodeToAir: tv.next_episode_to_air?.id,
+				nextEpisodeToAir: tv.next_episode_to_air?.id ?? undefined,
 				numberOfEpisodes: tv.number_of_episodes,
 				numberOfSeasons: tv.number_of_seasons,
 				originCountry: tv.origin_country.join(', '),
@@ -138,13 +137,13 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 				overview: tv.overview,
 				popularity: tv.popularity,
 				poster: tv.poster_path,
-				blurHash: JSON.stringify(blurHash),
 				colorPalette: JSON.stringify(palette),
-				spokenLanguages: tv.spoken_languages.map(sl => sl.iso_639_1).join(', '),
+				spokenLanguages: tv.spoken_languages.map(sl => sl.iso_639_1)
+					.join(', '),
 				status: tv.status,
 				tagline: tv.tagline,
 				title: tv.name,
-				titleSort: createTitleSort(tv.name, tv.first_air_date),
+				titleSort: createTitleSort(tv.name, parseYear(tv.first_air_date)),
 				type: tv.type,
 				voteAverage: tv.vote_average,
 				voteCount: tv.vote_count,
@@ -170,7 +169,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			};
 		}
 
-		person(tv, transaction);
+		await person(tv, transaction);
 
 		transaction = [];
 		const people = (tv.people).map(p => p.id);
@@ -275,7 +274,7 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 		image(tv, 'logo', 'tv');
 		image(tv, 'poster', 'tv');
 
-		downloadTVDBImages({ type: 'tv', data: tv });
+		// downloadTVDBImages({ type: 'tv', data: tv });
 
 		Logger.log({
 			level: 'info',
@@ -295,9 +294,15 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 
 		try {
 			if (folder) {
-				await findMediaFiles({ type: 'tv', data: tv, folder, libraryId, sync: true });
+				await findMediaFiles({
+					type: 'tv',
+					data: tv,
+					folder,
+					libraryId,
+					sync: true,
+				});
 
-				process.send!({
+				process.send?.({
 					type: 'custom',
 					event: 'update_content',
 					data: ['libraries', libraryId],
@@ -338,8 +343,8 @@ export const storeTvShow = async ({ id, folder, libraryId, job }:
 			success: false,
 			message: `Something went wrong adding ${tv.name}`,
 			error: JSON.stringify(error) == '{}'
-				? `Something went wrong adding ${tv.name}`
-				: error,
+				?				`Something went wrong adding ${tv.name}`
+				:				error,
 		};
 	}
 

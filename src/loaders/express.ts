@@ -1,10 +1,6 @@
 import express from 'express';
 import { Application, NextFunction, Request, Response } from 'express-serve-static-core';
-import {
-	serveImagesPath,
-	serveLibraryPaths,
-	servePublicPath, serveTranscodePath
-} from '../api/routes/files';
+import { serveImagesPath, serveLibraryPaths, servePublicPath, serveTranscodePath } from '../api/routes/files';
 
 import Logger from '../functions/logger';
 import { allowedOrigins } from '../functions/networking';
@@ -17,16 +13,16 @@ import webhooks from '../api/routes/webhooks';
 import { owner, setupComplete } from '@server/state';
 import { staticPermissions } from '../api/middleware/permissions';
 
-import { initAuth, AuthMiddleware, mustHaveToken } from '@server/functions/keycloak';
 import { AppState, useSelector } from '@server/state/redux';
+import { AuthMiddleware } from '@server/functions/keycloak/keycloak';
 
 
-export default async (app: Application) => {
-	await initAuth();
+export default (app: Application) => {
+	// await initAuth();
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		res.header('X-Powered-By', 'NoMercy MediaServer');
-		res.header('Access-Control-Allow-Private-Network', 'true');
+		res.set('X-Powered-By', 'NoMercy MediaServer');
+		res.set('Access-Control-Allow-Private-Network', 'true');
 		// res.header('Access-Control-Max-Age', `${60 * 60 * 24 * 7}`);
 
 		next();
@@ -34,7 +30,7 @@ export default async (app: Application) => {
 
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const origins = allowedOrigins(internal_ip);
-	
+
 	app.use(
 		cors({
 			// origin: origins,
@@ -55,10 +51,16 @@ export default async (app: Application) => {
 	app.use(express.json());
 
 	app.get('/status', (req: Request, res: Response) => {
-		res.status(200).end();
+		res.status(200)
+			.send({
+				status: 'OK',
+			});
 	});
 	app.head('/status', (req: Request, res: Response) => {
-		res.status(200).end();
+		res.status(200)
+			.send({
+				status: 'OK',
+			});
 	});
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
@@ -77,11 +79,13 @@ export default async (app: Application) => {
 
 	app.get('/images/*', serveImagesPath);
 	app.get('/transcodes/*', serveTranscodePath);
-	
-	app.use(AuthMiddleware);
-	app.use(mustHaveToken);
-	
 	serveLibraryPaths(app);
+
+	app.use(AuthMiddleware);
+	// app.use(mustHaveToken);
+	// app.use(session(session_config));
+	// app.use(keycloak.initKeycloak().middleware());
+
 	// app.get('/subtitles/*', staticPermissions, serveSubtitlesPath);
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
@@ -97,7 +101,7 @@ export default async (app: Application) => {
 		});
 	});
 
-	app.use('/api', check, changeLanguage, routes);
+	app.use('/api/v1', check, changeLanguage, routes);
 
 	app.get('/*', staticPermissions, servePublicPath);
 

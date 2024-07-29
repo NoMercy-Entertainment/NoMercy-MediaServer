@@ -10,7 +10,7 @@ export interface PersonDetails extends Person {
 	also_known_as: string[];
 	biography: string;
 	birthday: string;
-	deathday: string;
+	deathDay: string;
 	gender: number;
 	homepage: string;
 	imdb_id: string;

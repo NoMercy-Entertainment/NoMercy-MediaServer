@@ -2,7 +2,7 @@ import { CollectionTranslations } from './collection_translations';
 import { CollectionWithAppends } from './collection-details';
 import Logger from '@server/functions/logger';
 import i18next from 'i18next';
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 
 export * from './collection';
 export * from './collection-details';
@@ -26,7 +26,7 @@ export default async function collection(id: number) {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<CollectionWithAppends<typeof collectionAppend[number]>>(`collection/${id}`, params);
+	const { data } = await new tmdbClient().get<CollectionWithAppends<typeof collectionAppend[number]>>(`collection/${id}`, params);
 
 	// data.content_ratings.results[0].NL[0].rating
 	return data;
@@ -41,7 +41,7 @@ export const collectionTranslations = async (id: number) => {
 		message: `Fetching Collection translations with id: ${id}`,
 	});
 
-	const { data } = await tmdbApiClient.get<CollectionTranslations>(`person/${id}/translations`);
+	const { data } = await new tmdbClient().get<CollectionTranslations>(`person/${id}/translations`);
 
 	return data;
 };

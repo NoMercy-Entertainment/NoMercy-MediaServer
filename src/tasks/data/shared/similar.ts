@@ -10,11 +10,14 @@ import { insertSimilar } from '@server/db/media/actions/similars';
 import { getMoviesDB } from '@server/db/media/actions/movies';
 import Logger from '@server/functions/logger/logger';
 import { selectTvsDB } from '@server/db/media/actions/tvs';
+import { parseYear } from '@server/functions/dateTime';
 
 export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transaction: any[], type: 'movie' | 'tv') => {
 
-	const movies = getMoviesDB().map(m => m.id);
-	const tvs = selectTvsDB().map(m => m.id);
+	const movies = getMoviesDB()
+		.map(m => m.id);
+	const tvs = selectTvsDB()
+		.map(m => m.id);
 
 	for (const similar of unique<Movie | TvShow>(req.similar.results, 'id')) {
 
@@ -35,12 +38,14 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 			// similar.backdrop_path && createBlurHash(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`).then((hash) => {
 			// 	blurHash.backdrop = hash;
 			// }),
-			similar.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${similar.poster_path}`).then((hash) => {
-				palette.poster = hash;
-			}),
-			similar.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`).then((hash) => {
-				palette.backdrop = hash;
-			}),
+			similar.poster_path && colorPalette(`https://image.tmdb.org/t/p/w185${similar.poster_path}`)
+				.then((hash) => {
+					palette.poster = hash;
+				}),
+			similar.backdrop_path && colorPalette(`https://image.tmdb.org/t/p/w185${similar.backdrop_path}`)
+				.then((hash) => {
+					palette.backdrop = hash;
+				}),
 		]);
 
 		try {
@@ -50,21 +55,22 @@ export default async (req: CompleteTvAggregate | CompleteMovieAggregate, transac
 				overview: similar.overview,
 				poster: similar.poster_path,
 				title: (similar as TvShow).name ?? (similar as Movie).title,
-				titleSort: createTitleSort((similar as TvShow).name ?? (similar as Movie).title),
+				titleSort: createTitleSort((similar as TvShow).name ?? (similar as Movie).title,
+					parseYear((similar as TvShow).first_air_date ?? (similar as Movie).release_date)),
 				blurHash: JSON.stringify(blurHash),
-				colorPalette: JSON.stringify(palette),
+				color_palette: JSON.stringify(palette),
 				movieFrom_id: type === 'movie'
-					? req.id
-					: undefined,
+					?					req.id
+					:					undefined,
 				movieTo_id: type === 'movie' && movies.includes(similar.id)
-					? similar.id
-					: undefined,
+					?					similar.id
+					:					undefined,
 				tvFrom_id: type === 'tv'
-					? req.id
-					: undefined,
+					?					req.id
+					:					undefined,
 				tvTo_id: type === 'tv' && tvs.includes(similar.id)
-					? similar.id
-					: undefined,
+					?					similar.id
+					:					undefined,
 			}, type);
 		} catch (error) {
 			Logger.log({

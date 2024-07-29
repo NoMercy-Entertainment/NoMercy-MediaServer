@@ -6,19 +6,23 @@ import baseConfiguration from '../../loaders/cdn/cdn';
 import chromeCast from '../chromeCast';
 import dev from './dev';
 import firstBoot from '../firstBoot';
-import { getAuthKeys } from '../keycloak';
+// import { getAuthKeys } from '../keycloak';
 import logo from '../logo';
 import queue from '../queue';
 import seed from '@server/db/seed';
 import { watcher } from '@server/tasks/files/watcher';
 import certificate from '../certificate';
 import loadConfigs from '../loadConfigs';
-import moderators from '../moderators';
+// import moderators from '../moderators';
 import refreshToken from '../auth/refreshToken';
-import getUsers from '../users';
+// import getUsers from '../users';
 import server from '@server/loaders/server';
-import mediaDB from '@server/db/media';
 import queueDB from '@server/db/queue';
+import mediaDb from '@server/db/media';
+// import { getAuthKeys } from '@server/functions/keycloak';
+import { moderators } from '@server/functions/moderators';
+import { getUsers } from '@server/functions/users';
+import { aquireToken } from '@server/functions/auth/login';
 
 export default async () => {
 	process
@@ -36,21 +40,23 @@ export default async () => {
 		rmSync(transcodesPath, { recursive: true });
 	}
 
+	await get_external_ip();
+	get_internal_ip();
+
+	await aquireToken();
+
 	if (setupComplete) {
-		mediaDB();
+		mediaDb();
 		queueDB();
 	} else {
 		await firstBoot();
 	}
 
-	await getAuthKeys();
-
-	await get_external_ip();
-	get_internal_ip();
+	// await getAuthKeys();
 
 	await baseConfiguration();
 	logo();
-	
+
 	loadConfigs();
 
 	await refreshToken();

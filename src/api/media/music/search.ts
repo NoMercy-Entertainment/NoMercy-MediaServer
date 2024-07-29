@@ -1,9 +1,10 @@
 import { Request, Response } from 'express-serve-static-core';
 
 
-export default function (req: Request, res: Response) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default (req: Request, res: Response) => {
 
-	const query = req.body.query as string;
+	// const query = req.body.query as string;
 
 	try {
 		// const artists = await confDb.artist.findMany({
@@ -195,7 +196,7 @@ export default function (req: Request, res: Response) {
 		// 		cover: playlist.cover,
 		// 		created_at: playlist.created_at,
 		// 		updated_at: playlist.updated_at,
-		// 		colorPalette: JSON.parse(playlist.colorPalette ?? '{}'),
+		// 		color_palette: JSON.parse(playlist.colorPalette ?? '{}'),
 		// 		type: 'playlist',
 		// 	};
 		// } else if (playlists.some(a => a.Playlist.name.toLowerCase().includes(query.toLowerCase()))) {
@@ -210,7 +211,7 @@ export default function (req: Request, res: Response) {
 		// 			cover: playlist.cover,
 		// 			created_at: playlist.created_at,
 		// 			updated_at: playlist.updated_at,
-		// 			colorPalette: JSON.parse(playlist.colorPalette ?? '{}'),
+		// 			color_palette: JSON.parse(playlist.colorPalette ?? '{}'),
 		// 			type: 'playlist',
 		// 		};
 		// 	}
@@ -230,7 +231,7 @@ export default function (req: Request, res: Response) {
 		// 				name: t.name.replace(/["'\[\]*]/gu, ''),
 		// 				title_sort: createTitleSort(t.name.replace(/["'\[\]*]/gu, '')),
 		// 				origin: deviceId,
-		// 				colorPalette: JSON.parse(t.colorPalette ?? '{}'),
+		// 				color_palette: JSON.parse(t.colorPalette ?? '{}'),
 		// 			};
 		// 		}),
 		// 	},
@@ -249,7 +250,7 @@ export default function (req: Request, res: Response) {
 		// 				Artist: t.Artist,
 		// 				Album: t.Album,
 		// 				cover: t.Album[0]?.cover ?? t.Artist[0]?.cover,
-		// 				colorPalette: JSON.parse(t.Album[0]?.colorPalette ?? t.Artist[0]?.colorPalette ?? '{}'),
+		// 				color_palette: JSON.parse(t.Album[0]?.colorPalette ?? t.Artist[0]?.colorPalette ?? '{}'),
 		// 			};
 		// 		}),
 		// 	},
@@ -263,7 +264,7 @@ export default function (req: Request, res: Response) {
 		// 				track: undefined,
 		// 				Artist: a.Artist,
 		// 				items: a.track,
-		// 				colorPalette: JSON.parse(a.colorPalette ?? '{}'),
+		// 				color_palette: JSON.parse(a.colorPalette ?? '{}'),
 		// 			};
 		// 		}), 'name'),
 		// 	},
@@ -285,7 +286,7 @@ export default function (req: Request, res: Response) {
 		// 				moreLink: '',
 		// 				track: undefined,
 		// 				items: p.track,
-		// 				colorPalette: JSON.parse(playlist.colorPalette ?? '{}'),
+		// 				color_palette: JSON.parse(playlist.colorPalette ?? '{}'),
 		// 			};
 		// 		}), 'playlistId'),
 		// 	},
@@ -297,4 +298,4 @@ export default function (req: Request, res: Response) {
 		console.log(error);
 	}
 
-}
+};

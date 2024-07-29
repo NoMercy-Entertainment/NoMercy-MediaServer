@@ -1,26 +1,20 @@
+import { InferModel, and, asc, eq, inArray, like, or } from 'drizzle-orm';
 
-import { convertBooleans } from '../../helpers';
-import { InferModel, or, like, eq, and, inArray } from 'drizzle-orm';
-import { artists } from '../schema/artists';
-import { getAllowedLibraries } from './libraries';
-import { artist_library } from '../schema/artist_library';
-import { album_track } from '../schema/album_track';
-import { artist_track } from '../schema/artist_track';
 import { album_artist } from '../schema/album_artist';
+import { album_track } from '../schema/album_track';
+import { artist_library } from '../schema/artist_library';
+import { artist_track } from '../schema/artist_track';
+import { artists } from '../schema/artists';
+import { convertBooleans } from '../../helpers';
+import { getAllowedLibraries } from './libraries';
+import { artist_user } from '../schema/artist_user';
 
 export type NewArtist = InferModel<typeof artists, 'insert'>;
 export const insertArtist = (data: NewArtist) => globalThis.mediaDb.insert(artists)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: artists.id,
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
+		set: convertBooleans(data, true),
 	})
 	.returning()
 	.get();
@@ -32,17 +26,18 @@ export const selectArtists = (letter: string, user_id: string) => {
 
 	const result = globalThis.mediaDb.query.artists.findMany({
 		with: {
-			// album_artist: {
-			// 	with: {
-			// 		album: true,
-			// 	},
-			// },
+			artist_track: {
+				columns: {
+					track_id: true,
+				},
+			},
 			library: {
 				with: {
 					library_user: true,
 				},
 			},
 		},
+		orderBy: asc(artists.name),
 		where: letter == '_'
 			? and(
 				or(
@@ -75,7 +70,7 @@ export const selectArtists = (letter: string, user_id: string) => {
 			...a.library,
 			library_user: undefined,
 		},
-	})).sort((a, b) => a.name.localeCompare(b.name));
+	}));
 };
 
 export type ArtistWithRelations = ReturnType<typeof selectArtist>;
@@ -89,6 +84,9 @@ export const selectArtist = (id: string, user_id: string) => {
 				with: {
 					library_user: true,
 				},
+			},
+			artist_user: {
+				where: eq(artist_user.user_id, user_id),
 			},
 		},
 		where: (artists, { eq, and }) => and(

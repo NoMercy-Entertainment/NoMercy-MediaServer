@@ -28,6 +28,7 @@ export const logs = (req: Request, res: Response) => {
 
 			const filteredResults = results.file.map((r, index) => ({ ...r, id: index, user: r.user ?? '' }))
 				.filter(r => !r.message?.includes('/api/dashboard/manage/logs') ?? true)
+				.filter(r => !r.message?.includes('/api/dashboard/manage/serveractivity') ?? true)
 				.filter(r => (level
 					? r.level.includes(level)
 					: true))

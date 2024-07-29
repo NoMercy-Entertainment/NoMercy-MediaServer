@@ -5,9 +5,7 @@ import { crews } from '../schema/crews';
 
 export type NewCrew = InferModel<typeof crews, 'insert'>;
 export const insertCrew = (data: NewCrew) => globalThis.mediaDb.insert(crews)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [crews.id],
 		set: {

@@ -81,32 +81,34 @@ interface QualityLevel {
 export interface PlaylistItem {
     id: number;
 	special_id?: string;
-    title: string;
+    title: string | null;
     description: string | null;
     duration: string | null | undefined;
     poster: string | null;
-    backdrop: string | null;
     image: string | null;
-    year: string;
+    year: number | null;
     video_type: string;
-    production: boolean;
-    season: number;
-    episode: number;
-    episode_id: number;
+    production?: boolean;
+    season?: number;
+    episode?: number;
+    episode_id?: number;
     origin: string;
     uuid: number;
-    video_id: string | number | undefined;
+    video_id: string | null;
     tmdbid: number;
     show: string | null | undefined;
+    seasonName?: string | null;
     playlist_type: string;
     logo: string | null;
-    rating: {
-        country: string;
-        rating: string | undefined;
-        meaning: string | undefined;
-        image: string;
-    };
-    progress: number | null;
+	rating: {
+		id: number;
+		rating: string;
+		iso31661: string;
+		meaning: string;
+		order: number;
+	} | undefined
+    progress: { percentage: number; date: string; } | null;
+
     textTracks: any[];
     sources: {
         src: string;
@@ -117,4 +119,10 @@ export interface PlaylistItem {
         file: string;
         kind: string;
     }[];
+
+	fontsFile?: string;
+	fonts?: {
+		file: string;
+		type: string;
+	}[]
 }

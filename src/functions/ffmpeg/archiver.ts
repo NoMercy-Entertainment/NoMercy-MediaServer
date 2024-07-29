@@ -1,14 +1,10 @@
-import { ExecException, exec, execSync } from 'child_process';
+import { exec, ExecException, execSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 import { ArrayElementType, VideoFFprobe, VideoQuality } from '../../encoder/ffprobe/ffprobe';
 import { dataPath, ffmpeg, transcodesPath } from '@server/state';
-import {
-	EP,
-	MV,
-	createBaseFolder, createEpisodeFolder, createFileName, createTitleSort
-} from '@server/tasks/files/filenameParser';
+import { createBaseFolder, createEpisodeFolder, createFileName, EP, MV } from '@server/tasks/files/filenameParser';
 import { convertToHis, createTimeInterval, humanTime, parseYear } from '../dateTime';
 import { matchPercentage, pad, unique } from '../stringArray';
 import { filenameParse, ParsedFilename, ParsedTvInfo } from '../videoFilenameParser';
@@ -35,12 +31,9 @@ export class FFMpegArchive extends FFMpeg {
 
 	defaultStream = 'YES';
 
-	thumbSize = {
-		w: 256,
-		h: 144,
-	};
+	thumbSize = 256;
 
-	parsedFile: ParsedFilename = <ParsedFilename>{};
+	parsedFile: Partial<ParsedFilename> = <ParsedFilename>{};
 	preferredOrder: { [x: string]: any; } = {
 		eng: 2,
 		jpn: 3,
@@ -81,9 +74,9 @@ export class FFMpegArchive extends FFMpeg {
 	findEpisode(id: number, seasonNumber: number, episodeNumber: number) {
 		return globalThis.mediaDb.query.episodes.findFirst({
 			where: and(
-				eq(episodes.episodeNumber, episodeNumber),
+				eq(episodes.tv_id, id),
 				eq(episodes.seasonNumber, seasonNumber),
-				eq(episodes.tv_id, id)
+				eq(episodes.episodeNumber, episodeNumber)
 			),
 			with: {
 				tv: {
@@ -110,7 +103,7 @@ export class FFMpegArchive extends FFMpeg {
 
 	findMovie(searchResult: Movie) {
 		return globalThis.mediaDb.query.movies.findFirst({
-			where: eq(movies.titleSort, createTitleSort(searchResult.title, searchResult.release_date)),
+			where: eq(movies.id, searchResult.id),
 			with: {
 				library: {
 					with: {
@@ -210,6 +203,7 @@ export class FFMpegArchive extends FFMpeg {
 			if (!this.movie) {
 				throw new Error('Movie not found');
 			}
+
 			this.year = parseYear(this.movie.releaseDate)!;
 			this.baseFolder = createBaseFolder(this.movie);
 			this.index = this.movie.id;
@@ -220,7 +214,7 @@ export class FFMpegArchive extends FFMpeg {
 
 		}
 
-		this.share = this.library.folder_library[0].folder.id ?? '';
+		this.share = this.library.folder_library[0].folder_id ?? '';
 
 		return this;
 	}
@@ -228,7 +222,7 @@ export class FFMpegArchive extends FFMpeg {
 	async fromDatabase(data: EP | MV) {
 		await this.open(data.files[0].library.folder_library[0].folder.path as string);
 
-		this.title = data.title as string;
+		this.title = data.title?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, ' & ') as string;
 
 		this.baseFolder = createBaseFolder(data);
 
@@ -240,7 +234,7 @@ export class FFMpegArchive extends FFMpeg {
 
 		this.toDisk(join(data.files[0].library.folder_library[0].folder.path as string, this.baseFolder, this.episodeFolder));
 
-		this.share = this.library.folder_library[0].folder.id ?? '';
+		this.share = this.library.folder_library[0].folder_id ?? '';
 
 		return this;
 	}
@@ -268,10 +262,10 @@ export class FFMpegArchive extends FFMpeg {
 		const fileName: any = reg.groups.fileName;
 
 		// const yearReg: any = yearRegex.exec(this.file);
-		const parsedFile: ParsedFilename = filenameParse(fileName, this.isTvShow);
+		const parsedFile = filenameParse(fileName, this.isTvShow);
 		this.parsedFile = parsedFile;
 
-		this.title = parsedFile?.title;
+		this.title = parsedFile?.title?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, ' & ') ?? '';
 		this.fileName = fileName;
 		this.year = parsedFile!.year!;
 		this.seasonNumber = (parsedFile as ParsedTvInfo)?.seasons?.[0] ?? 1;
@@ -296,8 +290,8 @@ export class FFMpegArchive extends FFMpeg {
 		mkdirSync(this.subtitleFolder, { recursive: true });
 
 		this.fullTitle = this.seasonNumber != null && this.episodeNumber && this.episode
-			? `${this.title} (${this.year}) S${pad(this.seasonNumber)} E${pad(this.episodeNumber)} - ${this.episode.title}`
-			: `${this.title} (${this.year})`;
+			?			`${this.title} (${this.year}) S${pad(this.seasonNumber)} E${pad(this.episodeNumber)} - ${this.episode.title}`
+			:			`${this.title} (${this.year})`;
 
 		this.filteredAudioStreams = unique(this.streams.audio.sort(this.sortByPriorityKeyed(this.preferredOrder, 'language')), 'language')
 			.filter(a => this.allowedLanguages.includes(a.language)) ?? [];
@@ -376,9 +370,15 @@ export class FFMpegArchive extends FFMpeg {
 			stream.width = quality.width;
 			stream.height = quality.height || (quality.width / 16) * 9;
 		}
-		console.log({ size: `${stream.width}x${stream.height}`, quality: quality ?? stream });
+		console.log({
+			size: `${stream.width}x${stream.height}`,
+			quality: quality ?? stream,
+		});
 
-		this.videoStreams.push({ size: `${stream.width}x${stream.height}`, quality: quality ?? stream });
+		this.videoStreams.push({
+			size: `${stream.width}x${stream.height}`,
+			quality: quality ?? stream,
+		});
 
 		if (this.wantsPlaylist) {
 			if (existsSync(this.getFile([`video_${stream.width}x${stream.height}/video_${stream.width}x${stream.height}.m3u8`]))) {
@@ -388,14 +388,12 @@ export class FFMpegArchive extends FFMpeg {
 
 		this.addCommand('-map', `0:${stream.index}`);
 
-		if (this.isHDR && this.hasGpu) {
-			if (quality.codec == 'H264') {
-				this.addCommand('-c:v', 'h264_nvenc');
-			} else if (quality.codec == 'H265') {
-				this.addCommand('-c:v', 'hevc_nvenc');
-			}
+		if (this.hasGpu && quality.codec == 'H264') {
+			this.addCommand('-c:v', 'h264_nvenc');
 		} else if (quality.codec == 'H264') {
 			this.addCommand('-c:v', 'libx264');
+		} else if (this.hasGpu && quality.codec == 'H265') {
+			this.addCommand('-c:v', 'hevc_nvenc');
 		} else if (quality.codec == 'H265') {
 			this.addCommand('-c:v', 'libx265');
 		}
@@ -405,6 +403,7 @@ export class FFMpegArchive extends FFMpeg {
 		}
 
 		this.addCommand('-map_metadata', '0')
+			.addCommand('-movflags', 'faststart')
 			.addCommand('-metadata', `title="${this.title}"`);
 
 		if (quality?.crf) {
@@ -424,6 +423,14 @@ export class FFMpegArchive extends FFMpeg {
 
 		if (quality?.maxrate) {
 			this.addCommand(`-maxrate ${quality?.maxrate}`);
+		}
+
+		if (quality?.preset) {
+			if (this.hasGpu) {
+				this.addCommand('-preset', 'slow');
+			} else {
+				this.addCommand(`-preset ${quality?.preset}`);
+			}
 		}
 
 		// if (this.isMultiBitrate || !existsSync(this.getFile(['sprite.webp']))) {
@@ -446,7 +453,7 @@ export class FFMpegArchive extends FFMpeg {
 		if (this.isHDR && this.hasGpu) {
 			this.addCommand('-preset', 'slow')
 				.addCommand('-profile:v', 'high')
-				.addCommand('-tune:v', 'hq')
+				.addCommand('-tune:v', 'film')
 				.addCommand('-rc:v', 'vbr');
 		}
 
@@ -517,7 +524,16 @@ export class FFMpegArchive extends FFMpeg {
 	}
 
 	async makeSubtitles() {
+		console.log(this.commands?.at(-1));
 		this.commands = [];
+		// if ((!this.commands?.at(-1)?.[1] || this.commands?.at(-1)?.[1] == 'pipe:') && this.commands?.at(-1)?.[0] != '-y') {
+		if (this.videoStreams.length == 0 && this.audioStreams.length == 0 && this.subtitleStreams.length == 0 && this.isHDR) {
+			this.commands.push([`"${ffmpeg}"`]);
+			this.commands.push(['-i', `"${this.format.filename}"`]);
+			this.commands.push(['-y']);
+			this.commands.push(['-hide_banner']);
+			this.commands.push(['-max_muxing_queue_size', '9999']);
+		}
 
 		for (const stream of this.streams.subtitle ?? []) {
 			this.addSubtitleStream(stream);
@@ -542,11 +558,12 @@ export class FFMpegArchive extends FFMpeg {
 			if (!error) {
 				if (!existsSync(this.fontsFile)) return;
 
-				JSON.parse(readFileSync(this.fontsFile, 'utf8')).forEach((font: { file: string; }) => {
-					if (existsSync(this.fontsFolder + font.file)) {
-						renameSync(this.fontsFolder + font.file, this.fontsFolder + font.file.toLowerCase());
-					}
-				});
+				JSON.parse(readFileSync(this.fontsFile, 'utf8'))
+					.forEach((font: { file: string; }) => {
+						if (existsSync(this.fontsFolder + font.file)) {
+							renameSync(this.fontsFolder + font.file, this.fontsFolder + font.file.toLowerCase());
+						}
+					});
 			}
 		});
 
@@ -577,11 +594,8 @@ export class FFMpegArchive extends FFMpeg {
 		return this;
 	}
 
-	setThumbSize(w: number, h: number) {
-		this.thumbSize = {
-			w: w,
-			h: h,
-		};
+	setThumbSize(w: number) {
+		this.thumbSize = w;
 
 		return this;
 	}
@@ -600,7 +614,7 @@ export class FFMpegArchive extends FFMpeg {
 			.addVideoFilter('fps', 'fps=1/10')
 			.addVideoFilters()
 			.addCommand('-ss 1')
-			.addCommand(`-s ${this.thumbSize.w}x${this.thumbSize.h}`)
+			.addCommand(`-s ${this.thumbSize}x${(this.thumbSize / 16) * 9}`)
 			.addFile(['thumbs/thumb-%04d.jpg']);
 
 		return this;
@@ -668,14 +682,15 @@ export class FFMpegArchive extends FFMpeg {
 
 		const interval = 10;
 
-		const imageFiles = readdirSync(this.thumbnailsFolder).sort();
+		const imageFiles = readdirSync(this.thumbnailsFolder)
+			.sort();
 
 		if (imageFiles.length == 0) {
 			return this;
 		}
 
-		const thumbWidth = this.thumbSize.w;
-		const thumbHeight = this.thumbSize.h;
+		const thumbWidth = this.thumbSize;
+		const thumbHeight = (this.thumbSize / 16) * 9;
 
 		const gridWidth = Math.ceil(Math.sqrt(imageFiles.length));
 		const gridHeight = Math.ceil(imageFiles.length / gridWidth);

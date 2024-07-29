@@ -1,17 +1,18 @@
-import { tokenFile } from "@server/state";
-import { useSelector, AppState } from "@server/state/redux";
-import { KeycloakToken } from "@server/types/keycloak";
-import axios from "axios";
-import { writeFileSync } from "fs";
-import { tokenParser } from "../tokenParser";
-import writeToConfigFile from "../writeToConfigFile";
-import { Request, Response } from "express-serve-static-core";
-import Logger from "../logger";
-import { selectConfiguration } from "@server/db/media/actions/configuration";
+import { tokenFile } from '@server/state';
+import { useSelector, AppState } from '@server/state/redux';
+import { KeycloakToken } from '@server/types/keycloak';
+import axios from 'axios';
+import { writeFileSync } from 'fs';
+import { tokenParser } from '../tokenParser';
+import writeToConfigFile from '../writeToConfigFile';
+import { Request, Response } from 'express-serve-static-core';
+import Logger from '../logger';
+import { selectConfiguration } from '@server/db/media/actions/configuration';
+import { keycloak_key } from '../keycloak/config';
 
 export async function callback(req: Request, res: Response) {
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
-	
+
 	const dbConf = selectConfiguration();
 	const secureInternalPort = parseInt((dbConf.find(conf => conf.key == 'secureInternalPort')?.value as string ?? process.env.DEFAULT_PORT), 10);
 
@@ -20,15 +21,17 @@ export async function callback(req: Request, res: Response) {
 	const authorizationCodeParams = new URLSearchParams({
 		client_id: globalThis.client_id,
 		grant_type: 'authorization_code',
-		client_secret: globalThis.client_secret,
+		client_secret: keycloak_key,
 		scope: globalThis.authorizationScopes,
 		code: req.query.code as string,
 		redirect_uri: redirect_uri,
 		code_verifier: globalThis.codeVerifier,
-	}).toString();
+	});
+
+	console.warn(globalThis.tokenUrl, authorizationCodeParams);
 
 	await axios
-		.post<KeycloakToken>(globalThis.tokenUrl, authorizationCodeParams)
+		.post<KeycloakToken>(globalThis.tokenUrl, authorizationCodeParams.toString())
 		.then(({ data }) => {
 			Logger.log({
 				level: 'info',
@@ -43,9 +46,9 @@ export async function callback(req: Request, res: Response) {
 			const userId = tokenParser(data.access_token).sub;
 			writeToConfigFile('user_id', userId);
 
-            if (data.access_token) {
-                writeFileSync(tokenFile, JSON.stringify(data, null, 2));
-            }
+			if (data.access_token) {
+				writeFileSync(tokenFile, JSON.stringify(data, null, 2));
+			}
 
 			res.send('<script>window.close();</script>').end();
 		})

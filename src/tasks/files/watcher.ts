@@ -1,12 +1,13 @@
 import { getEncoderLibraries, selectLibrariesWithRelations } from '@server/db/media/actions/libraries';
-import { Stats, stat, watch } from 'fs';
+import { stat, Stats, watch } from 'fs';
 import { storeMusic } from '../data/music';
 import { AppState, useSelector } from '@server/state/redux';
 import { resolve } from 'path';
 
 export const watcher = () => {
 
-	const libraries = selectLibrariesWithRelations().filter(library => library.type === 'music');
+	const libraries = selectLibrariesWithRelations()
+		.filter(library => library.type === 'music');
 	for (const library of libraries) {
 		for (const lib of library.folder_library) {
 			try {
@@ -45,7 +46,8 @@ const fileChangeEvent = (event: string, filename: string, lib: { folder: { path:
 	const path = `${lib.folder.path}\\${filename}`;
 	if (event === 'change') {
 		stat(path, (err, stat) => {
-			if (err) return Buffer.from('');;
+			if (err) return Buffer.from('');
+
 			if (stat.isFile()) {
 				handleFileChange(path, stat);
 			} else {
@@ -54,20 +56,21 @@ const fileChangeEvent = (event: string, filename: string, lib: { folder: { path:
 		});
 	} else if (event === 'rename') {
 		stat(path, (err, stat) => {
-			if (err) return Buffer.from('');;
+			if (err) return Buffer.from('');
+
 			console.log(path, stat);
 		});
-	} 
+	}
 	return Buffer.from('');
 
 };
 
 interface Change {
-    type: string;
-    folder: string;
-    path: string;
-    modTime: number;
-    size: number;
+	type: string;
+	folder: string;
+	path: string;
+	modTime: number;
+	size: number;
 }
 
 const changes: Change[] = [];
@@ -85,7 +88,8 @@ const handleFileChange = (path: string, stat: Stats) => {
 
 	if (changes.some(change => change.folder === folder)) {
 		clearTimeout(timeout);
-	};
+	}
+
 
 	const change = {
 		type: 'file',
@@ -110,7 +114,7 @@ const handleFileChange = (path: string, stat: Stats) => {
 				changes.splice(changes.indexOf(c), 1);
 			}
 		}
-	}, 1000 * 60 * 0.5);
+	}, 1000 * 60 * 0.1);
 };
 
 export const handleDirectoryChange = (path: string, stat: Stats) => {
@@ -123,7 +127,7 @@ export const handleDirectoryChange = (path: string, stat: Stats) => {
 };
 
 export const processFile = async (change: Change) => {
-	const libraries = getEncoderLibraries();
+	const libraries = await getEncoderLibraries();
 
 	const library = libraries.find((library) => {
 		return library.folder_library.some((lib) => {
@@ -141,7 +145,11 @@ export const processFile = async (change: Change) => {
 		// await storeMovie({ id: data.id as number, folder: change.folder, libraryId: library?.id as string, task: { id: 'file change' } });
 		break;
 	case 'music':
-		await storeMusic({ folder: change.folder, libraryId: library?.id as string, task: { id: 'file change' } });
+		await storeMusic({
+			folder: change.folder,
+			libraryId: library?.id as string,
+			task: { id: 'file change' },
+		});
 		break;
 	default:
 		break;

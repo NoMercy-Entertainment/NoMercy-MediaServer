@@ -5,6 +5,7 @@ import { activityLogs } from './activityLogs';
 import { userData } from './userData';
 import { notification_user } from './notification_user';
 import { library_user } from './library_user';
+import { music_plays } from './music_plays';
 
 export const users = sqliteTable('users', {
 	id: text('id').primaryKey(),
@@ -27,4 +28,5 @@ export const usersRelations = relations(users, ({ many }) => ({
 	notification_user: many(notification_user),
 	activityLogs: many(activityLogs),
 	userData: many(userData),
+	music_plays: many(music_plays),
 }));

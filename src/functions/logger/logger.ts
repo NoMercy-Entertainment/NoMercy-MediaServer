@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import winston from 'winston';
 import { winstonLog } from '@server/state';
+import { stringFormat } from '../stringArray';
 
 export const dateFormat = (date: Date | number, format: string) => {
 	// @ts-expect-error
@@ -50,7 +51,7 @@ export const consoleLogger = new winston.transports.Console({
 			info =>
 				`${spacer(`${spacer(color(info.color, info.name), 20)} ${dateFormat(Date.now(), 'Y-M-D hh:m')}: ${info.user
 					? (`${info.user} `)
-					: ''}${info.message}`, 20)}`
+					: ''}${stringFormat(info.message, ...info.args ?? [])}`, 20)}`
 		)
 	),
 });

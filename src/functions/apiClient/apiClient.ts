@@ -1,6 +1,9 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import env from 'dotenv';
 
 import { getAccessToken } from '../auth/helpers';
+
+env.config();
 
 export interface AxiosInstance {
 	request<T = any> (config: AxiosRequestConfig): Promise<AxiosResponse<T>>;

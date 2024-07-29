@@ -1,64 +1,69 @@
-import { tokenFile } from "@server/state";
-import { useSelector, AppState } from "@server/state/redux";
-import { KeycloakToken } from "@server/types/keycloak";
-import { writeFileSync } from "fs";
-import apiClient from "../apiClient";
-import { tokenParser } from "../tokenParser";
-import writeToConfigFile from "../writeToConfigFile";
-import Logger from "../logger";
+import { tokenFile } from '@server/state';
+import { useSelector, AppState } from '@server/state/redux';
+import { KeycloakToken } from '@server/types/keycloak';
+import { writeFileSync } from 'fs';
+import apiClient from '../apiClient';
+import { tokenParser } from '../tokenParser';
+import writeToConfigFile from '../writeToConfigFile';
+import Logger from '../logger';
 import DetectBrowsers from '../detectBrowsers';
-import open from 'open';
-import { authorizeUrlString } from './helpers';
 import { input, password } from '@inquirer/prompts';
+import { authorizeUrlString } from './helpers';
+import open from 'open';
+import { keycloak_key } from '../keycloak/config';
 
-export const aquireToken = async () => {
-	
+export const aquireToken = () => {
+
 	const detected = DetectBrowsers();
 
 	if (detected) {
-		return browserLogin(() => {
-			return true;
-		});
-	} else {
-		return passwordLogin(() => {
-			return true;
-		});
+		return browserLogin();
 	}
-	
+	return passwordLogin();
+
+
 };
 
-export const browserLogin = async (cb: () => void) => {
-	
+export const browserLogin = async () => {
+
 	const internal_ip = useSelector((state: AppState) => state.system.internal_ip);
 	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
-		: 7635;
+		: 7636;
 
 	const redirect_uri = `http://${internal_ip}:${internal_port}/sso-callback`;
 
 	const detected = DetectBrowsers();
 
 	if (detected) {
+		return new Promise(async (resolve) => {
 
-		Logger.log({
-			level: 'info',
-			name: 'setup',
-			color: 'blueBright',
-			message: 'Opening browser, please login',
+			Logger.log({
+				level: 'info',
+				name: 'setup',
+				color: 'blueBright',
+				message: 'Opening browser, please login',
+			});
+
+			// if(!tempServerEnabled){
+			// 	tempServer(internal_port);
+			// }
+
+			await open(await authorizeUrlString(redirect_uri), {
+				wait: true,
+			});
+
+			setTimeout(() => {
+				resolve(true);
+			}, 1000);
 		});
 
-		await open(await authorizeUrlString(redirect_uri), {
-			wait: true,
-		});
-
-		cb();
-
-	} else {
-		await passwordLogin(cb)
 	}
+	await passwordLogin();
+
 };
 
-export const passwordLogin = async (cb: () => void) => {
+export const passwordLogin = () => {
 
 	return new Promise(async (resolve, reject) => {
 
@@ -67,7 +72,7 @@ export const passwordLogin = async (cb: () => void) => {
 		const passwordGrantData = new URLSearchParams({
 			client_id: globalThis.client_id,
 			grant_type: 'password',
-			client_secret: globalThis.client_secret,
+			client_secret: keycloak_key,
 			scope: globalThis.authorizationScopes,
 			username: email,
 			password: password,
@@ -94,8 +99,7 @@ export const passwordLogin = async (cb: () => void) => {
 					writeFileSync(tokenFile, JSON.stringify(data, null, 2));
 				}
 			})
-			.then(async () => {
-				cb();
+			.then(() => {
 				resolve(true);
 			})
 			.catch(({ response }) => {
@@ -116,15 +120,15 @@ export const loginPrompt = (): Promise<{ email: string, password: string, totp: 
 		console.log('Please login to continue');
 
 		const email = await input({
-			message: 'Email address'
+			message: 'Email address',
 		});
 
-		const pass = await  password({
-			message: 'Password: '
+		const pass = await password({
+			message: 'Password: ',
 		});
 
 		const totp = await input({
-			message: '2fa code: ', 
+			message: '2fa code: ',
 			validate: (value: string) => !value || !isNaN(parseInt(value, 10)),
 		});
 

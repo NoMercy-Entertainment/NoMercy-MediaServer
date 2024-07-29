@@ -14,5 +14,11 @@ export default async function genres(): Promise<Genre[]> {
 		tvGenre().then(tv => data.push(...tv)),
 	]);
 
-	return unique(data, 'id');
+	try {
+		return unique(data, 'id');
+
+	} catch (error) {
+		return [];
+	}
+
 }

@@ -1,19 +1,18 @@
 /* eslint-disable indent */
 
 import { Request, Response } from 'express-serve-static-core';
-import { getFromDepartmentMap, imageMap, peopleMap, relatedMap } from '../helpers';
+import { Credit, getFromDepartmentMap, imageMap, peopleMap, priority, relatedMap } from '../helpers';
 
 import { InfoResponse } from '../../../types/server';
 import { tv as TV } from '../../../providers/tmdb/tv';
-// import createBlurHash from '@server/functions/createBlurHash';
 import { createTitleSort } from '../../../tasks/files/filenameParser';
 import i18n from '@server/loaders/i18n';
 import { TvWithRelations, getTv } from '@server/db/media/actions/tvs';
 import { groupBy } from '@server/functions/stringArray';
-import { convertToSeconds } from '@server/functions/dateTime';
+import { convertToSeconds, parseYear } from '@server/functions/dateTime';
 import { requestWorker } from '@server/api/requestWorker';
 
-export default async function (req: Request, res: Response) {
+export default async function(req: Request, res: Response) {
 
 	const result = await requestWorker({
 		filename: __filename,
@@ -23,27 +22,37 @@ export default async function (req: Request, res: Response) {
 	});
 
 	if (result.error) {
-		return res.status(result.error.code ?? 500).json({
-			status: 'error',
-			message: result.error.message,
-		});
+		return res.status(result.error.code ?? 500)
+			.json({
+				status: 'error',
+				message: result.error.message,
+			});
 	}
 	return res.json(result.result);
 }
 
-export const exec = ({ id, user_id, language }: { id: string; user_id: string; language: string }) => {
-	return new Promise(async (resolve, reject) => {
+export const exec = ({
+	id,
+	user_id,
+	language,
+}: { id: string; user_id: string; language: string }) => {
+	return new Promise(async (resolve) => {
 
-		const tv = getTv({ id: parseInt(id, 10), user_id, language });
+		const tv = getTv({
+			id: parseInt(id, 10),
+			user_id,
+			language,
+		});
 
 		if (!tv) {
 			resolve(await getTvData(id));
 		}
-		resolve(getContent(tv));
+		resolve(await getContent(tv));
 	});
-}
+};
 
-const getContent = (data: TvWithRelations) => {
+
+const getContent = async (data: TvWithRelations) => {
 	if (!data) return;
 
 	const groupedMedia = groupBy(data.images, 'type');
@@ -53,14 +62,15 @@ const getContent = (data: TvWithRelations) => {
 
 	const files = [
 		...data.seasons.filter(t => t.seasonNumber > 0)
-			.map(s => s.episodes.map(e => e.videoFiles).flat())
+			.map(s => s.episodes.map(e => e.videoFiles)
+				.flat())
 			.flat()
 			.map(f => f.episode_id),
 		// ...external?.find(t => t.id == tv.id && t.files)?.files ?? [],
 	];
 	// .filter((v, i, a) => a.indexOf(v) === i);
 
-	const logos = imageMap(groupedMedia.logo);
+	const logos = await imageMap(groupedMedia.logo);
 	const palette = JSON.parse(data.colorPalette ?? '{}');
 
 	const response: InfoResponse = {
@@ -70,26 +80,33 @@ const getContent = (data: TvWithRelations) => {
 		poster: data.poster,
 		backdrop: data.backdrop,
 		logo: logos[0]?.src ?? null,
-		colorPalette: {
+		color_palette: {
 			logo: logos[0]?.colorPalette,
 			poster: palette?.poster ?? null,
 			backdrop: palette?.backdrop ?? null,
 		},
+
 		videos: data.medias?.map((v) => {
 			return {
 				src: v.src,
 				type: v.type!,
 				name: v.name!,
 				site: v.site!,
+				size: v.size!,
 			};
-		}) ?? [],
-		backdrops: imageMap(groupedMedia.backdrop),
-		posters: imageMap(groupedMedia.poster),
+		})
+			.sort((a, b) => a.size - b.size)
+			.sort(<T extends { type: string }>(a: T, b: T) => {
+				return (priority as any)[a.type] - (priority as any)[b.type];
+			}),
+
+		backdrops: await imageMap(groupedMedia.backdrop),
+		posters: await imageMap(groupedMedia.poster),
 		logos: logos,
-		similar: relatedMap(data.similar_from, 'tv'),
-		recommendations: relatedMap(data.recommendation_from, 'tv'),
-		cast: peopleMap(data.casts, 'roles'),
-		crew: peopleMap(data.crews, 'jobs'),
+		similar: await relatedMap(data.similar_from, 'tv'),
+		recommendations: await relatedMap(data.recommendation_from, 'tv'),
+		cast: await peopleMap(data.casts, 'roles'),
+		crew: await peopleMap(data.crews, 'jobs'),
 		contentRatings: data.certification_tv.map((r) => {
 			return {
 				rating: r.certification.rating,
@@ -111,7 +128,8 @@ const getContent = (data: TvWithRelations) => {
 			tvdbId: data.tvdbId,
 		},
 		creators:
-			data.crews.filter(c => c.jobs.find(j => j.job === 'Creator'))?.filter(c => c?.person?.name)
+			data.crews.filter(c => c.jobs.find(j => j.job === 'Creator'))
+				?.filter(c => c?.person?.name)
 				?.slice(0, 10)
 				?.map(c => ({
 					id: c.person!.id,
@@ -127,44 +145,44 @@ const getContent = (data: TvWithRelations) => {
 		})) ?? [],
 		keywords: data.keyword_tv.map(c => c.keyword.name),
 		type: data.library.type == 'tv'
-			? 'tv'
-			: 'movies',
+			?			'tv'
+			:			'movies',
 		mediaType: data.library.type == 'tv'
-			? 'tv'
-			: 'movies',
-		seasons: data.seasons.sort((a, b) => a.seasonNumber - b.seasonNumber).map((s) => {
+			?			'tv'
+			:			'movies',
+		seasons: data.seasons.sort((a, b) => a.seasonNumber - b.seasonNumber)
+			.map((s) => {
 
-			return {
-				id: s.id,
-				overview: s.overview,
-				poster: s.poster,
-				seasonNumber: s.seasonNumber,
-				title: s.title,
-				// blurHash: s.blurHash,
-				colorPalette: JSON.parse(s.colorPalette ?? '{}'),
-				episodes: s.episodes.sort((a, b) => a.episodeNumber - b.episodeNumber).map((e) => {
-					let progress: null | number = null;
+				return {
+					id: s.id,
+					overview: s.overview,
+					poster: s.poster,
+					seasonNumber: s.seasonNumber,
+					title: s.title,
+					color_palette: JSON.parse(s.colorPalette ?? '{}'),
+					episodes: s.episodes.sort((a, b) => a.episodeNumber - b.episodeNumber)
+						.map((e) => {
+							let progress: null | number = null;
 
-					if (e.videoFiles[0] && e.videoFiles[0].duration && e.videoFiles[0]?.userData?.[0]?.time) {
-						progress = (e.videoFiles[0]?.userData?.[0]?.time / convertToSeconds(e.videoFiles[0].duration) * 100);
-					}
+							if (e.videoFiles[0] && e.videoFiles[0].duration && e.videoFiles[0]?.userData?.[0]?.time) {
+								progress = (e.videoFiles[0]?.userData?.[0]?.time / convertToSeconds(e.videoFiles[0].duration) * 100);
+							}
 
-					return {
-						id: e.id,
-						episodeNumber: e.episodeNumber,
-						seasonNumber: e.seasonNumber,
-						title: e.title,
-						overview: e.overview,
-						airDate: e.airDate,
-						still: e.still,
-						// blurHash: e.blurHash,
-						colorPalette: JSON.parse(e.colorPalette ?? '{}'),
-						progress: progress,
-						available: !!e.videoFiles[0],
-					};
-				}),
-			};
-		}),
+							return {
+								id: e.id,
+								episodeNumber: e.episodeNumber,
+								seasonNumber: e.seasonNumber,
+								title: e.title,
+								overview: e.overview,
+								airDate: e.airDate,
+								still: e.still,
+								color_palette: JSON.parse(e.colorPalette ?? '{}'),
+								progress: progress,
+								available: !!e.videoFiles[0],
+							};
+						}),
+				};
+			}),
 	};
 
 	return response;
@@ -180,36 +198,22 @@ const getTvData = async (id: string) => {
 	const recommendations: any = [];
 
 	for (const s of data.similar.results) {
-		const index = data.similar.results.indexOf(s);
 		similar.push({
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			// blurHash: {
-			// 	poster: index < 10 && s.poster_path
-			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-			// 		: null,
-			// 	backdrop: index < 10 && s.backdrop_path
-			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-			// 		: null,
-			// },
+			title: s.name,
+			overview: s.overview,
 		});
 	}
 
 	for (const s of data.recommendations.results) {
-		const index = data.recommendations.results.indexOf(s);
 		recommendations.push({
 			...s,
 			backdrop: s.backdrop_path,
 			poster: s.poster_path,
-			// blurHash: {
-			// 	poster: index < 10 && s.poster_path
-			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.poster_path}`)
-			// 		: null,
-			// 	backdrop: index < 10 && s.backdrop_path
-			// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${s.backdrop_path}`)
-			// 		: null,
-			// },
+			title: s.name,
+			overview: s.overview,
 		});
 	}
 
@@ -220,28 +224,23 @@ const getTvData = async (id: string) => {
 		poster: data.poster_path,
 		backdrop: data.backdrop_path,
 		logo: data.images.logos[0]?.file_path ?? null,
-		// blurHash: {
-		// 	logo: data.images.logos[0]?.file_path
-		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data.images.logos[0].file_path}`)
-		// 		: null,
-		// 	poster: data?.poster_path
-		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.poster_path}`)
-		// 		: null,
-		// 	backdrop: data?.backdrop_path
-		// 		? await createBlurHash(`https://image.tmdb.org/t/p/w185${data?.backdrop_path}`)
-		// 		: null,
-		// },
+
 		videos: data.videos.results?.map((v) => {
 			return {
 				src: v.key,
-				name: v.name,
-				type: v.type,
-				site: v.site,
+				type: v.type!,
+				name: v.name!,
+				site: v.site!,
+				size: v.size,
 			};
-		}) ?? [],
-		backdrops: imageMap(data.images.backdrops),
-		logos: imageMap(data.images.logos),
-		posters: imageMap(data.images.posters),
+		})
+			.sort((a, b) => a.size - b.size)
+			.sort(<T extends { type: string }>(a: T, b: T) => {
+				return (priority as any)[a.type] - (priority as any)[b.type];
+			}),
+		backdrops: await imageMap(data.images.backdrops),
+		logos: await imageMap(data.images.logos),
+		posters: await imageMap(data.images.posters),
 		contentRatings: data.content_ratings.results.map((r) => {
 			return {
 				rating: r.rating,
@@ -252,14 +251,14 @@ const getTvData = async (id: string) => {
 		}),
 		watched: false,
 		favorite: false,
-		titleSort: createTitleSort(data.name),
+		titleSort: createTitleSort(data.name, parseYear(data.first_air_date)),
 		duration: Math.round(data.episode_run_time.reduce((ert, c) => ert + c, 0) / data.episode_run_time.length),
 		numberOfEpisodes: data.number_of_episodes,
 		haveEpisodes: 0,
 		year: new Date(Date.parse(data.first_air_date!)).getFullYear(),
 		voteAverage: data.vote_average,
-		similar: similar as InfoResponse['similar'],
-		recommendations: recommendations as InfoResponse['recommendations'],
+		similar: await relatedMap(similar, data.media_type ?? 'tv'),
+		recommendations: await relatedMap(recommendations, data.media_type ?? 'tv'),
 		externalIds: {
 			imdbId: data.external_ids.imdb_id as string | null,
 			tvdbId: data.external_ids.tvdb_id as number | null,
@@ -293,7 +292,7 @@ const getTvData = async (id: string) => {
 		keywords: data.keywords.results.map(c => c.name),
 		type: 'tv',
 		mediaType: 'tv',
-		cast: data.credits.cast.map((c) => {
+		cast: await peopleMap(data.credits.cast.map((c) => {
 			return {
 				gender: c.gender,
 				id: c.id,
@@ -303,10 +302,10 @@ const getTvData = async (id: string) => {
 				name: c.name,
 				profilePath: c.profile_path,
 				popularity: c.popularity,
-				deathday: null,
-			};
-		}),
-		crew: data.credits.crew.map((c) => {
+				deathDay: null,
+			} as unknown as Credit;
+		}), 'roles'),
+		crew: await peopleMap(data.credits.crew.map((c) => {
 			return {
 				gender: c.gender,
 				id: c.id,
@@ -317,9 +316,9 @@ const getTvData = async (id: string) => {
 				name: c.name,
 				profilePath: c.profile_path,
 				popularity: c.popularity,
-				deathday: null,
-			};
-		}),
+				deathDay: null,
+			} as unknown as Credit;
+		}), 'jobs'),
 		director: data.credits.crew.filter(c => c.department == 'Directing')
 			.map(c => ({
 				id: c.id,
@@ -332,7 +331,6 @@ const getTvData = async (id: string) => {
 				poster: s.poster_path,
 				seasonNumber: s.season_number,
 				title: s.name,
-				// blurHash: s.blurHash,
 				Episode: undefined,
 				episodes: [],
 			};

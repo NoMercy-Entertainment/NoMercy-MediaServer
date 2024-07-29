@@ -14,10 +14,10 @@ const registerServer = async () => {
 	const deviceName = useSelector((state: AppState) => state.config.deviceName);
 	const internal_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
-		: 7635;
+		: 7636;
 	const external_port: number = process.env.DEFAULT_PORT && process.env.DEFAULT_PORT != '' && !isNaN(parseInt(process.env.DEFAULT_PORT as string, 10))
 		? parseInt(process.env.DEFAULT_PORT as string, 10)
-		: 7635;
+		: 7636;
 
 	const serverData = {
 		server_id: deviceId,
@@ -39,7 +39,7 @@ const registerServer = async () => {
 
 	await apiClient()
 		.post<ServerRegisterResponse>('server/register', serverData)
-		.then(async ({ data }) => {
+		.then(async () => {
 			await assignServer();
 		})
 		.catch(async (error) => {

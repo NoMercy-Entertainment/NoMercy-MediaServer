@@ -43,6 +43,11 @@ export const execute = async ({ onDemand }: { onDemand: FFMpegArchive}) => {
 			type: 'encoder-end',
 			id: instance.index,
 		});
+        process?.send!({
+        	type: 'custom',
+        	event: 'update_content',
+        	data: ['library'],
+        });
 	});
 
 };

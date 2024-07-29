@@ -1,17 +1,14 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { languages } from '../schema/languages';
 
 export type NewLanguage = InferModel<typeof languages, 'insert'>;
 export const insertLanguage = (data: NewLanguage) => globalThis.mediaDb.insert(languages)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: languages.iso_639_1,
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

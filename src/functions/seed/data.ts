@@ -2,8 +2,8 @@ import { ConfigData } from '@server/types/server';
 import { deviceName } from '../system';
 
 export const configData: ConfigData = {
-	secureInternalPort: process.env.DEFAULT_PORT ?? 7635,
-	secureExternalPort: process.env.DEFAULT_PORT ?? 7635,
+	secureInternalPort: process.env.DEFAULT_PORT ?? 7636,
+	secureExternalPort: process.env.DEFAULT_PORT ?? 7636,
 	deviceName: deviceName,
 	queueWorkers: 1,
 	cronWorkers: 1,
@@ -132,6 +132,7 @@ interface LibrarySeed {
 		id: string;
 	}[];
 }
+
 export const libraries: LibrarySeed[] = [
 	{
 		id: 'cl7i4km1o0004qwef9472dy2t',
@@ -222,7 +223,7 @@ export const libraries: LibrarySeed[] = [
 	// {
 	// 	id: 'cl7i4km1o000aqweffmongx0u',
 	// 	image: null,
-	// 	title: 'Collections',
+	// 	title: 'Collection',
 	// 	type: 'collection',
 	// 	language: 'nl',
 	// 	country: 'NL',
@@ -257,6 +258,7 @@ interface SpecialData {
 	movieId?: number;
 	episodeId?: number;
 }
+
 export const specialData: SpecialData[] = [
 	{ movieId: 1771 },
 	{ episodeId: 1013214 },
@@ -620,6 +622,7 @@ interface SpecialSeed {
 	description: string;
 	Item: SpecialData[];
 }
+
 export const special: SpecialSeed = {
 	title: 'Marvel Cinematic Universe',
 	backdrop: null,

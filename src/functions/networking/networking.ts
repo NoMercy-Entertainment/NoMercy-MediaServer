@@ -49,6 +49,8 @@ export const get_internal_ip = () => {
 	);
 
 	setInternalIp(result?.address ?? process.env.INTERNAL_IP);
+
+	return result;
 };
 
 export const portMap = async () => {
@@ -113,7 +115,7 @@ export const portMap = async () => {
 	return result;
 };
 
-export const allowedOrigins = (internal_ip) => [
+export const allowedOrigins = (internal_ip: string = get_internal_ip()) => [
 	'https://nomercy.tv',
 	'wss://nomercy.tv',
 	'ws://nomercy.tv',
@@ -137,7 +139,8 @@ export const socketCors: Partial<ServerOptions> = {
 	allowEIO3: true,
 	path: '/socket',
 	cors: {
-		origin: allowedOrigins,
+		origin: '*',
+		// origin: allowedOrigins(),
 		credentials: true,
 		allowedHeaders: [
 			'accept-encoding',

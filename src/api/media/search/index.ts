@@ -45,7 +45,7 @@ export default async function (req: Request, res: Response) {
 		query = query.replace('movie:', '');
 	}
 
-	const { title, year } = parseTitleAndYear(query);
+	const { title } = parseTitleAndYear(query);
 
 	let movie: any[] = [];
 	let tv: any[] = [];
@@ -111,7 +111,7 @@ export default async function (req: Request, res: Response) {
 			return {
 				...m,
 				have: !!item,
-				titleSort: createTitleSort(item?.title ?? m.title),
+				titleSort: createTitleSort(item?.title ?? m.title, parseYear(item?.releaseDate ?? m.release_date)),
 				year: parseYear(item?.releaseDate ?? m.release_date),
 				match: m.title.toLowerCase().startsWith(title.toLowerCase()),
 				matchPercentage: matchPercentage(title.toLowerCase(), item?.title.toLowerCase() ?? m.title.toLowerCase()),
@@ -123,7 +123,7 @@ export default async function (req: Request, res: Response) {
 				...t,
 				have: item?.haveEpisodes,
 				total: item?.numberOfEpisodes,
-				titleSort: createTitleSort(item?.title ?? t.name),
+				titleSort: createTitleSort(item?.title ?? t.name, parseYear(item?.firstAirDate ?? t.first_air_date)),
 				year: parseYear(item?.firstAirDate ?? t.first_air_date),
 				match: t.name.toLowerCase().startsWith(title.toLowerCase()),
 				matchPercentage: matchPercentage(title.toLowerCase(), item?.title.toLowerCase() ?? t.name.toLowerCase()),
@@ -146,7 +146,7 @@ export default async function (req: Request, res: Response) {
 		...(ALBUM?.map((t) => {
 			return {
 				...t,
-				titleSort: createTitleSort(t.name),
+				titleSort: createTitleSort(t.name, t.year),
 				media_type: 'album',
 				year: t.year,
 				match: t.name.toLowerCase().startsWith(query.toLowerCase()),
@@ -158,7 +158,7 @@ export default async function (req: Request, res: Response) {
 		...(TRACK?.map((t) => {
 			return {
 				...t,
-				titleSort: createTitleSort(t.name as string),
+				titleSort: createTitleSort(t.name as string, t.date),
 				media_type: 'track',
 				year: t.date,
 				match: (t.name as string).toLowerCase().startsWith(query.toLowerCase()),

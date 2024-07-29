@@ -1,15 +1,14 @@
-import { image } from '../shared/image';
+import { downloadAndHash, image } from '../shared/image';
 
 import { CombinedSeasons } from './fetchTvShow';
 import Logger from '@server/functions/logger';
-import guest_star from './guest_star';
 import translation from '../shared/translation';
-// import createBlurHash from '@server/functions/createBlurHash/createBlurHash';
 import colorPalette from '@server/functions/colorPalette/colorPalette';
 import { insertEpisodeDB } from '@server/db/media/actions/episodes';
-import { insertMedia } from '@server/db/media/actions/medias';
+import guest_star from './guest_star';
 import cast from '../shared/cast';
 import crew from '../shared/crew';
+import { insertMedia } from '@server/db/media/actions/medias';
 
 const episode = async (
 	id: number,
@@ -36,17 +35,11 @@ const episode = async (
 			still: undefined,
 		};
 
-		const blurHash: any = {
-			still: undefined,
-		};
-
 		await Promise.all([
-			// episode.still_path && createBlurHash(`https://image.tmdb.org/t/p/w185${episode.still_path}`).then((hash) => {
-			// 	blurHash.still = hash;
-			// }),
-			episode.still_path && colorPalette(`https://image.tmdb.org/t/p/w185${episode.still_path}`).then((hash) => {
-				palette.still = hash;
-			}),
+			episode.still_path && colorPalette(`https://image.tmdb.org/t/p/w185${episode.still_path}`)
+				.then((hash) => {
+					palette.still = hash;
+				}),
 		]);
 
 		try {
@@ -62,8 +55,7 @@ const episode = async (
 				voteAverage: episode.vote_average,
 				voteCount: episode.vote_count,
 				imdbId: episode?.external_ids.imdb_id,
-				blurHash: JSON.stringify(blurHash),
-				colorPalette: JSON.stringify(palette),
+				color_palette: JSON.stringify(palette),
 				season_id: season.id,
 				tv_id: id,
 			});
@@ -72,7 +64,7 @@ const episode = async (
 				level: 'error',
 				name: 'App',
 				color: 'red',
-				message: JSON.stringify([`${__filename}`, error]),
+				message: JSON.stringify([`${__filename}`, 'episode', error]),
 			});
 		}
 
@@ -92,23 +84,22 @@ const episode = async (
 					level: 'error',
 					name: 'App',
 					color: 'red',
-					message: JSON.stringify([`${__filename}`, error]),
+					message: JSON.stringify([`${__filename}`, 'media', error]),
 				});
 			}
-
 		}
 
 		translation(episode, transaction, 'episode');
 		image(episode, 'still', 'episode');
 
-		// if (episode.still_path) {
-		// 	 downloadAndHash({
-		// 		src: episode.still_path,
-		// 		table: 'episode',
-		// 		column: 'still',
-		// 		type: 'episode',
-		// 	});
-		// }
+		if (episode.still_path) {
+			downloadAndHash({
+				src: episode.still_path,
+				table: 'episode',
+				column: 'still',
+				type: 'episode',
+			});
+		}
 	}
 
 	Logger.log({

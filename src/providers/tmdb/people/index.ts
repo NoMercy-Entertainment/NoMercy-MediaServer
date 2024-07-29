@@ -6,7 +6,7 @@ import { PersonImages } from './images';
 import { PersonTranslations } from './translations';
 import { PersonWithAppends } from '../people/details';
 import i18next from 'i18next';
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 
 export * from './changes';
 export * from './combined_credits';
@@ -30,7 +30,7 @@ export const person = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PersonWithAppends<typeof personAppend[number]>>(`person/${id}`, params);
+	const { data } = await new tmdbClient().get<PersonWithAppends<typeof personAppend[number]>>(`person/${id}`, params);
 
 	// data.movie_credits.crew[0].known_for_department
 
@@ -40,7 +40,7 @@ export const person = async (id: number) => {
 export const peoplePopular = async (limit = 10) => {
 	const arr: Person[] = [];
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Person>>('popular/person', { params: { page: 1 } });
+	const { data } = await new tmdbClient().get<PaginatedResponse<Person>>('popular/person', { params: { page: 1 } });
 
 	for (let j = 0; j < data.results.length; j++) {
 		arr.push(data.results[j]);
@@ -50,7 +50,7 @@ export const peoplePopular = async (limit = 10) => {
 
 	for (let i = 2; i < data.total_pages && i < limit && i < 1000; i++) {
 		promises.push(
-			tmdbApiClient.get<PaginatedResponse<Person>>('popular/person', {
+			new tmdbClient().get<PaginatedResponse<Person>>('popular/person', {
 				params: { page: i },
 			})
 		);
@@ -81,7 +81,7 @@ export const peopleImages = async (id: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PersonImages>(`person/${id}/images`, params);
+	const { data } = await new tmdbClient().get<PersonImages>(`person/${id}/images`, params);
 
 	return data;
 };
@@ -94,7 +94,7 @@ export const peopleTranslations = async (id: number) => {
 		message: 'Fetching People Translations',
 	});
 
-	const { data } = await tmdbApiClient.get<PersonTranslations>(`person/${id}/translations`);
+	const { data } = await new tmdbClient().get<PersonTranslations>(`person/${id}/translations`);
 
 	return data;
 };

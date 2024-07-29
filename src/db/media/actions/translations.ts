@@ -1,4 +1,5 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { translations } from '../schema/translations';
 import { createId } from '@paralleldrive/cuid2';
@@ -16,11 +17,8 @@ export const insertTranslation = (data: NewTranslation, constraint: 'movie' | 't
 			translations.iso6391,
 		],
 		set: {
-			...convertBooleans(data),
+			...convertBooleans(data, true),
 			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
 		},
 	})
 	.returning()

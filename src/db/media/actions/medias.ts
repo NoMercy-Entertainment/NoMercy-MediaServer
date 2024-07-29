@@ -7,16 +7,16 @@ export const insertMedia = (data: NewMedia) => globalThis.mediaDb.insert(medias)
 	.values({
 		...convertBooleans(data),
 	})
-	.onConflictDoUpdate({
-		target: medias.src,
-		set: {
-			...convertBooleans(data),
-			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
-	})
+	// .onConflictDoUpdate({
+	// 	target: [medias.src],
+	// 	set: {
+	// 		...convertBooleans(data),
+	// 		id: data.id ?? undefined,
+	// 		updated_at: new Date().toISOString()
+	// 			.slice(0, 19)
+	// 			.replace('T', ' '),
+	// 	},
+	// })
 	.returning()
 	.get();
 

@@ -6,17 +6,20 @@ import { convertToSeconds, parseYear } from '@server/functions/dateTime';
 import { getSpecial } from '@server/db/media/actions/specials';
 import { unique } from '@server/functions/stringArray';
 
-export default function (req: Request, res: Response) {
+export default function(req: Request, res: Response) {
 
-	const data = getSpecial({ id: req.params.id });
+	const data = getSpecial({
+		id: req.params.id,
+		user_id: req.user.sub,
+	});
 
 	if (!data) {
-		return res.status(404).json({
-			error: 'not_found',
-			error_description: 'Special not found',
-		});
+		return res.status(404)
+			.json({
+				error: 'not_found',
+				error_description: 'Special not found',
+			});
 	}
-
 
 	const lowestYear = data.specialItems.reduce((a, b) => {
 		return Math.min(a, parseYear(b?.episode?.tv?.firstAirDate as string) ?? parseYear(b?.movie?.releaseDate) ?? 0);
@@ -54,8 +57,8 @@ export default function (req: Request, res: Response) {
 		favorite: false,
 		duration: totalDuration,
 		year: lowestYear,
-		type: 'special',
-		mediaType: 'special',
+		type: 'specials',
+		mediaType: 'specials',
 		// cast: data.credits.cast.map((c) => {
 		// 	return {
 		// 		gender: c.person?.gender ?? null,
@@ -66,7 +69,7 @@ export default function (req: Request, res: Response) {
 		// 		name: c.person?.name ?? null,
 		// 		profilePath: c.person?.profile ?? null,
 		// 		popularity: c.person?.popularity ?? null,
-		// 		deathday: c.person?.deathday ?? null,
+		// 		deathDay: c.person?.deathDay ?? null,
 		// 		// blurHash: c.blurHash,
 		// 	};
 		// }),
@@ -80,7 +83,7 @@ export default function (req: Request, res: Response) {
 		// 		name: c.person?.name ?? null,
 		// 		profilePath: c.person?.profile ?? null,
 		// 		popularity: c.person?.popularity ?? null,
-		// 		deathday: c.person?.deathday ?? null,
+		// 		deathDay: c.person?.deathDay ?? null,
 		// 		// blurHash: c.blurHash,
 		// 	};
 		// }),
@@ -113,8 +116,8 @@ export default function (req: Request, res: Response) {
 				episodes: data.specialItems.map((s, index: number) => {
 					if (s.episode) {
 						const title = s.episode.tv.translation?.title == ''
-							? s.episode.tv.title
-							: s.episode.tv.translation?.title;
+							?							s.episode.tv.title
+							:							s.episode.tv.translation?.title;
 						return {
 							id: s.episode.id,
 							title: `${title} - %S${s.episode.seasonNumber} %E${s.episode.episodeNumber}\n${s.episode.translation?.title ?? s.episode.title}`,

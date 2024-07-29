@@ -1,20 +1,17 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { similars } from '../schema/similars';
 
 export type NewSimilar = InferModel<typeof similars, 'insert'>;
 export const insertSimilar = (data: NewSimilar, constraint: 'movie' | 'tv') => globalThis.mediaDb.insert(similars)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [
 			similars.media_id,
 			similars[`${constraint}From_id`],
 		],
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

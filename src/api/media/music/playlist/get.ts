@@ -1,7 +1,7 @@
 import { Request, Response } from 'express-serve-static-core';
 
 
-export default function (req: Request, res: Response) {
+export default function(req: Request, res: Response) {
 
 	// try {
 
@@ -38,7 +38,7 @@ export default function (req: Request, res: Response) {
 	// 		const results = {
 	// 			type: 'playlist',
 	// 			...music,
-	// 			colorPalette: JSON.parse(music.colorPalette ?? '{}'),
+	// 			color_palette: JSON.parse(music.colorPalette ?? '{}'),
 	// 			track: music.PlaylistTrack.map((t) => {
 
 	// 				const albums = t.track.Album.map(a => ({
@@ -49,7 +49,7 @@ export default function (req: Request, res: Response) {
 	// 					description: a?.description,
 	// 					libraryId: t.track.Artist[0].libraryId,
 	// 					origin: deviceId,
-	// 					colorPalette: undefined,
+	// 					color_palette: undefined,
 	// 				}));
 	// 				const artists = t.track.Artist.filter(a => a.name != 'Various Artists').map(a => ({
 	// 					id: a.id,
@@ -59,7 +59,7 @@ export default function (req: Request, res: Response) {
 	// 					folder: a.folder,
 	// 					libraryId: a.libraryId,
 	// 					origin: deviceId,
-	// 					colorPalette: undefined,
+	// 					color_palette: undefined,
 	// 				}));
 
 	// 				return {
@@ -74,7 +74,7 @@ export default function (req: Request, res: Response) {
 	// 					Album: undefined,
 	// 					FavoriteTrack: undefined,
 	// 					libraryId: t.track.Artist[0].libraryId,
-	// 					colorPalette: JSON.parse(t.track.colorPalette ?? '{}'),
+	// 					color_palette: JSON.parse(t.track.colorPalette ?? '{}'),
 	// 					album: albums[0],
 	// 				};
 	// 			}),

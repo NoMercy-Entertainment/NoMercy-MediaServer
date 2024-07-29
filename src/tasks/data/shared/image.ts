@@ -17,23 +17,23 @@ import { episodes } from '@server/db/media/schema/episodes';
 import { people } from '@server/db/media/schema/people';
 import { medias } from '@server/db/media/schema/medias';
 import { guestStars } from '@server/db/media/schema/guestStars';
-import { insertImage } from '@server/db/media/actions/images';
 import { movies } from '@server/db/media/schema/movies';
 import { images } from '@server/db/media/schema/images';
 import Logger from '@server/functions/logger';
+import { sleep } from '@server/functions/dateTime';
+import { insertImage } from '@server/db/media/actions/images';
 
 export const image = (
 	req: CompleteTvAggregate | SeasonAppend | EpisodeAppend | MovieAppend | PersonAppend | CompleteMovieAggregate,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
-	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar',
+	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar'
 ) => {
-	
+
 	if (!req.images[`${type}s`]) return;
 
 	for (const image of req.images[`${type}s`] as Array<Image>) {
 
 		try {
-
 			const query = insertImage({
 				aspectRatio: image.aspect_ratio,
 				height: image.height,
@@ -46,7 +46,7 @@ export const image = (
 				[`${table}_id`]: req.id,
 			});
 
-			if (!query?.blurHash || !query?.colorPalette) {
+			if (!query?.colorPalette) {
 				downloadAndHash({
 					src: (image[`${type}_path`] as string) ?? (image.file_path as string),
 					table: 'image',
@@ -67,7 +67,13 @@ export const image = (
 	}
 };
 
-export const downloadAndHash = ({ src, table, column, type, only }: {
+export const downloadAndHash = ({
+	src,
+	table,
+	column,
+	type,
+	only,
+}: {
 	src: string,
 	column: string,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
@@ -80,18 +86,30 @@ export const downloadAndHash = ({ src, table, column, type, only }: {
 	queue.add({
 		file: __filename,
 		fn: 'execute',
-		args: { src, table, column, type, only },
+		args: {
+			src,
+			table,
+			column,
+			type,
+			only,
+		},
 	});
 };
 
-export const execute = async ({ src, table, column, type, only }: {
+export const execute = async ({
+	src,
+	table,
+	column,
+	type,
+	only,
+}: {
 	src: string,
 	column: string,
 	type: 'backdrop' | 'logo' | 'poster' | 'still' | 'profile' | 'cast' | 'crew' | 'season' | 'episode',
 	table: 'movie' | 'tv' | 'season' | 'episode' | 'person' | 'video' | 'media' | 'guestStar' | 'image';
 	only?: Array<'colorPalette' | 'blurHash'>;
 }) => {
-	
+
 	const models = {
 		movie: movies,
 		tv: tvs,
@@ -164,14 +182,14 @@ export const execute = async ({ src, table, column, type, only }: {
 
 	const newFile = src?.replace(/.jpg$|.png$/u, '.webp');
 
-	const query = mediaDb.select()
+	const query = globalThis.mediaDb.select()
 		.from(models[table])
 		.where(eq(models[table][column], src))
 		.get();
 
 	const newFilePath = `${imagesPath}/${imageSizes[0].size}${newFile}`;
 
-	if (query?.blurHash && query?.colorPalette && existsSync(newFilePath)) {
+	if (query?.colorPalette && existsSync(newFilePath)) {
 		return;
 	}
 
@@ -183,25 +201,54 @@ export const execute = async ({ src, table, column, type, only }: {
 		usableImageSizes: usableImageSizes,
 		only: only,
 	})
-		.then(({ colorPalette, blurHash }) => {
-
-			try {
-				globalThis.mediaDb.update(models[table])
-					.set({
-						colorPalette: colorPalette && (!only || only.includes('colorPalette'))
-							? JSON.stringify(colorPalette)
-							: undefined,
-						blurHash: blurHash && (!only || only.includes('blurHash'))
-							? blurHash
-							: undefined,
-					 })
-					.where(eq(models[table][column], src))
-					.run();
-					
-			} catch (e) {
-				console.log(e);
-			}
+		.then(({
+			colorPalette,
+			blurHash,
+		}) => {
+			insert({
+				colorPalette,
+				blurHash,
+				models,
+				table,
+				column,
+				only,
+				src,
+			});
 		})
 		.catch(e => console.log(table, e));
 };
 
+const insert = ({
+	colorPalette,
+	blurHash,
+	models,
+	table,
+	column,
+	only,
+	src,
+}) => {
+	try {
+		globalThis.mediaDb.update(models[table])
+			.set({
+				color_palette: colorPalette && (!only || only.includes('colorPalette'))
+					?					JSON.stringify(colorPalette)
+					:					undefined,
+				blurHash: blurHash && (!only || only.includes('blurHash'))
+					?					blurHash
+					:					undefined,
+			})
+			.where(eq(models[table][column], src))
+			.run();
+	} catch (e) {
+		sleep(1000);
+		insert({
+			colorPalette,
+			blurHash,
+			models,
+			table,
+			column,
+			only,
+			src,
+		});
+	}
+};

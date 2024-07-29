@@ -90,7 +90,7 @@ export class FFmpegWrapper {
 		const cmd = stringFormat(args, this.episode.path, this.limit, this.decibelFloor);
 
 		// Cache the output of this command to "GUID-intro-silence-v1"
-		const cacheKey = `${this.episode.EpisodeId.toString()}-intro-silence-v1`;
+		// const cacheKey = `${this.episode.EpisodeId.toString()}-intro-silence-v1`;
 
 		/* Each match will have a type (either "start" or "end") and a timecode (a double).
 		 *
@@ -98,7 +98,7 @@ export class FFmpegWrapper {
 		 * [silencedetect @ 0x000000000000] silence_start: 12.34
 		 * [silencedetect @ 0x000000000000] silence_end: 56.123 | silence_duration: 43.783
 		*/
-		const raw = await this.getOutput(cmd, cacheKey, true);
+		const raw = await this.getOutput(cmd);
 		const silenceRanges: TimeRange[] = [];
 
 		const matches: {
@@ -166,14 +166,14 @@ export class FFmpegWrapper {
 		);
 
 		// Cache the results to GUID-blackframes-START-END-v1.
-		const cacheKey = stringFormat(
-			'{0}-blackframes-{1}-{2}-v1',
-			this.episode.EpisodeId.toString(),
-			range.start,
-			range.end
-		);
+		// const cacheKey = stringFormat(
+		// 	'{0}-blackframes-{1}-{2}-v1',
+		// 	this.episode.EpisodeId.toString(),
+		// 	range.start,
+		// 	range.end
+		// );
 
-		const raw = await this.getOutput(args, cacheKey, true);
+		const raw = await this.getOutput(args);
 
 		const blackFrames: number[][] = [];
 		for (const line of raw.split('\n')) {
@@ -199,10 +199,10 @@ export class FFmpegWrapper {
 	}
 
 	getOutput(
-		args: string,
-		cacheFilename: string,
-		stderr = false,
-		timeout = 60 * 1000
+		args: string
+		// cacheFilename: string,
+		// stderr = false,
+		// timeout = 60 * 1000
 	): Promise<string> {
 		console.log(`"${ffmpeg}" -hide_banner ${args} 2>&1`);
 

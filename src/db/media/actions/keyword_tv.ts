@@ -1,20 +1,17 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { keyword_tv } from '../schema/keyword_tv';
 
 export type NewKeywordTv = InferModel<typeof keyword_tv, 'insert'>;
 export const insertKeywordTv = (data: NewKeywordTv) => globalThis.mediaDb.insert(keyword_tv)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [
 			keyword_tv.tv_id,
 			keyword_tv.keyword_id,
 		],
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

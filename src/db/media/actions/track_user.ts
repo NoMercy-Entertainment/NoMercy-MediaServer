@@ -6,14 +6,10 @@ import { artist_track } from '../schema/artist_track';
 
 export type NewTrackUser = InferModel<typeof track_user, 'insert'>;
 export const insertTrackUser = (data: NewTrackUser) => globalThis.mediaDb.insert(track_user)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [track_user.track_id, track_user.user_id],
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

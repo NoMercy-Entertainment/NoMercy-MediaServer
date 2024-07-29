@@ -27,7 +27,7 @@ export function parseTitleAndYear(title: string): { title: string; year: string 
 	const simpleTitle = simplifyTitle(title);
 
 	// Removing the group from the end could be trouble if a title is "title-year"
-	const grouplessTitle = simpleTitle.replace(/-([a-z0-9]+)$/iu, '');
+	const grouplessTitle = simpleTitle.replace(/-(\([a-z0-9]+\))$/iu, '');
 
 	for (const exp of movieTitleYearRegex) {
 		const match = exp.exec(grouplessTitle);

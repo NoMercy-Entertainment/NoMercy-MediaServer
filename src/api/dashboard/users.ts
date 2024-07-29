@@ -13,7 +13,21 @@ import { users } from '@server/db/media/schema/users';
 import { defaultUserOptions } from '@server/state/redux/config';
 
 export const AddUser = (req: Request, res: Response) => {
-	const { user_id, email, name, enabled }: AddUserParams = req.body;
+	const {
+		user_id,
+		email,
+		name,
+		enabled,
+	}: AddUserParams = req.body;
+
+	if (user_id == req.user?.sub) {
+		return res.status(400)
+			.json({
+				status: 'error',
+				message: 'You cannot add yourself.',
+			});
+	}
+
 
 	try {
 
@@ -37,15 +51,23 @@ export const AddUser = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `User ${data.name} added.`,
+			message: 'User {0} added',
+			args: [data.name],
 		});
 
 		const socket = useSelector((state: AppState) => state.system.socket);
-		socket.emit('update_content', []);
+		socket.emit('notify', {
+			type: 'success',
+			title: 'User {0} added',
+			visibleOnly: true,
+			duration: 2000,
+			args: [data.name],
+		});
 
 		return res.json({
 			status: 'ok',
-			message: `User ${data.name} added.`,
+			message: 'User {0} added',
+			args: [data.name],
 		});
 
 	} catch (error) {
@@ -53,11 +75,13 @@ export const AddUser = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `Error adding user: ${error}`,
+			message: 'Error adding user {0}',
+			args: [error],
 		});
 		return res.json({
 			status: 'ok',
-			message: `Something went wrong adding user: ${error}`,
+			message: 'Something went wrong adding user {0}',
+			args: [error],
 		});
 	}
 
@@ -67,13 +91,20 @@ export const removeUser = (req: Request, res: Response) => {
 
 	const { user_id }: removeUserParams = req.body;
 
+	if (user_id == req.user?.sub) {
+		return res.status(400)
+			.json({
+				status: 'error',
+				message: 'You cannot delete yourself.',
+			});
+	}
+
+
 	try {
 
-		globalThis.mediaDb.delete(library_user)
-			.where(eq(library_user.user_id, user_id))
-			.run();
+		const userName = globalThis.allowedUsers.find(u => u.id == user_id)?.name;
 
-			globalThis.mediaDb.delete(users)
+		globalThis.mediaDb.delete(users)
 			.where(eq(users.id, user_id))
 			.run();
 
@@ -84,11 +115,23 @@ export const removeUser = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `User ${user_id} deleted.`,
+			message: 'User {0} deleted.',
+			args: [userName],
 		});
+
+		const socket = useSelector((state: AppState) => state.system.socket);
+		socket.emit('notify', {
+			type: 'success',
+			title: 'User {0} deleted',
+			visibleOnly: true,
+			duration: 2000,
+			args: [userName],
+		});
+
 		return res.json({
 			status: 'ok',
-			message: `User ${user_id} deleted.`,
+			message: 'User {0} deleted',
+			args: [userName],
 		});
 
 	} catch (error) {
@@ -96,24 +139,34 @@ export const removeUser = (req: Request, res: Response) => {
 			level: 'error',
 			name: 'access',
 			color: 'red',
-			message: `Error deleting user: ${error}`,
+			message: 'Error deleting user: {0}',
+			args: [error],
 		});
-		return res.status(400).json({
-			status: 'error',
-			message: `Something went wrong deleting user: ${error}`,
-		});
+		return res.status(400)
+			.json({
+				status: 'error',
+				message: 'Something went wrong deleting user: {0}',
+				args: [error],
+			});
 	}
 
 };
 
 export const userPermissions = (req: Request, res: Response) => {
 	const { user_id }: userPermissionsParams = req.body;
+	if (user_id == req.user?.sub) {
+		return res.status(400)
+			.json({
+				status: 'error',
+				message: 'You cannot edit yourself.',
+			});
+	}
 
 	try {
 		const data = globalThis.mediaDb.query.users.findMany({
 			where: user_id
-				? eq(users.id, user_id)
-				: undefined,
+				?				eq(users.id, user_id)
+				:				undefined,
 			with: {
 				library_user: true,
 			},
@@ -122,6 +175,7 @@ export const userPermissions = (req: Request, res: Response) => {
 		return res.json(
 			data.map(d => ({
 				...d,
+				user_id: d.id,
 				Libraries: undefined,
 				libraries: d.library_user.map(f => f.library_id),
 			}))
@@ -131,78 +185,37 @@ export const userPermissions = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `Error getting user permissions: ${error}`,
+			message: 'Error getting user permissions: {0}',
+			args: [error],
 		});
 		return res.json({
 			status: 'ok',
-			message: `Something went wrong getting permissions: ${error}`,
+			message: 'Something went wrong getting permissions: {0}',
+			args: [error],
 		});
 	}
 
-	// user_id
-	// 	? await confDb.user.findMany({
-	// 		where: {
-	// 			user_id: user_id,
-	// 		},
-	// 		include: {
-	// 			Libraries: true,
-	// 		},
-	// 	})
-	// 		.then((data) => {
-	// 			return res.json(
-	// 				data.map(d => ({
-	// 					...d,
-	// 					Libraries: undefined,
-	// 					libraries: d.Libraries.map(f => f.libraryId),
-	// 				}))
-	// 			);
-	// 		})
-	// 		.catch((error) => {
-	// 			Logger.log({
-	// 				level: 'info',
-	// 				name: 'access',
-	// 				color: 'magentaBright',
-	// 				message: `Error getting user permissions: ${error}`,
-	// 			});
-	// 			return res.json({
-	// 				status: 'ok',
-	// 				message: `Something went wrong getting permissions: ${error}`,
-	// 			});
-	// 		})
-	// 	: await confDb.user
-	// 		.findMany({
-	// 			include: {
-	// 				Libraries: true,
-	// 			},
-	// 			orderBy: {
-	// 				manage: 'desc',
-	// 			},
-	// 		})
-	// 		.then((data) => {
-	// 			return res.json(
-	// 				data.map(d => ({
-	// 					...d,
-	// 					Libraries: undefined,
-	// 					libraries: d.Libraries.map(f => f.libraryId),
-	// 				}))
-	// 			);
-	// 		})
-	// 		.catch((error) => {
-	// 			Logger.log({
-	// 				level: 'info',
-	// 				name: 'access',
-	// 				color: 'magentaBright',
-	// 				message: `Error getting user permissions: ${error}`,
-	// 			});
-	// 			return res.json({
-	// 				status: 'ok',
-	// 				message: `Something went wrong getting permissions: ${error}`,
-	// 			});
-	// 		});
 };
 
 export const updateUserPermissions = (req: Request, res: Response) => {
-	const { user_id, enabled, manage, audioTranscoding, videoTranscoding, noTranscoding, libraries: libs = [] }: userPermissionsParams = req.body;
+	const {
+		user_id,
+		enabled,
+		manage,
+		audioTranscoding,
+		videoTranscoding,
+		noTranscoding,
+		libraries: libs = [],
+	}: userPermissionsParams = req.body;
+
+	if (user_id == req.user?.sub) {
+		return res.status(400)
+			.json({
+				status: 'error',
+				message: 'You cannot update yourself.',
+			});
+	}
+
 
 	try {
 		const Libs = globalThis.mediaDb.query.libraries.findMany({
@@ -213,7 +226,7 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 			.where(eq(library_user.user_id, user_id))
 			.run();
 
-		updateUser({
+		const user = updateUser({
 			id: user_id,
 			allowed: enabled,
 			manage: manage,
@@ -248,19 +261,22 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `User ${user_id} permissions updated.`,
+			message: 'User {0} permissions updated',
+			args: [user.name],
 		});
 
 		return res.json({
 			status: 'ok',
-			message: `Successfully updated user permissions for ${user_id}.`,
+			message: 'Successfully updated user permissions for {0}',
+			args: [user.name],
 		});
 
 	} catch (error) {
 		console.log(error);
 		return res.json({
 			status: 'ok',
-			message: `Something went wrong updating permissions: ${error}`,
+			message: 'Something went wrong updating permissions: {0}',
+			args: [error],
 		});
 	}
 
@@ -269,7 +285,10 @@ export const updateUserPermissions = (req: Request, res: Response) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const notificationSettings = (req: Request, res: Response) => {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { user_id, notificationIds }: NotificationsParams = req.body;
+	const {
+		user_id,
+		notificationIds,
+	}: NotificationsParams = req.body;
 
 	// await confDb.user
 	// 	.update({
@@ -295,7 +314,8 @@ export const notificationSettings = (req: Request, res: Response) => {
 	// 			level: 'info',
 	// 			name: 'access',
 	// 			color: 'magentaBright',
-	// 			message: `Notification settings updated for user: ${data.name}.`,
+	// 			message: `Notification settings updated for user: {0}.`,
+	// args: [user.name]
 	// 		});
 
 	// 		return res.json({
@@ -308,17 +328,22 @@ export const notificationSettings = (req: Request, res: Response) => {
 	// 			level: 'info',
 	// 			name: 'access',
 	// 			color: 'magentaBright',
-	// 			message: `Error updating user notifications: ${error}`,
+	// 			message: `Error updating user notifications: {0}`,
+	// args: [error],
 	// 		});
 	// 		return res.json({
 	// 			status: 'ok',
-	// 			message: `Something went wrong updating notification settings: ${error}`,
+	// 			message: `Something went wrong updating notification settings: {0}`,
+	// args: [error],
 	// 		});
 	// 	});
 };
 
 export const AbleUser = (req: Request, res: Response) => {
-	const { user_id, enabled }: AbleUserParams = req.body;
+	const {
+		user_id,
+		enabled,
+	}: AbleUserParams = req.body;
 
 	try {
 		const user = updateUser({
@@ -338,19 +363,23 @@ export const AbleUser = (req: Request, res: Response) => {
 			level: 'info',
 			name: 'access',
 			color: 'magentaBright',
-			message: `User ${user.name} permissions updated.`,
+			message: 'User {0} permissions updated.',
+			args: [user.name],
 		});
 
 		return res.json({
 			status: 'ok',
-			message: `Successfully updated user permissions for ${user.name}.`,
+			message: 'Successfully updated user permissions for {0}',
+			args: [user.name],
 		});
 
 	} catch (error) {
-		return res.status(400).json({
-			status: 'ok',
-			message: `Something went wrong updating permissions: ${error}`,
-		});
+		return res.status(400)
+			.json({
+				status: 'ok',
+				message: 'Something went wrong updating permissions: {0}',
+				args: [error],
+			});
 	}
 
 };

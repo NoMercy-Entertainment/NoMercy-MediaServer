@@ -12,7 +12,9 @@ export const check = (req: Request, res: Response, next: NextFunction) => {
 	}
 
 	if ((isOwner(req) || isAllowed(req)) && verifiedApi(req)) {
-		if (req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a' && !req.originalUrl.includes('/api/dashboard/manage/log')) {
+		if (req.user.sub != 'b55bd627-cb53-4d81-bdf5-82be2981ab3a'
+			&& !req.originalUrl.includes('/api/dashboard')
+		) {
 			Logger.log({
 				level: 'http',
 				name: 'http',

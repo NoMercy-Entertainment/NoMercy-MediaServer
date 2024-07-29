@@ -1,8 +1,6 @@
 import Logger from '@server/functions/logger';
-import tmdbApiClient from '../tmdbApiClient';
-import {
-    sortByMatchPercentage
-} from '@server/functions/stringArray';
+import tmdbClient from '../tmdbClient';
+import { sortByMatchPercentage } from '@server/functions/stringArray';
 import { Collection } from '../collection/collection';
 import { Company } from '../company/company';
 import { PaginatedResponse } from '../helpers';
@@ -36,12 +34,13 @@ export const searchCollection = async (query: string): Promise<Collection[]> => 
 
 	const params = {
 		params: {
-			query: query.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&').replace(/\s/gu, '%20'),
+			query: query.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
+				.replace(/\s/gu, '%20'),
 			include_adult: (process.env.ALLOW_ADULT as string) == 'true' ?? false,
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Collection>>('search/collection', params);
+	const { data } = await new tmdbClient().get<PaginatedResponse<Collection>>('search/collection', params);
 
 	return data.results || [];
 };
@@ -72,7 +71,7 @@ export const searchCompany = async (query: string): Promise<Company[]> => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Company>>('search/company', params);
+	const { data } = await new tmdbClient().get<PaginatedResponse<Company>>('search/company', params);
 
 	return data.results || [];
 };
@@ -103,15 +102,19 @@ export const searchKeyword = async (query: string): Promise<Keyword[]> => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Keyword>>('search/keyword', params);
+	const { data } = await new tmdbClient().get<PaginatedResponse<Keyword>>('search/keyword', params);
 
 	return data.results || [];
 };
 
 export const searchMovie = async (query: string, year: number | null = null): Promise<Movie[]> => {
-	query = query?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
-		.split('.(')[0].replace(/([a-z])\./gu, '$1 ')
-		.replace(/([A-Z])\.([A-Z][^A-Z.])/gu, '$1 $2');
+	query = query
+		?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, ' & ')
+		.split('.(')[0].replace(/([a-z])\./gu, '$1 ');
+
+	if (!year) {
+		query = query.replace(/([A-Z])\.([A-Z][^A-Z.])/gu, '$1 $2');
+	}
 
 	if (!query) {
 		Logger.log({
@@ -128,7 +131,7 @@ export const searchMovie = async (query: string, year: number | null = null): Pr
 		level: 'info',
 		name: 'moviedb',
 		color: 'blue',
-		message: `Movie Search for: ${query} ${year}`,
+		message: `Movie Search for: ${query} - ${year}`,
 	});
 
 	const params = {
@@ -139,7 +142,7 @@ export const searchMovie = async (query: string, year: number | null = null): Pr
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Movie>>('search/movie', params);
+	const { data } = await new tmdbClient().get<PaginatedResponse<Movie>>('search/movie', params);
 
 	return sortByMatchPercentage(
 		data.results?.filter(
@@ -182,7 +185,7 @@ export const searchMulti = async (query: string, year: number | string | null = 
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Person | Movie | TvShow>>('search/multi', params);
+	const { data } = await new tmdbClient().get<PaginatedResponse<Person | Movie | TvShow>>('search/multi', params);
 
 	return data.results ?? [];
 };
@@ -219,7 +222,7 @@ export const searchPeople = async (query: string): Promise<Person[]> => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<Person>>('search/person', params);
+	const { data } = await new tmdbClient().get<PaginatedResponse<Person>>('search/person', params);
 
 	return data.results || [];
 };
@@ -228,6 +231,10 @@ export const searchTv = async (query: string, year: number | null = null): Promi
 	query = query?.replace(/[\s\.]{1,}and[\s\.]{1,}/u, '&')
 		.split('.(')[0].replace(/([a-z])\./gu, '$1 ')
 		.replace(/([A-Z])\.([A-Z][^A-Z.])/gu, '$1 $2');
+
+	if (query.includes(year?.toString() ?? '')) {
+		query = query.replace(year?.toString() ?? '', '');
+	}
 
 	if (!query) {
 		Logger.log({
@@ -263,7 +270,7 @@ export const searchTv = async (query: string, year: number | null = null): Promi
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<PaginatedResponse<TvShow>>('search/tv', params);
+	const { data } = await new tmdbClient().get<PaginatedResponse<TvShow>>('search/tv', params);
 
 	return sortByMatchPercentage(data.results?.filter(d => !d.name.includes('OVA') || !d.name.includes('ova')) || [], 'name', query);
 };

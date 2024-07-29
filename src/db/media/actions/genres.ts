@@ -1,17 +1,14 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { genres } from '../schema/genres';
 
 export type NewGenre = InferModel<typeof genres, 'insert'>;
 export const insertGenre = (data: NewGenre) => globalThis.mediaDb.insert(genres)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: genres.id,
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

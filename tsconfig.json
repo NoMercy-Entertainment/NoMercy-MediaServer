@@ -8,7 +8,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"downlevelIteration": true,
 		"allowJs": true,
-		"module": "NodeNext",
+		"module": "CommonJS",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,

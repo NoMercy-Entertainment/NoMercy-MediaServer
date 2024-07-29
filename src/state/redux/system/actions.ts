@@ -1,7 +1,6 @@
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import Device from 'chromecast-api/lib/device';
 import { Server } from 'socket.io';
-// import { SocketIoServer } from '../../../loaders/socket';
 import { store } from '..';
 import system from './system';
 import { IncomingMessage, ServerResponse } from 'http';

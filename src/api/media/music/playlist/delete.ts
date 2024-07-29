@@ -1,7 +1,7 @@
 import { Request, Response } from 'express-serve-static-core';
 
-
-export default function (req: Request, res: Response) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default (req: Request, res: Response) => {
 
 	// const music = await confDb.playlist.delete({
 	// 	where: {
@@ -12,4 +12,4 @@ export default function (req: Request, res: Response) {
 
 	// return res.json(music);
 
-}
+};

@@ -14,12 +14,7 @@ export const insertVideoFileDB = (data: NewVideoFile) => globalThis.mediaDb.inse
 	})
 	.onConflictDoUpdate({
 		target: [videoFiles.filename],
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
+		set: convertBooleans(data, true),
 	})
 	.returning()
 	.get();

@@ -174,12 +174,13 @@ export const cleanFileName = function (name: string) {
 		.replace(/\s/gu, '.')
 		.replace(/\? {2}/gu, '.')
 		.replace(/\? /gu, '.')
-		.replace(/,\./gu, '.')
-		.replace(/, /gu, '.')
+		.replace(/u,\./gu, '.')
+		.replace(/u, /gu, '.')
 		.replace(/`/gu, '')
 		.replace(/'/gu, '')
+		.replace(/’/gu, '')
 		.replace(/"/gu, '')
-		.replace(/,/gu, '.')
+		.replace(/u,/gu, '.')
 		.replace(/"/gu, '\'')
 		.replace(/\.{2,}/u, '.')
 		.replace(/\s/gu, '.')
@@ -188,7 +189,7 @@ export const cleanFileName = function (name: string) {
 		.replace(/!/gu, '')
 		.replace(/\*/gu, '-')
 		.replace(/\.\./gu, '.')
-		.replace(/,\./gu, '.')
+		.replace(/u,\./gu, '.')
 		.replace(/: /gu, '.')
 		.replace(/:/gu, '.')
 		.replace(/\.*$/gu, '')
@@ -196,7 +197,7 @@ export const cleanFileName = function (name: string) {
 		.replace(/\.{2,}/gu, '.');
 };
 
-export const createTitleSort = function (title: string, date?: string | number) {
+export const createTitleSort = function (title: string, date?: string | number | null) {
 
 	title = title[0].toUpperCase() + title.slice(1);
 
@@ -206,7 +207,7 @@ export const createTitleSort = function (title: string, date?: string | number) 
 			.replace(/^An[\s]{1,}/u, '')
 			.replace(/^A[\s]{1,}/u, '')
 			.replace(/:\s|\sand\sthe/u, date
-				? `.${parseYear(date)}`
+				? `.${parseYear(date)}.`
 				: '.')
 			.replace(/\./gu, ' ')
 	);

@@ -6,6 +6,7 @@ import { and, asc, eq, isNull, lt } from 'drizzle-orm';
 import { QueueJob, queueJobs } from '@server/db/queue/schema/queueJobs';
 import { runningTasks } from '@server/db/media/schema/runningTasks';
 import { configuration } from '@server/db/media/schema/configuration';
+import { sleep } from '../dateTime';
 
 interface DatabaseQueueProps {
 	name?: string;
@@ -123,132 +124,182 @@ export class DatabaseQueue {
 		}
 
 		this.workers = workers;
-		
+
 		return this;
 	}
 
 	jobs() {
-		return globalThis.queueDb.select().from(queueJobs)
-			.where(eq(queueJobs.queue, this.name))
-			.all();
+		try {
+			return globalThis.queueDb.select().from(queueJobs)
+				.where(eq(queueJobs.queue, this.name))
+				.all();
+		} catch (error) {
+			sleep(1000);
+			return this.jobs();
+		}
 	}
 
 	add({ file, fn, args }: { file?: string; fn: string; args?: any; }) {
-		if (!file) {
-			file = _getCallerFile();
+		try {
+			if (!file) {
+				file = _getCallerFile();
+			}
+
+			const job = globalThis.queueDb.insert(queueJobs)
+				.values({
+					queue: this.name,
+					runAt: null,
+					priority: args?.priority ?? 2,
+					task_id: args.task?.id ?? 'manual',
+					payload: JSON.stringify({ file, fn, args }),
+				})
+				.returning()
+				.get();
+
+			return job;
+		} catch (error) {
+			sleep(1000);
+			return this.add({ file, fn, args });
 		}
-
-		const job = globalThis.queueDb.insert(queueJobs)
-			.values({
-				queue: this.name,
-				runAt: null,
-				priority: args?.priority ?? 2,
-				task_id: args.task?.id ?? 'manual',
-				payload: JSON.stringify({ file, fn, args }),
-			})
-			.returning()
-			.get();
-
-		return job;
 
 	}
 
 	remove(job: QueueJob) {
-		return globalThis.queueDb.delete(queueJobs)
-			.where(eq(queueJobs.id, job.id))
-			.run();
+		try {
+			return globalThis.queueDb.delete(queueJobs)
+				.where(eq(queueJobs.id, job.id))
+				.run();
+		} catch (error) {
+			sleep(1000);
+			return this.remove(job);
+		}
 	}
 
 	cancel(job: QueueJob) {
-		const qj = globalThis.queueDb.delete(queueJobs)
-			.where(eq(queueJobs.id, job.id))
-			.run();
+		try {
+			const qj = globalThis.queueDb.delete(queueJobs)
+				.where(eq(queueJobs.id, job.id))
+				.run();
 
-		if (!qj) return;
+			if (!qj) return;
 
-		const Worker = this.forks.find(w => w.job.id == job.id);
-		if (!Worker) return;
+			const Worker = this.forks.find(w => w.job.id == job.id);
+			if (!Worker) return;
 
-		Worker.worker.kill(2);
+			Worker.worker.kill(2);
 
-		this.deleteWorker(Worker);
+			this.deleteWorker(Worker);
 
-		this.createWorker();
+			this.createWorker();
+		} catch (error) {
+			sleep(1000);
+			return this.cancel(job);
+		}
 	}
 
 	clear() {
-		return globalThis.queueDb.delete(queueJobs)
-			.run();
+		try {
+			return globalThis.queueDb.delete(queueJobs)
+				.run();
+		} catch (error) {
+			sleep(1000);
+			return this.clear();
+		}
 	}
 
 	next() {
-		return globalThis.queueDb.select().from(queueJobs)
-			.where(
-				and(
-					eq(queueJobs.queue, this.name),
-					isNull(queueJobs.runAt),
-					lt(queueJobs.attempts, this.maxAttempts)
+		try {
+			return globalThis.queueDb.select().from(queueJobs)
+				.where(
+					and(
+						eq(queueJobs.queue, this.name),
+						isNull(queueJobs.runAt),
+						lt(queueJobs.attempts, this.maxAttempts)
+					)
 				)
-			)
-			.orderBy(asc(queueJobs.priority))
-			.get();
+				.orderBy(asc(queueJobs.priority))
+				.get();
+		} catch (error) {
+			sleep(1000);
+			return this.next();
+		}
 	}
 
 	running(job: QueueJob) {
-		return globalThis.queueDb.update(queueJobs)
-			.set({
-				runAt: Date.now(),
-				attempts: job.attempts + 1,
-			})
-			.where(eq(queueJobs.id, job.id))
-			.returning()
-			.get();
+		try {
+			return globalThis.queueDb.update(queueJobs)
+				.set({
+					runAt: Date.now(),
+					attempts: job.attempts + 1,
+				})
+				.where(eq(queueJobs.id, job.id))
+				.returning()
+				.get();
+		} catch (error) {
+			sleep(1000);
+			return this.running(job);
+		}
 	}
 
 	failed(job: QueueJob, error: any) {
-		if (!error?.code) {
+		try {
+			if (!error?.code) {
+				return globalThis.queueDb.update(queueJobs)
+					.set({
+						runAt: null,
+						failedAt: Date.now(),
+						error: error
+							? JSON.stringify(error ?? 'unknown', null, 2)
+							: 'unknown',
+					})
+					.where(eq(queueJobs.id, job.id))
+					.run();
+			}
 			return globalThis.queueDb.update(queueJobs)
 				.set({
-					runAt: null,
 					failedAt: Date.now(),
 					error: error
 						? JSON.stringify(error ?? 'unknown', null, 2)
 						: 'unknown',
 				})
 				.where(eq(queueJobs.id, job.id))
-				.run();
+				.returning()
+				.get();
+		} catch {
+			sleep(1000);
+			return this.failed(job, error);
 		}
-		return globalThis.queueDb.update(queueJobs)
-			.set({
-				failedAt: Date.now(),
-				error: error
-					? JSON.stringify(error ?? 'unknown', null, 2)
-					: 'unknown',
-			})
-			.where(eq(queueJobs.id, job.id))
-			.returning()
-			.get();
 	}
 
 	retry(job: QueueJob) {
-		return globalThis.queueDb.update(queueJobs)
-			.set({
-				runAt: null,
-			})
-			.where(eq(queueJobs.id, job.id))
-			.returning()
-			.get();
+		try {
+			return globalThis.queueDb.update(queueJobs)
+				.set({
+					runAt: null,
+				})
+				.where(eq(queueJobs.id, job.id))
+				.returning()
+				.get();
+		} catch (error) {
+			sleep(1000);
+			return this.retry(job);
+		}
 	}
 
 	finished(job: QueueJob, data: any) {
-		return globalThis.queueDb.update(queueJobs)
-			.set({
-				result: JSON.stringify(data ?? 'unknown', null, 2),
-				finishedAt: Date.now(),
-			})
-			.where(eq(queueJobs.id, job.id))
-			.returning()
-			.get();
+		try {
+			return globalThis.queueDb.update(queueJobs)
+				.set({
+					result: JSON.stringify(data ?? 'unknown', null, 2),
+					finishedAt: Date.now(),
+				})
+				.where(eq(queueJobs.id, job.id))
+				.returning()
+				.get();
+		} catch (error) {
+			sleep(1000);
+			return this.finished(job, data);
+		}
 	}
 
 	stop() {
@@ -405,12 +456,12 @@ export class DatabaseQueue {
 				if (this.workers < this.forks.length) {
 					this.deleteWorker(Worker);
 				}
-				
+
 				setTimeout(() => {
 					this.run();
 				}, this.delay);
 			}
-		}
+		};
 
 		Worker.worker.on('message', workerCallback);
 	}

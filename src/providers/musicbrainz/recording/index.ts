@@ -165,7 +165,7 @@ export interface RecordingAppend extends Recording {
 	relations: Relation[];
 	releases: Release[];
 	tags: Tag[];
-    genres: Genre[];
+	genres: Genre[];
 }
 
 export const recordingAppend = [
@@ -181,7 +181,7 @@ export const recordingAppend = [
 
 export type RecordingWithAppends<T extends keyof RecordingAppend> = Recording & Pick<RecordingAppend, T>;
 
-export const recording = async (id: string) => {
+export const recording = async (id: string): Promise<RecordingWithAppends<typeof recordingAppend[number]>> => {
 	Logger.log({
 		level: 'info',
 		name: 'musicBrainz',

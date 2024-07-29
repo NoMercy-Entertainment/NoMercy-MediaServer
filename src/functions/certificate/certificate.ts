@@ -9,7 +9,7 @@ import { deviceId } from '../system';
 import { AxiosResponse } from 'axios';
 import { promises } from 'fs';
 
-export const certificate = async () => {
+export const certificate = () => {
 	refresh();
 	refreshLoop();
 };
@@ -41,6 +41,7 @@ const refresh = async () => {
 				},
 			})
 			.then(async (response: AxiosResponse<ServerCertificate>) => {
+
 				await Promise.all([
 					promises.rm(sslKey, { force: true }),
 					promises.rm(sslCert, { force: true }),
@@ -60,7 +61,7 @@ const refresh = async () => {
 					message: 'New SSL certificate has been obtained',
 				});
 			})
-			.catch(async (error) => {
+			.catch((error) => {
 				if (error.response) {
 					Logger.log({
 						level: 'info',
@@ -73,7 +74,7 @@ const refresh = async () => {
 						level: 'info',
 						name: 'setup',
 						color: 'red',
-						message: error.message,
+						message: error.message ?? error,
 					});
 				}
 			});

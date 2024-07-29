@@ -692,7 +692,7 @@ CREATE TABLE `people` (
 	`alsoKnownAs` text,
 	`biography` text,
 	`birthday` text,
-	`deathday` text,
+	`deathDay` text,
 	`gender` integer DEFAULT 0,
 	`homepage` text,
 	`imdbId` text,

@@ -21,7 +21,7 @@ export const datetime = customType<{ data: number | string }>({
 	},
 });
 
-export const convertBooleans = <T>(data: T): T => {
+export const convertBooleans = <T>(data: T, withUpdatedAt = false): T => {
 	for (const element in data) {
 		if (typeof data[element] === 'boolean') {
 			// @ts-ignore
@@ -30,5 +30,13 @@ export const convertBooleans = <T>(data: T): T => {
 				: 0;
 		}
 	}
+
+	if (withUpdatedAt) {
+	// 	// @ts-ignore
+	// 	data.updated_at = new Date().toISOString()
+	// 		.slice(0, 19)
+	// 		.replace('T', ' ');
+	}
+
 	return data;
 };

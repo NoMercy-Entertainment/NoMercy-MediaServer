@@ -1,21 +1,15 @@
 
-import { convertBooleans } from '../../helpers';
 import { InferModel } from 'drizzle-orm';
+
 import { people } from '../schema/people';
+import { convertBooleans } from '@server/db/helpers';
 
 export type NewPerson = InferModel<typeof people, 'insert'>;
 export const insertPeople = (data: NewPerson) => globalThis.mediaDb.insert(people)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [people.id],
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
+		set: convertBooleans(data, true),
 	})
 	.returning()
 	.get();

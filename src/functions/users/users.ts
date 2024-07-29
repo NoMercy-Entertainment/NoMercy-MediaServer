@@ -19,7 +19,7 @@ export const getUsers = async () => {
 		.then(({ data }) => {
 			for (let i = 0; i < data.length; i++) {
 				const user = data[i];
-				
+
 				insertUser({
 					id: user.user_id,
 					email: user.email,

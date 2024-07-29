@@ -1,7 +1,4 @@
-import {
-	AppState,
-	useSelector
-} from '@server/state/redux';
+import { AppState, useSelector } from '@server/state/redux';
 import { Request, Response } from 'express-serve-static-core';
 
 

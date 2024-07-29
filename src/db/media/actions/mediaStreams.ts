@@ -1,4 +1,5 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { createId } from '@paralleldrive/cuid2';
 import { mediaStreams } from '../schema/mediaStreams';
@@ -12,11 +13,8 @@ export const insertMediaStream = (data: NewMediaStream) => globalThis.mediaDb.in
 	.onConflictDoUpdate({
 		target: [mediaStreams.file_id, mediaStreams.streamIndex],
 		set: {
-			...convertBooleans(data),
+			...convertBooleans(data, true),
 			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
 		},
 	})
 	.returning()

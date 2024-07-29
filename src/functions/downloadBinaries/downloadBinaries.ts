@@ -23,7 +23,7 @@ export default async () => {
 				message: `Downloading: ${program.name}`,
 			});
 
-			await new Promise<void>(async (resolve, reject) => {
+			await new Promise<void>((resolve, reject) => {
 				try {
 					request.head(program.url, () => {
 						request(program.url).pipe(

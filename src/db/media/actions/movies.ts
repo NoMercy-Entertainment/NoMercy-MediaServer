@@ -1,22 +1,14 @@
-
 import { convertBooleans } from '../../helpers';
-import { InferModel, ReturnTypeOrValue, and, inArray } from 'drizzle-orm';
+import { and, inArray, InferModel, ReturnTypeOrValue } from 'drizzle-orm';
 import { movies } from '../schema/movies';
 import { isOwner } from '@server/api/middleware/permissions';
 
 export type NewMovie = InferModel<typeof movies, 'insert'>;
 export const insertMovie = (data: NewMovie) => globalThis.mediaDb.insert(movies)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [movies.id],
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
+		set: convertBooleans(data, true),
 	})
 	.returning()
 	.get();
@@ -28,7 +20,11 @@ export const getMoviesDB = () => globalThis.mediaDb.select()
 
 export type MovieWithRelations = ReturnTypeOrValue<typeof getMovie> | null;
 
-export const getMovie = ({ id, user_id, language }: { id: number, user_id: string, language: string }) => {
+export const getMovie = ({
+	id,
+	user_id,
+	language,
+}: { id: number, user_id: string, language: string }) => {
 
 	const movieData = globalThis.mediaDb.query.movies.findFirst({
 		where: (movies, { eq }) => eq(movies.id, id),
@@ -72,7 +68,9 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 					library_user: true,
 				},
 			},
-			userData: true,
+			userData: {
+				where: (userData, { eq }) => eq(userData.user_id, user_id),
+			},
 		},
 	});
 
@@ -88,7 +86,26 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 	});
 
 	const imagesData = globalThis.mediaDb.query.images.findMany({
-		where: (images, { eq }) => eq(images.movie_id, id),
+		where: (images, {
+			eq,
+			and,
+			or,
+		}) => or(
+			and(
+				eq(images.movie_id, id),
+				eq(images.iso6391, 'en'),
+				eq(images.type, 'logo')
+			),
+			and(
+				eq(images.movie_id, id),
+				eq(images.type, 'poster')
+			),
+			and(
+				eq(images.movie_id, id),
+				eq(images.type, 'backdrop')
+			)
+		),
+		orderBy: (images, { desc }) => desc(images.voteAverage),
 	});
 
 	const similarData = globalThis.mediaDb.query.similars.findMany({
@@ -116,8 +133,8 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 	});
 
 	const personData = castsData.length === 0 && crewsData.length === 0
-		? []
-		: globalThis.mediaDb.query.people.findMany({
+		?		[]
+		:		globalThis.mediaDb.query.people.findMany({
 			where: people => inArray(people.id, [
 				...castsData.map(cast => cast.person_id),
 				...crewsData.map(crew => crew.person_id),
@@ -125,7 +142,7 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 			columns: {
 				id: true,
 				name: true,
-				deathday: true,
+				deathDay: true,
 				profile: true,
 				colorPalette: true,
 				gender: true,
@@ -135,8 +152,8 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 		});
 
 	const rolesData = castsData.length === 0
-		? []
-		: globalThis.mediaDb.query.roles.findMany({
+		?		[]
+		:		globalThis.mediaDb.query.roles.findMany({
 			where: roles => inArray(roles.cast_id, castsData.map(cast => cast.id)),
 			columns: {
 				cast_id: true,
@@ -145,8 +162,8 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 		});
 
 	const jobsData = crewsData.length === 0
-		? []
-		: globalThis.mediaDb.query.jobs.findMany({
+		?		[]
+		:		globalThis.mediaDb.query.jobs.findMany({
 			where: jobs => inArray(jobs.crew_id, crewsData.map(crew => crew.id)),
 			columns: {
 				crew_id: true,
@@ -174,7 +191,10 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 	}
 
 	const translationsData = globalThis.mediaDb.query.translations.findMany({
-		where: (translations, { eq, or, and }) =>
+		where: (translations, {
+			eq,
+			and,
+		}) =>
 			and(
 				eq(translations.iso6391, language),
 				eq(translations.movie_id, id)
@@ -204,7 +224,11 @@ export const getMovie = ({ id, user_id, language }: { id: number, user_id: strin
 };
 
 export type MoviePlaybackWithRelations = ReturnTypeOrValue<typeof getMoviePlayback> | null;
-export const getMoviePlayback = ({ id, user_id, language }: { id: number; user_id: string; language: string }) => {
+export const getMoviePlayback = ({
+	id,
+	user_id,
+	language,
+}: { id: number; user_id: string; language: string }) => {
 
 	const movieData = globalThis.mediaDb.query.movies.findFirst({
 		where: (movies, { eq }) => eq(movies.id, id),
@@ -222,7 +246,9 @@ export const getMoviePlayback = ({ id, user_id, language }: { id: number; user_i
 			},
 			videoFiles: {
 				with: {
-					userData: true,
+					userData: {
+						where: (userData, { eq }) => eq(userData.user_id, user_id),
+					},
 				},
 			},
 		},
@@ -232,15 +258,23 @@ export const getMoviePlayback = ({ id, user_id, language }: { id: number; user_i
 		return null;
 	}
 
-	const mediasData = globalThis.mediaDb.query.medias.findMany({
-		where: (medias, { eq, and }) => and(
-			eq(medias.movie_id, id),
-			eq(medias.type, 'logo')
+	const imagesData = globalThis.mediaDb.query.images.findMany({
+		where: (images, {
+			eq,
+			and,
+		}) => and(
+			eq(images.movie_id, id),
+			eq(images.type, 'logo'),
+			eq(images.iso6391, 'en')
 		),
+		orderBy: (images, { desc }) => desc(images.voteAverage),
 	});
 
 	const translationsData = globalThis.mediaDb.query.translations.findMany({
-		where: (translations, { eq, and }) => and(
+		where: (translations, {
+			eq,
+			and,
+		}) => and(
 			eq(translations.iso6391, language),
 			eq(translations.tv_id, id)
 		),
@@ -249,7 +283,7 @@ export const getMoviePlayback = ({ id, user_id, language }: { id: number; user_i
 	const result = {
 		...movieData,
 		translations: translationsData,
-		medias: mediasData,
+		images: imagesData,
 	};
 
 	return result;

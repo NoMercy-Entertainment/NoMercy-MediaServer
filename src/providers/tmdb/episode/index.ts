@@ -6,7 +6,7 @@ import { EpisodeWithAppends } from './episode-details';
 import Logger from '@server/functions/logger';
 import i18next from 'i18next';
 import moment from 'moment';
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 
 export * from './account_states';
 export * from './changes';
@@ -35,7 +35,7 @@ export const episode = async (id: number, season: number, episode: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<EpisodeWithAppends<typeof episodeAppend[number]>>(
+	const { data } = await new tmdbClient().get<EpisodeWithAppends<typeof episodeAppend[number]>>(
 		`tv/${id}/season/${season}/episode/${episode}`,
 		params
 	);
@@ -54,13 +54,15 @@ export const episodeChanges = async (id: number, season: number, episode: number
 
 	const params = {
 		params: {
-			start_date: moment().subtract(daysback, 'days')
+			start_date: moment()
+				.subtract(daysback, 'days')
 				.format('md'),
-			end_date: moment().format('md'),
+			end_date: moment()
+				.format('md'),
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<EpisodeChanges>(`tv/${id}/season/${season}/episode/${episode}/changes`, params);
+	const { data } = await new tmdbClient().get<EpisodeChanges>(`tv/${id}/season/${season}/episode/${episode}/changes`, params);
 
 	return data;
 };
@@ -75,14 +77,14 @@ export const episodes = async (id: number, season: number, episodes: number[] = 
 
 	const promises: Promise<AxiosResponse<EpisodeWithAppends<typeof episodeAppend[number]>>>[] = [];
 
-	for (let i = 0; i < episodes.length; i++) {
+	for (const i of episodes) {
 		const params = {
 			params: {
 				append_to_response: episodeAppend.join(','),
 			},
 		};
 
-		promises.push(tmdbApiClient.get<EpisodeWithAppends<typeof episodeAppend[number]>>(`tv/${id}/season/${season}/episode/${episodes[i]}`, params));
+		promises.push(new tmdbClient().get<EpisodeWithAppends<typeof episodeAppend[number]>>(`tv/${id}/season/${season}/episode/${i}`, params));
 	}
 
 	const arr: EpisodeWithAppends<typeof episodeAppend[number]>[] = [];
@@ -109,12 +111,12 @@ export const episodeImages = async (id: number, season: number, episode: number)
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<EpisodeImages>(`tv/${id}/season/${season}/episode/${episode}/images`, params);
+	const { data } = await new tmdbClient().get<EpisodeImages>(`tv/${id}/season/${season}/episode/${episode}/images`, params);
 
 	return data;
 };
 
-export const seasonTranslations = async (id: number, season: number, episode: number) => {
+export const episodeTranslations = async (id: number, season: number, episode: number) => {
 	Logger.log({
 		level: 'info',
 		name: 'moviedb',
@@ -122,7 +124,7 @@ export const seasonTranslations = async (id: number, season: number, episode: nu
 		message: `Fetching Episode Translations with TV id: ${id} and Season number ${season} and Episode number ${episode}`,
 	});
 
-	const { data } = await tmdbApiClient.get<EpisodeTranslations>(`tv/${id}/season/${season}/episode/${episode}/translations`);
+	const { data } = await new tmdbClient().get<EpisodeTranslations>(`tv/${id}/season/${season}/episode/${episode}/translations`);
 
 	return data;
 };

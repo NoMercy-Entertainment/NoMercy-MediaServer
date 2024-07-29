@@ -20,9 +20,9 @@ export default class TVDBImageCrawler {
 
 	getData = async () => {
 		Logger.info({
-			name: 'TVDBImageCrawler',
+			name: 'TVDBImage',
 			color: 'blueBright',
-			message: `Getting data${this.#url}`,
+			message: `Getting data ${this.#url}`,
 			level: 'info',
 		});
 		const response = await axios.get(this.#url);
@@ -30,8 +30,6 @@ export default class TVDBImageCrawler {
 			const parsedData = this.#parseData(response.data, this.#url);
 			return parsedData;
 		}
-		console.log(response);
-
 	};
 
 	#parseData = (response: string | AnyNode | AnyNode[] | Buffer, url: string) => {

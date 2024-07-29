@@ -6,7 +6,7 @@ import { SeasonTranslations } from './translations';
 import { SeasonWithAppends } from './season-details';
 import i18next from 'i18next';
 import moment from 'moment';
-import tmdbApiClient from '../tmdbApiClient';
+import tmdbClient from '../tmdbClient';
 
 export * from './account_states';
 export * from './aggregate_credits';
@@ -36,7 +36,7 @@ export const season = async (id: number, season: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<SeasonWithAppends<typeof seasonAppend[number]>>(`tv/${id}/season/${season}`, params);
+	const { data } = await new tmdbClient().get<SeasonWithAppends<typeof seasonAppend[number]>>(`tv/${id}/season/${season}`, params);
 	return data;
 };
 
@@ -49,13 +49,15 @@ export const seasonChanges = async (id: number, season: number, daysback = 1) =>
 	});
 	const params = {
 		params: {
-			start_date: moment().subtract(daysback, 'days')
+			start_date: moment()
+				.subtract(daysback, 'days')
 				.format('md'),
-			end_date: moment().format('md'),
+			end_date: moment()
+				.format('md'),
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<SeasonChanges>(`tv/${id}/season/${season}/changes`, params);
+	const { data } = await new tmdbClient().get<SeasonChanges>(`tv/${id}/season/${season}/changes`, params);
 
 	return data;
 };
@@ -80,8 +82,8 @@ export const seasons = async (id: number, seasons: number[] = []) => {
 
 	const promises: Promise<AxiosResponse<SeasonWithAppends<typeof append[number]>>>[] = [];
 
-	for (let i = 0; i < seasons.length; i++) {
-		promises.push(tmdbApiClient.get<SeasonWithAppends<typeof append[number]>>(`tv/${id}/season/${seasons[i]}`, params));
+	for (const i of seasons) {
+		promises.push(new tmdbClient().get<SeasonWithAppends<typeof append[number]>>(`tv/${id}/season/${i}`, params));
 	}
 
 	const data = await Promise.all(promises);
@@ -107,7 +109,7 @@ export const seasonImages = async (id: number, season: number) => {
 		},
 	};
 
-	const { data } = await tmdbApiClient.get<SeasonImages>(`tv/${id}/season/${season}/images`, params);
+	const { data } = await new tmdbClient().get<SeasonImages>(`tv/${id}/season/${season}/images`, params);
 
 	return data;
 };
@@ -120,7 +122,7 @@ export const seasonTranslations = async (id: number, season: number) => {
 		message: `Fetching Season translations with TV id: ${id} and Season number ${season}`,
 	});
 
-	const { data } = await tmdbApiClient.get<SeasonTranslations>(`tv/${id}/season/${season}/translations`);
+	const { data } = await new tmdbClient().get<SeasonTranslations>(`tv/${id}/season/${season}/translations`);
 
 	return data;
 };

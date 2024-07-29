@@ -5523,8 +5523,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "deathday": {
-          "name": "deathday",
+        "deathDay": {
+          "name": "deathDay",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

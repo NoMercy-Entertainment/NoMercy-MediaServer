@@ -21,10 +21,10 @@ import { insertLibrary } from './media/actions/libraries';
 import { insertLibraryFolder } from './media/actions/folder_library';
 import { insertLibraryUser } from './media/actions/library_user';
 import { getMoviesDB } from './media/actions/movies';
-import { selectMusicGenre, insertMusicGenre } from './media/actions/musicGenres';
+import { insertMusicGenre, selectMusicGenre } from './media/actions/musicGenres';
 import { insertNotification } from './media/actions/notifications';
 import { insertProviderPriority } from './media/actions/priority_provider';
-import { selectProvider, insertProvider } from './media/actions/providers';
+import { insertProvider, selectProvider } from './media/actions/providers';
 import { insertSpecialItem } from './media/actions/specialItems';
 import { insertSpecial } from './media/actions/specials';
 import { selectUser } from './media/actions/users';
@@ -157,20 +157,24 @@ export const seed = async () => {
 			country: 'NL',
 			language: 'nl',
 		}, 'id');
+	}
 
+	for (const library of libraries) {
 		for (const folder of library.folders) {
 			insertLibraryFolder({
 				folder_id: folder.id,
 				library_id: library.id,
 			});
-		};
+		}
+
 
 		for (const user of users) {
 			insertLibraryUser({
 				user_id: user.id,
 				library_id: library.id,
 			});
-		};
+		}
+
 
 		for (const profile of encoderProfiles.filter(e => e.name.includes('regular'))) {
 			insertEncoderProfileLibrary({
@@ -178,7 +182,12 @@ export const seed = async () => {
 				library_id: library.id,
 			});
 		}
-	};
+		insertEncoderProfileLibrary({
+			encoderProfile_id: 'cl7i4o7v7001kqwef32im51hk',
+			library_id: 'clisdhulg009yefcsq0oudnvk',
+		});
+	}
+
 
 	const palette: any = {
 		poster: undefined,
@@ -192,29 +201,35 @@ export const seed = async () => {
 
 	await Promise.all([
 		special.poster && createBlurHash(special.poster.includes('http')
-			? special.poster
-			: `https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
-			blurHash.poster = hash;
-		}),
+			?			special.poster
+			:			`https://image.tmdb.org/t/p/w185${special.poster}`)
+			.then((hash) => {
+				blurHash.poster = hash;
+			}),
 		special.backdrop && createBlurHash(special.backdrop.includes('http')
-			? special.backdrop
-			: `https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
-			blurHash.backdrop = hash;
-		}),
+			?			special.backdrop
+			:			`https://image.tmdb.org/t/p/w185${special.backdrop}`)
+			.then((hash) => {
+				blurHash.backdrop = hash;
+			}),
 		special.poster && colorPalette(special.poster.includes('http')
-			? special.poster
-			: `https://image.tmdb.org/t/p/w185${special.poster}`).then((hash) => {
-			palette.poster = hash;
-		}),
+			?			special.poster
+			:			`https://image.tmdb.org/t/p/w185${special.poster}`)
+			.then((hash) => {
+				palette.poster = hash;
+			}),
 		special.backdrop && colorPalette(special.backdrop.includes('http')
-			? special.backdrop
-			: `https://image.tmdb.org/t/p/w185${special.backdrop}`).then((hash) => {
-			palette.backdrop = hash;
-		}),
+			?			special.backdrop
+			:			`https://image.tmdb.org/t/p/w185${special.backdrop}`)
+			.then((hash) => {
+				palette.backdrop = hash;
+			}),
 	]);
 
-	const movies = getMoviesDB().map(e => e.id);
-	const episodes = getEpisodesDB().map(e => e.id);
+	const movies = getMoviesDB()
+		.map(e => e.id);
+	const episodes = getEpisodesDB()
+		.map(e => e.id);
 
 	const filteredItems = special.Item.filter(i => (i.movieId && movies.includes(i.movieId)) || (i.episodeId && episodes.includes(i.episodeId)));
 	// const missingItems = special.Item.filter(i => !(i.movie_id && movies.includes(i.movie_id)) && !(i.episode_id && episodes.includes(i.episode_id)));
@@ -238,8 +253,8 @@ export const seed = async () => {
 			movie_id: item.movieId,
 			special_id: special.id,
 		}, item.movieId
-			? 'movie'
-			: 'episode');
+			?			'movie'
+			:			'episode');
 	}
 };
 

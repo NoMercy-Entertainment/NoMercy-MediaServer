@@ -14,19 +14,11 @@ import colorPalette, { colorPaletteFromFile } from '@server/functions/colorPalet
 import { sleep } from '@server/functions/dateTime';
 import downloadImage from '@server/functions/downloadImage';
 import { fanart_album } from '@server/providers/fanart/music';
-import {
-	releaseCover, ReleaseWithAppends, releaseAppend,
-	release
-} from '@server/providers/musicbrainz/release';
+import { release, releaseAppend, releaseCover, ReleaseWithAppends } from '@server/providers/musicbrainz/release';
 import { apiCachePath, imagesPath } from '@server/state';
-import {
-	existsSync, readFileSync, writeFileSync,
-	copyFileSync, readdirSync, statSync, rmSync
-} from 'fs';
+import { copyFileSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
 import { Image } from '@server/providers/musicbrainz/cover';
-import {
-	Artist, Release
-} from '../../../providers/musicbrainz/fingerprint';
+import { Artist, Release } from '@server/providers/musicbrainz/fingerprint';
 import { EncodingLibrary } from '@server/db/media/actions/libraries';
 
 export const createAlbum = async (
@@ -46,7 +38,11 @@ export const createAlbum = async (
 		message: `Adding album: ${title}`,
 	});
 
-	const { image, colorPalette, blurHash } = await getAlbumImage(album.id, library, file, currentFolder);
+	const {
+		image,
+		colorPalette,
+		blurHash,
+	} = await getAlbumImage(album.id, library, file, currentFolder);
 
 	insertAlbum({
 		id: album.id,
@@ -55,8 +51,8 @@ export const createAlbum = async (
 		folder: `${file.folder}${file.musicFolder}`
 			.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/u, '$1'),
 		colorPalette: colorPalette
-			? JSON.stringify(colorPalette ?? '{}')
-			: undefined,
+			?			JSON.stringify(colorPalette ?? '{}')
+			:			undefined,
 		year: album.date?.year,
 		tracks: album.track_count,
 		country: album.country,
@@ -96,7 +92,7 @@ export const createAlbum = async (
 		} catch (error) {
 			console.log(error);
 		}
-	};
+	}
 
 	for (const track of album.mediums ?? []) {
 		await createTrack(track, artist, album, file, recordingID, title, currentFolder);
@@ -136,7 +132,7 @@ export const getAlbumInfo = async (releaseID: string) => {
 
 		response = await release(releaseID)
 			.then(res => res)
-			.catch(({ response }) => {
+			.catch(() => {
 				// console.log(`http://musicbrainz.org/ws/2/release/${releaseID}?fmt=json&inc=artist-credits+artists+releases+tags+genres`);
 				// console.log(response?.data);
 				return null;
@@ -160,7 +156,7 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 	});
 	let image: string | null = null;
 	let palette: PaletteColors | null = null;
-	let blurHash: string | null = null;
+	const blurHash: string | null = null;
 
 	const albumImageFile = join(apiCachePath, `albumImage_${id}.json`);
 
@@ -169,7 +165,8 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 	if (existsSync(albumImageFile)) {
 		release = JSON.parse(readFileSync(albumImageFile, 'utf8'));
 	} else {
-		release = await releaseCover(id).catch(() => null);
+		release = await releaseCover(id)
+			.catch(() => null);
 		if (release?.length) {
 			writeFileSync(albumImageFile, JSON.stringify(release, null, 2));
 		}
@@ -205,12 +202,15 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 				if (images?.albums?.[id].albumcover?.[0]?.url !== undefined) {
 					image = images?.albums?.[id].albumcover?.[0]?.url as string;
 					palette = image
-						? await colorPalette(image)
-						: null;
+						?						await colorPalette(image)
+						:						null;
 					// blurHash = image
 					// 	? await createBlurHash(image)
 					// 	: null;
-					image && await downloadImage({ url: image, path: `${imagesPath}/music/${id}.jpg` })
+					image && await downloadImage({
+						url: image,
+						path: `${imagesPath}/music/${id}.jpg`,
+					})
 						.catch((e) => {
 							console.log(e);
 						});
@@ -243,11 +243,12 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 				// blurHash = await createBlurHash(readFileSync(`${base}/cover.png`));
 				copyFileSync(`${base}/cover.png`, `${imagesPath}/music/${id}.png`);
 			} else {
-				const img = readdirSync(`${p}`).find(a => a.endsWith('.jpg') || a.endsWith('.png'));
+				const img = readdirSync(`${p}`)
+					.find(a => a.endsWith('.jpg') || a.endsWith('.png'));
 				if (img) {
 					image = img
-						? `/${img}`
-						: null;
+						?						`/${img}`
+						:						null;
 					palette = await colorPaletteFromFile(`${p}/${img}`);
 					// blurHash = await createBlurHash(readFileSync(`${p}/${img}`));
 					copyFileSync(`${p}/${img}`, `${imagesPath}/music/${id}.png`);
@@ -273,15 +274,20 @@ export const getAlbumImage = async (id: string, library: EncodingLibrary, file: 
 	try {
 		console.log('Fetching cover');
 		palette = coverPath
-			? await colorPalette(coverPath)
-			: null;
+			?			await colorPalette(coverPath)
+			:			null;
 
-		const extension = coverPath?.replace(/.+(\w{3,})$/u, '$1').replace('unknown', 'png');
+		const extension = coverPath?.replace(/.+(\w{3,})$/u, '$1')
+			.replace('unknown', 'png');
 
 		if (!existsSync(`${imagesPath}/music/${id}.${extension}`)) {
-			await downloadImage({ url: coverPath, path: `${imagesPath}/music/${id}.${extension}` }).catch(() => {
-				//
-			});
+			await downloadImage({
+				url: coverPath,
+				path: `${imagesPath}/music/${id}.${extension}`,
+			})
+				.catch(() => {
+					//
+				});
 			if (existsSync(`${imagesPath}/music/${id}.${extension}`) && statSync(`${imagesPath}/music/${id}.${extension}`).size == 0) {
 				rmSync(`${imagesPath}/music/${id}.${extension}`);
 			}

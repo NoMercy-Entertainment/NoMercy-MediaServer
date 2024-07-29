@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { resolve } from 'path';
 
 import { fileChangedAgo, humanTime } from '@server/functions/dateTime';
 import Logger from '@server/functions/logger';
@@ -24,10 +24,10 @@ export default async ({ data, folder, libraryId }) => {
 		recursive: true,
 	}).then(async (fileList) => {
 
-		const folderFile = join(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
+		const folderFile = resolve(cachePath, 'temp', `${folder.replace(/[\\\/:]/gu, '_')}_parsed.json`);
 
 		let parsedFiles: ParsedFileList[];
-		if (existsSync(folderFile) && fileChangedAgo(folderFile, 'days') < 1 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0) {
+		if (existsSync(folderFile) && fileChangedAgo(folderFile, 'minutes') < 2 && JSON.parse(readFileSync(folderFile, 'utf-8')).length > 0) {
 			parsedFiles = JSON.parse(readFileSync(folderFile, 'utf-8'));
 		} else {
 			parsedFiles = await fileList.getParsedFiles(true);
@@ -129,16 +129,22 @@ export default async ({ data, folder, libraryId }) => {
 
 				try {
 					if (file.ffprobe && file.folder) {
+						// console.log({
+						// 	folders,
+						// 	folder: folder?.replace(/\\/gu, '/'),
+						// 	path: folders.map(f => f.path?.replace(/\\/gu, '/')),
+						// 	f: folders.find(f => folder?.replace(/\\/gu, '/').includes(f.path?.replace(/\\/gu, '/'))),
+						// });
 						insertVideoFileDB({
-							filename: file.ffprobe!.format.filename.replace(/.+[\\\/](.+)/u, '/$1'),
+							filename: file.ffprobe?.format?.filename?.replace(/.+[\\\/](.+)/u, '/$1'),
 							folder: file.folder + file.episodeFolder!,
-							hostFolder: file.ffprobe!.format.filename.replace(/(.+)[\\\/].+/u, '$1'),
-							duration: humanTime(file.ffprobe!.format.duration),
+							hostFolder: file.ffprobe?.format?.filename?.replace(/(.+)[\\\/].+/u, '$1'),
+							duration: humanTime(file.ffprobe?.format?.duration),
 							quality: JSON.stringify(getQualityTag(file.ffprobe)),
-							share: folders.find(f => folder.includes(f.path?.replace(/\\/gu, '/')))?.id as string,
+							share: folders.find(f => folder?.replace(/\\/gu, '/').includes(f.path?.replace(/\\/gu, '/')))?.id as string,
 							subtitles: JSON.stringify(getExistingSubtitles(file.ffprobe as VideoFFprobe)),
-							languages: JSON.stringify((file.ffprobe as VideoFFprobe).streams.audio.map(a => a.language)),
-							chapters: JSON.stringify((file.ffprobe as VideoFFprobe).chapters),
+							languages: JSON.stringify((file.ffprobe as VideoFFprobe)?.streams?.audio?.map(a => a.language)),
+							chapters: JSON.stringify((file.ffprobe as VideoFFprobe)?.chapters),
 							episode_id: episode?.id,
 						});
 					}
@@ -174,18 +180,19 @@ export default async ({ data, folder, libraryId }) => {
 			message: `Found ${haveEpisodes} usable files for: ${data.title ?? data.name}`,
 		});
 
-        process.send!({
-        	type: 'custom',
-        	event: 'update_content',
-        	data: ['library'],
-        });
-
-	}).catch((error) => {
-		Logger.log({
-			level: 'error',
-			name: 'App',
-			color: 'red',
-			message: JSON.stringify(['tv file', error]),
+		process?.send?.({
+			type: 'custom',
+			event: 'update_content',
+			data: ['library'],
 		});
-	});
+
+	})
+		.catch((error) => {
+			Logger.log({
+				level: 'error',
+				name: 'App',
+				color: 'red',
+				message: JSON.stringify(['tv file', error]),
+			});
+		});
 };

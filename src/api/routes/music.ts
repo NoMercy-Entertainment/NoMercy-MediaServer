@@ -21,27 +21,31 @@ import musicTypeSearch from '../media/music/typeSearch';
 import { asc, eq, like } from 'drizzle-orm';
 import { artists } from '@server/db/media/schema/artists';
 import { parseYear } from '@server/functions/dateTime';
+import albumLike from '../media/music/albumLike';
+import artistLike from '../media/music/artistLike';
 
 const router = express.Router();
 
-router.post('/', music);
+router.get('/', music);
 
-router.post('/genres', musicGenres);
-router.post('/genre/:id', musicGenre);
+router.get('/genres', musicGenres);
+router.get('/genre/:id', musicGenre);
 
-router.post('/album/:id', musicAlbum);
-router.post('/artist/:id', musicArtist);
+router.get('/album/:id', musicAlbum);
+router.post('/album/:id/like', albumLike);
+router.get('/artist/:id', musicArtist);
+router.post('/artist/:id/like', artistLike);
 
-router.post('/playlists', musicPlaylists);
-router.post('/playlist/:id', musicPlaylist);
-router.post('/playlist/:id/edit', musicEdit);
-router.post('/playlist/:id/add', musicAdd);
-router.post('/playlist/:id/delete', musicDelete);
+router.get('/playlists', musicPlaylists);
+router.get('/playlist/:id', musicPlaylist);
+router.patch('/playlist/:id', musicEdit);
+router.post('/playlist/:id', musicAdd);
+router.delete('/playlist/:id', musicDelete);
 
-router.post('/collection/tracks', musicFavorites);
-router.post('/collection/artists', musicArtists);
-router.post('/collection/albums', musicAlbums);
-router.post('/collection/playlists', musicPlaylists);
+router.get('/collection/tracks', musicFavorites);
+router.get('/collection/artists', musicArtists);
+router.get('/collection/albums', musicAlbums);
+router.get('/collection/playlists', musicPlaylists);
 
 router.post('/tracks/:id/like', musicLike);
 router.post('/lyrics', musicLyrics);
@@ -50,28 +54,28 @@ router.post('/search/:query/:type', musicTypeSearch);
 router.post('/coverimage', musicCoverImage);
 router.post('/images', musicImages);
 
-interface PlaylistItem {
-    id: string;
-    file: string;
-    coverImage: string;
-    duration: string;
-    trackNumber: number;
-    year: number;
-    title: string;
-    description: string;
-    artist: {
-        id: string;
-        name: string;
-        coverImage: string;
-    },
-    albums: {
-        id: string;
-        title: string;
-        description: string;
-        coverImage: string;
-        year: number;
-    },
-};
+export interface PlaylistItem {
+	id: string;
+	file: string;
+	coverImage: string;
+	duration: string;
+	trackNumber: number;
+	year: number;
+	title: string;
+	description: string;
+	artist: {
+		id: string;
+		name: string;
+		coverImage: string;
+	},
+	albums: {
+		id: string;
+		title: string;
+		description: string;
+		coverImage: string;
+		year: number;
+	},
+}
 
 router.post('/test', (req, res) => {
 	const a = globalThis.mediaDb.query.artists.findMany({
@@ -85,16 +89,16 @@ router.post('/test', (req, res) => {
 	});
 
 	const response: ({
-        id: string;
-        name: string;
-        cover: string;
-    })[] = [];
+		id: string;
+		name: string;
+		cover: string;
+	})[] = [];
 
 	for (const artist of a) {
 		response.push({
 			id: artist.id,
 			name: artist.name,
-			cover: `https://217-19-26-119.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv:7635/images/music/${artist.id}.jpg`,
+			cover: `https://217-19-26-119.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv:7636/images/music/${artist.id}.jpg`,
 		});
 	}
 
@@ -160,31 +164,33 @@ router.post('/test/:id', (req, res) => {
 		},
 	});
 
-	const response = artist?.artist_track.filter(t => !t.track.filename?.endsWith('.flac')).map(({ track }) => {
-		return {
-			id: track.id,
-			file: encodeURI(`https://217-19-26-119.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv:7635/${track.folder_id}${track.folder}${track.filename}`).replace(/#/gu, '%23'),
-			coverImage: `https://217-19-26-119.1968dcdc-bde6-4a0f-a7b8-5af17afd8fb6.nomercy.tv:7635/images/music/${track.id}.jpg`,
-			duration: track.duration ?? '',
-			trackNumber: track.track ?? 0,
-			year: parseYear(track.date ?? undefined) ?? 0,
-			title: track.name ?? '',
-			description: `${artist.name} - ${track.album_track[0].album.name ?? ''}`,
-			colorPalette: JSON.parse(track.colorPalette ?? '{}'),
-			artist: {
-				id: artist.id,
-				name: artist.name,
-				coverImage: artist.cover?.replace('http://', 'https://') ?? '',
-			},
-			albums: {
-				id: track.album_track[0].album.id,
-				title: track.album_track[0].album.name,
-				description: track.album_track[0].album.description ?? '',
-				coverImage: track.album_track[0].album.cover?.replace('http://', 'https://') ?? '',
-				year: track.album_track[0].album.year ?? 0,
-			},
-		};
-	}) ?? [];
+	const response = artist?.artist_track.filter(t => !t.track.filename?.endsWith('.flac'))
+		.map(({ track }) => {
+			return {
+				id: track.id,
+				file: encodeURI(`${req.body.host}/${track.folder_id}${track.folder}${track.filename}`)
+					.replace(/#/gu, '%23'),
+				coverImage: `${req.body.host}/images/music/${track.id}.jpg`,
+				duration: track.duration ?? '',
+				trackNumber: track.track ?? 0,
+				year: parseYear(track.date ?? undefined) ?? 0,
+				title: track.name ?? '',
+				description: `${artist.name} - ${track.album_track[0].album.name ?? ''}`,
+				color_palette: JSON.parse(track.colorPalette ?? '{}'),
+				artist: {
+					id: artist.id,
+					name: artist.name,
+					coverImage: artist.cover?.replace('http://', 'https://') ?? '',
+				},
+				albums: {
+					id: track.album_track[0].album.id,
+					title: track.album_track[0].album.name,
+					description: track.album_track[0].album.description ?? '',
+					coverImage: track.album_track[0].album.cover?.replace('http://', 'https://') ?? '',
+					year: track.album_track[0].album.year ?? 0,
+				},
+			};
+		}) ?? [];
 
 	return res.json(response);
 });

@@ -1,27 +1,21 @@
+import { and, asc, eq, inArray, InferModel, like, or } from 'drizzle-orm';
 
-import { convertBooleans } from '../../helpers';
-import { InferModel, and, eq, inArray, like, or } from 'drizzle-orm';
+import { album_artist } from '../schema/album_artist';
+import { album_library } from '../schema/album_library';
+import { album_track } from '../schema/album_track';
 import { albums } from '../schema/albums';
+import { artist_track } from '../schema/artist_track';
+import { convertBooleans } from '../../helpers';
 import { getAllowedLibraries } from './libraries';
 import { track_user } from '../schema/track_user';
-import { album_library } from '../schema/album_library';
-import { album_artist } from '../schema/album_artist';
-import { artist_track } from '../schema/artist_track';
-import { album_track } from '../schema/album_track';
+import { album_user } from '../schema/album_user';
 
 export type NewAlbum = InferModel<typeof albums, 'insert'>;
 export const insertAlbum = (data: NewAlbum) => globalThis.mediaDb.insert(albums)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
-		target: albums.id,
-		set: {
-			...convertBooleans(data),
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
-		},
+		target: [albums.id],
+		set: convertBooleans(data, true),
 	})
 	.returning()
 	.get();
@@ -39,14 +33,20 @@ export const selectAlbums = (letter: string, user_id: string) => {
 
 	const result = globalThis.mediaDb.query.albums.findMany({
 		with: {
+			album_track: {
+				columns: {
+					track_id: true,
+				},
+			},
 			library: {
 				with: {
 					library_user: true,
 				},
 			},
 		},
+		orderBy: asc(albums.name),
 		where: letter == '_'
-			? and(
+			?			and(
 				or(
 					like(albums.name, '*%'),
 					like(albums.name, '#%'),
@@ -65,7 +65,7 @@ export const selectAlbums = (letter: string, user_id: string) => {
 				),
 				inArray(album_library.library_id, allowedLibraries)
 			)
-			: and(
+			:			and(
 				like(albums.name, `${letter}%`),
 				inArray(album_library.library_id, allowedLibraries)
 			),
@@ -77,7 +77,7 @@ export const selectAlbums = (letter: string, user_id: string) => {
 			...a.library,
 			library_user: undefined,
 		},
-	})).sort((a, b) => a.name.localeCompare(b.name));
+	}));
 };
 
 export type AlbumWithRelations = ReturnType<typeof selectAlbum>;
@@ -94,6 +94,9 @@ export const selectAlbum = (id: string, user_id: string) => {
 				with: {
 					library_user: true,
 				},
+			},
+			album_user: {
+				where: eq(album_user.user_id, user_id),
 			},
 		},
 		where: and(
@@ -120,12 +123,14 @@ export const selectAlbum = (id: string, user_id: string) => {
 		where: eq(album_track.album_id, result.id),
 	});
 
-	const artistTracksResult = globalThis.mediaDb.query.artist_track.findMany({
-		with: {
-			artist: true,
-		},
-		where: inArray(artist_track.track_id, albumTrackResult.map(t => t.track_id)),
-	});
+	const artistTracksResult = albumTrackResult.length > 0
+		?		globalThis.mediaDb.query.artist_track.findMany({
+			with: {
+				artist: true,
+			},
+			where: inArray(artist_track.track_id, albumTrackResult.map(t => t.track_id)),
+		})
+		:		[];
 
 	const trackUserResult = globalThis.mediaDb.query.track_user.findMany({
 		where: and(

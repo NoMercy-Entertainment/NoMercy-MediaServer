@@ -1,6 +1,7 @@
 import { Request, Response } from 'express-serve-static-core';
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function (req: Request, res: Response) {
 
 	// if (await confDb.playlist.findFirst({

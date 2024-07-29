@@ -1,4 +1,5 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { files } from '../schema/files';
 import { createId } from '@paralleldrive/cuid2';
@@ -13,11 +14,8 @@ export const insertFileDB = (data: NewFile) => globalThis.mediaDb.insert(files)
 	.onConflictDoUpdate({
 		target: files.path,
 		set: {
-			...convertBooleans(data),
+			...convertBooleans(data, true),
 			id: data.id ?? undefined,
-			updated_at: new Date().toISOString()
-				.slice(0, 19)
-				.replace('T', ' '),
 		},
 	})
 	.returning()

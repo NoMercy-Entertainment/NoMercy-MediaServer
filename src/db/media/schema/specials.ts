@@ -8,7 +8,8 @@ export const specials = sqliteTable('specials', {
 	description: text('description'),
 	poster: text('poster'),
 	logo: text('logo'),
-	title: text('title').notNull(),
+	title: text('title')
+		.notNull(),
 	blurHash: text('blurHash'),
 	colorPalette: text('colorPalette'),
 	creator: text('creator'),
@@ -22,8 +23,10 @@ export const specials = sqliteTable('specials', {
 
 }, db => ({
 	pk: primaryKey(db.id),
-	index: index('specials_index').on(db.id),
-	unique: uniqueIndex('specials_unique').on(db.title),
+	index: index('specials_index')
+		.on(db.id),
+	unique: uniqueIndex('specials_unique')
+		.on(db.title),
 }));
 
 export const specialsRelations = relations(specials, ({ many }) => ({

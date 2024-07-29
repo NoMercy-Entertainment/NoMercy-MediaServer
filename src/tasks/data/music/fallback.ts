@@ -45,7 +45,7 @@ export default async (file: ParsedFileList, library: EncodingLibrary, currentFol
 
 
 	} catch (error) {
-
+		console.log(error);
 	}
 };
 
@@ -71,16 +71,18 @@ const createArtist = async (
 		.replace(/“/gu, '')
 		.replace(/‐/gu, '-');
 
-	const { image, colorPalette, blurHash } = await getArtistImage(currentFolder.folder.path as string, artist);
+	const {
+		image,
+		colorPalette,
+	} = await getArtistImage(currentFolder.folder.path as string, artist);
 
 	insertArtist({
 		id: artist.id,
 		name: artist.name,
 		cover: image,
-		blurHash: blurHash,
-		colorPalette: colorPalette
-			? JSON.stringify(colorPalette)
-			: undefined,
+		color_palette: colorPalette
+			?			JSON.stringify(colorPalette)
+			:			undefined,
 		folder: `/${artistName[0].toUpperCase()}/${artistName}`,
 		library_id: library.id as string,
 	});
@@ -115,7 +117,10 @@ const createAlbum = async (
 		message: `Adding album: ${album.title} by ${artist.name}`,
 	});
 
-	const { image, colorPalette, blurHash } = await getAlbumImage(album.id, library, file, currentFolder);
+	const {
+		image,
+		colorPalette,
+	} = await getAlbumImage(album.id, library, file, currentFolder);
 
 	insertAlbum({
 		id: album.id,
@@ -124,13 +129,12 @@ const createAlbum = async (
 		folder: `${file.folder}${file.musicFolder}`
 			.replace(/.+([\\\/]\[Various Artists\][\\\/].+)/u, '$1')
 			.replace('/Music', ''),
-		colorPalette: colorPalette
-			? JSON.stringify(colorPalette ?? '{}')
-			: undefined,
-		year: parseYear(album.date.toISOString()),
+		color_palette: colorPalette
+			?			JSON.stringify(colorPalette ?? '{}')
+			:			undefined,
+		year: parseYear(album.date),
 		tracks: album.media[0].tracks.length,
 		country: album.country,
-		blurHash: blurHash,
 		library_id: library.id as string,
 	});
 
@@ -144,8 +148,7 @@ const createAlbum = async (
 		artist_id: artist.id,
 	});
 
-	console.log(album.media);
-	for (const track of album.media[0].tracks) {
+	for (const track of album.media[0].tracks.filter(t => file.name.includes(t.title))) {
 		await createTrack(track, artist, album, file, currentFolder);
 	}
 
@@ -167,7 +170,10 @@ export const createTrack = async (
 
 	const Track = await getTrackInfo(track.id);
 
-	const { image, colorPalette, blurHash } = await getTrackImage(file, track.id);
+	const {
+		image,
+		colorPalette,
+	} = await getTrackImage(file, track.id);
 	const duration = humanTime(file.ffprobe?.format.duration);
 
 	if ((file.ffprobe as AudioFFprobe)?.audio?.codec_name == 'alac') {
@@ -182,22 +188,45 @@ export const createTrack = async (
 		file.name = file.name.replace(/(.+)\.\w{3,}$/u, '$1.flac');
 	}
 
+	console.log({
+		id: (Track || track).id,
+		name: (Track || track).title,
+		disc: Track?.releases[0].media[0].position || track.position,
+		track: Track?.releases[0].media[0].position || track.position,
+		cover: image,
+		color_palette: colorPalette
+			?			JSON.stringify(colorPalette)
+			:			undefined,
+		date: new Date(album?.date)?.toISOString()
+			.slice(0, 19)
+			.replace('T', ' '),
+		folder: file.musicFolder
+			?			`${file.folder}${file.musicFolder}`.replace('/Music', '')
+			:			file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/u, '$1')
+				.replace('/Music', ''),
+		filename: `/${file.name}`,
+		duration: duration,
+		path: file.path,
+		quality: 320,
+		folder_id: currentFolder.folder.id!,
+	});
+
 	insertTrack({
 		id: (Track || track).id,
 		name: (Track || track).title,
 		disc: Track?.releases[0].media[0].position || track.position,
 		track: Track?.releases[0].media[0].position || track.position,
 		cover: image,
-		colorPalette: colorPalette
-			? JSON.stringify(colorPalette)
-			: undefined,
-		blurHash: blurHash,
-		date: album?.date?.toISOString()
+		color_palette: colorPalette
+			?			JSON.stringify(colorPalette)
+			:			undefined,
+		date: new Date(album?.date)?.toISOString()
 			.slice(0, 19)
 			.replace('T', ' '),
 		folder: file.musicFolder
-			? `${file.folder}${file.musicFolder}`.replace('/Music', '')
-			: file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/u, '$1').replace('/Music', ''),
+			?			`${file.folder}${file.musicFolder}`.replace('/Music', '')
+			:			file.path.replace(/.+([\\\/].+[\\\/].+)[\\\/]/u, '$1')
+				.replace('/Music', ''),
 		filename: `/${file.name}`,
 		duration: duration,
 		path: file.path,
@@ -226,7 +255,7 @@ export const createTrack = async (
 			track_id: (Track || track).id,
 		});
 
-	};
+	}
 
 	Logger.log({
 		level: 'info',

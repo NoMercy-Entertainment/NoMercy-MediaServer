@@ -8,9 +8,11 @@ import { images } from './images';
 import { track_user } from './track_user';
 import { library_track } from './library_track';
 import { folders } from './folders';
+import { music_plays } from './music_plays';
 
 export const tracks = sqliteTable('tracks', {
-	id: text('id').primaryKey(),
+	id: text('id')
+		.primaryKey(),
 	name: text('name'),
 	track: integer('track'),
 	disc: integer('disc'),
@@ -26,7 +28,10 @@ export const tracks = sqliteTable('tracks', {
 	blurHash: text('blurHash'),
 
 	folder_id: text('folder_id')
-		.references(() => folders.id, { onDelete: 'cascade', onUpdate: 'cascade' })
+		.references(() => folders.id, {
+			onDelete: 'cascade',
+			onUpdate: 'cascade',
+		})
 		.notNull(),
 
 	created_at: text('created_at')
@@ -36,8 +41,10 @@ export const tracks = sqliteTable('tracks', {
 		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 }, db => ({
-	index: index('tracks_index').on(db.id),
-	unique: uniqueIndex('tracks_unique').on(db.filename, db.path),
+	index: index('tracks_index')
+		.on(db.id),
+	unique: uniqueIndex('tracks_unique')
+		.on(db.filename, db.path),
 }));
 
 export const tracksRelations = relations(tracks, ({ many }) => ({
@@ -48,4 +55,5 @@ export const tracksRelations = relations(tracks, ({ many }) => ({
 	images: many(images),
 	track_user: many(track_user),
 	musicGenre_track: many(musicGenre_track),
+	music_plays: many(music_plays),
 }));

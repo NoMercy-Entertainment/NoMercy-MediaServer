@@ -1,18 +1,15 @@
 import { Request, Response } from 'express-serve-static-core';
 
-import { inArray } from 'drizzle-orm';
+import { asc, inArray } from 'drizzle-orm';
 import { libraries } from '@server/db/media/schema/libraries';
 import { getAllowedLibraries } from '@server/db/media/actions/libraries';
 
-export default function (req: Request, res: Response) {
+export default function(req: Request, res: Response) {
 
 	const allowedLibraries = getAllowedLibraries(req);
 
 	if (!allowedLibraries || allowedLibraries.length == 0) {
-		return res.status(404).json({
-			status: 'error',
-			message: 'No libraries found',
-		});
+		return res.json([]);
 	}
 
 	const data = globalThis.mediaDb.query.libraries.findMany({
@@ -24,7 +21,9 @@ export default function (req: Request, res: Response) {
 				},
 			},
 		},
+		orderBy: asc(libraries.order),
 	});
-	return res.json(data);
+
+	return res.json({ data });
 
 }

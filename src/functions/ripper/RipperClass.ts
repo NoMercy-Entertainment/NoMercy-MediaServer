@@ -21,8 +21,9 @@ export interface DiscInfo {
     x: number | string;
 }
 
-enum RipperState {
+export enum RipperState {
     'MSG:5055' = 'error',
+    // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
     'MSG:5021' = 'error',
     'MSG:3025' = 'stream too short',
     'MSG:3307' = 'stream added',

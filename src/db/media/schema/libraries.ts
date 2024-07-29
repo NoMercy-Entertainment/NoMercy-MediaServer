@@ -1,6 +1,6 @@
 import { boolean, datetime } from '../../helpers';
 import { relations, sql } from 'drizzle-orm';
-import { text, sqliteTable, primaryKey, uniqueIndex, integer } from 'drizzle-orm/sqlite-core';
+import { integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { folder_library } from './folder_library';
 import { language_library } from './language_library';
 import { library_user } from './library_user';
@@ -15,18 +15,31 @@ import { library_track } from './library_track';
 
 export const libraries = sqliteTable('libraries', {
 	id: text('id'),
-	autoRefreshInterval: integer('autoRefreshInterval').notNull(),
-	chapterImages: boolean('chapterImages').notNull(),
-	extractChapters: boolean('extractChapters').notNull(),
-	extractChaptersDuring: boolean('extractChaptersDuring').notNull(),
+	autoRefreshInterval: integer('autoRefreshInterval')
+		.notNull(),
+	chapterImages: boolean('chapterImages')
+		.notNull(),
+	extractChapters: boolean('extractChapters')
+		.notNull(),
+	extractChaptersDuring: boolean('extractChaptersDuring')
+		.notNull(),
 	image: text('image'),
-	perfectSubtitleMatch: boolean('perfectSubtitleMatch').notNull(),
-	realtime: boolean('realtime').notNull(),
-	specialSeasonName: text('specialSeasonName').notNull(),
-	title: text('title').notNull(),
-	type: text('type').notNull(),
-	country: text('country').notNull(),
-	language: text('language').notNull(),
+	perfectSubtitleMatch: boolean('perfectSubtitleMatch')
+		.notNull(),
+	realtime: boolean('realtime')
+		.notNull(),
+	specialSeasonName: text('specialSeasonName')
+		.notNull(),
+	title: text('title')
+		.notNull(),
+	order: integer('order')
+		.default(99),
+	type: text('type')
+		.notNull(),
+	country: text('country')
+		.notNull(),
+	language: text('language')
+		.notNull(),
 	blurHash: text('blurHash'),
 	colorPalette: text('colorPalette'),
 	created_at: datetime('created_at')
@@ -37,7 +50,8 @@ export const libraries = sqliteTable('libraries', {
 		.notNull(),
 }, db => ({
 	pk: primaryKey(db.id),
-	unique: uniqueIndex('library_index').on(db.id, db.title),
+	unique: uniqueIndex('library_index')
+		.on(db.id, db.title),
 }));
 
 export const librariesRelations = relations(libraries, ({ many }) => ({

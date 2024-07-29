@@ -120,9 +120,9 @@ export const convertToSeconds = (hms: string | null) => {
  * @param {string} date - the date
  * @returns {number | undefined} - the year of the date
  */
-export const parseYear = function (date: string | number | undefined) {
+export const parseYear = function (date: string | number | undefined | null) {
 	if (!date) {
-		return undefined;
+		return null;
 	}
 	return new Date(date).getFullYear();
 };

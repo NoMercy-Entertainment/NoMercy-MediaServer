@@ -12,6 +12,7 @@ import { isComplete } from './complete';
 import { parseGroup } from './group';
 import { parseTitleAndYear } from './title';
 import { removeEmpty } from './utils';
+import { parseYear } from '../dateTime';
 
 export type ParsedTvInfo = Omit<Season, 'releaseTitle' | 'seriesTitle'>;
 
@@ -39,7 +40,7 @@ export type ParsedFilename = ParsedMovie | ParsedShow;
  * @param name release / file name
  * @param isTV
  */
-export function filenameParse(name: string, isTv = false): ParsedFilename {
+export function filenameParse(name: string, isTv = false): Partial<ParsedFilename> {
 	let title: ParsedFilename['title'] = '';
 	let year: ParsedFilename['year'] = null;
 
@@ -59,7 +60,7 @@ export function filenameParse(name: string, isTv = false): ParsedFilename {
 	const multi = isMulti(name);
 	const complete = isComplete(name);
 
-	const result: BaseParsed = {
+	const result: Partial<BaseParsed> = {
 		title,
 		year,
 		resolution: quality.resolution,
@@ -89,6 +90,14 @@ export function filenameParse(name: string, isTv = false): ParsedFilename {
 				isSpecial: season.isSpecial,
 				seasonPart: season.seasonPart,
 			};
+
+			if (season.seriesTitle.includes('(')) {
+				const title = season.seriesTitle.replace(/\s\(\d{4}\)/u, '');
+				const year = parseYear(season.seriesTitle);
+
+				season.seriesTitle = title;
+				result.year = year;
+			}
 
 			return {
 				...result,

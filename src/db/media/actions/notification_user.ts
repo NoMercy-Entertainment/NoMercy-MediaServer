@@ -1,17 +1,14 @@
 import { InferModel } from 'drizzle-orm';
+
 import { convertBooleans } from '@server/db/helpers';
 import { notification_user } from '../schema/notification_user';
 
 export type NewUserNotification = InferModel<typeof notification_user, 'insert'>;
 export const insertUserNotification = (data: NewUserNotification) => globalThis.mediaDb.insert(notification_user)
-	.values({
-		...convertBooleans(data),
-	})
+	.values(convertBooleans(data))
 	.onConflictDoUpdate({
 		target: [notification_user.notification_id, notification_user.user_id],
-		set: {
-			...convertBooleans(data),
-		},
+		set: convertBooleans(data),
 	})
 	.returning()
 	.get();

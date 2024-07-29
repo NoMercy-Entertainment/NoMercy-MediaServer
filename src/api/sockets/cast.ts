@@ -1,6 +1,7 @@
 import { AppState, useSelector } from '@server/state/redux';
+import SocketIO from 'socket.io';
 
-export default function (socket) {
+export default function(socket: SocketIO.Socket & { decoded_token: { sub: string, name: string } }) {
 
 	const chromeCast = useSelector((state: AppState) => state.config.chromeCast);
 

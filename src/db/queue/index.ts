@@ -15,4 +15,5 @@ export default () => {
 		schema: queueDbSchema,
 		// logger: new MyLogger(),
 	});
+	return globalThis.queueDb;
 };
